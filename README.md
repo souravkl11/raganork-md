@@ -1,19 +1,19 @@
 <div align="center">
 
-<a href="https://bit.ly/3lC8I7t"><img src="https://fontmeme.com/permalink/210920/61fb2f4d640ba30a9796151948bbaab7.png" alt="google-font" border="0"></a>
+<a href="https://bit.ly/3lC8I7t"><img src="https://www.linkpicture.com/q/LPic614d2ed1210cf676708793.png" alt="google-font" border="0"></a>
 
-  # <u> Simple Method <u>
-  Step-1: Click on scan qr code and get raganork code
-  
-  Step-2: Deploy To Heroku
-  
-  Step 3: Turn on worker
+  # <u> SETUP <u>
   
 [![Run on Repl.it](https://www.linkpicture.com/q/Untitled-3_10.jpg)](https://replit.com/@souravkl11/Raganork-QR)
 
 [![Deploy](https://www.linkpicture.com/q/heroku.jpg)](https://bit.ly/3hrN7gU)
      
-
+<a href="https://chat.whatsapp.com/ClnLdmPpRh1BjtAY86njhN"><img src="https://www.linkpicture.com/q/LPic614d2f8eed9fe797753793.png" alt="Join our group" height="25" width="500" border="0"></a>
+  
+  </p>
+  
+  </p>
+  
 <details>
     <summary>⏬<b>CLICK HERE FOR MORE INFO⏬</b></summary>
 
