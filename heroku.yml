@@ -1,5 +1,5 @@
 build:
   docker:
-      worker: /plugins/sql/Dockerfile
+      worker: /plugins/sql/Raganork (129)
 run:
    worker: npm start
