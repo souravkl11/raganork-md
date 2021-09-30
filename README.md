@@ -58,7 +58,25 @@ Project created by <a href="https://github.com/souravkl11">souravkl11</a> to mak
 <h4 align="center">Support Video For Deploy Bot 👇:</h4>
 <p align="center">
 <a href="https://youtu.be/iRLphwWvxrs" target="blank"><img align="center" src="https://i.ytimg.com/vi/iRLphwWvxrs/maxresdefault.jpg" height="180" width="300" /></a>
-</p>
+
+<div align="left">
+
+  # 🔄 Can I fork and edit this bot?
+As per the license, You Can But We Will Not Support. 🙃
+  
+  # Feature overview
+  
+- [x] Change image and contact of verified tick [ Exclusively on Raganork ]
+
+- [x] Change all major images and names of your bot
+
+- [x] Aco chatbot
+  
+- [x] Add plugins of your own without forking
+
+- [ ] Buttons (coming soon..)
+  
+  
   
 <div align="center">
 
@@ -105,7 +123,7 @@ Raganork സ്ഥാപിക്കുന്നതിലൂടെ, നിങ്
 ## Number ban ആവുന്നതിന്റെ കാരണം?
 
 <div align="center">
-  <img border-radius: 15px src="IMG-20210922-WA1170.jpg" width="200" height="200"/>
+  <img border-radius: 15px src="https://www.linkpicture.com/q/LPic6155b9b63a0db214707442.png" width="200" height="200"/>
   <p align="center">
 
 ## Developers
