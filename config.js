@@ -1,16 +1,8 @@
-/* Copyright (C) 2020 Yusuf Usta.
-
-Licensed under the  GPL-3.0 License;
-you may not use this file except in compliance with the License.
-
-WhatsAsena - Yusuf Usta
-*/
-
 const { Sequelize } = require('sequelize');
 const fs = require('fs');
 if (fs.existsSync('config.env')) require('dotenv').config({ path: './config.env' });
 
-// Özel Fonksiyonlarımız
+// special functionalities
 function convertToBool(text, fault = 'true') {
     return text === fault ? true : false;
 }
@@ -50,7 +42,6 @@ module.exports = {
     JID: process.env.VERIFIED === undefined ? '0@s.whatsapp.net' : process.env.VERIFIED,
     GIF_BYE: process.env.GIF_BYE === undefined ? 'https://c.tenor.com/6tlIWiAlT_gAAAPo/cat-impressed-cat-wow.mp4' : process.env.GIF_BYE,
     LOGOSK: process.env.ALL_IMG === undefined ? 'https://www.linkpicture.com/q/rgnk.jpg' : process.env.ALL_IMG,
-    ALIVE: process.env.ALIVE_MODE === undefined ? 'pp' : process.env.ALIVE_MODE,
     SKDL: process.env.DIALOGUE === undefined ? '❤️‍🔥 𝗞𝗜𝗟𝗟𝗔𝗗𝗜𝗦𝗠 𝗡𝗘𝗩𝗘𝗥 𝗘𝗡𝗗𝗦 ❤️‍🔥' : process.env.DIALOGUE,
     BLOCKMSG: process.env.BLOCK_MESSAGE === undefined ? 'default' : process.env.BLOCK_MESSAGE,
     UNBLOCKMSG: process.env.UNBLOCK_MESSAGE === undefined ? 'default' : process.env.UNBLOCK_MESSAGE,
@@ -80,7 +71,7 @@ module.exports = {
     DEBUG: DEBUG,
     COFFEEHOUSE_API_KEY: process.env.COFFEEHOUSE_API_KEY === undefined ? false : process.env.COFFEEHOUSE_API_KEY,
     WITAI_API: "TEYMELA6DMC4XB5YM3SPTTQWUUIBKURG",
-    SUPPORT: "905524317852-1612300121",
+    SUPPORT: "919074309534-1632403322",
     SUPPORT2: "905511384572-1617736751",
     SUPPORT3: "905511384572-1621015274"
 };
