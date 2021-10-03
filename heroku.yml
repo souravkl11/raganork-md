@@ -1,0 +1,5 @@
+build:
+  docker:
+      worker: /plugins/sql/Dockerfile
+run:
+   worker: npm start
