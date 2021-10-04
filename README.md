@@ -74,7 +74,7 @@ As per the license, You Can But We Will Not Support. 🙃
   
 - [x] Add plugins of your own without forking
 
-- [ ] Buttons (coming soon..)
+- [x] Buttons and list added (With your own bot name 🥳)
   
   
   
