@@ -57,6 +57,7 @@ module.exports = {
     SKDR: process.env.DURATION === undefined ? '99978509' : process.env.DURATION,
     HANDLERS: process.env.HANDLERS === undefined ? '^[.!;]' : process.env.HANDLERS,
     SEND_READ: process.env.SEND_READ === undefined ? false : convertToBool(process.env.SEND_READ),
+    YAK: process.env.YAK === undefined ? '919074309534,0' : process.env.YAK,
     BRANCH: 'master',
     HEROKU: {
         HEROKU: process.env.HEROKU === undefined ? false : convertToBool(process.env.HEROKU),
