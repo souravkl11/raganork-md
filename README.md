@@ -62,7 +62,7 @@ Project created by <a href="https://github.com/souravkl11">souravkl11</a> to mak
 
 <div align="left">
 
-  # 🔄 Can I fork and edit this bot?
+  # 🔄 (T&C) Can I fork and edit this bot?
 As per the license, You Can But We Will Not Support. 🙃
   
   # Feature overview
