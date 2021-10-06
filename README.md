@@ -9,7 +9,10 @@
 
 [![Deploy](https://www.linkpicture.com/q/heroku.jpg)](https://bit.ly/3hrN7gU)
      
-<a href="https://chat.whatsapp.com/ClnLdmPpRh1BjtAY86njhN"><img src="https://www.linkpicture.com/q/LPic614d2f8eed9fe797753793.png" alt="Join our group" height="25" width="500" border="0"></a>
+
+## <u> JOIN SUPPORT GROUP <u>
+
+<a href="https://chat.whatsapp.com/ClnLdmPpRh1BjtAY86njhN"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/766px-WhatsApp.svg.png" alt="Join our group" height="50" width="50" border="0"></a>
   
   </p>
   
