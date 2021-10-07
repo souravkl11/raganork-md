@@ -14,9 +14,20 @@
 
 <a href="https://chat.whatsapp.com/ClnLdmPpRh1BjtAY86njhN"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/766px-WhatsApp.svg.png" alt="Join our group" height="50" width="50" border="0"></a>
   
-  </p>
+<div align="left">
+ 
+  # Feature overview
   
-  </p>
+- [x] Change image and contact of verified tick [ Exclusively on Raganork ]
+
+- [x] .forward option (Exclusively on Raganork 🥳)
+
+- [x] Buttons and list added (With your own bot name 🥳)
+
+- [x] Aco chatbot
+  
+- [x] Add plugins of your own without forking
+
   
 <details>
     <summary>⏬<b>CLICK HERE FOR MORE INFO⏬</b></summary>
