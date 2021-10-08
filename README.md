@@ -7,7 +7,7 @@
   
 [![Run on Repl.it](https://www.linkpicture.com/q/Untitled-3_10.jpg)](https://replit.com/@souravkl11/Raganork-QR)
 
-[![Deploy](https://www.linkpicture.com/q/heroku.jpg)](https://bit.ly/3hrN7gU)
+[![Deploy](https://www.linkpicture.com/q/heroku.jpg)](https://cntr.click/t4XYC1k)
      
 
 ## <u> JOIN SUPPORT GROUP <u>
@@ -28,7 +28,7 @@
   
 - [x] Add plugins of your own without forking
 
-  
+<div align="center">  
 <details>
     <summary>⏬<b>CLICK HERE FOR MORE INFO⏬</b></summary>
 
