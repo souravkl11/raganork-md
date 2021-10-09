@@ -27,12 +27,12 @@
         },
         "admin": {
             "BAN_DESC": "Ban someone in the group. Reply to message or tag a person to use command.",
-            "IM_NOT_ADMIN": "*njan admin alla macha☹️*",
+            "IM_NOT_ADMIN": "*Bot is not an Admin*",
             "BANNED": "Mwonu Ok Bie!",
-            "GIVE_ME_USER": "*arelum mention chey😈!*",
+            "GIVE_ME_USER": "*Mention any user!*",
             "ADD_DESC": "Adds someone to the group.",
             "ADDED": "added to the group!",
-            "ALREADY_PROMOTED": "```Avan admin anu nenpa🙃```",
+            "ALREADY_PROMOTED": "```Given user is alresdy an admin```",
             "PROMOTED": "```admin role was given!```",
             "PROMOTE_DESC": "Makes any person an admin.",
             "DEMOTE_DESC": "Takes the authority of any admin.",
@@ -43,7 +43,7 @@
             "UNMUTE_DESC": "Unmute the group chat. Anyone can send a message.",
             "UNMUTED": "```The group chat has unmuted!```",
             "INVITE_DESC": "Provides the group's invitation link.",
-            "INVITE": "```Invitation link: ```"
+            "INVITE": "*Invitation link:*"
         },
         "locate": {
             "L_DESC": "It send your location.",
@@ -72,10 +72,10 @@
             "MUST_TEXT": "```Please reply to any message```"
         },
         "heroku": {
-            "RESTART_DESC": "Restart WhatsAsena",
-            "RESTART_MSG": "```Restarting...🧚‍♂️```",
-            "SHUTDOWN_DESC": "Shutdown WhatsAsena",
-            "SHUTDOWN_MSG": "```Njan pova... Bei 😕```",
+            "RESTART_DESC": "Restarts the bot",
+            "RESTART_MSG": "```Restarting...```",
+            "SHUTDOWN_DESC": "Shutdown Bot",
+            "SHUTDOWN_MSG": "```Shutting down... ❌```",
             "DYNO_DESC": "Check heroku dyno usage",
             "DYNO_TOTAL": "```Total Quota```",
             "DYNO_USED": "```Quota used```",
@@ -128,7 +128,7 @@
         "memes": {
             "MEMES_DESC": "Photo memes you replied to.",
             "NEED_REPLY": "*Reply to a photo!*",
-            "DOWNLOADING": "```Downloading media & making meme...```"
+            "DOWNLOADING": "```Making meme...```"
         },
         "log": {
             "LOG": "Saves the message you reply to your private number.",
@@ -149,7 +149,7 @@
         },
         "profile": {
             "KICKME_DESC": "It kicks you from the group you are using it in.",
-            "KICKME": "```Bye bye! I am going 🤠```",
+            "KICKME": "```Leaving from the group...```",
             "PP_DESC": "Makes the profile photo what photo you reply.",
             "NEED_PHOTO": "*Give me a photo!*",
             "PPING": "```Setting profile photo...```",
@@ -161,14 +161,14 @@
             "UNBLOCKED_UPPER": "Unblocked.",
             "NEED_USER": "Give me a user!",
             "JID_DESC": "Giving user's JID.",
-            "JID": "```JID address of``` @{} ```: {}```",
-            "JID_CHAT": "```Chat's JID address: {}```"
+            "JID": "```JID address of``` @{} : {}",
+            "JID_CHAT": "*JID* :{}"
         },
         "removebg": {
             "REMOVEBG_DESC": "Removes the background of the photos.",
             "NEED_PHOTO": "*photo thaa mwonu!*",
-            "NO_API_KEY": "*Nee API key koduthittilla*\n```remove.bg login for apikey```",
-            "RBGING": "```Removing...```"
+            "NO_API_KEY": "*You have no API key*\n```remove.bg login for apikey```",
+            "RBGING": "```Removing background...```"
         },
         "scrapers": {
             "TRANSLATE_DESC": "It translates with Google Translate. You must reply any message.",
@@ -199,12 +199,12 @@
             "SEARCHING": "*🔎 Searching...*",
             "WIKI_DESC": "Searches query on Wikipedia.",
             "IMG_DESC": "Searches for related pics on Google.",
-            "IMG": "```Uploading photo``` *{}* ```number``` *{}*"
+            "IMG": "```Searching image``` *{}* ```number``` *{}*"
         },
         "sticker": {
             "STICKER_DESC": "It converts your replied photo or video to sticker.",
             "NEED_REPLY": "*Reply to a photo or video!*",
-            "DOWNLOADING": "```Ippo Set akka ⚡```"
+            "DOWNLOADING": "```Converting to sticker...```"
         },
         "system_stats": {
             "ALIVE_DESC": "Does bot work?",
@@ -217,13 +217,13 @@
         "updater": {
             "UPDATER_DESC": "Checks the update.",
             "UPDATE": "*YOU ARE USING THE LATEST VERSION OF RAGANORK 🥳!*",
-            "NEW_UPDATE": "_https://chat.whatsapp.com/ClnLdmPpRh1BjtAY86njhN_ \n\n 𝙍𝙖𝙜𝙖𝙣𝙤𝙧𝙠 𝙣𝙚𝙬 𝙪𝙥𝙙𝙖𝙩𝙚 𝙫𝙖𝙣𝙣𝙞𝙩𝙩𝙪𝙣𝙙 𝙉𝙖𝙣𝙗𝙖𝙖 🥳 \n\n 𝘾𝙝𝙖𝙖𝙙𝙞𝙠𝙠𝙚𝙧𝙞 𝙘𝙝𝙚𝙮𝙮𝙖𝙡𝙡𝙚... 𝘼𝙖𝙙𝙝𝙮𝙖𝙢 𝙂𝙧𝙤𝙪𝙥𝙞𝙡 𝙘𝙝𝙤𝙞𝙠𝙠 , 𝘼𝙡𝙡𝙚𝙣𝙠𝙞𝙡 𝙚𝙧𝙧𝙤𝙧 𝙠𝙞𝙩𝙩𝙖𝙣 𝙘𝙝𝙖𝙣𝙘𝙚 𝙪𝙣𝙙 😅\n\n𝘾𝙝𝙖𝙣𝙜𝙚𝙨:\n",
+            "NEW_UPDATE": "_https://chat.whatsapp.com/ClnLdmPpRh1BjtAY86njhN_ \n\n NEW UPDATE AVAILABLE 🥳 \n\n ASK GROUP BEFORE UPDATING\n\n𝘾𝙝𝙖𝙣𝙜𝙚𝙨:\n",
             "UPDATE_NOW_DESC": "It makes updates.",
-            "UPDATING": "𝙐𝙥𝙙𝙖𝙩𝙚 𝙖𝙖𝙠𝙪𝙣𝙣𝙪. 𝙊𝙧𝙪 5 - 8 𝙢𝙞𝙣𝙪𝙩𝙚 𝙬𝙖𝙞𝙩 𝙖𝙠𝙠 💥",
+            "UPDATING": "```⏫ Updating to the latest version. This may take few minutes```",
             "INVALID_HEROKU": "*❌ Your Heroku information is wrong!*",
-            "UPDATED": "𝙐𝙥𝙙𝙖𝙩𝙚 𝙖𝙖𝙮𝙞 🥳",
+            "UPDATED": "```Build finished!```",
             "UPDATED_LOCAL": "*✅ Successfully Updated!*",
-            "AFTER_UPDATE": "𝙍𝙚𝙨𝙩𝙖𝙧𝙩𝙞𝙣𝙜 𝙖𝙣𝙙 𝙖𝙥𝙥𝙡𝙮𝙞𝙣𝙜 𝙘𝙝𝙖𝙣𝙜𝙚𝙨 ✅"
+            "AFTER_UPDATE": "```Restarting and applying changes``` ✅"
         },
         "weather": {
             "WEATHER_DESC": "Shows the weather.",
@@ -278,7 +278,7 @@
             "TITLE": "Title",
             "PUBLICATION": "Publication",
             "SONGL": "Link",
-            "NEED_SONG": "Song name para nenba 🥲.",
+            "NEED_SONG": "```Type your song name```.",
             "NOT_FOUNDS" : "No such songs found!",
             "JOOX_DESC": "Brings you the song details and a link for it.",
             "LYRICS_DESC": "Brings you the song Lyrics.",
@@ -317,7 +317,7 @@
             "MP4TOAUDİO_NEEDREPLY": "*You Must Reply to a Video!*",
             "MP4TOAUDİO": "```Converting Video to Audio..```",
             "STİCKER_DESC": "Converts the sticker to a photo.",
-            "STİCKER_NEEDREPLY": "*Photokk Reply ayitt ayakk*",
+            "STİCKER_NEEDREPLY": "```Reply to a sticker```",
             "STİCKER": "```Converting...```",
             "XMEDİA_DESC": "It is a plugin with more than 25 media tools.",
             "T_FALSE": "```❌ Incorrect Blend Effect Entered!```\n```🔎 Existing Commands:```\n\n*$dodge* - Applies a pink color filter to the video.\n*$multiply* - Applies a green color filter to the video.\n*$grainmerge* - Increases the contrast of the video.\n*$and* - Applies black lightning effect according to the speed of the video.\n*$or* - Applies a white lightning effect according to the speed of the video.\n*$burn* - Applies green contrast to video.\n*$difference* - Shows the differences by applying green relief to the video.\n*$grainextract* - Shows the differences by applying gray relief to the video.\n*$divide* - Demonstrates the differences by applying a pink relief to the video.\n*$xor* - Applies both green relief and lightning effect to video.\n*$hardmix* - Mixes the colors of the video into a yellow and red tone.\n*$negation* - Turns the dynamics of the video to pink.",
@@ -470,7 +470,7 @@
             "SAVE_USAGE": "Reply a message and type .save or just use .save <Your note> without replying",
             "REPLY": "Please provide a note or reply to a message.",
             "SUCCESSFULLY_ADDED": "Successfully added new note, check your notes with .notes.",
-            "UNSUCCESSFUL": "Could not add note, please try again later or contact WhatsAsena developers.",
+            "UNSUCCESSFUL": "Could not add note, please try again later or contact developer.",
             "DELETE_USAGE": "Deletes *all* your saved notes.",
             "SUCCESSFULLY_DELETED": "Successfully deleted all your notes."
         },
@@ -516,7 +516,7 @@
             "ARAT": "Searched Song:"
         },
         "github": {
-            "GİTHUB_DESC": "Collects github information from the given username.\n⌨️ Example: .github phaticusthiccy",
+            "GİTHUB_DESC": "Collects github information from the given username.\n⌨️ Example: .github souravkl11",
             "REPLY": "```You Need To Type Any Username!```",
             "NOT": "```User not found!```",
             "FOLLOWERS": "Followers:",
