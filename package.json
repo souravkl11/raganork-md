@@ -50,6 +50,7 @@
     "google-translate-tts": "^0.3.0",
     "got": "^11.8.2",
     "heroku-client": "^3.1.0",
+    "imgur-uploader": "4.2.1",
     "jimp": "0.16.0",
     "js-ffmpeg": "0.0.26",
     "jsdom": "^16.5.1",
