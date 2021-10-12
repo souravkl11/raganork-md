@@ -1,8 +1,5 @@
-/* Copyright (C) 2020 afnanplk.
-Licensed under the  GPL-3.0 License;
-you may not use this file except in compliance with the License.
-WhatsAsena - Yusuf Usta f
-*/
+// CREDIT GOES TO AFNANPLK
+//Copy with credit
 
 const Asena = require('../events');
 const {MessageType} = require('@adiwajshing/baileys');
