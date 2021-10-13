@@ -1,6 +1,6 @@
 {
   "name": "Raganork",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Raganork whatsapp bot- Modified version of Whatsasena by Yusuf usta.",
   "main": "./Raganork/bot.js",
   "scripts": {
@@ -69,6 +69,7 @@
     "solenolyrics": "^5.0.0",
     "translatte": "^3.0.0",
     "wikijs": "^6.0.1",
+    "wa-sticker-formatter": "4.0.14",
     "yt-search": "^2.7.4",
     "ytdl-core": "^4.8.3"
   }
