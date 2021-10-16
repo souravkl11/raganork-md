@@ -12,7 +12,7 @@
 
 ## <u> JOIN SUPPORT GROUP <u>
 
-<a href="https://chat.whatsapp.com/ClnLdmPpRh1BjtAY86njhN"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/766px-WhatsApp.svg.png" alt="Join our group" height="50" width="50" border="0"></a>
+<a href="https://i.imgur.com/XooRQv2.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/766px-WhatsApp.svg.png" alt="Join our group" height="50" width="50" border="0"></a>
   
 <div align="left">
  
