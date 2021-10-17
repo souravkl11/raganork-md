@@ -22,7 +22,7 @@ if (Config.WORKTYPE == 'private') {
                     jids.push(uye.id.replace('c.us', 's.whatsapp.net'));
                 }
             });
-            await message.client.sendMessage(message.jid,Lang.USER + '@' + message.reply_message.jid.split('@')[0] , MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
+            await message.client.sendMessage(message.jid,'```Report ⚠️```' + '@' + message.reply_message.jid.split('@')[0] , MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
         
         }
         else if (match[1] !== '' && message.reply_message) {
@@ -43,7 +43,7 @@ if (Config.WORKTYPE == 'private') {
     }));
 }
 else if (Config.WORKTYPE == 'public') {
-    Asena.addCommand({pattern: 'report ?(.*)', fromMe: false, desc: Lang.REPORT}, (async (message, match) => {
+    Asena.addCommand({pattern: 'report ?(.*)', fromMe: false, desc: 'Reports user'}, (async (message, match) => {
         if (match[1] == '' && message.reply_message) {
             let grup = await message.client.groupMetadata(message.jid);
             var jids = [];
@@ -54,7 +54,7 @@ else if (Config.WORKTYPE == 'public') {
                     jids.push(uye.id.replace('c.us', 's.whatsapp.net'));
                 }
             });
-            await message.client.sendMessage(message.jid,Lang.USER + '@' + message.reply_message.jid.split('@')[0] , MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
+            await message.client.sendMessage(message.jid,'```Report ⚠️```' + '@' + message.reply_message.jid.split('@')[0] , MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
         
         }
         else if (match[1] !== '' && message.reply_message) {
@@ -73,7 +73,7 @@ else if (Config.WORKTYPE == 'public') {
             return message.client.sendMessage(message.jid,Lang.REPLY, MessageType.text);
         }
     }));
-    Asena.addCommand({pattern: 'report ?(.*)', fromMe: true, desc: Lang.REPORT, dontAddCommandList: true}, (async (message, match) => {
+    Asena.addCommand({pattern: 'report ?(.*)', fromMe: true, desc: 'Reports user', dontAddCommandList: true}, (async (message, match) => {
         if (match[1] == '' && message.reply_message) {
             let grup = await message.client.groupMetadata(message.jid);
             var jids = [];
@@ -84,7 +84,7 @@ else if (Config.WORKTYPE == 'public') {
                     jids.push(uye.id.replace('c.us', 's.whatsapp.net'));
                 }
             });
-            await message.client.sendMessage(message.jid,Lang.USER + '@' + message.reply_message.jid.split('@')[0] , MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
+            await message.client.sendMessage(message.jid,'```Report ⚠️```' + '@' + message.reply_message.jid.split('@')[0] , MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
         
         }
         else if (match[1] !== '' && message.reply_message) {
