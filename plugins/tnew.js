@@ -52,9 +52,9 @@ if (Config.LANG == 'HI') ldc = '*लिंक का पता चला!*'
 if (Config.LANG == 'ES') ldc = '*Enlace Detectado!*'
 Asena.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (message, match) => {
     if (therikick_var == 'true' && message.jid !== '918136831431-1622800343@g.us') {
-        let regex1 = new RegExp('thayoli')
-        let regex2 = new RegExp('thaayoli')
-        let regex3 = new RegExp('thayolli')
+        let regex1 = new RegExp('pussy')
+        let regex2 = new RegExp('porn')
+        let regex3 = new RegExp('xvideos')
         let regex4 = new RegExp('nude')
         let regex5 = new RegExp('boobs')
         let regex6 = new RegExp('mia')
