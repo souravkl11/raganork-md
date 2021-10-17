@@ -11,7 +11,7 @@ const Lang = Language.getString('qrgenerator');
 
 if (Config.WORKTYPE == 'private') {
 
-Asena.addCommand({pattern: 'qr ?(.*)', fromMe: true, desc: Lang.QR_DESC}, (async (message, match) => {
+Asena.addCommand({pattern: 'qr ?(.*)', fromMe: true, desc: 'Converts text to qr code'}, (async (message, match) => {
 
     if (match[1] === '') return await message.sendMessage(Lang.TEXT);
 
@@ -23,7 +23,7 @@ Asena.addCommand({pattern: 'qr ?(.*)', fromMe: true, desc: Lang.QR_DESC}, (async
 }
 if (Config.WORKTYPE == 'public') {
 
-Asena.addCommand({pattern: 'qr ?(.*)', fromMe: false, desc: Lang.QR_DESC}, (async (message, match) => {
+Asena.addCommand({pattern: 'qr ?(.*)', fromMe: false, desc: 'Converts text to qr code'}, (async (message, match) => {
 
     if (match[1] === '') return await message.sendMessage(Lang.TEXT);
 
