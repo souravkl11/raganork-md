@@ -33,7 +33,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'px4mp4', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video!*');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video!*');
         var downloading = await message.client.sendMessage(message.jid,'```Editing..```',MessageType.text)
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -55,7 +55,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'px2mp4', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video!*');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video!*');
         var downloading = await message.client.sendMessage(message.jid,'```Editing..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -77,7 +77,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pmp4image', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.image) return await message.sendMessage('*Need Photo!*');
+        if (!message.reply_message.image) return await message.sendMessage('*Need Photo!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -101,7 +101,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pspectrum', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -122,7 +122,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pwaves', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -143,7 +143,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pfrequency', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
             var location = await message.client.downloadAndSaveMediaMessage({
                 key: {
@@ -164,7 +164,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pavec', fromMe: true, dontAddCommandList: true}, (async (message, match) => {   
  
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -185,7 +185,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pvolumeaudio', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -206,7 +206,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pcqtaudio', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -677,7 +677,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pinterp ?(.*)', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video and FPS Value.*\nEx: ```.interp 100```');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video and FPS Value.*\nEx: ```.interp 100```');
         if (message.reply_message.video && match[1] <= 10) return await message.sendMessage('*Low FPS Value ⚠️*\n*Please, type over 10*');
         if (message.reply_message.video && match[1] >= 500) return await message.sendMessage('*High FPS Value ⚠️*\n*Please, type under 500*')
    
@@ -898,7 +898,7 @@ if (Config.WORKTYPE == 'private') {
 
     Asena.addCommand({pattern: 'pmp4slowmo', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video!*');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video!*');
         var downloading = await message.client.sendMessage(message.jid,'```Motion Render Interpolating..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -1588,7 +1588,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'interp ?(.*)', fromMe: false, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video and FPS Value.*\nEx: ```.interp 100```');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video and FPS Value.*\nEx: ```.interp 100```');
         if (message.reply_message.video && match[1] <= 10) return await message.sendMessage('*Low FPS Value ⚠️*\n*Please, type over 10*');
         if (message.reply_message.video && match[1] >= 500) return await message.sendMessage('*High FPS Value ⚠️*\n*Please, type under 500*')
    
@@ -1840,7 +1840,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'px4mp4', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video!*');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video!*');
         var downloading = await message.client.sendMessage(message.jid,'```Editing..```',MessageType.text)
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -1862,7 +1862,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'px2mp4', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video!*');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video!*');
         var downloading = await message.client.sendMessage(message.jid,'```Editing..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -1884,7 +1884,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pmp4image', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.image) return await message.sendMessage('*Need Photo!*');
+        if (!message.reply_message.image) return await message.sendMessage('*Need Photo!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -1908,7 +1908,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pspectrum', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -1929,7 +1929,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pwaves', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -1950,7 +1950,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pfrequency', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
             var location = await message.client.downloadAndSaveMediaMessage({
                 key: {
@@ -1971,7 +1971,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pavec', fromMe: true, dontAddCommandList: true}, (async (message, match) => {   
  
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -1992,7 +1992,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pvolumeaudio', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -2013,7 +2013,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pcqtaudio', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message) return await message.sendMessage('*Need Audio!*');
+        if (!message.reply_message) return await message.sendMessage('*Need Audio!*');
         var downloading = await message.client.sendMessage(message.jid,'```Converting..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
@@ -2484,7 +2484,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pinterp ?(.*)', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video and FPS Value.*\nEx: ```.interp 100```');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video and FPS Value.*\nEx: ```.interp 100```');
         if (message.reply_message.video && match[1] <= 10) return await message.sendMessage('*Low FPS Value ⚠️*\n*Please, type over 10*');
         if (message.reply_message.video && match[1] >= 500) return await message.sendMessage('*High FPS Value ⚠️*\n*Please, type under 500*')
    
@@ -2705,7 +2705,7 @@ else if (Config.WORKTYPE == 'public') {
 
     Asena.addCommand({pattern: 'pmp4slowmo', fromMe: true, dontAddCommandList: true}, (async (message, match) => {    
 
-        if (.message.reply_message.video) return await message.sendMessage('*Need Video!*');
+        if (!message.reply_message.video) return await message.sendMessage('*Need Video!*');
         var downloading = await message.client.sendMessage(message.jid,'```Motion Render Interpolating..```',MessageType.text);
         var location = await message.client.downloadAndSaveMediaMessage({
             key: {
