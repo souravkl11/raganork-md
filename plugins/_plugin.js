@@ -57,7 +57,7 @@ Asena.addCommand({pattern: 'install ?(.*)', fromMe: true, desc: Lang.INSTALL_DES
         try {
             require('./' + plugin_name);
         } catch (e) {
-            fs.unlinkSync('/root/WhatsAsenaDuplicated/plugins/' + plugin_name + '.js')
+            fs.unlinkSync('/skl/Raganork/plugins/' + plugin_name + '.js')
             return await message.sendMessage(Lang.INVALID_PLUGIN + ' ```' + e + '```');
         }
 
