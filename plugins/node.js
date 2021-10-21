@@ -59,10 +59,10 @@ function webp2mp4File(path) {
 }
 
 
-   Asena.addCommand({pattern: 'mp4$', desc: '```Converts sticker to video```', fromMe: false}, (async (message, match) => {
+   Asena.addCommand({pattern: 'mp4$', desc: '```Converts animated sticker to video```', fromMe: false}, (async (message, match) => {
         const mid = message.jid
         if (message.reply_message === false) return await message.sendMessage("```Need video```");
-        await message.client.sendMessage(mid, '```Generating video...```', MessageType.text)
+        await message.client.sendMessage(mid, '```Converting to video format```', MessageType.text)
         const savedFilename = await message.client.downloadAndSaveMediaMessage({
             key: {
                 remoteJid: message.reply_message.jid,
@@ -72,11 +72,11 @@ function webp2mp4File(path) {
         });
         await webp2mp4File(savedFilename).then(async (rest) => {
             await Axios({ method: "GET", url: rest.result, responseType: "stream"}).then(({ data }) => {
-                const saving = data.pipe(fs.createWriteStream('/root/WhatsAsenaDuplicated/stweb.mp4'))
+                const saving = data.pipe(fs.createWriteStream('/skl/Raganork/stweb.mp4'))
                 saving.on("finish", async () => {
-                    await message.client.sendMessage(mid, fs.readFileSync('/root/WhatsAsenaDuplicated/stweb.mp4'), MessageType.video, { mimetype: Mimetype.mp4, caption: Config.AFN, quoted: message.data })
+                    await message.client.sendMessage(mid, fs.readFileSync('/skl/Raganork/stweb.mp4'), MessageType.video, { mimetype: Mimetype.mp4, caption: Config.AFN, quoted: message.data })
                     if (fs.existsSync(savedFilename)) fs.unlinkSync(savedFilename)
-                    if (fs.existsSync('/root/WhatsAsenaDuplicated/stweb.mp4')) fs.unlinkSync('/root/WhatsAsenaDuplicated/stweb.mp4')
+                    if (fs.existsSync('/skl/Raganork/stweb.mp4')) fs.unlinkSync('/skl/Raganork/stweb.mp4')
                 })
             })
         })
