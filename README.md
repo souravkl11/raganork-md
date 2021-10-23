@@ -20,7 +20,7 @@
 
 </div>
 <p align="center">
-Project created by <a href="https://github.com/ROMEO-77">aju</a> to make it public
+Project created by <a href="https://github.com/ROMEO-77">ROMEO</a> to make it public
     <br>
        | © |
         Reserved |
