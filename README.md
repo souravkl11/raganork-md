@@ -1,3 +1,7 @@
+
+
+
+
 <div align="center">
 
 <a href="https://bit.ly/3lC8I7t"><img src="https://www.linkpicture.com/q/LPic614d2ed1210cf676708793.png" alt="google-font" border="0"></a>
@@ -5,7 +9,7 @@
 
   # <u> SETUP <u>
   
-[![Run on Repl.it](https://www.linkpicture.com/q/Untitled-3_10.jpg)](https://replit.com/@souravkl11/Raganork-QR)
+[![Run on Repl.it](https://www.linkpicture.com/q/Untitled-3_10.jpg)](https://replit.com/@ROMEO-77/ROMEO-QR)
 
 [![Deploy](https://www.linkpicture.com/q/heroku.jpg)](https://heroku.com/deploy?template=https://github.com/bot-repo/bot-setting.git)
      
@@ -18,9 +22,9 @@
  
   # Feature overview
   
-- [x] Change image and contact of verified tick [ Exclusively on Raganork ]
+- [x] Change image and contact of verified tick [ Exclusively on ROMEO ]
 
-- [x] .forward option (Exclusively on Raganork 🥳)
+- [x] .forward option (Exclusively on ROMEO 🥳)
 
 - [x] Buttons and list added (With your own bot name 🥳)
 
@@ -34,21 +38,21 @@
 
 <div align="center">
   
-## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Times&color=F7001E&size=25&lines=Raganork+Whatsapp+Bot;With+Tons+of+features;Complete+Malayalam+content;Best+Bgm+Bot;Edited+from+WhatsAsena;Made+By+SouravKL11)](https://bit.ly/3lC8I7t)
+## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Times&color=F7001E&size=25&lines=ROMEO+Whatsapp+Bot;With+Tons+of+features;Complete+Malayalam+content;Best+Bgm+Bot;Edited+from+WhatsAsena;Made+By+ROMEO-77)](https://bit.ly/3lC8I7t)
 
 
   <a href="https://youtu.be/iRLphwWvxrs" target="blank"><img align="center" src="NL.png" height="400" width="450" /></a>
 </p>
   
   <p align="center">
-<a href="#"><img title="Raganork" src="https://img.shields.io/badge/Raganork-green?colorA=ff0000&colorB=ff0000&style=for-the-badge"></a>
+<a href="#"><img title="ROMEO" src="https://img.shields.io/badge/ROMEO-green?colorA=ff0000&colorB=ff0000&style=for-the-badge"></a>
 </p>
   <p align="center">
-<a href="https://github.com/souravkl11"><img title="Author" src="https://img.shields.io/badge/Author-souravkl11-raganork/Raganork?color=000000&style=for-the-badge&logo=whatsapp"></a>
+<a href="https://github.com/ROMEO-77"><img title="Author" src="https://img.shields.io/badge/Author-ROMEO-77-ROMEO/ROMEO?color=000000&style=for-the-badge&logo=whatsapp"></a>
 </p>
 </div>
 <p align="center">
-Project created by <a href="https://github.com/souravkl11">souravkl11</a> to make it public
+Project created by <a href="https://github.com/ROMEO-77">ROMEO-77</a> to make it public
     <br>
        | © |
         Reserved |
@@ -58,12 +62,12 @@ Project created by <a href="https://github.com/souravkl11">souravkl11</a> to mak
 ----
 
   <p align="center">
-  <a href="httsp://github.com/souravkl11/Raganork">
-    <img src="https://img.shields.io/github/repo-size/souravkl11/Raganork?color=green&label=Repo%20total%20size&style=plastic">
+  <a href="httsp://github.com/ROMEO-77/ROMEO">
+    <img src="https://img.shields.io/github/repo-size/ROMEO-77/ROMEO?color=green&label=Repo%20total%20size&style=plastic">
 <p align="center">
-<a href="https://github.com/souravkl11/followers"><img title="Followers" src="https://img.shields.io/github/followers/souravkl11?color=f7df1e&style=flat-square"></a>
-<a href="https://github.com/souravkl11/Raganork/stargazers/"><img title="Stars" src="https://img.shields.io/github/stars/souravkl11/Raganork?color=f7df1e&style=flat-square"></a>
-<a href="https://github.com/souravkl11/Raganork/network/members"><img title="Forks" src="https://img.shields.io/github/forks/souravkl11/Raganork?color=f7df1e&style=flat-square"></a>
+<a href="https://github.com/ROMEO-77/followers"><img title="Followers" src="https://img.shields.io/github/followers/ROMEO-77?color=f7df1e&style=flat-square"></a>
+<a href="https://github.com/ROMEO-77/ROMEO/stargazers/"><img title="Stars" src="https://img.shields.io/github/stars/ROMEO-77/ROMEO?color=f7df1e&style=flat-square"></a>
+<a href="https://github.com/ROMEO-77/ROMEO/network/members"><img title="Forks" src="https://img.shields.io/github/forks/ROMEO-77/ROMEO?color=f7df1e&style=flat-square"></a>
 
 
 <h3 align="center">Contact Me:</h3>
@@ -81,7 +85,7 @@ As per the license, You Can But We Will Not Support. 🙃
   
   # Feature overview
   
-- [x] Change image and contact of verified tick [ Exclusively on Raganork ]
+- [x] Change image and contact of verified tick [ Exclusively on ROMEO ]
 
 - [x] Change all major images and names of your bot
 
@@ -115,14 +119,14 @@ As per the license, You Can But We Will Not Support. 🙃
   
   Step 3: Turn on worker
   
-[![Run on Repl.it](https://www.linkpicture.com/q/Untitled-3_10.jpg)](https://replit.com/@souravkl11/Raganork-QR)
+[![Run on Repl.it](https://www.linkpicture.com/q/Untitled-3_10.jpg)](https://replit.com/@ROMEO-77/ROMEO-QR)
 
 [![Deploy](https://www.linkpicture.com/q/heroku.jpg)](https://bit.ly/3hrN7gU)
      <div align="left">
 <br>
 <br >
 
-[![SOURAVKL11](https://github.com/Platane/snk/raw/output/github-contribution-grid-snake.svg)](https://bit.ly/2XqQKMU)
+[![ROMEO-77](https://github.com/Platane/snk/raw/output/github-contribution-grid-snake.svg)](https://bit.ly/2XqQKMU)
    
 
 
@@ -130,8 +134,8 @@ As per the license, You Can But We Will Not Support. 🙃
 ```
 യൂസർബോട്ട് കാരണം; നിങ്ങളുടെ WhatsApp അക്കൗണ്ട് നിരോധിച്ചേക്കാം.
 ഇതൊരു ഓപ്പൺ സോഴ്സ് പ്രോജക്റ്റാണ്, നിങ്ങൾ ചെയ്യുന്ന എല്ലാത്തിനും നിങ്ങൾ ഉത്തരവാദിയാണ്.
-തീർച്ചയായും, Raganork Developer ഉത്തരവാദിത്തം ഏറ്റെടുക്കുന്നില്ല.
-Raganork സ്ഥാപിക്കുന്നതിലൂടെ, നിങ്ങൾ ഈ ഉത്തരവാദിത്തങ്ങൾ സ്വീകരിച്ചതായി കണക്കാക്കപ്പെടുന്നു.
+തീർച്ചയായും, ROMEO Developer ഉത്തരവാദിത്തം ഏറ്റെടുക്കുന്നില്ല.
+ROMEO സ്ഥാപിക്കുന്നതിലൂടെ, നിങ്ങൾ ഈ ഉത്തരവാദിത്തങ്ങൾ സ്വീകരിച്ചതായി കണക്കാക്കപ്പെടുന്നു.
 വ്യാജ നമ്പറുകൾ ഉപയോഗിച്ച് ഉപയോഗിക്കാൻ ശ്രമിക്കുക.
 ```
 
@@ -144,9 +148,9 @@ Raganork സ്ഥാപിക്കുന്നതിലൂടെ, നിങ്
 ## Developers
   <div align="center">
     
-  [![souravkl11](https://github.com/souravkl11.png?size=100)](https://github.com/souravkl11) 
+  [![ROMEO-77](https://github.com/ROMEO-77.png?size=100)](https://github.com/ROMEO-77) 
 ----|
-   [Sourav Kalathingal](https://github.com/souravkl11) 
+   [Sourav Kalathingal](https://github.com/ROMEO-77) 
 Base, Bug Fixes, Modules
   </div>
    
