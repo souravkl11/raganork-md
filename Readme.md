@@ -12,7 +12,7 @@
 
 ## <u> VISIT OFFICIAL WEBSITE  <u>
 
-<a href="https://bit.ly/raganork"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/766px-WhatsApp.svg.png" alt="Join our group" height="50" width="50" border="0"></a>
+<a href="https://bit.ly/raganork"><img src="https://i0.wp.com/www.printinlondon.co.uk/blog/wp-content/uploads/2017/07/visit-website-button.png?ssl=1" alt="Join our group" height="50" width="150" border="0"></a>
   
 <div align="left">
  
