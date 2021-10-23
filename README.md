@@ -4,7 +4,7 @@
 
 <div align="center">
 
-<a href="https://bit.ly/3lC8I7t"><img src="https://www.linkpicture.com/q/LPic614d2ed1210cf676708793.png" alt="google-font" border="0"></a>
+<a href="https://bit.ly/3lC8I7t"><img src="<a href='https://www.linkpicture.com/view.php?img=LPic61737390bb7df1954775545'><img src='https://www.linkpicture.com/q/samantha_1.jpg' type='image'></a>" alt="google-font" border="0"></a>
   <a  src="samantha.jpg" alt="grand-theft-auto-font" height="39" width="350" border="0"></a>
 
   # <u> SETUP <u>
