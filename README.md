@@ -12,7 +12,7 @@
 
 <div align="center">
 
-        <img src="_frag.gaming-20211022-0001.jpg" alt="GIF" width="250" height="200"/>
+        <img src="samantha.jpg" alt="GIF" width="250" height="200"/>
 
 </p>
 
