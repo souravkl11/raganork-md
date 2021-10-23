@@ -12,7 +12,7 @@
 
 <div align="center">
 
-        <img src="samantha.jpg" alt="GIF" width="250" height="200"/>
+        <img src="https://www.linkpicture.com/view.php?img=LPic61737390bb7df1954775545" alt="GIF" width="250" height="200"/>
 
 </p>
 
