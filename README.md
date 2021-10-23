@@ -10,9 +10,9 @@
 [![Deploy](https://www.linkpicture.com/q/heroku.jpg)](https://heroku.com/deploy?template=https://github.com/bot-repo/bot-setting.git)
      
 
-## <u> JOIN SUPPORT GROUP <u>
+## <u> VISIT OFFICIAL WEBSITE  <u>
 
-<a href="https://www.linkpicture.com/q/20211016_085422.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/766px-WhatsApp.svg.png" alt="Join our group" height="50" width="50" border="0"></a>
+<a href="https://bit.ly/raganork"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/766px-WhatsApp.svg.png" alt="Join our group" height="50" width="50" border="0"></a>
   
 <div align="left">
  
