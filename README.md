@@ -44,7 +44,7 @@ Project created by <a href="https://github.com/ROMEO-77">aju</a> to make it publ
     
 <p align="center">
 
-<a href="https://instagram.com/__ajuz___001?utm_medium=copy_link" target="blank"><img align="center" src="https://cdn.jsdelivr.net/npm/simple-icons@3.0.1/icons/instagram.svg" alt="kyrie.baran" height="30" width="40" /></a>
+<a href="https://instagram.com/a__l__b_i_n?utm_medium=copy_link=copy_link" target="blank"><img align="center" src="https://cdn.jsdelivr.net/npm/simple-icons@3.0.1/icons/instagram.svg" alt="kyrie.baran" height="30" width="40" /></a>
 
 </p>
 
