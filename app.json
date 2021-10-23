@@ -111,7 +111,7 @@
         "ALIVE_MESSAGE": {
             "description": "Customizable Alive Message! Use => default, to change back.",
             "required": false,
-            "value": "\n ```Onnum avasaanichittilla !!!```\n\n```Type``` *.help* ```for commands```\n\n```💥𝔼𝕃𝕊𝔸 𝕄𝕎𝕆𝕃💥```"
+            "value": POWER VARATTE ⚡ROMEO ⚡
         },
         "BAN_MESSAGE": {
             "description": "Customizable Ban Message! Use => default, to change back.",
