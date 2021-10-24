@@ -144,10 +144,9 @@ Raganork സ്ഥാപിക്കുന്നതിലൂടെ, നിങ്
 ## Developers
   <div align="center">
     
-  [![souravkl11](https://github.com/souravkl11.png?size=100)](https://github.com/souravkl11) 
-----|
-   [Sourav Kalathingal](https://github.com/souravkl11) 
-Base, Bug Fixes, Modules
+  [![souravkl11](https://github.com/souravkl11.png?size=100)](https://github.com/souravkl11)|[![souravkl11](https://github.com/yusufusta.png?size=100)](https://github.com/souravkl11)
+----|----
+   [Sourav Kalathingal](https://github.com/souravkl11) Maintainer, Bug Fixes, Modules|[Yusuf Usta](https://github.com/yusufusta) Founder, Author, Base
   </div>
    
   
