@@ -78,7 +78,7 @@ Asena.addCommand({pattern: 'plugin', fromMe: true, desc: Lang.PLUGIN_DESC }, (as
     } else {
         plugins.map(
             (plugin) => {
-                mesaj += '```' + plugin.dataValues.name + '```: ' + plugin.dataValues.url + '\n';
+                mesaj += '' + plugin.dataValues.name + ': ' + plugin.dataValues.url + '\n';
             }
         );
         return await message.client.sendMessage(message.jid, mesaj, MessageType.text);
