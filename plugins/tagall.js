@@ -56,24 +56,5 @@ Asena.addCommand({pattern: 'tagall ?(.*)', fromMe: true, dontAddCommandList: tru
         await message.client.sendMessage(message.jid,tx, MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
     }
 }));
-//All rights reserved souravkl11. Don't change credit.
-var stag_dsc = ''
-if (Config.LANG == 'TR') stag_dsc = 'Yanıtlanan mesajı gruptaki tüm üyelere gönderir.'
-if (Config.LANG == 'EN') stag_dsc = 'Sends the replied message to all members in the group.'
-if (Config.LANG == 'AZ') stag_dsc = 'Cavablanmış mesajı qrupdakı bütün üzvlərə göndərir.'
-if (Config.LANG == 'RU') stag_dsc = 'Отправляет ответное сообщение всем участникам группы.'
-if (Config.LANG == 'HI') stag_dsc = 'उत्तर दिया गया संदेश समूह के सभी सदस्यों को भेजता है'
-if (Config.LANG == 'ES') stag_dsc = 'Envía el mensaje de respuesta a todos los miembros del grupo.'
-if (Config.LANG == 'ML') stag_dsc = 'ഗ്രൂപ്പിലെ എല്ലാ അംഗങ്ങൾക്കും മറുപടി സന്ദേശം അയയ്ക്കുന്നു.'
-if (Config.LANG == 'ID') stag_dsc = 'Mengirim pesan balasan ke semua anggota dalam grup.'
-if (Config.LANG == 'PT') stag_dsc = 'Envia a mensagem respondida a todos os membros do grupo.'
 
-Asena.addCommand({pattern: 'pmbc$', fromMe: true, desc: stag_dsc }, (async (message, match) => {
-    if (!message.reply_message) return await message.client.sendMessage(message.jid,SLang.NEED_REPLY, MessageType.text)
-    grup = await message.client.groupMetadata(message.jid);
-    var jids = [];
-    mesaj = '';
-    grup['participants'].map(async (uye) => {
-        await message.client.sendMessage(uye.jid, message.reply_message.text, MessageType.text)
-    })
 })); 
