@@ -35,7 +35,7 @@ module.exports = {
     AUTOSTICKER: process.env.AUTO_STICKER === undefined ? true : convertToBool(process.env.AUTO_STICKER),
     DISSTICKER: process.env.DISABLE_STICKER === undefined ? false : process.env.DISABLE_STICKER,
     NOLOG: process.env.NO_LOG === undefined ? 'false' : process.env.NO_LOG,
-    AI: process.env.AI === undefined ? 'false' : process.env.AI,
+    CHATBOT: process.env.CHAT_BOT === undefined ? 'false' : process.env.CHAT_BOT,
     BOTSK: process.env.BOT_NAME === undefined ? 'PUBLIC BOT' : process.env.BOT_NAME,
     SUPPORT: process.env.ASENA === undefined ? '919074309534-1632403322' : process.env.ASENA,
     GIF_WEL: process.env.GIF_WEL === undefined ? 'https://c.tenor.com/G9Bu13ZlhVkAAAPo/dancing-funny-dance.mp4' : process.env.GIF_WEL,
