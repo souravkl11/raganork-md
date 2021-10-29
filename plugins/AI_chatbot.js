@@ -1,4 +1,4 @@
-const Raganork = require('../events');
+const Asena = require('../events');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
 const https = require('https');
@@ -22,15 +22,15 @@ let baseURI = '/apps/' + conf.HEROKU.APP_NAME;
 let wk = conf.WORKTYPE == 'public' ? false : true
 var vtalk_dsc = ''
 var reply_eva = ''
-if (conf.LANG == 'TR') vtalk_dsc = 'Eva sesli sohbetini başlatır.', reply_eva = '_Herhangi Bir Sesli Mesaja Yanıt Verin!_'
-if (conf.LANG == 'EN') vtalk_dsc = 'Starts to voice chat.', reply_eva = '_Reply to Any Voice Message!_'
-if (conf.LANG == 'AZ') vtalk_dsc = 'Eva səsli söhbətinə başlayır.', reply_eva = '_Hər hansı bir səsli mesaja cavab verin!_'
-if (conf.LANG == 'PT') vtalk_dsc = 'Começa o bate-papo por voz de Eva.', reply_eva = '_Responder a qualquer mensagem de voz!_'
-if (conf.LANG == 'RU') vtalk_dsc = 'Запускает голосовой чат Eva.', reply_eva = '_Ответьте на любое голосовое сообщение!_'
-if (conf.LANG == 'HI') vtalk_dsc = 'Eva ध्वनि चैट प्रारंभ करता है', reply_eva = '_किसी भी ध्वनि संदेश का उत्तर दें!_'
-if (conf.LANG == 'ES') vtalk_dsc = 'Comienza con el chat de voz de Eva.', reply_eva = '_¡Responde a cualquier mensaje de voz!_'
-if (conf.LANG == 'ML') vtalk_dsc = 'വോയ്‌സ് ചാറ്റിലേക്ക് ആരംഭിക്കുന്നു.', reply_eva = '_ഏത് വോയ്‌സ് സന്ദേശത്തിനും മറുപടി നൽകുക!_'
-if (conf.LANG == 'ID') vtalk_dsc = 'Mulai obrolan suara Eva.', reply_eva = '_Balas Pesan Suara Apapun!_'
+if (conf.LANG == 'TR') vtalk_dsc = 'Eva sesli sohbetini başlatır.', reply_eva = '*Herhangi Bir Sesli Mesaja Yanıt Verin!*'
+if (conf.LANG == 'EN') vtalk_dsc = 'Starts to raganork voice chat.', reply_eva = '*Reply to Any Voice Message!*'
+if (conf.LANG == 'AZ') vtalk_dsc = 'Eva səsli söhbətinə başlayır.', reply_eva = '*Hər hansı bir səsli mesaja cavab verin!*'
+if (conf.LANG == 'PT') vtalk_dsc = 'Começa o bate-papo por voz de Eva.', reply_eva = '*Responder a qualquer mensagem de voz!*'
+if (conf.LANG == 'RU') vtalk_dsc = 'Запускает голосовой чат Eva.', reply_eva = '*Ответьте на любое голосовое сообщение!*'
+if (conf.LANG == 'HI') vtalk_dsc = 'Eva ध्वनि चैट प्रारंभ करता है', reply_eva = '*किसी भी ध्वनि संदेश का उत्तर दें!*'
+if (conf.LANG == 'ES') vtalk_dsc = 'Comienza con el chat de voz de Eva.', reply_eva = '*¡Responde a cualquier mensaje de voz!*'
+if (conf.LANG == 'ML') vtalk_dsc = 'വോയ്‌സ് ചാറ്റിലേക്ക് ആരംഭിക്കുന്നു.', reply_eva = '*ഏത് വോയ്‌സ് സന്ദേശത്തിനും മറുപടി നൽകുക!*'
+if (conf.LANG == 'ID') vtalk_dsc = 'Mulai obrolan suara Eva.', reply_eva = '*Balas Pesan Suara Apapun!*'
 
 const recognizeAudio = () => {
     const headers = new Headers({
@@ -54,12 +54,13 @@ const convertToWav = file => {
         .format('wav')
         .save('output.wav')
 }
-Raganork.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCommand: false}, (async (message, match) => {
-    if (message.message.startsWith('Bot') && conf.AI !== 'true') {        
+
+Asena.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCommand: false}, (async (message, match) => {
+    if (message.message.startsWith('bot') && conf.CHATBOT !== 'true') {        
         var unique_ident = message.client.user.jid.split('@')[0]      
         let acc = os.userInfo().homedir.split('Whats')[1].split('Duplicated/')[0] == 'Asena' ? '7d57838203msh0c5cf65c90a7231p13b461jsn77c8cfa55871' : '7d57838203msh0c582jak19865261js1229n77c8cfa55871'
         let aitalk_mode = message.message.includes('{normal}') ? 'raw' : 'waifu'
-        var finm = message.message.replace('Bot', '').replace(' ', '')   
+        var finm = message.message.replace('bot', '').replace(' ', '')   
         var ainame = os.userInfo().homedir.split('Whats')[1].split('Duplicated/')[0]
         if (ainame !== 'Asena') return;
         var ldet = lngDetector.detect(finm)
@@ -83,8 +84,8 @@ Raganork.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCom
         })
     }
 }));
-Raganork.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (message, match) => {
-        if (conf.AI == 'true' && ((!message.jid.includes('-')) || (message.jid.includes('-') && 
+Asena.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (message, match) => {
+        if (conf.CHATBOT == 'true' && ((!message.jid.includes('-')) || (message.jid.includes('-') && 
             (( message.mention !== false && message.mention.length !== 0 ) || message.reply_message !== false)))) {
             if (message.jid.includes('-') && (message.mention !== false && message.mention.length !== 0)) {
                 message.mention.map(async (jid) => {
@@ -172,7 +173,7 @@ Raganork.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (m
         }
 
 }));
-Raganork.addCommand({ pattern: 'vtalk$', desc: vtalk_dsc,dontAddCommandList: true, fromMe: wk }, (async (message, match) => {
+Asena.addCommand({ pattern: 'vtalk$', desc: vtalk_dsc,dontAddCommandList: true, fromMe: wk }, (async (message, match) => {
     if (!message.reply_message) return await message.client.sendMessage(message.jid,reply_eva, MessageType.text, { quoted: message.data }) 
     try {
         const file = await message.client.downloadAndSaveMediaMessage({
@@ -221,12 +222,18 @@ Raganork.addCommand({ pattern: 'vtalk$', desc: vtalk_dsc,dontAddCommandList: tru
         });
     } catch (err) { console.log(err) }
 }));
-var fulleva_dsc = ''
+var _dsc = ''
 var already_on = ''
 var already_off = ''
 var succ_on = ''
 var succ_off = ''
-
+if (conf.LANG == 'TR') {
+    _dsc = 'Tam fonksiyonel Raganork özelliklerini aktif eder. Hesabınızı bir chatbota dönüştürün!'
+    already_on = 'Raganork yapay zekası halihazırda tüm fonksiyonları etkin.'
+    already_off = 'Raganork yapay zekası halihazırda yarı fonksiyonel çalışıyor.'
+    succ_on = 'Raganork, Tam Fonksiyonel Olarak Açıldı! Lütfen Biraz Bekleyin! ✅'
+    succ_off = 'Raganork, Yarı Fonksiyonel Olarak Ayarlandı! Lütfen Biraz Bekleyin! ☑️'
+}
 if (conf.LANG == 'EN') {
     fulleva_dsc = 'Turns on AI powered chatbot on to your account!'
     already_on = 'AI chatbot is already functional.'
@@ -242,32 +249,32 @@ if (conf.LANG == 'ML') {
     succ_off = 'AI സെമി-ഫങ്ഷണൽ ആയി സജ്ജമാക്കുക! കുറച്ച് കാത്തിരിക്കൂ! ☑️'
 }
 
-Raganork.addCommand({ pattern: 'chatbot ?(.*)', desc: fulleva_dsc, fromMe: true,dontAddCommandList: true, usage: '.on / off' }, (async (message, match) => {
-    var Bot_status = `${conf.AI}`
+Asena.addCommand({ pattern: 'chatbot ?(.*)', desc: _dsc, fromMe: true,dontAddCommandList: true, usage: '.chatbot on / off' }, (async (message, match) => {
+    var eva_status = `${conf.CHATBOT}`
     if (match[1] == 'on') {
-        if (Bot_status == 'true') {
-            return await message.client.sendMessage(message.jid, '_' + already_on + '_', MessageType.text)
+        if (eva_status == 'true') {
+            return await message.client.sendMessage(message.jid, '*' + already_on + '*', MessageType.text)
         }
         else {
             await heroku.patch(baseURI + '/config-vars', { 
                 body: { 
-                    ['AI']: 'true'
+                    ['CHAT_BOT']: 'true'
                 } 
             });
-            await message.client.sendMessage(message.jid, '_' + succ_on + '_', MessageType.text)
+            await message.client.sendMessage(message.jid, '*' + succ_on + '*', MessageType.text)
         }
     }
     else if (match[1] == 'off') {
-        if (Bot_status !== 'true') {
-            return await message.client.sendMessage(message.jid, '_' + already_off + '_', MessageType.text)
+        if (eva_status !== 'true') {
+            return await message.client.sendMessage(message.jid, '*' + already_off + '*', MessageType.text)
         }
         else {
             await heroku.patch(baseURI + '/config-vars', { 
                 body: { 
-                    ['AI']: 'false'
+                    ['CHAT_BOT']: 'false'
                 } 
             });
-            await message.client.sendMessage(message.jid, '_' + succ_off + '_', MessageType.text)
+            await message.client.sendMessage(message.jid, '*' + succ_off + '*', MessageType.text)
         }
     }
 }));
