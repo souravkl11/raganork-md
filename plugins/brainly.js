@@ -3,13 +3,13 @@ const {MessageType} = require('@adiwajshing/baileys');
 const axios = require('axios');
 const Config = require('../config');
 
-// Lists
 const BRAINLY_DESC = "Finds answer for your query on brainly."
 const BRAINLY_USAGE = ".brainly <Query>"
-
 const NEED_QUERY = "```Enter the Question!```"
 
-Asena.addCommand({ pattern: 'brainly ?(.*)', fromMe: false, desc: BRAINLY_DESC, usage: BRAINLY_USAGE }, async (message, match) => {
+let sk = Config.WORKTYPE == 'public' ? false : true
+
+Asena.addCommand({ pattern: 'brainly ?(.*)', fromMe: sk, desc: BRAINLY_DESC, usage: BRAINLY_USAGE }, async (message, match) => {
 
         const Soal = match[1]
         
