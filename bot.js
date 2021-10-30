@@ -275,7 +275,62 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                 } 
           }
     });
+    if (config.WORKTYPE == 'public') {
+      
+        if (config.LANG == 'EN' || config.LANG == 'ML') {
+            if (config.SUPPORT == 'null') {
+                await conn.sendMessage(conn.user.jid, EVA_ACTİON, MessageType.text)
+            } else {
+                await conn.sendMessage(conn.user.jid, 'Raganork working in Public mode', MessageType.text);
+            }
+            await git.fetch();
+            var commits = await git.log([config.BRANCH + '..origin/' + config.BRANCH]);
+            if (commits.total === 0) {
+                await conn.sendMessage(
+                    conn.user.jid,
+                    Lang.UPDATE, MessageType.text
+                );    
+            } else {
+                var degisiklikler = Lang.NEW_UPDATE;
+                commits['all'].map(
+                    (commit) => {
+                        degisiklikler += commit.message + '>\n';
+                    }
+                );
+                await conn.sendMessage(
+                    conn.user.jid,
+                    '```Update available! Type``` *.update start* ```to update.```\n\n' + degisiklikler + '```', MessageType.text
+                ); 
+            }
+        }
+        else { 
+            if (config.SUPPORT == 'null') {
+                await conn.sendMessage(conn.user.jid, EVA_ACTİON, MessageType.text)
+            } else {
+                await conn.sendMessage(conn.user.jid, '\n*Now working in Public mode!*\n', MessageType.text);
+            }               
+            await git.fetch();
+            var commits = await git.log([config.BRANCH + '..origin/' + config.BRANCH]);
+            if (commits.total === 0) {
+                await conn.sendMessage(
+                    conn.user.jid,
+                    Lang.UPDATE, MessageType.text
+                );    
+            } else {
+                var degisiklikler = Lang.NEW_UPDATE;
+                commits['all'].map(
+                    (commit) => {
+                        degisiklikler += commit.message + '\n';
+                    }
+                );
     
+                await conn.sendMessage(
+                    conn.user.jid,
+                    '```Type``` *!update start* ```to update the Bot.```\n\n' + degisiklikler + '```', MessageType.text
+                ); 
+            }
+        }
+    } 
     setInterval(async () => { 
         var getGMTh = new Date().getHours()
         var getGMTm = new Date().getMinutes()
