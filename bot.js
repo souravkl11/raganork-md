@@ -18,6 +18,10 @@ const git = simpleGit();
 const axios = require('axios');
 const got = require('got');
 
+const Language = require('./language');
+const Lang = Language.getString('updater');
+
+
 // Sql
 const WhatsAsenaDB = config.DATABASE.define('WhatsAsena', {
     info: {
