@@ -64,6 +64,8 @@ Array.prototype.remove = function() {
     }
     return this;
 };
+const conn = new WAConnection();
+
 var sourav = `${config.AUTOBIO}`
     setInterval(async () => { 
         if (sourav == 'on') {
