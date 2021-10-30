@@ -70,7 +70,7 @@ var sourav = `${config.AUTOBIO}`
              var time = new Date().toLocaleString('LK', { timeZone: 'Asia/Kolkata' }).split(' ')[1]
                 const get_localized_date = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 var date = new Date().toLocaleDateString(config.LANG, get_localized_date)
-                const biography = '📅 ' + date + '\n⌚ ' + time + '\n\n' + Config.BOTSK
+                const biography = '📅 ' + date + '\n⌚ ' + time + '\n\n' + config.BOTSK
                 await conn.setStatus(biography)
             }
         }
