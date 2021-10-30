@@ -16,7 +16,7 @@ module.exports = {
     SESSION: process.env.RAGANORK_CODE === undefined ? '' : process.env.RAGANORK_CODE,
     ANTİLİNK: process.env.ANTİ_LİNK === undefined ? 'false' : process.env.ANTİ_LİNK,
     AFN: process.env.ALL_CAPTION === undefined ? '*MADE BY YOUR BOT NAME*' : process.env.ALL_CAPTION,
-    AUTOBİO: process.env.AUTO_BİO === undefined ? 'false' : process.env.AUTO_BİO,
+    AUTOBIO: process.env.AUTO_BIO === undefined ? 'false' : process.env.AUTO_BIO,
     WELCOME: process.env.WELCOME === undefined ? 'pp' : process.env.WELCOME,
     GANSTYLE: process.env.GAN_IMAGE === undefined ? 'https://i.hizliresim.com/loUtAb.jpg' : process.env.GAN_IMAGE,
     LANG: process.env.LANGUAGE === undefined ? 'TR' : process.env.LANGUAGE.toUpperCase(),
