@@ -58,8 +58,8 @@ function webp2mp4File(path) {
     })
 }
 
-
-   Asena.addCommand({pattern: 'mp4$', desc: '```Converts animated sticker to video```', fromMe: false}, (async (message, match) => {
+   let sk = Config.WORKTYPE == 'public' ? false : true
+   Asena.addCommand({pattern: 'mp4$', desc: '```Converts animated sticker to video```', fromMe: sk}, (async (message, match) => {
         const mid = message.jid
         if (message.reply_message === false) return await message.sendMessage("```Need video```");
         await message.client.sendMessage(mid, '```Converting to video format```', MessageType.text)
