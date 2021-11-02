@@ -58,8 +58,6 @@ const convertToWav = file => {
 New.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCommand: false}, (async (message, match) => {
     if (message.message.startsWith('bot') && conf.CHATBOT !== 'true') {        
         var unique_ident = message.client.user.jid.split('@')[0]      
-        let acc = os.userInfo().homedir.split('Rag')[1].split('rk/')[0] == 'ano' ? '7d57838203msh0c5cf65c90a7231p13b461jsn77c8cfa55871' : '7d57838203msh0c582jak19865261js1229n77c8cfa55871'
-        let aitalk_mode = message.message.includes('{normal}') ? 'raw' : 'waifu'
         var finm = message.message.replace('bot', '').replace(' ', '')   
         var ainame = os.userInfo().homedir.split('Rag')[1].split('rk/')[0]
         if (ainame !== 'ano') return;
@@ -91,10 +89,6 @@ New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (messag
                 message.mention.map(async (jid) => {
                     if (message.client.user.jid.split('@')[0] === jid.split('@')[0]) {
                         var unique_ident = message.client.user.jid.split('@')[0]      
-                        let acc = os.userInfo().homedir.split('Rag')[1].split('rk/')[0] == 'ano' ? '7d57838203msh0c5cf65c90a7231p13b461jsn77c8cfa55871' : '7d57838203msh0c582jak19865261js1229n77c8cfa55871'
-                        let aitalk_mode = message.message.includes('{normal}') ? 'raw' : 'waifu'                       
-                        var ainame = os.userInfo().homedir.split('Rag')[1].split('rk/')[0]
-                        if (ainame !== 'ano') return;
                         var finm = message.message
                         var ldet = lngDetector.detect(finm)
                         var trmsg = ''
@@ -120,9 +114,7 @@ New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (messag
             } else if (message.jid.includes('-') && message.reply_message !== false) {
                 if (message.reply_message.jid.split('@')[0] === message.client.user.jid.split('@')[0]) {
                     var unique_ident = message.client.user.jid.split('@')[0]      
-                    let acc = os.userInfo().homedir.split('Rag')[1].split('rk/')[0] == 'ano' ? '7d57838203msh0c5cf65c90a7231p13b461jsn77c8cfa55871' : '7d57838203msh0c582jak19865261js1229n77c8cfa55871'
-                    var ainame = os.userInfo().homedir.split('Rag')[1].split('rk/')[0]
-                    if (ainame !== 'ano') return;
+                    var finm = message.message
                     var finm = message.message
                     var ldet = lngDetector.detect(finm)
                     var trmsg = ''
@@ -146,9 +138,6 @@ New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (messag
                 }
             } else {
                 var unique_ident = message.client.user.jid.split('@')[0]      
-                let acc = os.userInfo().homedir.split('Rag')[1].split('rk/')[0] == 'ano' ? '7d57838203msh0c5cf65c90a7231p13b461jsn77c8cfa55871' : '7d57838203msh0c582jak19865261js1229n77c8cfa55871'
-                var ainame = os.userInfo().homedir.split('Rag')[1].split('rk/')[0]
-                if (ainame !== 'ano') return;
                 var finm = message.message
                 var ldet = lngDetector.detect(finm)
                 var trmsg = ''
@@ -194,10 +183,6 @@ New.addCommand({ pattern: 'vtalk$', desc: vtalk_dsc,dontAddCommandList: true, fr
                     ssc = ceviri.text
                 }
                 var unique_ident = message.client.user.jid.split('@')[0]
-                let acc = os.userInfo().homedir.split('Rag')[1].split('rk/')[0] == 'ano' ? '7d57838203msh0c5cf65c90a7231p13b461jsn77c8cfa55871' : '7d57838203msh0c582jak19865261js1229n77c8cfa55871'       
-                var ainame = os.userInfo().homedir.split('Rag')[1].split('rk/')[0]
-                if (ainame !== 'ano') return;
-        
                 var son = encodeURI(ssc)
                 await axios.get('http://api.brainshop.ai/get?bid=159572&key=usZjYZjRBVJcwN1S&uid=' + unique_ident + '&msg=' + son).then(async (response) => {
                     var trmsg = ''
