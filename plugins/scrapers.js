@@ -426,7 +426,7 @@ if (config.WORKTYPE == 'private') {
                 return;
     
             let 
-                LANG = conf.LANG.toLowerCase(),
+                LANG = config.LANG.toLowerCase(),
                 ttsMessage = match[1],
                 SPEED = 1.0
 
