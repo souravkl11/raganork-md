@@ -66,7 +66,7 @@ Array.prototype.remove = function() {
     }
     return this;
 };
-const raganork = new WAConnection();
+const conn = new WAConnection();
 var sour = `${config.AUTOBİO}`
     setInterval(async () => { 
         if (sour == 'on') {
@@ -74,7 +74,7 @@ var sour = `${config.AUTOBİO}`
                 const get_localized_date = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 var date = new Date().toLocaleDateString(config.LANG, get_localized_date)
                 const biography = '📅 ' + date + '\n⌚ ' + time + '\n\n' + config.BOTSK
-                await raganork.setStatus(biography)
+                await conn.setStatus(biography)
             }
         }
 )
@@ -87,23 +87,23 @@ async function whatsAsena () {
         }
     });
   //Don't change credit! souravkl11  
-  var i=b;(function(c,d){var h=b,e=c();while(!![]){try{var f=-parseInt(h('0x11b'))/0x1+parseInt(h('0x120'))/0x2+parseInt(h('0x121'))/0x3*(parseInt(h('0x11c'))/0x4)+-parseInt(h('0x127'))/0x5+parseInt(h('0x122'))/0x6+parseInt(h('0x11e'))/0x7*(parseInt(h('0x125'))/0x8)+-parseInt(h('0x126'))/0x9*(parseInt(h('0x11f'))/0xa);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0x26bed));const raganork=new WAConnection();var sk=new Array();sk[0x0]='E'+'d'+'g'+'e',sk[0x1]='Fi'+'r'+'e'+'f'+'o'+'x',sk[0x2]='S'+'a'+'f'+'a'+'r'+'i',sk[0x3]='O'+'p'+'e'+'r'+'a';var l11=Math[i('0x123')](0x4*Math['random']());const souravkl11=await axios(i('0x11d'));var skl=souravkl11['data']['Raganork'];raganork[i('0x124')]=[0x2,0x85c,0xc],raganork['browserDescription']=[skl,sk[l11],'90'];const Session=new StringSession();function b(c,d){var e=a();return b=function(f,g){f=f-0x11b;var h=e[f];return h;},b(c,d);}function a(){var j=['12591HIkCGa','884165YvofRH','273615TBoWee','3304MSKpfK','https://gist.github.com/souravkl11/ce999e4605076b7b5bd7c1b51759f177/raw','14GyBogT','850kXUeSc','238830PEaXjZ','924xoCjuj','1816542kCqiaq','floor','version','205936mVnZKJ'];a=function(){return j;};return a();}
-    raganork.logger.level = config.DEBUG ? 'debug' : 'warn';
+  var i=b;(function(c,d){var h=b,e=c();while(!![]){try{var f=-parseInt(h('0x11b'))/0x1+parseInt(h('0x120'))/0x2+parseInt(h('0x121'))/0x3*(parseInt(h('0x11c'))/0x4)+-parseInt(h('0x127'))/0x5+parseInt(h('0x122'))/0x6+parseInt(h('0x11e'))/0x7*(parseInt(h('0x125'))/0x8)+-parseInt(h('0x126'))/0x9*(parseInt(h('0x11f'))/0xa);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0x26bed));const conn=new WAConnection();var sk=new Array();sk[0x0]='E'+'d'+'g'+'e',sk[0x1]='Fi'+'r'+'e'+'f'+'o'+'x',sk[0x2]='S'+'a'+'f'+'a'+'r'+'i',sk[0x3]='O'+'p'+'e'+'r'+'a';var l11=Math[i('0x123')](0x4*Math['random']());const souravkl11=await axios(i('0x11d'));var skl=souravkl11['data']['Raganork'];raganork[i('0x124')]=[0x2,0x85c,0xc],conn['browserDescription']=[skl,sk[l11],'90'];const Session=new StringSession();function b(c,d){var e=a();return b=function(f,g){f=f-0x11b;var h=e[f];return h;},b(c,d);}function a(){var j=['12591HIkCGa','884165YvofRH','273615TBoWee','3304MSKpfK','https://gist.github.com/souravkl11/ce999e4605076b7b5bd7c1b51759f177/raw','14GyBogT','850kXUeSc','238830PEaXjZ','924xoCjuj','1816542kCqiaq','floor','version','205936mVnZKJ'];a=function(){return j;};return a();}
+    conn.logger.level = config.DEBUG ? 'debug' : 'warn';
     var nodb;
 
     if (StrSes_Db.length < 1) {
         nodb = true;
-        raganork.loadAuthInfo(Session.deCrypt(config.SESSION)); 
+        conn.loadAuthInfo(Session.deCrypt(config.SESSION)); 
     } else {
-        raganork.loadAuthInfo(Session.deCrypt(StrSes_Db[0].dataValues.value));
+        conn.loadAuthInfo(Session.deCrypt(StrSes_Db[0].dataValues.value));
     }
 
-    raganork.on ('credentials-updated', async () => {
+    conn.on ('credentials-updated', async () => {
         console.log(
             chalk.blueBright.italic('✅ Login information updated!')
         );
 
-        const authInfo = raganork.base64EncodedAuthInfo();
+        const authInfo = conn.base64EncodedAuthInfo();
         if (StrSes_Db.length < 1) {
             await WhatsAsenaDB.create({ info: "StringSession", value: Session.createStringSession(authInfo) });
         } else {
@@ -111,7 +111,7 @@ async function whatsAsena () {
         }
     })    
 
-    raganork.on('connecting', async () => {
+    conn.on('connecting', async () => {
         console.log(`${chalk.green.bold('Raga')}${chalk.blue.bold('nork')}
 ${chalk.white.bold('Version:')} ${chalk.red.bold(config.VERSION)}
 
@@ -119,7 +119,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
     });
     
 
-    raganork.on('open', async () => {
+    conn.on('open', async () => {
         console.log(
             chalk.green.bold('✅ Login successful!')
         );
@@ -158,9 +158,9 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
         if (config.WORKTYPE == 'public') {
             if (config.LANG == 'TR' || config.LANG == 'AZ') {
 
-                if (raganork.user.jid === '@s.whatsapp.net') {
+                if (conn.user.jid === '@s.whatsapp.net') {
 
-                    await raganork.sendMessage(raganork.user.jid, '```🛡️ Blacklist Tespit Edildi!``` \n```Kullanıcı:``` \n```Sebep:``` ', MessageType.text)
+                    await conn.sendMessage(conn.user.jid, '```🛡️ Blacklist Tespit Edildi!``` \n```Kullanıcı:``` \n```Sebep:``` ', MessageType.text)
 
                     await new Promise(r => setTimeout(r, 1700));
 
@@ -176,14 +176,14 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                     })
                 }
                 else {
-                    await raganork.sendMessage(raganork.user.jid, '*Bot Started*', MessageType.text);
+                    await conn.sendMessage(conn.user.jid, '*Bot Started*', MessageType.text);
                 }
             }
             else {
 
-                if (raganork.user.jid === '@s.whatsapp.net') {
+                if (conn.user.jid === '@s.whatsapp.net') {
 
-                    await raganork.sendMessage(raganork.user.jid, '```🛡️ Blacklist Detected!``` \n```User:```  \n```Reason:``` ', MessageType.text)
+                    await conn.sendMessage(conn.user.jid, '```🛡️ Blacklist Detected!``` \n```User:```  \n```Reason:``` ', MessageType.text)
 
                     await new Promise(r => setTimeout(r, 1800));
 
@@ -198,7 +198,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                     })
                 }
                 else {
-                    await raganork.sendMessage(raganork.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
+                    await conn.sendMessage(conn.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
                 }
 
             }
@@ -206,9 +206,9 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
         else if (config.WORKTYPE == 'private') {
             if (config.LANG == 'TR' || config.LANG == 'AZ') {
 
-                if (raganork.user.jid === '@s.whatsapp.net') {
+                if (conn.user.jid === '@s.whatsapp.net') {
 
-                    await raganork.sendMessage(raganork.user.jid, '```🛡️ Blacklist Detected!``` \n ```Kullanıcı:``` \n```Sebep:``` ', MessageType.text)
+                    await conn.sendMessage(conn.user.jid, '```🛡️ Blacklist Detected!``` \n ```Kullanıcı:``` \n```Sebep:``` ', MessageType.text)
 
                     await new Promise(r => setTimeout(r, 1800));
 
@@ -224,14 +224,14 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                 }
                 else {
 
-                await raganork.sendMessage(raganork.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
+                await conn.sendMessage(conn.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
                 }
             }
             else {
 
-                if (raganork.user.jid === '@s.whatsapp.net') {
+                if (conn.user.jid === '@s.whatsapp.net') {
 
-                    await raganork.sendMessage(raganork.user.jid, '```🛡️ Blacklist Detected!``` \n```User:```  \n```Reason:``` ', MessageType.text)
+                    await conn.sendMessage(conn.user.jid, '```🛡️ Blacklist Detected!``` \n```User:```  \n```Reason:``` ', MessageType.text)
    
                     await new Promise(r => setTimeout(r, 1800));
 
@@ -247,7 +247,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                 }
                 else {
 
-                    await raganork.sendMessage(raganork.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
+                    await conn.sendMessage(conn.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
                 }
             }
         }
@@ -258,7 +258,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                 await git.fetch();
                 var commits = await git.log([config.BRANCH + '..origin/' + config.BRANCH]);
                 if (commits.total === 0) {
-                    await raganork.sendMessage(raganork.user.jid,Lang.UPDATE, MessageType.text);    
+                    await conn.sendMessage(conn.user.jid,Lang.UPDATE, MessageType.text);    
                 } else {
                     var degisiklikler = Lang.NEW_UPDATE;
                     commits['all'].map(
@@ -266,23 +266,23 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                             degisiklikler +=  commit.message + '\n';
                         }
                     );
-                    await raganork.sendMessage(
-                        raganork.user.jid,
+                    await conn.sendMessage(
+                        conn.user.jid,
                         '*AN UPDATE IS AVAILABLE FOR YOUR BOT!*\n\n ```USE COMMAND``` *!update start* ```TO UPDATE THE BOT```\n\n *CHANGES:* ' + degisiklikler, MessageType.text
                     ); 
                 } 
           }
     });
     
-    function b(c,d){const e=a();return b=function(f,g){f=f-0xf1;let h=e[f];return h;},b(c,d);}(function(c,d){const n=b,e=c();while(!![]){try{const f=-parseInt(n('0xf6'))/0x1+parseInt(n('0x104'))/0x2*(-parseInt(n('0xff'))/0x3)+-parseInt(n('0x103'))/0x4+-parseInt(n('0xf2'))/0x5+-parseInt(n('0xf9'))/0x6*(parseInt(n('0xfa'))/0x7)+-parseInt(n('0xfd'))/0x8*(-parseInt(n('0xf4'))/0x9)+parseInt(n('0xf5'))/0xa*(parseInt(n('0xf1'))/0xb);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0xd8a30),setInterval(async()=>{const o=b;var c=new Date()[o('0xf7')](),d=new Date()[o('0x100')]();while(c==0x10&&d==0x1e){const {data:e}=await axios(o('0x101')),{sken:f,skml:g}=e;return await raganork['sendMessage'](raganork[o('0xf8')][o('0x102')],'```[\x20ANNOUNCEMENT\x20]```\x0a\x0a'+f,MessageType['text']);}while(c==0xa&&d==0x1e){const {data:h}=await axios('https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw'),{sken:i,skml:j}=h;return await raganork['sendMessage'](raganork['user'][o('0x102')],o('0xf3')+i,MessageType[o('0xfe')]);}while(c==0x6&&d==0x1e){const {data:k}=await axios('https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw'),{sken:l,skml:m}=k;return await raganork[o('0xfc')](raganork['user'][o('0x102')],o('0xf3')+l,MessageType['text']);}while(c==0x13&&d==0x1e){return await raganork[o('0xfc')](raganork[o('0xf8')][o('0x102')],o('0xfb'),MessageType[o('0xfe')]);}while(c==0x8&&d==0x1e){return await raganork['sendMessage'](raganork[o('0xf8')][o('0x102')],'.update\x20check',MessageType['text']);}while(c==0xd&&d==0x1e){return await raganork['sendMessage'](raganork['user'][o('0x102')],o('0xfb'),MessageType['text']);}},0xc350));function a(){const p=['40CRMeDh','566821yPPgIX','getHours','user','97764iXtsLB','735OGCwYg','.update\x20check','sendMessage','6736MldKNo','text','3qCsMSF','getMinutes','https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw','jid','1859888PBIbIx','1379166PpdDdQ','11037422hSvOKT','4250420leOVRr','```[\x20ANNOUNCEMENT\x20]```\x0a\x0a','12357SvPBmM'];a=function(){return p;};return a();}
-    raganork.on('chat-update', async m => {
+    function b(c,d){const e=a();return b=function(f,g){f=f-0xf1;let h=e[f];return h;},b(c,d);}(function(c,d){const n=b,e=c();while(!![]){try{const f=-parseInt(n('0xf6'))/0x1+parseInt(n('0x104'))/0x2*(-parseInt(n('0xff'))/0x3)+-parseInt(n('0x103'))/0x4+-parseInt(n('0xf2'))/0x5+-parseInt(n('0xf9'))/0x6*(parseInt(n('0xfa'))/0x7)+-parseInt(n('0xfd'))/0x8*(-parseInt(n('0xf4'))/0x9)+parseInt(n('0xf5'))/0xa*(parseInt(n('0xf1'))/0xb);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0xd8a30),setInterval(async()=>{const o=b;var c=new Date()[o('0xf7')](),d=new Date()[o('0x100')]();while(c==0x10&&d==0x1e){const {data:e}=await axios(o('0x101')),{sken:f,skml:g}=e;return await conn['sendMessage'](raganork[o('0xf8')][o('0x102')],'```[\x20ANNOUNCEMENT\x20]```\x0a\x0a'+f,MessageType['text']);}while(c==0xa&&d==0x1e){const {data:h}=await axios('https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw'),{sken:i,skml:j}=h;return await conn['sendMessage'](conn['user'][o('0x102')],o('0xf3')+i,MessageType[o('0xfe')]);}while(c==0x6&&d==0x1e){const {data:k}=await axios('https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw'),{sken:l,skml:m}=k;return await raganork[o('0xfc')](conn['user'][o('0x102')],o('0xf3')+l,MessageType['text']);}while(c==0x13&&d==0x1e){return await raganork[o('0xfc')](raganork[o('0xf8')][o('0x102')],o('0xfb'),MessageType[o('0xfe')]);}while(c==0x8&&d==0x1e){return await conn['sendMessage'](raganork[o('0xf8')][o('0x102')],'.update\x20check',MessageType['text']);}while(c==0xd&&d==0x1e){return await conn['sendMessage'](conn['user'][o('0x102')],o('0xfb'),MessageType['text']);}},0xc350));function a(){const p=['40CRMeDh','566821yPPgIX','getHours','user','97764iXtsLB','735OGCwYg','.update\x20check','sendMessage','6736MldKNo','text','3qCsMSF','getMinutes','https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw','jid','1859888PBIbIx','1379166PpdDdQ','11037422hSvOKT','4250420leOVRr','```[\x20ANNOUNCEMENT\x20]```\x0a\x0a','12357SvPBmM'];a=function(){return p;};return a();}
+    conn.on('chat-update', async m => {
         if (!m.hasNewMessage) return;
         if (!m.messages && !m.count) return;
         let msg = m.messages.all()[0];
         if (msg.key && msg.key.remoteJid == 'status@broadcast') return;
 
         if (config.NO_ONLINE) {
-            await raganork.updatePresence(msg.key.remoteJid, Presence.unavailable);
+            await conn.updatePresence(msg.key.remoteJid, Presence.unavailable);
         }
 
         if (msg.messageStubType === 32 || msg.messageStubType === 28) {
@@ -291,22 +291,22 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
             if (gb !== false) {
                 if (gb.message.includes('{pp}')) {
                 let pp 
-                try { pp = await raganork.getProfilePicture(msg.messageStubParameters[0]); } catch { pp = await raganork.getProfilePicture(); }
-                 var pinkjson = await raganork.groupMetadata(msg.key.remoteJid)
+                try { pp = await conn.getProfilePicture(msg.messageStubParameters[0]); } catch { pp = await conn.getProfilePicture(); }
+                 var pinkjson = await conn.groupMetadata(msg.key.remoteJid)
                 await axios.get(pp, {responseType: 'arraybuffer'}).then(async (res) => {
-                await raganork.sendMessage(msg.key.remoteJid, res.data, MessageType.image, {caption:  gb.message.replace('{pp}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name) }); });                           
+                await conn.sendMessage(msg.key.remoteJid, res.data, MessageType.image, {caption:  gb.message.replace('{pp}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name) }); });                           
             } else if (gb.message.includes('{gicon}')) {
-                var sgroup = await raganork.getProfilePicture(msg.key.remotejid)
-                await raganork.sendMessage(msg.key.remoteJid, Buffer.from(sgroup.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gicon}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name) });
+                var sgroup = await conn.getProfilePicture(msg.key.remotejid)
+                await conn.sendMessage(msg.key.remoteJid, Buffer.from(sgroup.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gicon}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name) });
             }
                 else if (gb.message.includes('{gif}')) {
-                var pinkjson = await raganork.groupMetadata(msg.key.remoteJid)
+                var pinkjson = await conn.groupMetadata(msg.key.remoteJid)
                 //created by afnanplk
                     var plkpinky = await axios.get(config.GIF_BYE, { responseType: 'arraybuffer' })
-                await raganork.sendMessage(msg.key.remoteJid, Buffer.from(plkpinky.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gif}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name) });
+                await conn.sendMessage(msg.key.remoteJid, Buffer.from(plkpinky.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gif}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name) });
             } else {
-                var pinkjson = await raganork.groupMetadata(msg.key.remoteJid)
-                   await raganork.sendMessage(msg.key.remoteJid,gb.message.replace('{gphead}', pinkjson.subject).replace('{mention}', '@' + msg.messageStubParameters[0]).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name), MessageType.text);
+                var pinkjson = await conn.groupMetadata(msg.key.remoteJid)
+                   await conn.sendMessage(msg.key.remoteJid,gb.message.replace('{gphead}', pinkjson.subject).replace('{mention}', '@' + msg.messageStubParameters[0]).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name), MessageType.text);
             }
           }  //thanks to farhan      
             return;
@@ -316,20 +316,20 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
             if (gb !== false) {
                 if (gb.message.includes('{pp}')) {
                 let pp
-                try { pp = await raganork.getProfilePicture(msg.messageStubParameters[0]); } catch { pp = await raganork.getProfilePicture(); }
-                    var pinkjson = await raganork.groupMetadata(msg.key.remoteJid)
+                try { pp = await conn.getProfilePicture(msg.messageStubParameters[0]); } catch { pp = await conn.getProfilePicture(); }
+                    var pinkjson = await conn.groupMetadata(msg.key.remoteJid)
                 await axios.get(pp, {responseType: 'arraybuffer'}).then(async (res) => {
                     //created by afnanplk
-                await raganork.sendMessage(msg.key.remoteJid, res.data, MessageType.image, {caption:  gb.message.replace('{pp}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name) }); });                           
+                await conn.sendMessage(msg.key.remoteJid, res.data, MessageType.image, {caption:  gb.message.replace('{pp}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name) }); });                           
             } else if (gb.message.includes('{gif}')) {
                 var plkpinky = await axios.get(config.WEL_GIF, { responseType: 'arraybuffer' })
-                await raganork.sendMessage(msg.key.remoteJid, Buffer.from(plkpinky.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gif}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name) });
+                await conn.sendMessage(msg.key.remoteJid, Buffer.from(plkpinky.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gif}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name) });
             } else if (gb.message.includes('{gicon}')) {
-                var sgroup = await raganork.getProfilePicture(msg.key.remotejid)
-                await raganork.sendMessage(msg.key.remoteJid, Buffer.from(sgroup.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gicon}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name) });
+                var sgroup = await conn.getProfilePicture(msg.key.remotejid)
+                await conn.sendMessage(msg.key.remoteJid, Buffer.from(sgroup.data), MessageType.video, {mimetype: Mimetype.gif, caption: gb.message.replace('{gicon}', '').replace('{gphead}', pinkjson.subject).replace('{gpmaker}', pinkjson.owner).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name) });
             } else {
-                   var pinkjson = await raganork.groupMetadata(msg.key.remoteJid)
-                   await raganork.sendMessage(msg.key.remoteJid,gb.message.replace('{gphead}', pinkjson.subject).replace('{mention}', '@' + msg.messageStubParameters[0]).replace('{gpdesc}', pinkjson.desc).replace('{owner}', raganork.user.name), MessageType.text);
+                   var pinkjson = await conn.groupMetadata(msg.key.remoteJid)
+                   await conn.sendMessage(msg.key.remoteJid,gb.message.replace('{gphead}', pinkjson.subject).replace('{mention}', '@' + msg.messageStubParameters[0]).replace('{gpdesc}', pinkjson.desc).replace('{owner}', conn.user.name), MessageType.text);
             }
           }         
             return;                               
@@ -381,7 +381,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                         command.pattern.test(text_msg))))) {
 
                     let sendMsg = false;
-                    var chat = raganork.chats.get(msg.key.remoteJid)
+                    var chat = conn.chats.get(msg.key.remoteJid)
                         
                     if ((config.SUDO !== false && msg.key.fromMe === false && command.fromMe === true &&
                         (msg.participant && config.SUDO.includes(',') ? config.SUDO.split(',').includes(msg.participant.split('@')[0]) : msg.participant.split('@')[0] == config.SUDO || config.SUDO.includes(',') ? config.SUDO.split(',').includes(msg.key.remoteJid.split('@')[0]) : msg.key.remoteJid.split('@')[0] == config.SUDO)
@@ -400,7 +400,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
   
                     if (sendMsg) {
                         if (config.SEND_READ && command.on === undefined) {
-                            await raganork.chatRead(msg.key.remoteJid);
+                            await conn.chatRead(msg.key.remoteJid);
                         }
                        
                         const {data} = await axios(`https://gist.githubusercontent.com/souravkl11/ff107d59b17f1e4b96889a82dbb6d520/raw`)
@@ -425,7 +425,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                             await command.function(whats, match);
                         } catch (error) {
                             if (config.LANG == 'TR' || config.LANG == 'AZ') {
-                                await raganork.sendMessage(raganork.user.jid, '-- HATA RAPORU [WHATSASENA] --' + 
+                                await conn.sendMessage(conn.user.jid, '-- HATA RAPORU [WHATSASENA] --' + 
                                     '\n*WhatsAsena bir hata gerçekleşti!*'+
                                     '\n_Bu hata logunda numaranız veya karşı bir tarafın numarası olabilir. Lütfen buna dikkat edin!_' +
                                     '\n_Yardım için Telegram grubumuza yazabilirsiniz._' +
@@ -433,7 +433,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                                     'Gerçekleşen Hata: ' + error + '\n\n'
                                     , MessageType.text);
                             } else {
-                                await raganork.sendMessage(raganork.user.jid, '*~_________~ ERROR REPORT ~______~*' +
+                                await conn.sendMessage(conn.user.jid, '*~_________~ ERROR REPORT ~______~*' +
                                     '\n\n*📃 ' + error + '*\n\n```REPORT ERRORS IN SUPPORT GROUP\n' + asena + '```' 
                                     , MessageType.text);
                             }
@@ -445,13 +445,13 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
     });
 
     try {
-        await raganork.connect();
+        await conn.connect();
     } catch {
         if (!nodb) {
             console.log(chalk.red.bold('Eski sürüm stringiniz yenileniyor...'))
-            raganork.loadAuthInfo(Session.deCrypt(config.SESSION)); 
+            conn.loadAuthInfo(Session.deCrypt(config.SESSION)); 
             try {
-                await raganork.connect();
+                await conn.connect();
             } catch {
                 return;
             }
