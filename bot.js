@@ -409,12 +409,12 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                         
                         if (command.on !== undefined && (command.on === 'image' || command.on === 'photo' )
                         && msg.message.imageMessage !== null) {
-                            whats = new Image(conn, msg);
+                            whats = new Image(raganork, msg);
                         } else if (command.on !== undefined && (command.on === 'video' )
                         && msg.message.videoMessage !== null) {
-                            whats = new Video(conn, msg);
+                            whats = new Video(raganork, msg);
                         } else {
-                            whats = new Message(conn, msg);
+                            whats = new Message(raganork, msg);
                         }
 /*
                         if (command.deleteCommand && msg.key.fromMe) {
