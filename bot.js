@@ -6,6 +6,8 @@ you may not use this file except in compliance with the License.
 WhatsAsena - Yusuf Usta
 */
 
+// White Devil Maama...Enthodukkan vannatha ?? SUGALLE
+
 const fs = require("fs");
 const path = require("path");
 const events = require("./events");
