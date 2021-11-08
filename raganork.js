@@ -116,7 +116,7 @@ ${chalk.blue.italic('ℹ️ Configuring connection to WhatsApp...')}`);
             chalk.green.bold('BOT CONNECTED!')
         );
         await new Promise(r => setTimeout(r, 1100));
-
+        await conn.sendMessage(conn.user.jid, '*RAGANORK STARTED ON TERMINAL!*', MessageType.text);
     });
     
     setInterval(async () => { 
