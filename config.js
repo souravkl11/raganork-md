@@ -1,3 +1,8 @@
+/* Copyright (c) Yusuf Usta & souravkl11
+Licenced under GNU
+Copying strictly proibited!
+*/
+
 const { Sequelize } = require('sequelize');
 const fs = require('fs');
 if (fs.existsSync('config.env')) require('dotenv').config({ path: './config.env' });
@@ -47,7 +52,8 @@ module.exports = {
     BLOCKMSG: process.env.BLOCK_MESSAGE === undefined ? 'default' : process.env.BLOCK_MESSAGE,
     UNBLOCKMSG: process.env.UNBLOCK_MESSAGE === undefined ? 'default' : process.env.UNBLOCK_MESSAGE,
     SOURAV: process.env.SK_BLOCK === undefined ? 'false' : process.env.SK_BLOCK,
-    FAKE: process.env.FAKE_REMOVE === undefined ? 'false' : process.env.FAKE_REMOVE,
+    ANTI_FAKE: process.env.ANTI_FAKE === undefined ? 'sourav' : process.env.ANTI_FAKE,
+    AUTO_FAKE: process.env.ANTI_FAKE === undefined ? 'sourav' : process.env.ANTI_FAKE,
     UNMUTEMSG: process.env.UNMUTE_MESSAGE === undefined ? 'default' : process.env.UNMUTE_MESSAGE,
     WORKTYPE: process.env.WORK_TYPE === undefined ? 'private' : process.env.WORK_TYPE,
     PROMOTEMSG: process.env.PROMOTE_MESSAGE === undefined ? 'default' : process.env.PROMOTE_MESSAGE,
