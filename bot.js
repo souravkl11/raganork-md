@@ -1,9 +1,7 @@
-/* Copyright (C) 2020 Yusuf Usta.
-
-Licensed under the  GPL-3.0 License;
-you may not use this file except in compliance with the License.
-
-WhatsAsena - Yusuf Usta
+/* Copyright (c) 2021-23 Yusuf Usta & souravkl11
+80% modified by souravkl11 for fair use!
+Licenced under GNU
+Copying strictly proibited!
 */
 
 const fs = require("fs");
