@@ -61,7 +61,12 @@ if(pattern.test(message.message)){
        await message.client.sendMessage(message.jid, fs.readFileSync('./sourav/' + a + '.mp3'), MessageType.audio, { mimetype: Mimetype.mp4Audio, quoted: message.data, ptt: true})
 }
 });
-    }
+    };
+    
+}));
+}
+
+Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
     var filtreler = await FilterDb.getFilter(message.jid);
     if (!filtreler) return; 
     filtreler.map(
@@ -72,8 +77,6 @@ if(pattern.test(message.message)){
             }
         }
     );
-}));
-}
 else if (Config.WORKTYPE == 'public') {
 
 Asena.addCommand({pattern: 'filter ?(.*)', fromMe: true, desc: Lang.FILTER_DESC, dontAddCommandList: true}, (async (message, match) => {
