@@ -394,8 +394,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         await message.sendMessage(Buffer.from(souravimage6.data), MessageType.image, { mimetype: Mimetype.jpg, caption: Config.AFN, thumbnail: null})
         
 	}));
-    }));
-
+    
     skl.addCommand({ pattern: 'github ?(.*)', fromMe: sourav, desc: Glang.GİTHUB_DESC }, async (message, match) => {
 
         const userName = match[1]
