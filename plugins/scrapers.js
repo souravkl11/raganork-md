@@ -386,12 +386,12 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         var souravimage4 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
         var souravimage5 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
         var souravimage6 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
-        await message.sendMessage(Buffer.from(souravimage1.data), MessageType.image, { mimetype: Mimetype.jpg, caption: Config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage2.data), MessageType.image, { mimetype: Mimetype.jpg, caption: Config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage3.data), MessageType.image, { mimetype: Mimetype.jpg, caption: Config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage4.data), MessageType.image, { mimetype: Mimetype.jpg, caption: Config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage5.data), MessageType.image, { mimetype: Mimetype.jpg, caption: Config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage6.data), MessageType.image, { mimetype: Mimetype.jpg, caption: Config.AFN, thumbnail: null})
+        await message.sendMessage(Buffer.from(souravimage1.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
+        await message.sendMessage(Buffer.from(souravimage2.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
+        await message.sendMessage(Buffer.from(souravimage3.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
+        await message.sendMessage(Buffer.from(souravimage4.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
+        await message.sendMessage(Buffer.from(souravimage5.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
+        await message.sendMessage(Buffer.from(souravimage6.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
         
 	}));
     
