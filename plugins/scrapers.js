@@ -379,7 +379,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
 
         //Terror-boy If you're copying, just don't use my API key!
 		if (match[1] === '') return await message.client.sendMessage(message.jid, "_NEED A QUERY!_",MessageType.text);
-        var souravthumb = await axios.get(Config.LOGOSK, { responseType: 'arraybuffer' })
+        var souravthumb = await axios.get(config.LOGOSK, { responseType: 'arraybuffer' })
         var souravimage1 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
         var souravimage2 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
         var souravimage3 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
