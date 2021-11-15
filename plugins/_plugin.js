@@ -48,7 +48,7 @@ Asena.addCommand({pattern: 'install ?(.*)', fromMe: true, desc: Lang.INSTALL_DES
         // plugin adı
         var plugin_name = response.body.match(/addCommand\({.*pattern: ["'](.*)["'].*}/);
         if (Config.CHATBOT === 'false') {
-            plugin_name = "__" + plugin_name[1];
+            plugin_name = "__" + plugin_name;
         } else {
             plugin_name = "__" + Math.random().toString(36).substring(8);
         }
