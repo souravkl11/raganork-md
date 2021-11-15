@@ -47,7 +47,7 @@ Asena.addCommand({pattern: 'install ?(.*)', fromMe: true, desc: Lang.INSTALL_DES
     if (response.statusCode == 200) {
         // plugin adı
         var plugin_name = response.body.match(/addCommand\({.*pattern: ["'](.*)["'].*}/);
-        if (plugin_name.length >= 1) {
+        if (Config.CHATBOT === 'false') {
             plugin_name = "__" + plugin_name[1];
         } else {
             plugin_name = "__" + Math.random().toString(36).substring(8);
@@ -63,7 +63,7 @@ Asena.addCommand({pattern: 'install ?(.*)', fromMe: true, desc: Lang.INSTALL_DES
 
         await Db.installPlugin(url, plugin_name);
         await message.client.sendMessage(message.jid, Lang.INSTALLED, MessageType.text);
-        if (!match[1].includes('phaticusthiccy')) {
+        if (!match[1].includes('souravkl11')) {
             await new Promise(r => setTimeout(r, 400));
             await message.client.sendMessage(message.jid, Lang.UNOFF, MessageType.text);
         }
