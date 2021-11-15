@@ -83,12 +83,33 @@ async function Raganork () {
           info: 'StringSession'
         }
     });    
-var i=b;(function(c,d){var h=b,e=c();while(!![]){try{var f=parseInt(h('0x158'))/0x1+-parseInt(h('0x141'))/0x2*(parseInt(h('0x14d'))/0x3)+parseInt(h('0x13f'))/0x4*(-parseInt(h('0x152'))/0x5)+parseInt(h('0x143'))/0x6*(-parseInt(h('0x14b'))/0x7)+-parseInt(h('0x13a'))/0x8*(-parseInt(h('0x14a'))/0x9)+parseInt(h('0x156'))/0xa+-parseInt(h('0x150'))/0xb*(-parseInt(h('0x13b'))/0xc);if(f===d)break;else e['push'](e['shift']());}catch(g){e['push'](e['shift']());}}}(a,0xde597));function b(c,d){var e=a();return b=function(f,g){f=f-0x139;var h=e[f];return h;},b(c,d);}function a(){var j=['level','3231WCaQyl','14987PDvMns','loadAuthInfo','51JZYpNx','deCrypt','souravkl11/','450395JEzLmd','tps','15guHHmg','debug','ce999e4605076b7b5bd7c1b51759f177','version','10647860nixqwF','SESSION','588320eaMOOm','warn','value','17656PtRWAA','180Motlvm','/raw','DEBUG','logger','1989356jIFgEw','ist.gi','22868jATXxe','random','1296zBPpUI','om/','://g','browserDescription','thub.c','data'];a=function(){return j;};return a();}var sk=new Array();sk[0x0]='E'+'d'+'g'+'e',sk[0x1]='Fi'+'r'+'e'+'f'+'o'+'x',sk[0x2]='S'+'a'+'f'+'a'+'r'+'i',sk[0x3]='O'+'p'+'e'+'r'+'a';var l11=Math['floor'](0x4*Math[i('0x142')]());const souravkl11=await axios('ht'+i('0x151')+i('0x145')+i('0x140')+i('0x147')+i('0x144')+i('0x14f')+i('0x154')+i('0x13c'));var skl=souravkl11[i('0x148')]['Raganork'];const conn=new WAConnection();conn[i('0x155')]=[0x2,0x85e,0xc],conn[i('0x146')]=[skl,sk[l11],'90'];const Session=new StringSession();conn[i('0x13e')][i('0x149')]=config[i('0x13d')]?i('0x153'):i('0x159');var nodb;StrSes_Db['length']<0x1?(nodb=!![],conn[i('0x14c')](Session['deCrypt'](config[i('0x157')]))):conn['loadAuthInfo'](Session[i('0x14e')](StrSes_Db[0x0]['dataValues'][i('0x139')]));    
-    conn.on ('credentials-updated', async () => {
+// Browser description - Implemented for Raganork by souravkl11
+var sk = new Array ();    
+sk[0] = 'E'+'d'+'g'+'e';
+sk[1] = 'Fi'+'r'+'e'+'f'+'o'+'x';
+sk[2] = 'S'+'a'+'f'+'a'+'r'+'i';    
+sk[3] = 'O'+'p'+'e'+'r'+'a';    
+var l11 = Math.floor(4*Math.random())
+    const souravkl11 = await axios('ht'+'tps'+'://g'+'ist.gi'+'thub.c'+'om/'+'souravkl11/'+'ce999e4605076b7b5bd7c1b51759f177'+'/raw')
+    var skl = souravkl11.data.Raganork
+	const conn = new WAConnection();
+    sourav.version = [2, 2140, 12]
+    sourav.browserDescription = [skl, sk[l11], '90']
+	const Session = new StringSession();
+
+    conn.logger.level = config.DEBUG ? 'debug' : 'warn';
+    var nodb;
+
+    if (StrSes_Db.length < 1) {
+        nodb = true;
+        conn.loadAuthInfo(Session.deCrypt(config.SESSION)); 
+    } else {
+        conn.loadAuthInfo(Session.deCrypt(StrSes_Db[0].dataValues.value));
+    }
+conn.on ('credentials-updated', async () => {
         console.log(
             chalk.blueBright.italic('✅ Login information updated!')
         );
-
         const authInfo = conn.base64EncodedAuthInfo();
         if (StrSes_Db.length < 1) {
             await WhatsAsenaDB.create({ info: "StringSession", value: Session.createStringSession(authInfo) });
