@@ -29,6 +29,6 @@ async function deleteBgm() {
 module.exports = {
     BgmDB,
     getBgm,
-    addBGM,
+    addBgm,
     deleteBgm
 };
