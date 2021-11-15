@@ -256,7 +256,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
         } else if (msg.messageStubType === 27 || msg.messageStubType === 31) {
             // If anti fake is true, exclude members with fake and send response to given country code! 
         let skl11 = `Sourav.CCODE`    
-	if (msg.messageStubParameters[0].startsWith(skl11) && Sourav.AUTO_FAKE === 'true') {
+	if (msg.messageStubParameters[0].startsWith('91') && Sourav.AUTO_FAKE === 'true') {
 			   
 			var gb = await getMessage(msg.key.remoteJid);
             if (gb !== false) {
@@ -323,7 +323,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
 			}
         // If anti fake is true, filter stub parameters by excluding given country codes   
 	// Auto fake remove - implemented for raganork by souravkl11
-        if (!msg.messageStubParameters[0].startsWith(skl11) && Sourav.AUTO_FAKE === 'true') {
+        if (!msg.messageStubParameters[0].startsWith('91') && Sourav.AUTO_FAKE === 'true') {
 				async function checkImAdmin(message, user = raganork.user.jid) {
     var grup = await raganork.groupMetadata(msg.key.remoteJid);
     var sonuc = grup['participants'].map((member) => {
