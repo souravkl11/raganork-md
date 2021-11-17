@@ -6,7 +6,7 @@ const googleTTS = require('google-translate-tts');
 const { MessageType, Mimetype, MessageOptions } = require('@adiwajshing/baileys');
 const Language = require('../language');
 const Lang = Language.getString('voicy');
-const conf = require('../config');
+const Sourav = require('../config');
 const axios = require('axios')
 const axiosdef = require("axios").default;
 const os = require('os')
@@ -15,27 +15,27 @@ const LanguageDetect = require('languagedetect');
 const lngDetector = new LanguageDetect();
 const Heroku = require('heroku-client');
 const heroku = new Heroku({
-    token: conf.HEROKU.API_KEY
+    token: Sourav.HEROKU.API_KEY
 });
-let baseURI = '/apps/' + conf.HEROKU.APP_NAME;
+let baseURI = '/apps/' + Sourav.HEROKU.APP_NAME;
 
-let wk = conf.WORKTYPE == 'public' ? false : true
+let wk = Sourav.WORKTYPE == 'public' ? false : true
 var vtalk_dsc = ''
 var reply_eva = ''
-if (conf.LANG == 'TR') vtalk_dsc = 'Eva sesli sohbetini başlatır.', reply_eva = '*Herhangi Bir Sesli Mesaja Yanıt Verin!*'
-if (conf.LANG == 'EN') vtalk_dsc = 'Starts to raganork voice chat.', reply_eva = '*Reply to Any Voice Message!*'
-if (conf.LANG == 'AZ') vtalk_dsc = 'Eva səsli söhbətinə başlayır.', reply_eva = '*Hər hansı bir səsli mesaja cavab verin!*'
-if (conf.LANG == 'PT') vtalk_dsc = 'Começa o bate-papo por voz de Eva.', reply_eva = '*Responder a qualquer mensagem de voz!*'
-if (conf.LANG == 'RU') vtalk_dsc = 'Запускает голосовой чат Eva.', reply_eva = '*Ответьте на любое голосовое сообщение!*'
-if (conf.LANG == 'HI') vtalk_dsc = 'Eva ध्वनि चैट प्रारंभ करता है', reply_eva = '*किसी भी ध्वनि संदेश का उत्तर दें!*'
-if (conf.LANG == 'ES') vtalk_dsc = 'Comienza con el chat de voz de Eva.', reply_eva = '*¡Responde a cualquier mensaje de voz!*'
-if (conf.LANG == 'ML') vtalk_dsc = 'വോയ്‌സ് ചാറ്റിലേക്ക് ആരംഭിക്കുന്നു.', reply_eva = '*ഏത് വോയ്‌സ് സന്ദേശത്തിനും മറുപടി നൽകുക!*'
-if (conf.LANG == 'ID') vtalk_dsc = 'Mulai obrolan suara Eva.', reply_eva = '*Balas Pesan Suara Apapun!*'
+if (Sourav.LANG == 'TR') vtalk_dsc = 'Eva sesli sohbetini başlatır.', reply_eva = '*Herhangi Bir Sesli Mesaja Yanıt Verin!*'
+if (Sourav.LANG == 'EN') vtalk_dsc = 'Starts to raganork voice chat.', reply_eva = '*Reply to Any Voice Message!*'
+if (Sourav.LANG == 'AZ') vtalk_dsc = 'Eva səsli söhbətinə başlayır.', reply_eva = '*Hər hansı bir səsli mesaja cavab verin!*'
+if (Sourav.LANG == 'PT') vtalk_dsc = 'Começa o bate-papo por voz de Eva.', reply_eva = '*Responder a qualquer mensagem de voz!*'
+if (Sourav.LANG == 'RU') vtalk_dsc = 'Запускает голосовой чат Eva.', reply_eva = '*Ответьте на любое голосовое сообщение!*'
+if (Sourav.LANG == 'HI') vtalk_dsc = 'Eva ध्वनि चैट प्रारंभ करता है', reply_eva = '*किसी भी ध्वनि संदेश का उत्तर दें!*'
+if (Sourav.LANG == 'ES') vtalk_dsc = 'Comienza con el chat de voz de Eva.', reply_eva = '*¡Responde a cualquier mensaje de voz!*'
+if (Sourav.LANG == 'ML') vtalk_dsc = 'വോയ്‌സ് ചാറ്റിലേക്ക് ആരംഭിക്കുന്നു.', reply_eva = '*ഏത് വോയ്‌സ് സന്ദേശത്തിനും മറുപടി നൽകുക!*'
+if (Sourav.LANG == 'ID') vtalk_dsc = 'Mulai obrolan suara Eva.', reply_eva = '*Balas Pesan Suara Apapun!*'
 
 const recognizeAudio = () => {
     const headers = new Headers({
         'Content-Type': 'audio/wav',
-        "Authorization": `Bearer ${conf.WITAI_API}`,
+        "Authorization": `Bearer ${Sourav.WITAI_API}`,
         'Cache-Control': 'no-cache',
         'Transfer-Encoding': 'chunked'
     })
@@ -56,7 +56,7 @@ const convertToWav = file => {
 }
 
 New.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCommand: false}, (async (message, match) => {
-    if (message.message.startsWith('bot') && conf.CHATBOT !== 'true') {        
+    if (message.message.startsWith('bot') && Sourav.CHATBOT !== 'true') {        
         var unique_ident = message.client.user.jid.split('@')[0]      
         var finm = message.message.replace('bot', '').replace(' ', '')   
         var ainame = os.userInfo().homedir.split('Rag')[1].split('rk/')[0]
@@ -71,19 +71,19 @@ New.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCommand:
         } else { trmsg = finm }
         var uren = encodeURI(trmsg)
         await axios.get('http://api.brainshop.ai/get?bid=159572&key=usZjYZjRBVJcwN1S&uid=' + unique_ident + '&msg=' + uren).then(async (response) => {
-            var fins = ''                           
-            if (conf.LANG !== 'EN') {
-                ceviri = await translatte(response.data.cnt, {from: 'auto', to: conf.LANG});
+            var raganork = ''                           
+            if (Sourav.LANG !== 'EN') {
+                ceviri = await translatte(response.data.cnt, {from: 'auto', to: Sourav.LANG});
                 if ('text' in ceviri) {
-                    fins = ceviri.text
+                    raganork = ceviri.text
                 }
-            } else { fins = response.data.cnt }
-            await message.client.sendMessage(message.jid,fins, MessageType.text, { quoted: message.data})
+            } else { raganork = response.data.cnt }
+            await message.client.sendMessage(raganork.replace('Raganork', Sourav.BOTSK).replace('Souravkl11', Sourav.PLK), MessageType.text, { quoted: message.data})
         })
     }
 }));
 New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (message, match) => {
-        if (conf.CHATBOT == 'true' && ((!message.jid.includes('-')) || (message.jid.includes('-') && 
+        if (Sourav.CHATBOT == 'true' && ((!message.jid.includes('-')) || (message.jid.includes('-') && 
             (( message.mention !== false && message.mention.length !== 0 ) || message.reply_message !== false)))) {
             if (message.jid.includes('-') && (message.mention !== false && message.mention.length !== 0)) {
                 message.mention.map(async (jid) => {
@@ -100,14 +100,14 @@ New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (messag
                         } else { trmsg = finm }
                         var uren = encodeURI(trmsg)
                         await axios.get('http://api.brainshop.ai/get?bid=159572&key=usZjYZjRBVJcwN1S&uid=' + unique_ident + '&msg=' + uren).then(async (response) => {
-                            var fins = ''                           
-                            if (conf.LANG !== 'EN') {
-                                ceviri = await translatte(response.data.cnt, {from: 'auto', to: conf.LANG});
+                            var raganork = ''                           
+                            if (Sourav.LANG !== 'EN') {
+                                ceviri = await translatte(response.data.cnt, {from: 'auto', to: Sourav.LANG});
                                 if ('text' in ceviri) {
-                                    fins = ceviri.text
+                                    raganork = ceviri.text
                                 }
-                            } else { fins = response.data.cnt }
-                            await message.client.sendMessage(message.jid,fins, MessageType.text, { quoted: message.data})
+                            } else { raganork = response.data.cnt }
+                            await message.client.sendMessage(raganork.replace('Raganork', Sourav.BOTSK).replace('Souravkl11', Sourav.PLK), MessageType.text, { quoted: message.data})
                         })
                     }
                 })
@@ -126,14 +126,14 @@ New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (messag
                     } else { trmsg = finm }
                     var uren = encodeURI(trmsg)
                     await axios.get('http://api.brainshop.ai/get?bid=159572&key=usZjYZjRBVJcwN1S&uid=' + unique_ident + '&msg=' + uren).then(async (response) => {
-                        var fins = ''                           
-                        if (conf.LANG !== 'EN') {
-                            ceviri = await translatte(response.data.cnt, {from: 'auto', to: conf.LANG});
+                        var raganork = ''                           
+                        if (Sourav.LANG !== 'EN') {
+                            ceviri = await translatte(response.data.cnt, {from: 'auto', to: Sourav.LANG});
                             if ('text' in ceviri) {
-                                fins = ceviri.text
+                                raganork = ceviri.text
                             }
-                        } else { fins = response.data.cnt }
-                        await message.client.sendMessage(message.jid,fins, MessageType.text, { quoted: message.data})
+                        } else { raganork = response.data.cnt }
+                        await message.client.sendMessage(raganork.replace('Raganork', Sourav.BOTSK).replace('Souravkl11', Sourav.PLK), MessageType.text, { quoted: message.data})
                     })
                 }
             } else {
@@ -149,14 +149,14 @@ New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (messag
                 } else { trmsg = finm }
                 var uren = encodeURI(trmsg)
                 await axios.get('http://api.brainshop.ai/get?bid=159572&key=usZjYZjRBVJcwN1S&uid=' + unique_ident + '&msg=' + uren).then(async (response) => {
-                    var fins = ''                           
-                    if (conf.LANG !== 'EN') {
-                        ceviri = await translatte(response.data.cnt, {from: 'auto', to: conf.LANG});
+                    var raganork = ''                           
+                    if (Sourav.LANG !== 'EN') {
+                        ceviri = await translatte(response.data.cnt, {from: 'auto', to: Sourav.LANG});
                         if ('text' in ceviri) {
-                            fins = ceviri.text
+                            raganork = ceviri.text
                         }
-                    } else { fins = response.data.cnt }
-                    await message.client.sendMessage(message.jid,fins, MessageType.text, { quoted: message.data})
+                    } else { raganork = response.data.cnt }
+                    await message.client.sendMessage(raganork.replace('Raganork', Sourav.BOTSK).replace('Souravkl11', Sourav.PLK), MessageType.text, { quoted: message.data})
                 })
             }
         }
@@ -186,13 +186,13 @@ New.addCommand({ pattern: 'vtalk$', desc: vtalk_dsc,dontAddCommandList: true, fr
                 var son = encodeURI(ssc)
                 await axios.get('http://api.brainshop.ai/get?bid=159572&key=usZjYZjRBVJcwN1S&uid=' + unique_ident + '&msg=' + son).then(async (response) => {
                     var trmsg = ''
-                    cevir = await translatte(response.data.cnt, {from: 'auto', to: conf.LANG});
+                    cevir = await translatte(response.data.cnt, {from: 'auto', to: Sourav.LANG});
                     if ('text' in cevir) {
                         trmsg = cevir.text
                     }
             
                     let 
-                        LANG = conf.LANG.toLowerCase(),
+                        LANG = Sourav.LANG.toLowerCase(),
                         ttsMessage = trmsg,
                         SPEED = 1.0
                     var buffer = await googleTTS.synthesize({
@@ -212,21 +212,21 @@ var already_on = ''
 var already_off = ''
 var succ_on = ''
 var succ_off = ''
-if (conf.LANG == 'TR') {
+if (Sourav.LANG == 'TR') {
     _dsc = 'Tam fonksiyonel Raganork özelliklerini aktif eder. Hesabınızı bir chatbota dönüştürün!'
     already_on = 'Raganork yapay zekası halihazırda tüm fonksiyonları etkin.'
     already_off = 'Raganork yapay zekası halihazırda yarı fonksiyonel çalışıyor.'
     succ_on = 'Raganork, Tam Fonksiyonel Olarak Açıldı! Lütfen Biraz Bekleyin! ✅'
     succ_off = 'Raganork, Yarı Fonksiyonel Olarak Ayarlandı! Lütfen Biraz Bekleyin! ☑️'
 }
-if (conf.LANG == 'EN') {
+if (Sourav.LANG == 'EN') {
     fulleva_dsc = 'Turns on AI powered chatbot on to your account!'
     already_on = 'AI chatbot is already functional.'
     already_off = 'AI chatbot is currently turned off!.'
     succ_on = 'AI chatbot awakened! Restarting to make functional ✅'
     succ_off = 'AI chatbot turned off :( Restarting to make functional ☑️'
 }
-if (conf.LANG == 'ML') {
+if (Sourav.LANG == 'ML') {
     fulleva_dsc = 'പൂർണ്ണമായും പ്രവർത്തനക്ഷമമായ AI chatbot സജീവമാക്കുന്നു. നിങ്ങളുടെ അക്കൗണ്ട് ഒരു ചാറ്റ്ബോട്ടാക്കി മാറ്റുക!'
     already_on = 'കൃത്രിമബുദ്ധി ഇതിനകം പൂർണ്ണമായി പ്രവർത്തിക്കുന്നു.'
     already_off = 'AI നിലവിൽ സെമി-ഫംഗ്ഷണൽ ആണ്.'
@@ -235,7 +235,7 @@ if (conf.LANG == 'ML') {
 }
 
 New.addCommand({ pattern: 'chatbot ?(.*)', desc: _dsc, fromMe: true,dontAddCommandList: true, usage: '.chatbot on / off' }, (async (message, match) => {
-    var eva_status = `${conf.CHATBOT}`
+    var eva_status = `${Sourav.CHATBOT}`
     if (match[1] == 'on') {
         if (eva_status == 'true') {
             return await message.client.sendMessage(message.jid, '*' + already_on + '*', MessageType.text)
