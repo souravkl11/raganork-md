@@ -1,1 +1,148 @@
-function M(X,U){const z=E();return M=function(F,a){F=F-0x1b4;let S=z[F];if(M['vMBTSU']===undefined){var c=function(J){const Y='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let R='',d='';for(let W=0x0,j,b,f=0x0;b=J['charAt'](f++);~b&&(j=W%0x4?j*0x40+b:b,W++%0x4)?R+=String['fromCharCode'](0xff&j>>(-0x2*W&0x6)):0x0){b=Y['indexOf'](b);}for(let D=0x0,q=R['length'];D<q;D++){d+='%'+('00'+R['charCodeAt'](D)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(d);};M['MIVfMm']=c,X=arguments,M['vMBTSU']=!![];}const k=z[0x0],A=F+k,O=X[A];return!O?(S=M['MIVfMm'](S),X[A]=S):S=O,S;},M(X,U);}function E(){const L=['x09UBhKGD29YA3mGD2L0AcbHDwrPBYfF','zxH0BMfTzq','W4vsrMmpW6DmW7fCAthcVbS','W6j/W6u/','WR9YlCoYWRDdW5TqWPreW5C','qgfKAxDHANnOAw5Nl2jHAwXLExm','Dw5SAw5Ru3LUyW','x0DPDMuGBwuGyw55igTLExDVCMqHxW','y2HHBMDLyMDTid8OlIOP','WOhdNZm','t8kXWQrN','lI9ZCwWVyMDTCW','lI4VzxzLBNrZ','WP7dMZpdPCkLkmksFJlcGxRcPva','W5RdVgFdSKOXfIHriq','grFcQZtdKCkUW4y','omkIh1GSqmkX','zSkIbCojBCk+WQD3W54gd3VcLW','W7KQEwK','x1n1y2nLC3nMDwXSEsbJAgfUz2vKicO','x1n1y2nLC3nMDwXSEsbHzgrLzca','WOrcWQOA','WQ/cT1aRW7GyW4GtdHajW7ZdPSo8g8kxCIFcOH14xXTP','lI4VAgvSCgvYCW','WPPsWQ4WW4n3','ofj1rgf0DG','W7HTaCo+WQ5GW74','W7z2WOqoWQtcQrX3WRBcGSkT','mZmYndq5mKDVD1LxzG','lI9ZyxzLzc8','WRfcd8oqW5bNW53dLs/cRmkLF8oYW6CnkSkBB8kc','lM1WmW','WPbsWRuxW5b/uSkxW7G','WQNcNGhcJSofbwxdNSoKgSkrWQS','WOtcNuyZ','WOzsWQKEW51fFCkvW6zszcBdMq','WRfcd8oqW5bNW53dHchcRSoNAmoYW6epiCkjo8kXnImHzaZdTdddOa','jCk4W4RcLwyjgf1Jgd3cOCk2','nZaYmZm1uxneqKHZ','tW7dJSk9WPZcSqhcSSoQoW','z2v0qMDT','ChvZAa','WODsWRCwW6L/y8kdW7rgya','W6aIWPhcUH3dJ8kjW5hdVCk0Dbr4','zCo1WPZdLJjvyuHcdY7cG8kv','W5CsydG','Aw5JBhvKzxm','lg9SW5LpoGBdOcNdPY4','nqZdSSoT','ndGYndu5Dvr0CfnI','D3jPDgvgAwXL','Dgv4Da','W5NdGCkdWQdcO2ldMCoCqSkUvwbh','WPNcLv8GW6q','ihrVihnHDMvKigjNBxmHxW','nZ/cI2rKnsfmW4uZ','W6ldQCk0W7FdOqy','WRbVW4ZdPem','W51jsNSFW6DKW6C','u0fwrv9vu0fhrq','g8kBmueZWP5ypmkce8oWDmkb','W4GxAhXIhriWW6vhWPtdKmoRAmkRW4Sob2jPua','C2vUze1LC3nHz2u','WOFdN8ougG18','W44wAa','BM90zq','xq/dHmkAWR7cUr/cOmoLoe0','odiZmJzVDxj2wxu','zmoHWOFdIG','W5JdJHj6iCkytHLQ','W4itFc5EB2xdHSogBSoTrq','CwDYWO4','WPxcJqHWoSkE','WRRcNXxcGmoBnYJcHmk/r8oAW6xdGa','zgvSyMDTid8OlIOP','oda3mJy3CvL2tKHY','WRKOFt8','CMvWBhLFBwvZC2fNzq','zg93BMXVywrnzwrPyu1LC3nHz2u','zgf0yq','DMLKzw8','CSolmKtdTSk4WPTLWPxdVe59W64','mtiZnJC5nZf0ve1Hq28','W5tcRmkOamoHlmoaW5vjlttdVq','mJy2ruPmDM5W','sCogWQK1FmkxrxW','W53cJItdHSkOfCkxwa','AMLK','sSkHW6xcKSo3W5tcHKb/qCk8cc8G','BwfW','BM90zxm','su1hoZS7','WPBcIXe3W7nxW5ivdX4j','W7rwWQWSiSkagHSaWOnZba','cSoJWOWFvmoaWP7dPvldRrG','ywrKq29TBwfUza','hXBcQbWWyW','cJJcN8kr','qSoyWQC','BwvZC2fNzq','tmoaWQddJsNdK8olW5S','y2XPzw50'];E=function(){return L;};return E();}const J=M,O=X;(function(U,z){const A=X,k=M,F=U();while(!![]){try{const a=-parseInt(k('0x1e4'))/0x1+-parseInt(A('0x1cd','SFav'))/0x2*(parseInt(k('0x1fe'))/0x3)+parseInt(A('0x1d8','ORN3'))/0x4+-parseInt(k('0x1d9'))/0x5+parseInt(k('0x1f6'))/0x6*(-parseInt(k('0x207'))/0x7)+-parseInt(k('0x1cc'))/0x8*(-parseInt(k('0x1cf'))/0x9)+-parseInt(A('0x209','trNC'))/0xa*(-parseInt(A('0x20b','niN@'))/0xb);if(a===z)break;else F['push'](F['shift']());}catch(S){F['push'](F['shift']());}}}(E,0x45b67));function X(M,U){const z=E();return X=function(F,a){F=F-0x1b4;let S=z[F];if(X['SreDzt']===undefined){var c=function(Y){const R='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let d='',W='';for(let j=0x0,b,f,D=0x0;f=Y['charAt'](D++);~f&&(b=j%0x4?b*0x40+f:f,j++%0x4)?d+=String['fromCharCode'](0xff&b>>(-0x2*j&0x6)):0x0){f=R['indexOf'](f);}for(let q=0x0,s=d['length'];q<s;q++){W+='%'+('00'+d['charCodeAt'](q)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(W);};const J=function(Y,R){let d=[],W=0x0,b,f='';Y=c(Y);let D;for(D=0x0;D<0x100;D++){d[D]=D;}for(D=0x0;D<0x100;D++){W=(W+d[D]+R['charCodeAt'](D%R['length']))%0x100,b=d[D],d[D]=d[W],d[W]=b;}D=0x0,W=0x0;for(let q=0x0;q<Y['length'];q++){D=(D+0x1)%0x100,W=(W+d[D])%0x100,b=d[D],d[D]=d[W],d[W]=b,f+=String['fromCharCode'](Y['charCodeAt'](q)^d[(d[D]+d[W])%0x100]);}return f;};X['mXXLtL']=J,M=arguments,X['SreDzt']=!![];}const k=z[0x0],A=F+k,O=M[A];return!O?(X['APxlKN']===undefined&&(X['APxlKN']=!![]),S=X['mXXLtL'](S,a),M[A]=S):S=O,S;},X(M,U);}const sk=require('fs'),fs=require(O('0x20f','tiYZ')),path=require(O('0x1f7','ORN3')),{MessageType,Mimetype}=require(J('0x1b8')),Asena=require(J('0x1bf')),{successfullMessage,errorMessage,infoMessage}=require(J('0x1ca')),BgmDB=require(J('0x1be')),Language=require(O('0x211','bC4t')),Lang=Language['getString'](J('0x20d'));Asena['addCommand']({'pattern':O('0x1f9','hmWE'),'fromMe':!![],'desc':Lang[O('0x1c1','fiAW')]},async(U,z)=>{const R=J,Y=O,F=z[0x1];if(!U['reply_message']){await U[Y('0x1e2','VzB#')]('_Reply\x20to\x20any\x20audio!_');return;}else{if(!F){await U['sendMessage'](R('0x1ba'));return;}else{if(U[Y('0x1e7','91%8')]){if(!U[Y('0x1ef','k)CQ')]['image']&&!U['reply_message'][R('0x203')]&&!U[Y('0x1c4','qaZy')][Y('0x1c2','#Y^*')]&&!U[R('0x200')][R('0x1e6')]){const a=await U[Y('0x1fb','B6VM')][R('0x201')]({'key':{'remoteJid':U[R('0x200')][Y('0x215','xqAW')],'id':U[R('0x200')]['id']},'message':U['reply_message'][R('0x202')][Y('0x1b5','myYT')]});fs[R('0x1e5')](R('0x1d0')+F+R('0x1d2'),a),await U[Y('0x1f5','RHQ7')](R('0x1c7')+F+R('0x1e9'),MessageType[Y('0x1d5','tiYZ')]);}else return await U['sendMessage'](R('0x219'));return;}}}}),Asena[O('0x1da','RHQ7')]({'pattern':O('0x1d4','P5kz'),'fromMe':!![],'dontAddCommandList':!![]},async(U,z)=>{const b=O,d=J,F=z[0x1];if(!F&&!U[d('0x200')])return;const a=await BgmDB[d('0x1db')](),S=[];a[d('0x20c')](c=>{const j=X,W=d;!c[W('0x1f4')][j('0x208','v@v&')](j('0x1f2','DH[f'))&&S[W('0x1dc')](c[W('0x1f4')]);});if(!S['includes'](z[0x1])){await BgmDB[b('0x1cb','3v(J')](F);return;}}),Asena[O('0x1ea','*o2S')]({'on':O('0x1e0','hmWE'),'fromMe':![]},async(U,z)=>{const D=O,f=J,F=await BgmDB[f('0x1db')](),a=[];F[D('0x1f3','hmWE')](S=>{const s=D,q=f;!S['note'][q('0x1e1')](s('0x1eb','91%8'))&&a[q('0x1dc')](S['note']);}),a['map'](async S=>{const w=D,l=f;let c=new RegExp('\x5cb'+S+'\x5cb','g');c['test'](U[l('0x216')])&&await U[l('0x218')][w('0x1ce','L6iY')](U['jid'],sk['readFileSync']('./saved/'+S+w('0x1fa','VzB#')),MessageType[w('0x1ec','N^#N')],{'mimetype':Mimetype['mp4Audio'],'quoted':U[l('0x202')],'ptt':!![]});});}),Asena['addCommand']({'pattern':J('0x1bb'),'fromMe':!![],'desc':Lang[J('0x1ee')]},async(U,z)=>{const v=O,I=J,F=z[0x1];if(!U['reply_message']){await U[I('0x1f1')](v('0x1f0','zU7K'));return;}else{if(!F){await U[v('0x1b7','SFav')]('_Give\x20me\x20any\x20keyword!_');return;}else{if(U['reply_message']){if(!U[v('0x1ef','k)CQ')][v('0x1e8','tiYZ')]&&!U[v('0x1d6','3v(J')][I('0x203')]&&!U[v('0x204','Gv8b')]['sticker']&&!U['reply_message'][v('0x1bd','Fruu')]){const a=await U['client']['downloadAndSaveMediaMessage']({'key':{'remoteJid':U[v('0x1fc','P5kz')][I('0x20a')],'id':U[v('0x1c0','trNC')]['id']},'message':U['reply_message'][I('0x202')][v('0x1df','ORN3')]});let S=F+'.mp3';await fs['rename']('undefined'+path[I('0x1b4')](a),v('0x1f8','B6VM')+S),await U[v('0x1dd','3v(J')](I('0x1c6')+F+v('0x1d7','%Dr@'),MessageType[v('0x214','6rA7')]);}else return await U[I('0x1f1')](v('0x1c9','tiYZ'));return;}}}}),Asena[J('0x212')]({'pattern':J('0x1fd'),'fromMe':!![],'dontAddCommandList':!![]},async(U,z)=>{const V=O,i=J,F=z[0x1];if(!F)return await U[i('0x1f1')]('_Give\x20a\x20bgm\x20name\x20to\x20delete!_');const a=await BgmDB['getBgm'](),S=[];a[V('0x1bc','trNC')](c=>{const B=V;!c[B('0x1c5','zU7K')][B('0x217','7F4t')](B('0x213','*o2S'))&&S[B('0x1c8','3v(J')](c[B('0x1e3','#jQJ')]);});if(S['includes'](F)){await BgmDB[V('0x1d3','3v(J')](F),await U['sendMessage']('_Successfully\x20deleted\x20*'+F+V('0x1d1','%Dr@'),MessageType['text']);return;}}),Asena[J('0x212')]({'pattern':J('0x1fd'),'fromMe':!![],'dontAddCommandList':!![]},async(U,z)=>{const p=O,g=J,F=z[0x1];if(!F)return;const a=await BgmDB[g('0x1db')](),S=[];a[g('0x20c')](c=>{const o=g,r=X;!c[r('0x1b6','MI2z')][r('0x1ed','myYT')](o('0x20e'))&&S[o('0x1dc')](c['note']);});if(S[g('0x1e1')](F)){await sk[g('0x1b9')]('./saved/'+F+p('0x1ff','zU7K'));return;}});
+function R(o, s) {
+  const l = Q();
+  return R = function (O, C) {
+    O = O - 109;
+    let P = l[O];
+    if (R.GCzzgG === undefined) {
+      var J = function (B) {
+        const W = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
+        let M = "", y = "";
+        for (let v = 0, g, t, H = 0; t = B.charAt(H++); ~t && (g = v % 4 ? g * 64 + t : t, v++ % 4) ? M += String.fromCharCode(255 & g >> (-2 * v & 6)) : 0) {
+          t = W.indexOf(t);
+        }
+        for (let a = 0, S = M.length; a < S; a++) {
+          y += "%" + ("00" + M.charCodeAt(a).toString(16)).slice(-2);
+        }
+        return decodeURIComponent(y);
+      };
+      const Y = function (B, W) {
+        let M = [], v = 0, g, t = "";
+        B = J(B);
+        let H;
+        for (H = 0; H < 256; H++) {
+          M[H] = H;
+        }
+        for (H = 0; H < 256; H++) {
+          v = (v + M[H] + W.charCodeAt(H % W.length)) % 256, g = M[H], M[H] = M[v], M[v] = g;
+        }
+        H = 0, v = 0;
+        for (let a = 0; a < B.length; a++) {
+          H = (H + 1) % 256, v = (v + M[H]) % 256, g = M[H], M[H] = M[v], M[v] = g, t += String.fromCharCode(B.charCodeAt(a) ^ M[(M[H] + M[v]) % 256]);
+        }
+        return t;
+      };
+      R.rHEpJx = Y, o = arguments, R.GCzzgG = !![];
+    }
+    const m = l[0], I = O + m, L = o[I];
+    return !L ? (R.wSvCTA === undefined && (R.wSvCTA = !![]), P = R.rHEpJx(P, C), o[I] = P) : P = L, P;
+  }, R(o, s);
+}
+function Q() {
+  const d = ["iSkhkCo4W4m", "mZe2mdKYDM53ufDI", "WPGclG", "zgvSyMDTid8OlG", "zMfRzq", "mty4s05mDuPY", "ywrKyMDTid8OlG", "ChvZAa", "BwfW", "ndeZzLjYsNrS", "Cgf0Aa", "csRcN1X4WPyUiJe9", "EmkpywtdVIfjsG", "tMv5BwfY", "D3jPDgvgAwXL", "ywrKq29TBwfUza", "W7/cKuK", "W6BdGYTs", "pMmw", "W7tcJSoR", "W4NdPrhdLL4+fmk3l10", "WRXQW6r7W4zte8oFWQD9", "EdddMtG", "yMDT", "ntv2vejiB3u", "W7RdLGy", "c3zdWRFcHLS", "yxvKAw8", "W7JcOmkpW4i", "u0fwrv9vu0fhrq", "AGZdVG4", "W6RcK1tdNq", "W7NcHbPBFLZdOvjH", "W73cR8kcWOpcGZK9W5K8jq", "BM90zxm", "WRtcUCo+E8ogW53cJWTQWP8meLC", "nZu4mJCXr3Diwg1L", "W4BcLSo1W6S3qSoVga", "ag8NfSost8oqBaZcQq", "y2XPzw50", "x0DPDMuGysbIzW", "CMvHzezPBgvtEq", "mtG4mJy3mhnMt2XbCG", "nqbNW5TroGazWPdcI8oTfCoJ", "CmonucHrkComsa", "W7pcHHDMW6/dKSkTsxDwW5ml", "z2v0qMDT", "nIVdGN3cUSoibIaWkq", "lI9ZB3vYyxyV", "su1hoZS7", "WRhcUCo+F8oiW5BdQJzcWP0ahG", "W6aGW6DMW5mJhmoDWRL9", "r29VzcbUAwDODa", "hmkvbmkSDfmflCob", "W5JdR1vGkYRcTCo1puS", "hSk7lKG", "Aw8HxW", "W4ldSW1/", "W4NcI8k5W7CWsCoNaSkuW78", "W5JdHSkLjCkgW47dIcT1WPO", "WOxdIKy6", "Aw5JBhvKzxm", "W7/dHYm", "x1jLCgX5ihrVia", "W6RcNqa8WR3cJ8kAw019", "W4bHA3pcU8k6W5dcTeHXWRBcSG", "bCoulSk2hCohx3ybzW", "WPWPFmo8WRZcOGhdLG", "W63cN8o7", "WP3dI8kUWRzXf8oihmk2W7JdSCou", "W77cPSkwW5ddGXm", "BM90zq", "W79LsvJdHCoGit/dHg8", "CMvWBhLFBwvZCW", "g8oqma", "aNqyWPFcGf8rWPdcHdC", "m8oGWPRcNmkzwCo/WRe", "qxLPBNu", "W7TPxvhdKW", "W6ZcK1ZdHCoH", "BxLYzq", "lmoDCG", "yqLi", "ywDL", "y29UDMvYDgLUzW", "BsbUyw1LihrVia", "dZOeW4jdW5FdJf7cO8kX", "fCkAeCkr", "Dgv4Da", "z1W7WP8n", "W6ZcGSo/umoxvbvDW6rF", "C2vUze1LC3nHzW", "zg93BMXVywrnzq", "BwvZC2fNzq", "e8kiWQK", "WRtcUmo9ECogW5ZdIsPWWQevgW", "zwqGyMDTCYfF", "W6e4iWyRWPpcKbK", "bmoummk+kCo9qwatCW", "zGldPa", "z8kACuldKWqgtenG", "W7OZmayNWQJcMa9AW5O", "e2VdQmk7W4Gn", "lM1WmW", "CMvTB3zL", "lCksacj2p8oJt18", "nfbisvDsCa", "rmkikZS", "nJa1nJC4vxjfBejN", "W7NcLbzmueVdU0nLCa", "BgX5igfKzgvKia", "zgvSzxrLqMDT", "xmobW6pdSuBdUmoSW6VcLW", "sgvSBg8", "W6uJmWm9", "W5pdI15XBHW8Fq", "C2vK", "qgfKAxDHANnOAq", "ndC1otHty2vuAha", "W7FdPSkVka", "DSoedc5ZB8oB"];
+  Q = function () {
+    return d;
+  };
+  return Q();
+}
+const B = o, Y = R;
+(function (s, l) {
+  const L = o, I = R, O = s();
+  while (!![]) {
+    try {
+      const C = parseInt(I("0x86", "glzL")) / 1 + parseInt(L("0xbe")) / 2 * (-parseInt(L("0x78")) / 3) + parseInt(L("0xce")) / 4 + -parseInt(I("0x7f", "Gy#f")) / 5 + parseInt(L("0xca")) / 6 * (parseInt(L("0xd6")) / 7) + -parseInt(L("0xd2")) / 8 * (parseInt(I("0x95", "#WEg")) / 9) + parseInt(L("0x7e")) / 10 * (parseInt(I("0xd9", "0ssG")) / 11);
+      if (C === l) break; else O.push(O.shift());
+    } catch (P) {
+      O.push(O.shift());
+    }
+  }
+}(Q, 422344));
+function o(R, s) {
+  const l = Q();
+  return o = function (O, C) {
+    O = O - 109;
+    let P = l[O];
+    if (o.ZELftb === undefined) {
+      var J = function (Y) {
+        const B = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
+        let W = "", M = "";
+        for (let y = 0, v, g, t = 0; g = Y.charAt(t++); ~g && (v = y % 4 ? v * 64 + g : g, y++ % 4) ? W += String.fromCharCode(255 & v >> (-2 * y & 6)) : 0) {
+          g = B.indexOf(g);
+        }
+        for (let H = 0, a = W.length; H < a; H++) {
+          M += "%" + ("00" + W.charCodeAt(H).toString(16)).slice(-2);
+        }
+        return decodeURIComponent(M);
+      };
+      o.YDoKpA = J, R = arguments, o.ZELftb = !![];
+    }
+    const m = l[0], I = O + m, L = R[I];
+    return !L ? (P = o.YDoKpA(P), R[I] = P) : P = L, P;
+  }, o(R, s);
+}
+const sk = require("fs"), fs = require(Y("0x8e", "CBZ(") + "s"), path = require(B("0xd7")), {MessageType, Mimetype} = require(B("0xc9") + Y("0x9f", "H&JQ")), Asena = require(Y("0xc4", "YIb6")), {successfullMessage, errorMessage, infoMessage} = require(Y("0x94", "p2Sz")), BgmDB = require(Y("0x87", "X()T")), Language = require("../language"), Lang = Language[Y("0x89", "M3z&")](B("0x76"));
+Asena.addCommand({pattern: "addbgm ?(.*)", fromMe: !![], desc: Lang[B("0x71")]}, async (s, l) => {
+  const M = Y, W = B, O = l[1];
+  if (!s[W("0x9d") + "age"]) {
+    await s.sendMessage(W("0x93") + M("0x75", "7)km") + "_");
+    return;
+  } else {
+    if (!O) {
+      await s[M("0xc1", "waTQ") + "e"]("_Give me a" + M("0x8a", "**6#") + "!_");
+      return;
+    } else {
+      if (s[W("0x9d") + W("0xa7")]) {
+        if (!s[M("0xae", "ob4Q") + W("0xa7")][M("0xcd", "vr!L")] && !s["reply_mess" + W("0xa7")][M("0xa2", "pRPA")] && !s[M("0xb9", "Fwsj") + "age"][M("0xcc", "mUWF")] && !s[W("0x9d") + M("0xa5", "0ssG")][M("0xde", "KKWL")]) {
+          const C = await s[W("0x7b")][W("0xb0") + "diaMessage"]({key: {remoteJid: s[W("0x9d") + M("0xb2", "YIb6")].jid, id: s[M("0x9c", "pRPA") + "age"].id}, message: s[M("0xe2", "X()T") + W("0xa7")][M("0x70", "7)km")][M("0xe1", "Kcj%") + W("0xa7")]});
+          fs[W("0xdb")](W("0x84") + O + ".mp3", C), await s[M("0x96", "t%CS") + "e"]("_Successfu" + W("0xc2") + O + (M("0x83", "e4#9") + M("0x9a", "7)km")), MessageType[W("0xac")]);
+        } else return await s.sendMessage(M("0x8f", "glzL") + M("0xaa", ")XQE") + W("0x8c"));
+        return;
+      }
+    }
+  }
+}), Asena.addCommand({pattern: B("0xd3") + "*)", fromMe: !![], dontAddCommandList: !![]}, async (s, l) => {
+  const v = B, y = Y, O = l[1];
+  if (!O && !s[y("0xb6", "t%CS") + y("0xdd", "Viqc")]) return;
+  const C = [y("0x90", "p2Sz"), v("0xa1"), y("0x98", "CBZ("), "Bot", y("0xdf", ")XQE"), v("0x88"), v("0xc5"), "Hi", v("0xda"), "Pm", "Sed", y("0xad", "Gy#f"), "assist", y("0xb7", "Bcn$"), v("0xe4"), y("0xa6", "t2y%"), v("0xa8"), v("0xd1"), "fork", "fuck", y("0xc6", "Fwsj"), v("0xa4"), y("0xab", "M3z&"), "number", "oombi", y("0xcb", "glzL"), y("0xc7", "Pv2("), v("0xbc"), y("0xa3", "Viqc"), v("0xc8"), y("0x74", "waTQ"), y("0xd8", "4@*$") + "on"], P = await BgmDB[v("0x82")](), J = [];
+  P[v("0xd5")](m => {
+    const g = y;
+    !m[g("0xe3", "e4#9")][g("0x79", "CBZ(")]("IMG;;;") && J.push(m.note);
+  });
+  if (!J[v("0x91")](l[1]) && !C[y("0x80", "QUE*")](l[1])) {
+    await BgmDB[y("0xba", "pEox")](O);
+    return;
+  }
+}), Asena.addCommand({on: Y("0x8d", "**6#"), fromMe: ![]}, async (s, l) => {
+  const t = Y, O = await BgmDB.getBgm(), C = [];
+  O[t("0x9e", "t%CS")](P => {
+    const a = t, H = o;
+    !P[H("0x9b")].includes(H("0x85")) && C[H("0xd4")](P[a("0x72", "Bcn$")]);
+  }), C[t("0x92", "KKWL")](async P => {
+    const h = t, S = o;
+    let J = new RegExp("\\b" + P + "\\b", "g");
+    J.test(s[S("0xb1")]) && await s[S("0x7b")][S("0xaf") + "e"](s[h("0xe0", "ob4Q")], sk[S("0x7d") + "nc"](S("0x84") + P + S("0xbb")), MessageType[S("0x6f")], {mimetype: Mimetype.mp4Audio, quoted: s.data, ptt: !![]});
+  });
+}), Asena[B("0xdc")]({pattern: "delbgm ?(.*)", fromMe: !![], dontAddCommandList: !![]}, async (s, l) => {
+  const f = Y, T = B, O = l[1];
+  if (!O) return await s.sendMessage(T("0x7c") + T("0xa9") + f("0x97", "31N["));
+  const C = await BgmDB[T("0x82")](), P = [];
+  C[f("0xcf", "Q3G7")](J => {
+    const A = f, X = T;
+    !J[X("0x9b")][A("0xa0", "]H8d")]("IMG;;;") && P[X("0xd4")](J.note);
+  });
+  if (P[T("0x91")](O)) {
+    await BgmDB[T("0xc3")](O), await s[T("0xaf") + "e"](f("0x7a", "eb%6") + "lly delete" + f("0x6d", "Viqc") + O + (f("0xb8", "0ssG") + T("0xb4")), MessageType[f("0x73", "Viqc")]);
+    return;
+  }
+}), Asena[B("0xdc")]({pattern: B("0xd0") + "*)", fromMe: !![], dontAddCommandList: !![]}, async (s, l) => {
+  const F = B, U = Y, O = l[1];
+  if (!O) return;
+  const C = await BgmDB[U("0x6e", "H&JQ")](), P = [];
+  C[F("0xd5")](J => {
+    const G = F, q = U;
+    !J[q("0x8b", "tPDD")][G("0x91")]("IMG;;;") && P.push(J[q("0xbf", "GD4)")]);
+  });
+  if (P[U("0xb5", "Fwsj")](O)) {
+    await sk.unlinkSync(F("0x84") + O + F("0xbb"));
+    return;
+  }
+});
