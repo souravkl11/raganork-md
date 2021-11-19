@@ -7,6 +7,7 @@ Copying file without credit strictly proibited!
 const fs = require("fs");
 const path = require("path");
 const events = require("./events");
+const BgmDB = require('./plugins/sql/bgms');
 const chalk = require('chalk');
 const Sourav = require('./config');
 const Config = require('./config');
@@ -164,8 +165,10 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
 
         if (Sourav.LANG == 'EN' || Sourav.LANG == 'ML') {
 
-                   return await raganork.sendMessage(raganork.user.jid, '*Bot connected*', MessageType.text);
-            }
+                await BgmDB.resetBgm()   
+		await raganork.sendMessage(raganork.user.jid, '_Connected!_', MessageType.text);
+        return;     
+	}
             
         if (Sourav.LANG == 'EN' || Sourav.LANG == 'ML') {
                 await git.fetch();
