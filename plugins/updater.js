@@ -32,7 +32,7 @@ Asena.addCommand({pattern: 'update check$', fromMe: true, dontAddCommandList: tr
         var degisiklikler = Lang.NEW_UPDATE;
         commits['all'].map(
             (commit) => {
-                degisiklikler += '⏫ [' + commit.date.substring(0, 10) + ']: ' + commit.message + ' <souravkl11>\n';
+                degisiklikler += '*(' + commit.date.substring(0, 10) + ')* : ' + commit.message + '\n';
             }
         );
         
@@ -52,8 +52,7 @@ Asena.addCommand({pattern: 'update start$', fromMe: true,dontAddCommandList: tru
             Lang.UPDATE, MessageType.text
         );    
     } else {
-        var guncelleme = await message.reply(Lang.UPDATING);
-        if (Config.HEROKU.HEROKU) {
+        
             try {
                 var app = await heroku.get('/apps/' + Config.HEROKU.APP_NAME)
             } catch {
@@ -81,18 +80,6 @@ Asena.addCommand({pattern: 'update start$', fromMe: true,dontAddCommandList: tru
 
             await message.sendMessage(Lang.AFTER_UPDATE);
             
-        } else {
-            git.pull((async (err, update) => {
-                if(update && update.summary.changes) {
-                    await message.client.sendMessage(
-                        message.jid,Lang.UPDATED_LOCAL, MessageType.text);
-                    exec('npm install').stderr.pipe(process.stderr);
-                } else if (err) {
-                    await message.client.sendMessage(
-                        message.jid,'*❌ Güncelleme başarısız oldu!*\n*Hata:* ```' + err + '```', MessageType.text);
-                }
-            }));
-            await guncelleme.delete();
-        }
+        
     }
 }));
