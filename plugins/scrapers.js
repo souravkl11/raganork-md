@@ -203,7 +203,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
             return;
     
         let 
-            LANG = config.LANG,
+            LANG = config.LANG.toLowerCase(),
             ttsMessage = match[1],
             SPEED = 1.0
 
