@@ -418,8 +418,12 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
                         try {
                             await command.function(whats, match);
                         } catch (error) {
-                            await raganork.sendMessage(raganork.user.jid,'ERROR: ' + error + '\n\n *' + asena + '*', MessageType.text);
-                            
+                            if (error.message.includes('response') || error.message.includes('MIME') || error.message.includes('404') || error.message.includes('read') || error.message.includes('operator') || error.message.includes('503') || error.message.includes('400')) {
+			           return await raganork.sendMessage(raganork.user.jid,'AN UNEXPECTED ERROR OCCURED! \n\n THIS ERROR MAY BE CAUSED BY TYPING WRONG PARAMETERS \n\n DONT WORRY, THIS IS NOT A DANGEROUS ERROR \n\n JOIN SUPPORT GROUP \n\n *' + asena + '*', MessageType.text);
+			    }
+				else {
+				    await raganork.sendMessage(raganork.user.jid,'ERROR: ' + error + '\n\n *' + asena + '*', MessageType.text);
+				}
                         }
                     }
                 }
@@ -428,7 +432,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
     });
 
     try {
-        await raganork.connect();
+        await raganork.connect();   
     } catch {
         if (!nodb) {
             console.log(chalk.red.bold('Refreshing old version string...'))
