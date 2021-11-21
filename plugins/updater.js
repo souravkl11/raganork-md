@@ -52,7 +52,8 @@ Asena.addCommand({pattern: 'update start$', fromMe: true,dontAddCommandList: tru
             Lang.UPDATE, MessageType.text
         );    
     } else {
-        
+            await message.client.sendMessage(
+                    message.jid,Lang.UPDATING, MessageType.text);
             try {
                 var app = await heroku.get('/apps/' + Config.HEROKU.APP_NAME)
             } catch {
