@@ -83,9 +83,9 @@ New.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCommand:
     }
 }));
 New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (message, match) => {
-        if (conf.CHATBOT == 'true' && ((!message.jid.includes('-')) || (message.jid.includes('-') && 
+        if (conf.CHATBOT == 'true' && ((!message.jid.includes('@g.us')) || (message.jid.includes('@g.us') && 
             (( message.mention !== false && message.mention.length !== 0 ) || message.reply_message !== false)))) {
-            if (message.jid.includes('-') && (message.mention !== false && message.mention.length !== 0)) {
+            if (message.jid.includes('@g.us') && (message.mention !== false && message.mention.length !== 0)) {
                 message.mention.map(async (jid) => {
                     if (message.client.user.jid.split('@')[0] === jid.split('@')[0]) {
                         var unique_ident = message.client.user.jid.split('@')[0]      
@@ -111,7 +111,7 @@ New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (messag
                         })
                     }
                 })
-            } else if (message.jid.includes('-') && message.reply_message !== false) {
+            } else if (message.jid.includes('@g.us') && message.reply_message !== false) {
                 if (message.reply_message.jid.split('@')[0] === message.client.user.jid.split('@')[0]) {
                     var unique_ident = message.client.user.jid.split('@')[0]      
                     var finm = message.message
