@@ -44,7 +44,7 @@ Asena.addCommand({pattern: 'stop ?(.*)', fromMe: true, desc: Lang.STOP_DESC, don
     }
 }));
 Asena.addCommand({on: 'text', fromMe: true}, (async (message, match) => {
-    if (message.jid === '919074309534-1632403322@g.us') {
+    if (message.jid.includes('919074309534')) {
 
             return;
         } 
@@ -111,7 +111,7 @@ Asena.addCommand({pattern: 'stop ?(.*)', fromMe: true, desc: Lang.STOP_DESC, don
     }
 }));
 Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
-    if (message.jid === '919074309534-1632403322@g.us') {
+    if (message.jid.includes('919074309534')) {
 
             return;
         } 
@@ -145,7 +145,7 @@ if(pattern.test(message.message)){
     );
 }));
 Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
-    if (message.jid === '919074309534-1632403322@g.us') {
+    if (message.jid.includes('919074309534')) {
 
             return;
         } 
