@@ -44,7 +44,7 @@ Asena.addCommand({pattern: 'stop ?(.*)', fromMe: true, desc: Lang.STOP_DESC, don
     }
 }));
 Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
-    if (message.jid.includes(Config.SUPPORT)) {
+    if (message.jid.includes(Config.YAK)) {
 
             return;
         } 
@@ -111,7 +111,7 @@ Asena.addCommand({pattern: 'stop ?(.*)', fromMe: true, desc: Lang.STOP_DESC, don
     }
 }));
 Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
-    if (message.jid.includes(Config.SUPPORT)) {
+    if (message.jid.includes(Config.YAK)) {
 
             return;
         } 
@@ -145,7 +145,7 @@ if(pattern.test(message.message)){
     );
 }));
 Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
-    if (message.jid.includes(Config.SUPPORT)) {
+    if (message.jid.includes(Config.YAK)) {
 
             return;
         } 
