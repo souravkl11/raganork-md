@@ -43,7 +43,7 @@ Asena.addCommand({pattern: 'stop ?(.*)', fromMe: true, desc: Lang.STOP_DESC, don
         await message.client.sendMessage(message.jid,Lang.DELETED, MessageType.text)
     }
 }));
-Asena.addCommand({on: 'text', fromMe: true}, (async (message, match) => {
+Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
     if (message.jid.includes(Config.SUPPORT)) {
 
             return;
