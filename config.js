@@ -17,12 +17,13 @@ DEBUG = process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBU
 
 module.exports = {
     VERSION: 'v3.0.0',
-    CHANNEL: 'https://t.me/remasterplugin',
+    CHANNEL: 'undefined',
     SESSION: process.env.RAGANORK_CODE === undefined ? '' : process.env.RAGANORK_CODE,
     ANTİLİNK: process.env.ANTİ_LİNK === undefined ? 'false' : process.env.ANTİ_LİNK,
     AFN: process.env.ALL_CAPTION === undefined ? '*MADE BY YOUR BOT NAME*' : process.env.ALL_CAPTION,
     AUTOBİO: process.env.AUTO_BİO === undefined ? 'false' : process.env.AUTO_BİO,
-    WELCOME: process.env.WELCOME === undefined ? 'pp' : process.env.WELCOME,
+    ANTI_KICK: process.env.ANTI_KICK === undefined ? 'false' : process.env.ANTI_KICK,
+    ANTI_FILTER: process.env.REMOVE_FILTER === undefined ? 'Myre' : process.env.REMOVE_FILTER,
     GANSTYLE: process.env.GAN_IMAGE === undefined ? 'https://i.hizliresim.com/loUtAb.jpg' : process.env.GAN_IMAGE,
     LANG: process.env.LANGUAGE === undefined ? 'TR' : process.env.LANGUAGE.toUpperCase(),
     ALIVEMSG: process.env.ALIVE_MESSAGE === undefined ? 'default' : process.env.ALIVE_MESSAGE,
