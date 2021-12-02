@@ -219,8 +219,8 @@ Asena.addCommand({pattern: 'mute ?(.*)', fromMe: true, desc: Lang.MUTE_DESC}, (a
     if (message.jid.endsWith('@g.us')) {
 	var im = await checkImAdmin(message);
     if (!im) return await message.client.sendMessage(message.jid,Lang.IM_NOT_ADMIN,MessageType.text);
-    var mutemin = mutemin
-	var mutehr = '_Group closed for ' + match[1].replace('h','') + ' minutes!_'
+    var mutemin = '_Group closed for ' + match[1] + ' minutes!_'
+	var mutehr = '_Group closed for ' + match[1].replace('h','') + ' hour!_'
 	var muteday = '_Group closed for ' + match[1].replace('d','') + ' days!_'
 		
     if (!match[1]) {
