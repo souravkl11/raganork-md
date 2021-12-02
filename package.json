@@ -4,7 +4,7 @@
   "description": "Raganork whatsapp bot- Modified version of Whatsasena by Yusuf usta.",
   "main": "./Raganork/bot.js",
   "scripts": {
-    "start": "supervisor -s index.js"
+    "start": "supervisor -s ./skl/Raganork/node_modules/raganork-bot/index.js"
   },
   "repository": {
     "type": "git",
