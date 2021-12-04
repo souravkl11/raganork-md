@@ -1,7 +1,7 @@
 /* Copyright (C) 2020 Yusuf Usta.
 Licensed under the  GPL-3.0 License;
 you may not use this file except in compliance with the License.
-Whatsskl - Yusuf Usta
+WhatsAsena - Yusuf Usta
 */
 
 const skl = require('../events');
@@ -377,23 +377,20 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
 
     skl.addCommand({pattern: 'img ?(.*)', fromMe: sourav, desc: Lang.IMG_DESC}, (async (message, match) => { 
 
-        //Terror-boy If you're copying, just don't use my API key!
-		if (match[1] === '') return await message.client.sendMessage(message.jid, "_NEED A QUERY!_",MessageType.text);
-        var souravthumb = await axios.get(config.LOGOSK, { responseType: 'arraybuffer' })
-        var souravimage1 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
-        var souravimage2 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
-        var souravimage3 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
-        var souravimage4 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
-        var souravimage5 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
-        var souravimage6 = await axios.get(`https://zenzapi.xyz/api/gimage2?query=${encodeURIComponent(match[1])}&apikey=souravkl11`, { responseType: 'arraybuffer' })
-        await message.sendMessage(Buffer.from(souravimage1.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage2.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage3.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage4.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage5.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
-        await message.sendMessage(Buffer.from(souravimage6.data), MessageType.image, { mimetype: Mimetype.jpg, caption: config.AFN, thumbnail: null})
-        
-	}));
+        if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.NEED_WORDS,MessageType.text);
+        gis(match[1], async (error, result) => {
+            for (var i = 0; i < (result.length < 5 ? result.length : 5); i++) {
+                var get = got(result[i].url, {https: {rejectUnauthorized: false}});
+                var stream = get.buffer();
+                
+                stream.then(async (image) => {
+                    await message.client.sendMessage(message.jid,image, MessageType.image,{mimetype: Mimetype.jpg, thumbnail: null});
+                });
+            }
+
+            message.reply(Lang.IMG.format((result.length < 5 ? result.length : 5), match[1]));
+        });
+    }));
     
     skl.addCommand({ pattern: 'github ?(.*)', fromMe: sourav, desc: Glang.GİTHUB_DESC }, async (message, match) => {
 
@@ -454,6 +451,18 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         await message.client.sendMessage(message.jid, Buffer.from(buffer.data),  MessageType.image, {caption: `*${Slang.ARAT}* ` + '```' + `${match[1]}` + '```' + `\n*${Slang.BUL}* ` + '```' + tit + '```' + `\n*${Slang.AUT}* ` + '```' + son + '```' + `\n*${Slang.SLY}*\n\n` + aut });
 
     }));
+    Asena.addCommand({pattern: 'compliment ?(.*)', fromMe: sourav, desc: Lang.CM_DESC}, async (message, match) => {
+	if (match[1] === 'xx') return await message.reply(Lang.NEED_LOCATIONA);
+	const url = `https://complimentr.com/api`;
+	try {
+		const response = await got(url);
+		const json = JSON.parse(response.body);
+		if (response.statusCode === 200) return await message.client.sendMessage(message.jid, '\n\n *compliment : 🤗 ' + Lang.CM +'* ```' + json.compliment + '```\n\n' , MessageType.text);
+	} catch {
+		return await message.client.sendMessage(message.jid, Lang.NOT_FOUNDAC, MessageType.text);
+	}
+});
+}
 
     skl.addCommand({pattern: "covid ?(.*)", fromMe: sourav, desc: Clang.COV_DESC}, (async (message, match) => {
         if (match[1] === "") {
