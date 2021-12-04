@@ -462,7 +462,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
 		return await message.client.sendMessage(message.jid, Lang.NOT_FOUNDAC, MessageType.text);
 	}
 });
-}
+
 
     skl.addCommand({pattern: "covid ?(.*)", fromMe: sourav, desc: Clang.COV_DESC}, (async (message, match) => {
         if (match[1] === "") {
