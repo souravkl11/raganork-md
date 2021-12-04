@@ -451,7 +451,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         await message.client.sendMessage(message.jid, Buffer.from(buffer.data),  MessageType.image, {caption: `*${Slang.ARAT}* ` + '```' + `${match[1]}` + '```' + `\n*${Slang.BUL}* ` + '```' + tit + '```' + `\n*${Slang.AUT}* ` + '```' + son + '```' + `\n*${Slang.SLY}*\n\n` + aut });
 
     }));
-    Asena.addCommand({pattern: 'compliment ?(.*)', fromMe: sourav, desc: Lang.CM_DESC}, async (message, match) => {
+    skl.addCommand({pattern: 'compliment ?(.*)', fromMe: sourav, desc: Lang.CM_DESC}, async (message, match) => {
 	if (match[1] === 'xx') return await message.reply(Lang.NEED_LOCATIONA);
 	const url = `https://complimentr.com/api`;
 	try {
