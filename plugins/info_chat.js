@@ -4,7 +4,7 @@ const metadata = require('axios');
 const rgnk = require('../config');
 const Language = require('../language'); 
 const sk = Language.getString('whois'); // Language Support
-let myr = config.WORKTYPE == 'public' ? false : true
+let myr = rgnk.WORKTYPE == 'public' ? false : true
 
 var ADMİN_USER = ''
 var USER_USER = ''
