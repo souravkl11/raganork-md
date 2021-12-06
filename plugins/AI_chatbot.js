@@ -83,7 +83,7 @@ New.addCommand({on: 'text', fromMe: wk, dontAddCommandList: true, deleteCommand:
     }
 }));
 New.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (message, match) => {
-        if (conf.M_REPLY_VAR === 'true' && !!message.mention && message.mention[0] == message.client.user.jid) { await message.client.sendMessage(message.jid, conf.M_REPLY, MessageType.text) }
+        if (conf.M_REPLY_VAR === 'true' && !!message.mention && message.mention[0] == message.client.user.jid) { await message.client.sendMessage(message.jid, conf.M_REPLY, MessageType.text, {quoted: message.message}) }
 	if (conf.CHATBOT == 'true' && ((!message.jid.includes('@g.us')) || (message.jid.includes('@g.us') && 
             (( message.mention !== false && message.mention.length !== 0 ) || message.reply_message !== false)))) {
             if (message.jid.includes('@g.us') && (message.mention !== false && message.mention.length !== 0)) {
