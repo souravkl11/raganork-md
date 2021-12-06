@@ -25,3 +25,27 @@ New.addCommand({ pattern: 'setlogo ?(.*)', fromMe: true}, (async (message, match
           }
         await message.sendMessage("_BOT IMAGE/LOGO CHANGED! RESTARTING AND APPLYING CHANGES_")
     }));
+
+New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match) => {
+        
+        if (!match[1]) {
+          return await message.sendMessage('Need a response! \n .mreply on \n or \n .mreply Message')
+        }
+         else if (match[1] === 'on') {
+         await heroku.patch(baseURI + '/config-vars', {
+            body: {
+                ['M_REPLY_VAR']: 'true'
+            }
+        });  
+         await message.sendMessage("_Mention reply turned on! Restarting.._")
+         }
+          else {
+            await heroku.patch(baseURI + '/config-vars', {
+            body: {
+                ['M_REPLY']: match[1]
+            }
+        });
+        await message.sendMessage("_Added mention reply message! Restarting.._")
+          }
+        
+    }));
