@@ -13,7 +13,7 @@ New.addCommand({ pattern: 'setlogo ?(.*)', fromMe: true}, (async (message, match
         if (match[1] == '') {
           return await message.sendMessage('NEED AN IMAGE LINK!')
         }
-         else if (!match[1].endsWith('.jpg') || !match[1].endsWith('.jpeg') || !match[1].endsWith('.png')) {
+         else if (!match[1].includes('imgur')) {
            return await message.sendMessage('_Image link invalid ❌ \n Use command .url to get image link!_')
          }
           else {
