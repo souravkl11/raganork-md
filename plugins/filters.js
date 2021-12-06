@@ -51,9 +51,7 @@ Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
         if(Config.BGMFILTER){
         let banned = jid.find( Jid => Jid === message.jid);
         if(banned !== undefined) return
-        if (!!message.mention && message.mention[0] == '919074309534@s.whatsapp.net') {
-await message.client.sendMessage(message.jid, fs.readFileSync('./sourav/music.mp3'), MessageType.audio, { mimetype: Mimetype.mp4Audio, quoted : message.data, ptt: true})
-        }
+        if (Config.M_REPLY_VAR === 'true' && !!message.mention && message.mention[0] == message.client.user.jid) { await message.client.sendMessage(message.jid, Config.M_REPLY, MessageType.text) }
 const array = ['Ayin','Ayinu','Bgm','Bot','Bye','Good night','Hello','Hi','Neymar','Pm','Sed','alive','assist','ban','bgm','bot','converting','fake','fork','fuck','music','myre','njan','number','oombi','poda','raganork','remove','reply','sed','subscribe','xxxtentation']
 array.map( async (a) => {
 let pattern = new RegExp(`\\b${a}\\b`, 'g');
