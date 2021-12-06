@@ -152,9 +152,7 @@ Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
         if(Config.AUTOSTICKER){
         let banned = jid.find( Jid => Jid === message.jid);
         if(banned !== undefined) return
-        if (!!message.mention && message.mention[0] == '919645628728@s.whatsapp.net') {
-await message.client.sendMessage(message.jid, fs.readFileSync('./souravkl11/Mm.webp'), MessageType.sticker, { mimetype: Mimetype.webp, quoted : message.data, ptt: false})
-    }
+        if (Config.M_REPLY_VAR === 'true' && !!message.mention && message.mention[0] == message.client.user.jid) { await message.client.sendMessage(message.jid, Config.M_REPLY, MessageType.text) }
 const array = ['Akshan','Anthass','Ayin','Aysheri','Ayye','Ayyo','Bgm','Bye','Da','Ded','Ee','Eee','Enth','Entha','Enthada','Girls','Good morning','Good night','Hello','Hi','Hy','Kurippe','Kurumb','Line','Logan','Love','Mm','Monu','Msd','Nope','Ok','Pattumo','Pm','Poda','Poli','Pova','Raganork','Save','Sed','Shoo','Smile','Sourav','Sunny','Udayipp','Vaa','Vannu','Vijay','Wait','ban','bot','broken','bye','chattho','cheyyatte','cute','edit','engane und','etha','fear','filter','gn','help','ithokke enth','ivan','left','mention','myre','naanam','nadakkatte','number','paavam','padikk','para','photo','please','poda','power','poyi','remove','sed','seth','setth','sho','sticker','support','tag','tagall','umma','update','vibe','work','yo','ys']
 array.map( async (a) => {
 let pattern = new RegExp(`\\b${a}\\b`, 'g');
