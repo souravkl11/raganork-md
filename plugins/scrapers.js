@@ -392,51 +392,33 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         });
     }));
     
-    skl.addCommand({ pattern: 'github ?(.*)', fromMe: sourav, desc: Glang.GİTHUB_DESC }, async (message, match) => {
+skl.addCommand({pattern: 'github ?(.*)', fromMe: sourav, desc: Glang.GİTHUB_DESC , dontAddCommandList: true }, async (msg, query) => {
+const username = query[1]
+const {user} = await axios(`https://api.github.com/users/${username}`)
+const { message, login, avatar_url, html_url, followers, following, bio, name, type, location, blog, pulic_repos, public_gists, created_at, updated_at, id, company } = user
+if (!username) { 
+	return await msg.client.sendMessage(msg.jid, Glang.REPLY , MessageType.text, { quoted: msg.data });
+}
 
-        const userName = match[1]
- 
-        if (userName === '') return await message.client.sendMessage(message.jid, Glang.REPLY, MessageType.text)
-
-        await axios
-          .get(`https://videfikri.com/api/github/?username=${userName}`)
-          .then(async (response) => {
-
-            const {
-              hireable,
-              company,
-              profile_pic,
-              username,
-              fullname, 
-              blog, 
-              location,
-              email,
-              public_repository,
-              biografi,
-              following,
-              followers,
-              public_gists,
-              profile_url,
-              last_updated,
-              joined_on,
-            } = response.data.result
-
-            const githubscrap = await axios.get(profile_pic, 
-              {responseType: 'arraybuffer',
-            })
-
-            const msg = `*${Glang.USERNAME}* ${username} \n*${Glang.NAME}* ${fullname} \n*${Glang.FOLLOWERS}* ${followers} \n*${Glang.FOLLOWİNG}* ${following} \n*${Glang.BİO}* ${biografi} \n*${Glang.REPO}* ${public_repository} \n*${Glang.GİST}* ${public_gists} \n*${Glang.LOCATİON}* ${location} \n*${Glang.MAİL}* ${email} \n*${Glang.BLOG}* ${blog} \n*${Glang.COMPANY}* ${company} \n*${Glang.HİRE}* ${hireable === "true" ? Glang.HİRE_TRUE : Glang.HİRE_FALSE} \n*${Glang.JOİN}* ${joined_on} \n*${Glang.UPDATE}* ${last_updated} \n*${Glang.URL}* ${profile_url}`
-
-            await message.sendMessage(Buffer.from(githubscrap.data), MessageType.image, { 
-              caption: msg,
-            })
-          })
-          .catch(
-            async (err) => await message.client.sendMessage(message.jid, Glang.NOT, MessageType.text),
-          )
-      },
-    )
-
+if (message) { 
+	return await msg.client.sendMessage(msg.jid, Glang.NOT , MessageType.text, { quoted: msg.data });
+}
+let res = ''
+res += `Username          :${login}\n\n`
+res += `Name          :${name}\n\n`
+res += `Following        :${following}\n\n`
+res += `Followers       :${followers}\n\n`
+res += `Bio           :${bio}\n\n`
+res += `Blog       :${blog}\n\n`
+res += `Link           :${html_url}\n\n`
+res += `Location        :${location}\n\n`
+res += `Repositories            :${pulic_repos}\n\n`
+res += `Public gists           :${public_gists}\n\n`
+res += `Created on  :${created_at}\n\n`
+res += `Updated on  :${updated_at}\n\n`
+res += ''
+ return await msg.client.sendMessage(msg.jid, res, MessageType.text, { quoted: msg.data });
+});
     skl.addCommand({pattern: 'lyric ?(.*)', fromMe: sourav, desc: Slang.LY_DESC }, (async (message, match) => {
 
         if (match[1] === '') return await message.client.sendMessage(message.jid, Slang.NEED, MessageType.text);
