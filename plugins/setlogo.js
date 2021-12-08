@@ -34,6 +34,14 @@ New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match)
         });  
          await message.sendMessage("_Mention reply turned on! Restarting.._")
          }
+        else if (match[1] === 'off') {
+         await heroku.patch(baseURI + '/config-vars', {
+            body: {
+                ['M_REPLY_VAR']: 'false'
+            }
+        });  
+         await message.sendMessage("_Mention reply turned off. Restarting.._")
+         }
           else {
             await heroku.patch(baseURI + '/config-vars', {
             body: {
@@ -43,4 +51,25 @@ New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match)
         await message.sendMessage("_Added mention reply message! Restarting.._")
           }
         
+    }));
+New.addCommand({ pattern: 'antifake ?(.*)', fromMe: true}, (async (message, match) => {
+        if (!match[1]) {
+          return await message.sendMessage('Need a response! \n .antifake on or off')
+        }
+         else if (match[1] === 'on') {
+         await heroku.patch(baseURI + '/config-vars', {
+            body: {
+                ['ANTI_FAKE']: 'true'
+            }
+        });  
+         await message.sendMessage("_Auto fake remove turned on! Restarting.._")
+         }
+        else if (match[1] === 'off') {
+         await heroku.patch(baseURI + '/config-vars', {
+            body: {
+                ['ANTI_FAKE']: 'false'
+            }
+        });  
+         await message.sendMessage("_Auto fake remove turned off. Restarting.._")
+         }
     }));
