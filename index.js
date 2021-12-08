@@ -186,21 +186,17 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
     setInterval(async () => { 
         var getGMTh = new Date().getHours()
         var getGMTm = new Date().getMinutes()
-
-        while (getGMTh == 16 && getGMTm == 30) {
-            const {data} = await axios(`https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw`)
+                    const {data} = await axios(`https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw`)
             const { sken, skml } = data
 
+
+        while (getGMTh == 16 && getGMTm == 30) {
             return await raganork.sendMessage(raganork.user.jid, '```[ ANNOUNCEMENT ]```\n\n' + sken, MessageType.text);
         }
       while (getGMTh == 10 && getGMTm == 30) {
-            const {data} = await axios(`https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw`)
-            const { sken, skml } = data
             return await raganork.sendMessage(raganork.user.jid, '```[ ANNOUNCEMENT ]```\n\n' + sken, MessageType.text);
         }
       while (getGMTh == 6 && getGMTm == 30) {
-            const {data} = await axios(`https://gist.github.com/souravkl11/019112af334adceaefd1467dcbd93e58/raw`)
-            const { sken, skml } = data
             return await raganork.sendMessage(raganork.user.jid, '```[ ANNOUNCEMENT ]```\n\n' + sken, MessageType.text);
         }
       while (getGMTh == 19 && getGMTm == 30) {
@@ -251,8 +247,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
             return;
         } else if (msg.messageStubType === 31) {
             // If anti fake is true, exclude members with fake and send response to given country code! 
-        let skl11 = `Sourav.CCODE`    
-	if (msg.messageStubParameters[0].startsWith('91') && Sourav.AUTO_FAKE === 'true') {
+        if (msg.messageStubParameters[0].startsWith(Sourav.CODE) && Sourav.AUTO_FAKE === 'true') {
 
 			var gb = await getMessage(msg.key.remoteJid);
             if (gb !== false) {
@@ -319,7 +314,7 @@ ${chalk.blue.italic('ℹ️ Connecting to WhatsApp...')}`);
 			}
         // If anti fake is true, filter stub parameters by excluding given country codes   
 	// Auto fake remove - implemented for raganork by souravkl11
-        if (!msg.messageStubParameters[0].startsWith('91') && Sourav.AUTO_FAKE === 'true') {
+        if (!msg.messageStubParameters[0].startsWith(Sourav.CODE) && Sourav.AUTO_FAKE === 'true') {
 				async function checkImAdmin(message, user = raganork.user.jid) {
     var grup = await raganork.groupMetadata(msg.key.remoteJid);
     var sonuc = grup['participants'].map((member) => {
