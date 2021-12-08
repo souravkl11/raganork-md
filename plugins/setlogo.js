@@ -73,3 +73,15 @@ New.addCommand({ pattern: 'antifake ?(.*)', fromMe: true}, (async (message, matc
          await message.sendMessage("_Auto fake remove turned off. Restarting.._")
          }
     }));
+
+New.addCommand({ pattern: 'mycode ?(.*)', fromMe: true}, (async (message, match) => {
+        if (!match[1]) {
+          return await message.sendMessage('Need a response! \n .mycode 91')
+        }
+         await heroku.patch(baseURI + '/config-vars', {
+            body: {
+                ['C_CODE']: match[1]
+            }
+        });  
+         await message.sendMessage("_Auto fake country code set!.._")
+            }));
