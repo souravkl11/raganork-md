@@ -1,63 +1,63 @@
 /* (c) souravkl11/raganork
 You may not use this file except compliance with license!
 */
-(function (y, D) {
-    const W = y();
-
+function t(y, D) {
+    return p(D - -'0x105', y);
+}(function (y, D) {
     function T(y, D) {
-        return p(y - 0x36b, D);
+        return p(D - -'0x143', y);
     }
+    const W = y();
     while (!![]) {
         try {
-            const Z = parseInt(T('0x53c', 0x52d)) / (0x1a28 + 0x2167 + 0x3f * -0xf2) * (-parseInt(T(0x539, 0x529)) / (0x6b * -0x47 + -0x19d9 + 0x3788)) + parseInt(T(0x543, '0x545')) / (0x3 * -0x2a1 + 0x2 * -0xf1c + 0x261e) * (parseInt(T(0x527, 0x53d)) / (0x159e + -0x1fa5 * -0x1 + -0x13d * 0x2b)) + -parseInt(T(0x53e, '0x54d')) / (-0x1ce5 * 0x1 + 0xa6b + -0x127f * -0x1) * (-parseInt(T(0x532, 0x547)) / (-0x1 * -0xe1f + -0xcd1 + -0x148)) + -parseInt(T(0x544, 0x54f)) / (0x102 + -0x13b7 * -0x1 + -0xa59 * 0x2) + parseInt(T('0x52f', 0x536)) / (-0x3 * 0x9bf + 0x1e59 + -0x5c * 0x3) * (-parseInt(T('0x550', 0x54b)) / (0xb * -0xfb + 0xfa0 + -0x4ce)) + parseInt(T(0x535, '0x52f')) / (0x1 * -0x4a9 + 0x2131 * 0x1 + -0x1c7e) + parseInt(T('0x529', '0x52e')) / (-0x12f * -0x11 + 0x694 + -0x1aa8);
+            const Z = -parseInt(T('0x8a', 0x91)) / (0x1835 + 0x13b1 + -0x2be5 * 0x1) + parseInt(T(0xa3, 0x8f)) / (0x1d82 * -0x1 + -0x32 * -0x2a + 0x1550) * (-parseInt(T(0x89, 0x95)) / (0x620 * -0x3 + -0x1 * 0x1fd1 + 0x1 * 0x3234)) + -parseInt(T('0x9a', 0x83)) / (0x65a + -0x1a12 + 0x13bc) + -parseInt(T(0x84, 0x9a)) / (-0x7 * -0x1c + 0x9db + 0xa9a * -0x1) * (parseInt(T('0xa1', '0x9b')) / (0x1 * -0x2015 + 0xac * 0x13 + -0x1357 * -0x1)) + -parseInt(T(0xc1, 0xa9)) / (-0x25ab + -0x85f + 0x2e11) * (-parseInt(T('0x60', '0x79')) / (-0x2228 * -0x1 + -0x8 * -0x3a5 + -0x3f48)) + -parseInt(T(0x6d, '0x84')) / (0x19d2 + 0x12cb + -0x3b7 * 0xc) + -parseInt(T(0x85, 0x8e)) / (-0x101e + 0x1 * -0x19c5 + 0x1 * 0x29ed) * (-parseInt(T(0x83, '0x7d')) / (0x3e2 + -0x21da + 0x1e03));
             if (Z === D) break;
             else W['push'](W['shift']());
         } catch (x) {
             W['push'](W['shift']());
         }
     }
-}(g, -0x4df31 + -0x5cb62 + 0x103136));
-let skl = require(t('0x56d', 0x576)),
-    WaUploadtoServer = require(t('0x578', 0x564) + t('0x55f', 0x54b));
-
-function t(y, D) {
-    return p(y - '0x3a2', D);
-}
-let {
-    MessageType,
-    Mimetype
-} = require('@adiwajshi' + t(0x571, 0x578));
-
-function p(r, y) {
-    const D = g();
-    return p = function (W, Z) {
-        W = W - (0x132b * 0x1 + -0x1574 + -0x403 * -0x1);
-        let x = D[W];
-        return x;
-    }, p(r, y);
-}
-const r = {};
-r[t('0x55c', '0x549')] = 'url ?(.*)', r[t('0x576', 0x56f)] = !![], r[t('0x579', 0x58d)] = t('0x584', '0x59b') + 'dia and gi' + t(0x561, '0x558'), skl[t(0x57c, '0x574')](r, async (y, D) => {
-    function v(y, D) {
-        return t(D - -'0x2d8', y);
-    }
-    if (!y[v(0x2a7, 0x2a5) + 'age']) return await y['sendMessag' + 'e'](v('0x298', 0x2a9) + v('0x2a4', 0x28d) + v(0x29e, '0x29c') + 'r/gif!_');
-    var W = await y['client'][v(0x2a5, 0x292) + v(0x2aa, 0x2ab) + 'Message']({
-        'key': {
-            'remoteJid': y['reply_mess' + v(0x27a, 0x28b)]['jid'],
-            'id': y['reply_mess' + v(0x2a0, '0x28b')]['id']
-        },
-        'message': y[v(0x2a9, 0x2a5) + 'age'][v('0x290', '0x285')][v('0x298', '0x28c') + v('0x27a', '0x28b')]
-    });
-    WaUploadtoServer(v(0x2b2, '0x2a7') + v('0x297', 0x2ad) + v('0x29a', 0x28f) + 'cd', W)['then'](Z => y[v(0x285, 0x290)][v('0x28b', 0x296) + 'e'](y[v(0x29e, '0x297')], v(0x29a, '0x29f') + 'oaded!*_ _' + v(0x291, 0x28a) + 'e:_ ' + Z[v('0x2be', '0x2b0')][v('0x299', '0x2a8')] + ('\x0a_File URL' + v(0x2af, '0x29a')) + Z['url'] + (v(0x291, 0x2a6) + v('0x295', '0x2aa')) + Z[v(0x288, 0x293)] + v('0x2ab', '0x2ae') + ('\x0a_Format:_' + ' ') + Z[v(0x2a8, 0x2b0)]['mime'], MessageType[v('0x2a8', 0x2b1)], {
-        'quoted': y[v(0x2a0, '0x2a5') + v('0x2a0', 0x28b)][v('0x295', 0x285)]
-    }));
-});
+}(g, 0x25038 + 0x1f * -0x2786 + -0x1 * -0x8e864));
 
 function g() {
-    const G = ['b4e7bdd62e', ' bits', '9xsphIu', 'image', 'text', 'pattern', 'data', '871796SbWqaZ', 'ader', '2333991SHYKml', 'ves url!', '\x0a_File nam', 'age', 'quotedMess', 'a photo/vi', '1625176ngBoEV', 'dcdc8bd3f0', 'client', '909390mAeYCd', 'downloadAn', 'size', '4398350tBjYEx', '../events', 'sendMessag', 'jid', '2ILsjWL', 'ng/baileys', ':_ ', '288186vxMFcE', 'deo/sticke', '15MBailM', 'fromMe', '_*File upl', 'imgbb-uplo', 'desc', '6UOmfpm', '4823903HWQWBC', 'addCommand', 'reply_mess', '\x0a_File siz', '25e5ac58c2', 'filename', '_Reply to ', 'e:_ ', 'dSaveMedia', 'Uploads me'];
+    const G = ['ng/baileys', 'downloadAn', 'client', '_*File upl', '87990ZAhFKW', 'jid', '392IBmscP', '\x0a_Format:_', 'fromMe', 'desc', '209SuZKpM', 'mime', '_Reply to ', 'dSaveMedia', 'r/gif!_', 'quotedMess', '2247080kYFPYW', '466506TsTQIO', '25e5ac58c2', 'a photo/vi', 'url ?(.*)', ':_ ', 'age', 'addCommand', 'Message', ' bits', 'e:_ ', '698500BCfeAf', '4EbQFFB', 'Uploads me', '191859iAbquP', 'imgbb-uplo', 'deo/sticke', 'url', '812244ABYpFX', 'size', 'ader', 'data', 'ves url!', '17795KAjUIG', '294wIygKJ', '\x0a_File siz', '\x0a_File nam', '../config', 'WORKTYPE', 'reply_mess', 'image', 'sendMessag', 'public', '\x0a_File URL'];
     g = function () {
         return G;
     };
     return g();
 }
+let skl = require('../events'),
+    WaUploadtoServer = require(t('0xd4', '0xd0') + t(0xdf, 0xd5)),
+    {
+        MessageType,
+        Mimetype
+    } = require('@adiwajshi' + t(0xf7, 0xe3)),
+    config = require(t(0xd1, '0xdc')),
+    sourav = config[t('0xdf', 0xdd)] == t('0xd7', '0xe1') ? ![] : !![];
+
+function p(r, y) {
+    const D = g();
+    return p = function (W, Z) {
+        W = W - (0x133c + 0x223d + -0x33bd);
+        let x = D[W];
+        return x;
+    }, p(r, y);
+}
+const r = {};
+r['pattern'] = t(0xad, '0xc5'), r[t(0xc7, '0xb9')] = sourav, r[t('0xce', 0xba)] = t('0xde', '0xce') + 'dia and gi' + t('0xd2', '0xd7'), skl[t('0xbf', 0xc8)](r, async (y, D) => {
+    if (!y[v(0x1c8, 0x1c9) + 'age']) return await y[v(0x1ca, 0x1c0) + 'e'](v('0x1a7', '0x18f') + v('0x1ae', 0x1b2) + v(0x1bb, '0x1c9') + v(0x1a9, '0x1b6'));
+    var W = await y[v(0x1cf, '0x1d2')][v(0x1ce, 0x1e0) + v(0x1a8, '0x1bf') + v('0x1b3', '0x1ba')]({
+        'key': {
+            'remoteJid': y[v('0x1c8', '0x1c3') + 'age'][v('0x1d2', '0x1c4')],
+            'id': y[v(0x1c8, '0x1ca') + v(0x1b1, 0x1b2)]['id']
+        },
+        'message': y['reply_mess' + 'age'][v('0x1c0', 0x1d6)][v(0x1aa, 0x19e) + v('0x1b1', 0x1c0)]
+    });
+
+    function v(y, D) {
+        return t(D, y - 0xea);
+    }
+    WaUploadtoServer(v(0x1ad, 0x1bc) + 'b4e7bdd62e' + 'dcdc8bd3f0' + 'cd', W)['then'](Z => y[v('0x1cf', 0x1c8)][v(0x1ca, 0x1c3) + 'e'](y[v(0x1d2, '0x1da')], v(0x1d0, 0x1d0) + 'oaded!*_ _' + v(0x1c5, '0x1d9') + v(0x1b5, '0x1c9') + Z[v('0x1c9', 0x1bf)]['filename'] + (v(0x1cc, 0x1c7) + v('0x1b0', 0x1a2)) + Z[v(0x1bc, 0x1ac)] + (v(0x1c4, 0x1af) + 'e:_ ') + Z[v(0x1be, 0x1b2)] + v('0x1b4', '0x1ad') + (v(0x1a2, '0x18a') + ' ') + Z['image'][v(0x1a6, '0x1bb')], MessageType['text'], {
+        'quoted': y[v('0x1c8', '0x1b6') + v('0x1b1', 0x1ae)][v('0x1c0', '0x1c5')][v('0x1aa', 0x1a5) + 'age']
+    }));
+});
