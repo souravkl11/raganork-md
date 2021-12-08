@@ -1,6 +1,7 @@
 // credit - souravkl11
 const axios = require('axios');
 const New = require('../events');
+const {MessageType,Mimetype} = require('@adiwajshing/baileys');
 const config = require('../config');
 const Heroku = require('heroku-client');
 const heroku = new Heroku({token: config.HEROKU.API_KEY});
@@ -11,7 +12,7 @@ New.addCommand({ pattern: 'setlogo ?(.*)', fromMe: true}, (async (message, match
           else {
 var newimg = await axios.get(match[1], { responseType: 'arraybuffer' })
    
-    await message.sendMessage(Buffer(newimg.data), MessageType.image, {mimetype: Mimetype.jpg, caption: "_Added new image! Restarting..._"})
+    await message.sendMessage(Buffer.from(newimg.data), MessageType.image, {mimetype: Mimetype.jpg, caption: "_Added new image! Restarting..._"})
     await heroku.patch(baseURI + '/config-vars', {
             body: {
                 ['ALL_IMG']: match[1]
