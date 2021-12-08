@@ -1,70 +1,69 @@
 /* (c) souravkl11/raganork
 You may not use this file except compliance with license!
 */
-(function (I, o) {
-    function F(I, o) {
-        return i(o - -0x3e, I);
+(function (D, A) {
+    function w(D, A) {
+        return k(A - 0x8d, D);
     }
-    const B = I();
+    const m = D();
     while (!![]) {
         try {
-            const d = parseInt(F('0xae', '0xb8')) / (-0x2068 * 0x1 + -0x25bd + 0x4626) * (-parseInt(F('0xab', 0xa5)) / (0x1 * 0x797 + 0x814 + -0xfa9 * 0x1)) + -parseInt(F('0x9d', '0x9d')) / (-0x126 + 0xc1f + -0x7a * 0x17) + -parseInt(F(0x92, 0xab)) / (-0x656 + 0x1d06 + -0x16ac) + -parseInt(F(0xb7, '0xa4')) / (0x2 * -0xa45 + -0x2 * 0x1220 + 0x38cf) * (parseInt(F('0xac', 0x97)) / (0xf3 * -0x1 + -0x75 * -0x2f + -0x1482)) + parseInt(F('0x88', 0x98)) / (-0x11c3 * -0x1 + -0x4 * 0x2f0 + 0x17f * -0x4) + -parseInt(F(0xd6, '0xc7')) / (0x7f2 + 0x1f7 * -0x5 + 0x1e9) * (-parseInt(F(0xad, 0xa2)) / (0x17bf + 0xc97 + -0x244d * 0x1)) + parseInt(F(0x9a, 0x9b)) / (-0xf4 * 0x22 + 0x1 * -0x709 + 0x3 * 0xd29) * (parseInt(F(0xb5, '0xac')) / (-0x1 * 0x57d + -0xb39 + 0x10c1));
-            if (d === o) break;
-            else B['push'](B['shift']());
-        } catch (N) {
-            B['push'](B['shift']());
+            const d = -parseInt(w(0x182, 0x192)) / (-0x11c8 * -0x1 + 0x235 * 0x10 + 0x3517 * -0x1) * (-parseInt(w('0x1b0', 0x197)) / (-0x53c + -0xb45 + 0x1083)) + -parseInt(w(0x18f, 0x176)) / (-0x13d * -0x16 + 0x1967 + -0x34a2) * (-parseInt(w(0x191, 0x17f)) / (-0x3 * -0x2d6 + -0x19f1 + 0x1173)) + parseInt(w('0x16f', 0x188)) / (0x5f6 + -0x1621 + 0x103 * 0x10) + parseInt(w(0x175, '0x18b')) / (0x1 * 0x13ca + 0x2066 + -0x342a * 0x1) * (-parseInt(w('0x19f', 0x189)) / (-0x1cac + 0x191e + 0x395)) + parseInt(w('0x189', 0x199)) / (-0x4a * -0x2 + 0x13 * 0x135 + -0x177b * 0x1) + -parseInt(w('0x187', 0x181)) / (-0x25a7 + -0x1f23 + 0x44d3) * (-parseInt(w('0x16c', '0x184')) / (0x9 * -0x2b5 + -0xa7e + 0x1 * 0x22e5)) + -parseInt(w(0x195, 0x180)) / (0x21fc + 0x296 * -0x1 + -0x1f5b * 0x1);
+            if (d === A) break;
+            else m['push'](m['shift']());
+        } catch (e) {
+            m['push'](m['shift']());
         }
     }
-}(k, -0x1 * 0x622f3 + 0x19aa56 + -0x52ac9));
-let skl = require(x('0x454', '0x45e')),
-    WaUploadtoServer = require(x(0x449, '0x440')),
+}(M, 0x3d52f + -0x242e2 + 0x1c625));
+
+function B(D, A) {
+    return k(D - '0x1be', A);
+}
+let skl = require(B('0x2d2', 0x2e9)),
+    WaUploadtoServer = require(B('0x2c7', 0x2d8)),
     {
         MessageType,
         Mimetype
-    } = require(x('0x463', '0x462') + x('0x45d', '0x468')),
-    config = require(x(0x452, 0x451));
+    } = require(B('0x2c0', '0x2c0') + B('0x2bf', 0x2aa)),
+    config = require(B(0x2ab, '0x29b')),
+    sourav = config[B('0x2b4', '0x29c')] == B(0x2ad, 0x2ab) ? ![] : !![];
+const t = {};
 
-function x(I, o) {
-    return i(o - 0x362, I);
+function k(D, A) {
+    const m = M();
+    return k = function (d, e) {
+        d = d - (-0xb * 0x1a2 + -0x23 * -0xef + -0xdd1);
+        let R = m[d];
+        return R;
+    }, k(D, A);
 }
 
-function i(I, o) {
-    const B = k();
-    return i = function (d, N) {
-        d = d - (0x9 * -0x373 + 0x128d * 0x1 + -0xd53 * -0x1);
-        let T = B[d];
-        return T;
-    }, i(I, o);
+function M() {
+    const a = ['WORKTYPE', '2631830muygQU', 'dSaveMedia', 'link', 'text', '1579760uuhIJz', '77BgPfur', 'deo/gif!_', '204762axfDVw', '\x0a_Width:_ ', 'dia and gi', 'ng/baileys', '@adiwajshi', '\x0a_File siz', 'addCommand', '16HeVcii', ' bits', 'size', 'downloadAn', 'imgur', '11686TokUOu', 'pattern', '297336XhngsB', 'then', 'client', 'height', 'age', 'le URL:_ ', 'a photo/vi', '\x0a_Height:_', '../events', 'oaded!*_ \x0a', 'type', 'quotedMess', 'sendMessag', 'e:_ ', 'url ?(.*)', '3ySBMqD', 'width', 'jid', '\x0a_File nam', '../config', 'uploadFile', 'public', '_*File upl', 'data', '410472dWWHCq', '2395371XwEgRg', '9zhNFXL', 'reply_mess'];
+    M = function () {
+        return a;
+    };
+    return M();
 }
-let sourav = config[x(0x465, '0x44e')] == x('0x477', '0x45f') ? ![] : !![];
-const n = {};
-n[x(0x471, 0x466)] = x(0x422, 0x439), n[x(0x42d, 0x43f)] = sourav, n[x('0x45d', 0x452)] = x(0x466, '0x463') + x('0x433', 0x443) + 'ves url!', skl['addCommand'](n, async (I, o) => {
-    if (!I[M(0x1d2, 0x1d4) + M(0x1ae, '0x197')]) return await I[M(0x1ba, 0x1a6) + 'e'](M(0x1ce, '0x1da') + M(0x1ca, '0x1b2') + 'deo/gif!_');
-
-    function M(I, o) {
-        return x(o, I - -'0x293');
+t[B('0x2c9', '0x2c7')] = B(0x2a6, '0x2a3'), t['fromMe'] = sourav, t['desc'] = 'Uploads me' + B(0x2be, '0x2c6') + 'ves url!', skl[B('0x2c2', 0x2b5)](t, async (D, A) => {
+    function I(D, A) {
+        return B(D - -'0x177', A);
     }
-    var B = await I[M(0x1d1, 0x1d9)][M('0x1c4', '0x1bb') + M('0x1c9', 0x1bb) + 'Message']({
+    if (!D['reply_mess' + I('0x157', 0x170)]) return await D[I(0x12d, '0x12a') + 'e']('_Reply to ' + I(0x159, '0x16a') + I('0x144', '0x13c'));
+    var m = await D['client'][I(0x14f, '0x140') + I(0x13f, 0x13c) + 'Message']({
         'key': {
-            'remoteJid': I[M(0x1d2, '0x1c2') + M(0x1ae, 0x1c0)][M(0x1bd, '0x1aa')],
-            'id': I[M(0x1d2, 0x1db) + M('0x1ae', 0x19b)]['id']
+            'remoteJid': D[I(0x13c, '0x151') + I('0x157', '0x151')][I(0x132, 0x13a)],
+            'id': D[I(0x13c, 0x125) + I(0x157, '0x152')]['id']
         },
-        'message': I[M('0x1d2', '0x1e3') + M(0x1ae, 0x19d)][M(0x1c3, '0x1dc')][M(0x1c1, 0x1d1) + M('0x1ae', '0x1be')]
+        'message': D[I('0x13c', 0x13c) + 'age'][I(0x138, '0x11f')][I(0x15e, 0x152) + 'age']
     });
-    WaUploadtoServer[M('0x1c8', 0x1bf)](B)[M(0x1c0, '0x1b9')](d => {
-        function L(I, o) {
-            return M(o - -0x189, I);
+    WaUploadtoServer[I('0x135', '0x133')](m)[I(0x154, '0x168')](d => {
+        function v(D, A) {
+            return I(D - '0x2e9', A);
         }
-        I[L(0x53, '0x48')]['sendMessag' + 'e'](I[L('0x3c', 0x34)], L('0x2e', '0x3d') + L(0x3b, 0x2c) + '\x0a_File nam' + L(0x34, '0x39') + d['id'] + ('.jpeg \x0a_Fi' + L(0x46, 0x2d)) + d['link'] + (L('0x20', '0x1e') + 'e:_ ') + d[L(0x17, '0x2b')] + L('0x42', '0x3e') + (L('0x4b', 0x33) + ' ') + d[L('0x2d', 0x2a)] + (L(0x34, '0x22') + ' ') + d[L(0x27, 0x20)] + '\x0a_Width:_ ' + d[L('0x2f', 0x44)], MessageType[L(0x47, 0x2e)], {
-            'quoted': I[L(0x43, '0x3a')]
+        D[v('0x43e', '0x428')]['sendMessag' + 'e'](D[v('0x41b', '0x403')], v('0x420', 0x419) + v(0x445, 0x441) + v('0x41c', 0x41b) + v(0x417, 0x40f) + d['id'] + ('.jpeg \x0a_Fi' + v(0x441, 0x44f)) + d[v('0x429', 0x42c)] + (v('0x433', 0x447) + v(0x417, '0x425')) + d[v('0x437', 0x44a)] + v('0x436', 0x426) + ('\x0a_Format:_' + ' ') + d[v(0x446, 0x44a)] + (v('0x443', '0x434') + ' ') + d[v(0x43f, 0x430)] + v('0x42f', '0x420') + d[v(0x41a, '0x415')], MessageType[v('0x42a', 0x429)], {
+            'quoted': D[v('0x421', 0x40b)]
         });
     });
 });
-
-function k() {
-    const v = ['reply_mess', 'pattern', '4936COxGJh', 'ng/baileys', '18yxcdrr', '11239508jIFJIi', 'url ?(.*)', '\x0a_File siz', '25212920IpIFuH', 'height', '1001133ibZEDX', '\x0a_Height:_', 'fromMe', 'imgur', 'age', '12204psNeff', 'dia and gi', '1338395HEFrNT', '686rBXmxm', 'type', 'size', 'oaded!*_ \x0a', 'le URL:_ ', 'text', '7101356UYlyYK', '11zpCLwh', 'sendMessag', 'WORKTYPE', '\x0a_Format:_', 'jid', './config', 'desc', 'then', 'quotedMess', 'e:_ ', 'data', 'downloadAn', '3237MPYZQE', '_*File upl', ' bits', 'uploadFile', 'dSaveMedia', 'a photo/vi', 'events', 'public', 'width', '_Reply to ', '@adiwajshi', 'Uploads me', 'client'];
-    k = function () {
-        return v;
-    };
-    return k();
-}
