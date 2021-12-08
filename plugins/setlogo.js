@@ -8,16 +8,17 @@ let baseURI = '/apps/' + config.HEROKU.APP_NAME;
 New.addCommand({ pattern: 'setlogo ?(.*)', fromMe: true}, (async (message, match) => {
         if (match[1] == '') {return await message.sendMessage('_Need an image link!_')}
          else if (!match[1].includes('jpg')) {return await message.sendMessage('_Image link invalid_ ❌ \n _Use command *.url* to get image link!_')}
-          else {await heroku.patch(baseURI + '/config-vars', {
+          else {
+var newimg = await axios.get(match[1], { responseType: 'arraybuffer' })
+   
+    await message.sendMessage(Buffer(newimg.data), MessageType.image, {mimetype: Mimetype.jpg, caption: "_Added new image! Restarting..._"})
+    await heroku.patch(baseURI + '/config-vars', {
             body: {
                 ['ALL_IMG']: match[1]
             }
         });
           }
-        var newimg = await axios.get(match[1], { responseType: 'arraybuffer' })
-   
-    await message.sendMessage(Buffer(newimg.data), MessageType.image, {mimetype: Mimetype.jpg, caption: "_Added new image! Restarting..._"})
-    }));
+        }));
 
 New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match) => {
         
