@@ -1,69 +1,63 @@
 /* (c) souravkl11/raganork
 You may not use this file except compliance with license!
 */
+(function (y, D) {
+    const W = y();
 
-(function (Q, m) {
-    function i(Q, m) {
-        return W(m - -0x21c, Q);
+    function T(y, D) {
+        return p(y - 0x36b, D);
     }
-    const d = Q();
     while (!![]) {
         try {
-            const I = parseInt(i(-0x196, -'0x183')) / (-0x5b0 * 0x4 + -0x1597 * 0x1 + 0x2c58) + -parseInt(i(-'0x19b', -0x198)) / (0x2 * -0xd63 + 0x230e + -0x846) + -parseInt(i(-'0x19f', -0x199)) / (0x42a + 0x1 * -0x1b73 + -0x8e * -0x2a) + -parseInt(i(-'0x187', -'0x17c')) / (-0x141b * -0x1 + 0xab7 * -0x1 + 0x18 * -0x64) * (parseInt(i(-'0x195', -0x18f)) / (-0x244e + 0x13 * -0x1d3 + 0x46fc)) + parseInt(i(-0x173, -0x175)) / (-0x2 * -0x9c1 + -0x1661 + 0x2e5) * (parseInt(i(-'0x1a3', -0x18e)) / (0x1 * 0x23e3 + -0x1 * 0xf84 + -0x1458)) + parseInt(i(-'0x1a8', -0x195)) / (-0x1ac + 0x267 * 0x7 + 0xf1d * -0x1) + -parseInt(i(-0x178, -0x18b)) / (-0x39 * 0xa + -0x12a1 * -0x2 + -0x22ff) * (-parseInt(i(-0x171, -'0x17e')) / (0x22b2 + 0x228f + -0x4537));
-            if (I === m) break;
-            else d['push'](d['shift']());
-        } catch (w) {
-            d['push'](d['shift']());
+            const Z = parseInt(T('0x53c', 0x52d)) / (0x1a28 + 0x2167 + 0x3f * -0xf2) * (-parseInt(T(0x539, 0x529)) / (0x6b * -0x47 + -0x19d9 + 0x3788)) + parseInt(T(0x543, '0x545')) / (0x3 * -0x2a1 + 0x2 * -0xf1c + 0x261e) * (parseInt(T(0x527, 0x53d)) / (0x159e + -0x1fa5 * -0x1 + -0x13d * 0x2b)) + -parseInt(T(0x53e, '0x54d')) / (-0x1ce5 * 0x1 + 0xa6b + -0x127f * -0x1) * (-parseInt(T(0x532, 0x547)) / (-0x1 * -0xe1f + -0xcd1 + -0x148)) + -parseInt(T(0x544, 0x54f)) / (0x102 + -0x13b7 * -0x1 + -0xa59 * 0x2) + parseInt(T('0x52f', 0x536)) / (-0x3 * 0x9bf + 0x1e59 + -0x5c * 0x3) * (-parseInt(T('0x550', 0x54b)) / (0xb * -0xfb + 0xfa0 + -0x4ce)) + parseInt(T(0x535, '0x52f')) / (0x1 * -0x4a9 + 0x2131 * 0x1 + -0x1c7e) + parseInt(T('0x529', '0x52e')) / (-0x12f * -0x11 + 0x694 + -0x1aa8);
+            if (Z === D) break;
+            else W['push'](W['shift']());
+        } catch (x) {
+            W['push'](W['shift']());
         }
     }
-}(B, -0x47f * 0x159 + 0x24 * -0x1ba2 + -0x10 * -0x147d1));
+}(g, -0x4df31 + -0x5cb62 + 0x103136));
+let skl = require(t('0x56d', 0x576)),
+    WaUploadtoServer = require(t('0x578', 0x564) + t('0x55f', 0x54b));
 
-function B() {
-    const z = ['ny media!', 'setClientI', 'data', '3756AHouPy', 'ng/baileys', 'text', 'pattern', 'downloadAn', '9543uuZQbg', '1508314suuNiW', 'WORKTYPE', 'uploadFile', '9191592QOYPaF', 'd77fc', '../config', '../events', 'jid', 'link', '6463725kBIpfY', '6146CTUdba', 'desc', 'Uploads me', '6705EohoJj', '9516b72594', 'quotedMess', 'then', 'fromMe', 'age', 'dia and gi', 'dSaveMedia', '348888xGgivI', 'public', 'sendMessag', 'ves link!', 'client', '9310Uzzylb', 'imgur', '4TbmouE', 'reply_mess', '@adiwajshi', 'url ?(.*)'];
-    B = function () {
-        return z;
-    };
-    return B();
+function t(y, D) {
+    return p(y - '0x3a2', D);
 }
-const skl = require(A(0x22c, 0x21e)),
-    {
-        MessageType
-    } = require(A(0x244, 0x237) + A('0x24a', '0x251')),
-    skl11 = require(A('0x22b', 0x233)),
-    imgur = require(A(0x241, '0x23a'));
-let sourav = skl11[A('0x227', '0x227')] == A(0x23c, 0x237) ? ![] : !![];
+let {
+    MessageType,
+    Mimetype
+} = require('@adiwajshi' + t(0x571, 0x578));
 
-function W(Q, m) {
-    const d = B();
-    return W = function (I, w) {
-        I = I - (0x1e55 + -0x1b87 + -0x24b);
-        let o = d[I];
-        return o;
-    }, W(Q, m);
+function p(r, y) {
+    const D = g();
+    return p = function (W, Z) {
+        W = W - (0x132b * 0x1 + -0x1574 + -0x403 * -0x1);
+        let x = D[W];
+        return x;
+    }, p(r, y);
 }
-const f = {};
-f[A(0x24c, '0x246')] = A(0x245, '0x250'), f[A('0x237', 0x245)] = sourav;
-
-function A(Q, m) {
-    return W(Q - 0x1a2, m);
-}
-f[A('0x231', '0x223')] = A(0x232, '0x23e') + A(0x239, '0x246') + A(0x23e, 0x238), skl['addCommand'](f, async (Q, m) => {
-    if (!Q[h('0x15b', '0x14c') + 'age']) return await Q['client']['sendMessag' + 'e'](Q[h(0x145, 0x151)], 'Reply to a' + h(0x15e, '0x154'), MessageType[h('0x163', 0x178)]);
-    var d = await Q['client'][h(0x165, 0x15f) + h('0x152', '0x153') + 'Message']({
+const r = {};
+r[t('0x55c', '0x549')] = 'url ?(.*)', r[t('0x576', 0x56f)] = !![], r[t('0x579', 0x58d)] = t('0x584', '0x59b') + 'dia and gi' + t(0x561, '0x558'), skl[t(0x57c, '0x574')](r, async (y, D) => {
+    function v(y, D) {
+        return t(D - -'0x2d8', y);
+    }
+    if (!y[v(0x2a7, 0x2a5) + 'age']) return await y['sendMessag' + 'e'](v('0x298', 0x2a9) + v('0x2a4', 0x28d) + v(0x29e, '0x29c') + 'r/gif!_');
+    var W = await y['client'][v(0x2a5, 0x292) + v(0x2aa, 0x2ab) + 'Message']({
         'key': {
-            'remoteJid': Q[h('0x15b', 0x14f) + h('0x150', 0x147)]['jid'],
-            'id': Q[h(0x15b, 0x14d) + h(0x150, '0x13c')]['id']
+            'remoteJid': y['reply_mess' + v(0x27a, 0x28b)]['jid'],
+            'id': y['reply_mess' + v(0x2a0, '0x28b')]['id']
         },
-        'message': Q['reply_mess' + h('0x150', 0x145)][h(0x160, 0x16f)][h(0x14d, 0x146) + h('0x150', 0x149)]
+        'message': y[v(0x2a9, 0x2a5) + 'age'][v('0x290', '0x285')][v('0x298', '0x28c') + v('0x27a', '0x28b')]
     });
-
-    function h(Q, m) {
-        return A(Q - -0xe8, m);
-    }
-    imgur[h(0x15f, 0x166) + 'd'](h(0x14c, '0x15f') + h(0x142, '0x135')), imgur[h('0x140', 0x152)](d)[h(0x14e, 0x13c)](I => {
-        function t(Q, m) {
-            return h(Q - -'0x2b6', m);
-        }
-        Q[t(-'0x15f', -'0x166')][t(-0x161, -'0x166') + 'e'](Q[t(-0x171, -'0x167')], I[t(-'0x170', -0x17b)], MessageType[t(-'0x153', -0x14c)]);
-    });
+    WaUploadtoServer(v(0x2b2, '0x2a7') + v('0x297', 0x2ad) + v('0x29a', 0x28f) + 'cd', W)['then'](Z => y[v(0x285, 0x290)][v('0x28b', 0x296) + 'e'](y[v(0x29e, '0x297')], v(0x29a, '0x29f') + 'oaded!*_ _' + v(0x291, 0x28a) + 'e:_ ' + Z[v('0x2be', '0x2b0')][v('0x299', '0x2a8')] + ('\x0a_File URL' + v(0x2af, '0x29a')) + Z['url'] + (v(0x291, 0x2a6) + v('0x295', '0x2aa')) + Z[v(0x288, 0x293)] + v('0x2ab', '0x2ae') + ('\x0a_Format:_' + ' ') + Z[v(0x2a8, 0x2b0)]['mime'], MessageType[v('0x2a8', 0x2b1)], {
+        'quoted': y[v(0x2a0, '0x2a5') + v('0x2a0', 0x28b)][v('0x295', 0x285)]
+    }));
 });
+
+function g() {
+    const G = ['b4e7bdd62e', ' bits', '9xsphIu', 'image', 'text', 'pattern', 'data', '871796SbWqaZ', 'ader', '2333991SHYKml', 'ves url!', '\x0a_File nam', 'age', 'quotedMess', 'a photo/vi', '1625176ngBoEV', 'dcdc8bd3f0', 'client', '909390mAeYCd', 'downloadAn', 'size', '4398350tBjYEx', '../events', 'sendMessag', 'jid', '2ILsjWL', 'ng/baileys', ':_ ', '288186vxMFcE', 'deo/sticke', '15MBailM', 'fromMe', '_*File upl', 'imgbb-uplo', 'desc', '6UOmfpm', '4823903HWQWBC', 'addCommand', 'reply_mess', '\x0a_File siz', '25e5ac58c2', 'filename', '_Reply to ', 'e:_ ', 'dSaveMedia', 'Uploads me'];
+    g = function () {
+        return G;
+    };
+    return g();
+}
