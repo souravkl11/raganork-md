@@ -7,7 +7,7 @@ const heroku = new Heroku({token: config.HEROKU.API_KEY});
 let baseURI = '/apps/' + config.HEROKU.APP_NAME;
 New.addCommand({ pattern: 'setlogo ?(.*)', fromMe: true}, (async (message, match) => {
         if (match[1] == '') {return await message.sendMessage('_Need an image link!_')}
-         else if (!match[1].includes('imgur') || !match[1].includes('ibb')) {return await message.sendMessage('_Image link invalid_ ❌ \n _Use command *.url* to get image link!_')}
+         else if (!match[1].includes('jpg')) {return await message.sendMessage('_Image link invalid_ ❌ \n _Use command *.url* to get image link!_')}
           else {await heroku.patch(baseURI + '/config-vars', {
             body: {
                 ['ALL_IMG']: match[1]
