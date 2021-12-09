@@ -5,6 +5,7 @@ const BgmDB = require('./plugins/sql/bgms');
 const chalk = require('chalk');
 const Sourav = require('./config');
 const start = require('raganork-bot');
+const { DataTypes } = require('sequelize');
 const Config = require('./config');
 const {WAConnection} = require('@adiwajshing/baileys');
 
