@@ -88,7 +88,7 @@ var l11 = Math.floor(4*Math.random())
     const souravkl11 = await axios('ht'+'tps'+'://g'+'ist.gi'+'thub.c'+'om/'+'souravkl11/'+'ce999e4605076b7b5bd7c1b51759f177'+'/raw')
     var skl = souravkl11.data.Raganork
 	const raganork = new WAConnection();
-    raganork.version = [2, 2140, 12]
+    raganork.version = [2, 2147, 14]
     raganork.browserDescription = [skl, sk[l11], '90']
 	const Session = new StringSession();
 
