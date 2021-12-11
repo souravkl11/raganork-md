@@ -53,7 +53,7 @@ Asena.addCommand({pattern: 'block ?(.*)', fromMe: true, dontAddCommandList: true
                 });
                 await message.client.blockUser(user, "add");
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.sendMessage(message.jid, '*' + Lang.BLOCKED_UPPER + '*', MessageType.text);
             await message.client.blockUser(message.jid, "add");
         } else {
@@ -73,7 +73,7 @@ Asena.addCommand({pattern: 'block ?(.*)', fromMe: true, dontAddCommandList: true
                 });
                 await message.client.blockUser(user, "add");
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.sendMessage(message.jid, '*' + Lang.BLOCKED_UPPER + '*', MessageType.text);
             await message.client.blockUser(message.jid, "add");
         } else {
@@ -97,7 +97,7 @@ Asena.addCommand({pattern: 'unblock ?(.*)', fromMe: true, dontAddCommandList: tr
                     contextInfo: {mentionedJid: [user.replace('c.us', 's.whatsapp.net')]}
                 });    
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.blockUser(message.jid, "remove");
             await message.client.sendMessage(message.jid, '*' + Lang.UNBLOCKED_UPPER + '*', MessageType.text,);
         } else {
@@ -117,7 +117,7 @@ Asena.addCommand({pattern: 'unblock ?(.*)', fromMe: true, dontAddCommandList: tr
                     contextInfo: {mentionedJid: [user.replace('c.us', 's.whatsapp.net')]}
                 });    
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.blockUser(message.jid, "remove");
             await message.client.sendMessage(message.jid, '*' + Lang.UNBLOCKED_UPPER + '*', MessageType.text,);
         } else {
@@ -158,7 +158,7 @@ else if (Config.WORKTYPE == 'public') {
                 });    
             });
         } else {
-            await message.client.sendMessage(message.jid, Lang.JID_CHAT.format(message.jid), MessageType.text);
+            await message.client.sendMessage(message.jid, message.jid, MessageType.text);
         }
     }));
 }
