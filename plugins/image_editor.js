@@ -47,7 +47,7 @@ I[D(-0xc7, -'0xc1')] = 'wasted ?(.' + '*)', I[D(-0xbd, -0xa9)] = sourav, I[D(-'0
 function D(k, u) {
     return e(k - -'0x176', u);
 }
-skl[D(-'0xe3', -'0xe1')](I, async (k, u) => {
+New[D(-'0xe3', -'0xe1')](I, async (k, u) => {
     if (!k['reply_mess' + H(-'0x260', -'0x256')]) return await k['sendMessag' + 'e'](H(-'0x251', -'0x257') + H(-0x24c, -'0x237'));
 
     function H(k, u) {
