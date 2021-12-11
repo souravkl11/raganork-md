@@ -10,7 +10,7 @@ New.addCommand({pattern: 'assist ?(.*)', fromMe: false, dontAddCommandList: true
         var img = image.skbuffer(Config.LOGOSK)
         var CMD_HELP = '';
         if (match[1] === '') {
-            Asena.commands.map(
+            New.commands.map(
                 async (command) =>  {
                     if (command.dontAddCommandList || command.pattern === undefined) return;
                     try {
@@ -58,7 +58,7 @@ New.addCommand({pattern: 'assist ?(.*)', fromMe: false, dontAddCommandList: true
         } 
         else {
             var CMD_HELP = '';
-            Asena.commands.map(
+            New.commands.map(
                 async (command) =>  {
                     if (command.dontAddCommandList || command.pattern === undefined) return;
                     try {
