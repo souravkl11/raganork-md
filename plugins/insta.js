@@ -4,7 +4,7 @@ const fs = require('fs');
 const axios = require('axios');
 const setting = require('../config');
 const get = require('../buffer');
-const post = require('../insta_srap');
+const post = require('../insta_scrap');
 const Config = require('../config');
 const need = "_Need instagram link!_*";
 let sourav = setting.WORKTYPE == 'public' ? false : true
