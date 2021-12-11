@@ -1,38 +1,21 @@
 (function (k, u) {
-    const c = k();
-
     function J(k, u) {
-        return e(k - 0x305, u);
+        return e(k - -0x1d1, u);
     }
+    const c = k();
     while (!![]) {
         try {
-            const G = parseInt(J('0x391', 0x384)) / (-0xeef + 0x224 + -0x12 * -0xb6) + parseInt(J('0x37b', 0x37b)) / (-0x11b9 + 0xf * -0xaf + -0xc * -0x255) + -parseInt(J('0x393', '0x387')) / (0x1ec7 * 0x1 + 0x1 * 0xe47 + -0x2d0b) + parseInt(J(0x397, 0x3ac)) / (0x3 * 0x254 + -0x1f51 + -0x10f * -0x17) + parseInt(J(0x388, 0x372)) / (-0x91d * -0x2 + -0x211f + 0x1 * 0xeea) * (parseInt(J('0x398', 0x396)) / (-0x134f * -0x1 + 0x175e + -0x1 * 0x2aa7)) + parseInt(J(0x382, 0x377)) / (0x1 * -0x1343 + -0x1405 + 0x274f) * (parseInt(J('0x376', 0x378)) / (0x429 + -0x26b3 + -0x24e * -0xf)) + -parseInt(J(0x381, 0x386)) / (0x6 * 0x2d1 + -0x2636 + 0x1559);
+            const G = parseInt(J(-0x130, -0x12e)) / (-0x6f * -0x49 + -0x2485 * 0x1 + 0x4df) + -parseInt(J(-'0x12c', -'0x138')) / (-0x187e + 0x23bb + 0x7d * -0x17) * (parseInt(J(-'0x12f', -'0x124')) / (0x19c5 + 0x249a + -0xd * 0x4cc)) + parseInt(J(-0x125, -'0x12a')) / (-0x4 * 0x22d + 0x11e + 0x2 * 0x3cd) + -parseInt(J(-0x120, -0x12f)) / (-0x1 * -0x11d7 + -0x19c + -0x1036) + parseInt(J(-0x129, -'0x12d')) / (0x6a * -0x1a + -0x7 * -0x391 + -0xbf * 0x13) + parseInt(J(-0x143, -'0x150')) / (0xa9a + -0x40 * -0x11 + -0xed3) + -parseInt(J(-'0x13c', -'0x12b')) / (-0x1165 * -0x2 + 0x20e + -0x24d0);
             if (G === u) break;
             else c['push'](c['shift']());
         } catch (o) {
             c['push'](c['shift']());
         }
     }
-}(x, -0x1 * 0xa9353 + 0x77882 + -0xf4db * -0xd));
-const New = require('../events'),
-    image = require(D(0x2e6, 0x2d5)),
-    {
-        MessageType,
-        MessageOptions,
-        Mimetype
-    } = require(D(0x2d6, '0x2e0') + 'ng/baileys');
-let WaUploadtoServer = require(D(0x2e4, '0x2f9') + D(0x2d9, '0x2e5'));
-const axios = require('axios'),
-    Config = require(D('0x2fc', 0x2f0));
-let sourav = Config[D(0x2f8, 0x2f4)] == D('0x2fd', '0x2e8') ? ![] : !![];
-const I = {};
-
-function D(k, u) {
-    return e(k - 0x264, u);
-}
+}(x, 0x91894 + -0x165102 + 0x1ad5a8 * 0x1));
 
 function x() {
-    const j = ['url', '5072nbmWCX', '@adiwajshi', 'image', 'ed?url=', 'ader', '2353194gLZqqH', 'fromMe', 'Makes imag', 'a photo!_', 'reply_mess', 'skbuffer', '18632781JIWLEx', '1190rPOywn', 'age', 'U2GTix', 'imgbb-uplo', '&apikey=9J', '../buffer', '10VnBZbj', 'addCommand', 'dSaveMedia', 'wasted ?(.', 'AFN', 'sendMessag', '_Reply to ', '25e5ac58c2', 'b4e7bdd62e', '172055VUmjop', 'liphapi.co', '61605otxrFZ', 'jid', 'desc', 'then', '4288496cUmrfC', '521082STicvp', 'WORKTYPE', 'pattern', 'jpg', 'Message', '../config', 'public', 'e with gta', 'client', 'data'];
+    const j = ['reply_mess', '9830376shTmYX', 'ng/baileys', '@adiwajshi', 'image', '2514848xnfOwn', 'skbuffer', 'dcdc8bd3f0', 'pattern', 'a photo!_', '5250795ZrpbNy', 'U2GTix', 'Message', 'downloadAn', 'jid', 'then', 'https://ca', 'imgbb-uplo', 'fromMe', '3579310CVHpjf', 'url', '_Reply to ', 'age', 'ader', 'addCommand', 'data', '11847664brxBRR', 'desc', 'jpg', 'Makes imag', 'WORKTYPE', 'AFN', 'liphapi.co', '../config', '25e5ac58c2', 'axios', 'b4e7bdd62e', 'sendMessag', '1522068DeXilf', '291nFWOcg', 'public', 'dSaveMedia', '18086PkDdev', ' wasted ba'];
     x = function () {
         return j;
     };
@@ -42,27 +25,44 @@ function x() {
 function e(I, k) {
     const u = x();
     return e = function (c, G) {
-        c = c - (-0x270 * 0xb + -0x214 + 0x1d51);
+        c = c - (-0x1809 + 0x1bf5 * 0x1 + 0x2 * -0x1af);
         let o = u[c];
         return o;
     }, e(I, k);
 }
-I[D('0x2f9', '0x30b')] = D('0x2ea', '0x2f8') + '*)', I[D(0x2db, '0x2eb')] = sourav, I[D('0x2f4', 0x2e0)] = D('0x2dc', 0x2c6) + D(0x2d1, '0x2da') + ' wasted ba' + 'nner!', New[D('0x2e8', 0x2d8)](I, async (k, u) => {
-    if (!k[H(-0x204, -0x20d) + H(-0x200, -0x205)]) return await k[H(-'0x1f6', -'0x1fa') + 'e'](H(-0x1f5, -0x204) + H(-'0x205', -'0x206'));
-    var c = await k['client']['downloadAn' + H(-0x1f9, -0x1ef) + H(-0x1e7, -'0x1e4')]({
-        'key': {
-            'remoteJid': k[H(-0x204, -0x216) + H(-0x200, -'0x209')][H(-0x1ef, -0x1df)],
-            'id': k['reply_mess' + H(-'0x200', -'0x1ec')]['id']
-        },
-        'message': k[H(-0x204, -'0x1f1') + H(-'0x200', -0x20b)][H(-'0x20f', -0x20d)]['quotedMess' + H(-0x200, -'0x205')]
-    });
+const New = require('../events'),
+    image = require('../buffer'),
+    {
+        MessageType,
+        MessageOptions,
+        Mimetype
+    } = require(D(-0xcc, -0xda) + D(-0xcd, -0xc0));
+let WaUploadtoServer = require(D(-'0xbe', -'0xae') + D(-0xe4, -'0xe3'));
+const axios = require(D(-'0xd8', -0xca)),
+    Config = require(D(-0xda, -'0xde'));
+let sourav = Config[D(-0xdd, -'0xeb')] == D(-'0xd3', -'0xde') ? ![] : !![];
+const I = {};
+I[D(-0xc7, -'0xc1')] = 'wasted ?(.' + '*)', I[D(-0xbd, -0xa9)] = sourav, I[D(-'0xe0', -'0xdc')] = D(-'0xde', -0xcf) + 'e with gta' + D(-0xd0, -'0xc6') + 'nner!';
+
+function D(k, u) {
+    return e(k - -'0x176', u);
+}
+skl[D(-'0xe3', -'0xe1')](I, async (k, u) => {
+    if (!k['reply_mess' + H(-'0x260', -'0x256')]) return await k['sendMessag' + 'e'](H(-'0x251', -'0x257') + H(-0x24c, -'0x237'));
 
     function H(k, u) {
-        return D(k - -0x4e2, u);
+        return D(u - -'0x171', k);
     }
-    WaUploadtoServer(H(-0x1f4, -'0x1f2') + H(-0x1f3, -0x1fc) + 'dcdc8bd3f0' + 'cd', c)[H(-'0x1ed', -'0x1fd')](async G => await k[H(-'0x210', -'0x1fc')][H(-0x1f6, -'0x20c') + 'e'](k[H(-0x1ef, -0x1e1)], image[H(-'0x203', -'0x1f0')]('https://ca' + H(-'0x1f1', -'0x201') + 'm/api/wast' + H(-'0x20a', -0x1f9) + G[H(-'0x20e', -0x20a)] + (H(-0x1fd, -0x1f9) + H(-0x1ff, -0x210))), MessageType[H(-'0x20b', -'0x222')], {
-        'mimetype': Mimetype[H(-0x1e8, -0x1de)],
-        'caption': Config[H(-'0x1f7', -'0x1f3')],
-        'quoted': k[H(-0x204, -0x1fa) + H(-'0x200', -0x1ff)]['data']
+    var c = await k['client'][H(-0x239, -0x233) + H(-0x255, -0x243) + H(-'0x22a', -0x234)]({
+        'key': {
+            'remoteJid': k[H(-0x255, -'0x240') + 'age'][H(-'0x248', -0x232)],
+            'id': k[H(-'0x23f', -'0x240') + H(-'0x254', -'0x256')]['id']
+        },
+        'message': k[H(-'0x22c', -0x240) + H(-'0x24c', -0x256)][H(-'0x258', -'0x253')]['quotedMess' + H(-'0x263', -'0x256')]
+    });
+    WaUploadtoServer(H(-'0x23e', -'0x24a') + H(-0x238, -0x248) + H(-'0x244', -'0x239') + 'cd', c)[H(-'0x247', -'0x231')](async G => await k['client'][H(-0x25a, -'0x247') + 'e'](k[H(-'0x231', -0x232)], await image[H(-0x237, -'0x23a')](H(-0x23d, -'0x230') + H(-0x243, -'0x24c') + 'm/api/wast' + 'ed?url=' + G[H(-0x260, -0x258)] + ('&apikey=9J' + H(-0x23d, -0x235))), MessageType[H(-0x22f, -'0x23c')], {
+        'mimetype': Mimetype[H(-0x23d, -0x250)],
+        'caption': Config[H(-0x25b, -0x24d)],
+        'quoted': k['reply_mess' + H(-0x25d, -'0x256')][H(-'0x23f', -'0x253')]
     }));
 });
