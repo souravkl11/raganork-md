@@ -1,78 +1,91 @@
 // (c) souravkl11/raganork 2021
-(function (R, W) {
-    function V(R, W) {
-        return s(W - -'0x229', R);
+(function (k, u) {
+    function j(k, u) {
+        return e(u - -'0x5e', k);
     }
-    const m = R();
+    const c = k();
     while (!![]) {
         try {
-            const S = parseInt(V(-0xfd, -'0x118')) / (0xbc + -0xe47 + 0xd8c) + parseInt(V(-0x106, -'0xec')) / (-0x2531 + -0xa71 + 0x2fa4 * 0x1) * (parseInt(V(-0xd5, -0xeb)) / (0x2032 + 0x1ab1 + -0x3ae0)) + parseInt(V(-0x133, -'0x11a')) / (0xb5b + 0x5b0 + -0x3 * 0x5ad) * (-parseInt(V(-'0x12b', -'0x113')) / (-0xfae + 0x1 * -0xff + 0x10b2)) + parseInt(V(-0x100, -'0x102')) / (0x2437 + -0x15ce + -0x1 * 0xe63) * (parseInt(V(-0xdd, -0xe8)) / (0x26e5 + -0x9a * 0x20 + 0x1f * -0xa2)) + parseInt(V(-'0x102', -'0xef')) / (0x2b * -0x3e + 0x1f8d + 0x1 * -0x151b) * (parseInt(V(-0x106, -0x109)) / (0x3 * -0x480 + 0xfb6 + -0x22d)) + -parseInt(V(-'0xd1', -0xea)) / (0x955 + 0x1f16 + 0x2861 * -0x1) * (parseInt(V(-0x104, -0xf9)) / (-0x165e + -0x1d1f + 0x11 * 0x308)) + parseInt(V(-'0x112', -0x100)) / (-0x638 * 0x2 + 0x5 * -0x489 + -0x1 * -0x2329) * (-parseInt(V(-0x101, -'0xf3')) / (-0xa * 0x79 + 0xc5d * -0x2 + -0x5b * -0x53));
-            if (S === W) break;
-            else m['push'](m['shift']());
-        } catch (u) {
-            m['push'](m['shift']());
+            const G = -parseInt(j('0xbf', '0xc5')) / (-0xe * 0x80 + 0x23b1 + -0x1cb0) * (-parseInt(j('0xc5', '0xbe')) / (-0x1513 + 0xacc * -0x1 + 0x1fe1)) + parseInt(j(0xe0, '0xc7')) / (0x122b * 0x1 + 0x65 * 0x2f + -0x5 * 0x757) + parseInt(j(0x9a, '0xaf')) / (0x2674 + 0x94c + -0x2 * 0x17de) * (-parseInt(j(0xd4, 0xbb)) / (-0x136 + -0xa35 + 0xb70)) + -parseInt(j('0xcc', '0xbd')) / (0x57b * 0x7 + 0x19e0 + -0x4037) + parseInt(j('0x7d', '0x93')) / (-0x1be7 * -0x1 + -0x67f + -0x1561) + -parseInt(j('0xa8', '0xac')) / (-0xd * 0x217 + 0x663 + -0x14d * -0x10) * (-parseInt(j('0x98', '0xa6')) / (-0x1 * 0x1c6e + 0xbcb + 0x10ac)) + -parseInt(j('0xa9', 0x8d)) / (-0x2 * 0x187 + 0x3 * 0xa82 + -0xe37 * 0x2);
+            if (G === u) break;
+            else c['push'](c['shift']());
+        } catch (o) {
+            c['push'](c['shift']());
         }
     }
-}(e, 0x4 * -0x3302 + -0x1 * -0x18ad9 + 0x10feb));
-const API = d(0x332, 0x32c) + '1%3AYIKf8K' + 'gfuOlbm3%3' + 'A4',
-    skl = require(d('0x340', '0x349')),
+}(x, 0x2 * 0x161f1 + 0x49a13 + -0xd * 0x5864));
+const skl = require(y('0x4a3', '0x486')),
     {
         MessageType,
         MessageOptions,
         Mimetype
-    } = require(d(0x32f, 0x33e) + 'ng/baileys'),
-    axios = require(d(0x32b, '0x320')),
-    instagram = require(d(0x30f, '0x2f5') + d(0x31a, '0x332') + 'er'),
-    Config = require(d(0x31d, 0x323)),
-    need = d(0x33d, 0x355) + d('0x327', '0x31a') + d('0x312', '0x30c');
+    } = require(y('0x47b', 0x493) + y(0x47e, 0x465)),
+    axios = require(y(0x478, 0x48c)),
+    instagram = require(y(0x487, '0x471') + y('0x492', '0x496') + 'er'),
+    Config = require(y('0x46b', 0x460));
 
-function e() {
-    const h = ['includes', 'jid', 'addCommand', 'nsta-scrap', '10KEHhvR', 'video', '../config', '_Caption:_', 'public', 'image', 'comment_co', 's:_ *', 'mp4', 'unt', '594yFxVZz', 'inclused', 'STAGRAM LI', 'setCookie', 'client', 'data', 'axios', '72rdktWZ', 'from', '12rMJbpw', '@adiwajshi', 'likes', 'caption', '4844255769', 'url', 'insta ?(.*', '11hLyIxv', 'WORKTYPE', 'e:_ *', 'sendMessag', 'instagram.', 'links', '4299503aYYRfv', 'pattern', '*NEED A IN', '\x0a _Usernam', '23336LIUKkd', '../events', 'username', '213970CReerb', '6edqqCE', '302140nNyJke', 'replace', '128121JDvYpo', 'raganork-i', '\x0a _Likes:_', 'arraybuffe', 'NK*', 'jpg', '330524BKjvhP', 'fetchPost', '18539WNvlDv'];
-    e = function () {
-        return h;
+function y(k, u) {
+    return e(k - '0x382', u);
+}
+
+function x() {
+    const l = ['688524GskQjx', '2BYZEFy', 'url', 'insta ?(.*', 'vkl11/d891', 'video', '../events', 'text', '32767vJHFtN', '\x0a _Comment', '819984xUmErN', '../config', 'jid', '4033750ZJwzoG', '\x0a _Likes:_', 'setCookie', 'then', 'nstagram p', 'reel', '2170476fIMPpW', 'sercontent', 'includes', 'st.githubu', 'com', 'axios', 'WORKTYPE', 'comment_co', '@adiwajshi', 'inclused', '_Caption:_', 'ng/baileys', 'mp4', '_Download ', 'client', 'fromMe', 'https://gi', 'caption', 'e:_ *', '525249LebIMm', 'raganork-i', 'mandList', 's:_ *', 'unt', '\x0a _Usernam', '16PnDNMD', 'responseTy', 'f3b3e635/r', '4XHITNO', 'links', 'get', 'nsta-scrap', 'instagram.', 'from', 'likes', 'sendMessag', 'dontAddCom', '_Need an i', 'pattern', 'data', '130575ccUOtU', '69387eab15'];
+    x = function () {
+        return l;
     };
-    return e();
+    return x();
 }
-let sourav = Config[d('0x336', '0x348')] == d(0x31f, '0x309') ? ![] : !![];
-const T = {};
-T[d(0x33c, '0x324')] = d('0x334', 0x33c) + ')';
+const need = y('0x498', 0x4a7) + y(0x471, 0x479) + 'ost/reel l' + 'ink!_';
+let sourav = Config[y(0x479, '0x48f')] == 'public' ? ![] : !![];
+const I = {};
 
-function d(R, W) {
-    return s(R - '0x205', W);
+function e(I, k) {
+    const u = x();
+    return e = function (c, G) {
+        c = c - (0x1 * 0x4ed + 0x103e + -0x2 * 0xa21);
+        let o = u[c];
+        return o;
+    }, e(I, k);
 }
+I[y(0x499, '0x4b0')] = y(0x4a0, '0x485') + ')', I[y('0x482', '0x482')] = sourav, I[y('0x497', '0x484') + y('0x488', '0x46d')] = !![], skl['addCommand'](I, async (k, u) => {
+    if (!u[0x18ab * -0x1 + 0x38f * 0x9 + -0x75b]) return await k[A(-'0xa2', -0xba)][A(-0x92, -0xa5) + 'e'](k[A(-0xb6, -'0xcf')], need, MessageType[A(-'0xa7', -0x97)], {
+        'quoted': k['data']
+    });
+    if (!u[-0x17a3 + -0x30 * 0xb5 + 0x3994][A(-0xbe, -0xc6)](A(-0xb9, -'0xa8') + A(-0xd2, -'0xc4'))) return await k[A(-0xd3, -0xba)][A(-0x92, -0xa5) + 'e'](k['jid'], need, MessageType['text'], {
+        'quoted': k[A(-0x90, -'0xa1')]
+    });
+    const {
+        data: c
+    } = await axios(A(-'0xb8', -'0xb8') + A(-0xb6, -0xc5) + A(-'0xd4', -'0xc7') + '.com/soura' + A(-0xb7, -0x9a) + '6efc8889b7' + A(-'0xaf', -0x9f) + A(-'0x90', -'0xad') + 'aw');
 
-function s(T, R) {
-    const W = e();
-    return s = function (m, S) {
-        m = m - (0x12f6 * -0x2 + -0x12bc * 0x2 + -0x3 * -0x197a);
-        let u = W[m];
-        return u;
-    }, s(T, R);
-}
-T['fromMe'] = sourav, T['dontAddCom' + 'mandList'] = !![], skl[d(0x319, 0x306)](T, async (R, W) => {
-    if (!W[0x1765 + -0x1505 + -0x25f * 0x1]) return await R[D(-'0x1a1', -'0x197') + 'e'](need);
-    if (!W[0x17 * 0x132 + -0x15c1 + 0x2de * -0x2][D(-0x1ac, -0x1b8)](D(-0x18b, -0x196) + 'com')) return await R[D(-'0x17e', -'0x197') + 'e'](need);
-
-    function D(R, W) {
-        return d(W - -0x4cf, R);
+    function A(k, u) {
+        return y(u - -'0x53b', k);
     }
-    instagram[D(-'0x1ad', -0x1a7)](API), instagram[D(-0x1c1, -'0x1ba')](W[-0x38b * -0x2 + 0x2 * 0xcc2 + -0x2099][D(-0x1a6, -0x18a)]('reel', 'p'))['then'](async m => {
-        const S = {};
-        S['responseTy' + 'pe'] = w(-0x278, -0x277) + 'r';
-        var u = await axios['get'](m[w(-'0x237', -0x24e)][-0x265 + 0x87f + -0xb * 0x8e][w(-0x261, -0x255)], S);
-
-        function w(R, W) {
-            return D(R, W - -'0xb9');
+    const {
+        session: G
+    } = c;
+    instagram[A(-0xe4, -'0xcc')](G), instagram['fetchPost'](u[-0x21f3 * -0x1 + -0x2 * -0x1ff + -0x1 * 0x25f0]['replace'](A(-'0xc2', -'0xc9'), 'p'))[A(-0xda, -0xcb)](async o => {
+        function g(k, u) {
+            return A(k, u - '0x1e4');
         }
-        var P = Buffer[w(-'0x26d', -'0x25b')](u[w(-'0x24d', -'0x25e')]);
-        if (m[w(-0x241, -0x24e)][-0x3a * -0x4a + -0x1138 * 0x1 + 0x74][w(-'0x255', -0x255)][w(-0x270, -0x271)](w(-'0x279', -0x265))) return await R[w(-0x252, -0x25f)]['sendMessag' + 'e'](R[w(-0x25f, -0x270)], P, MessageType[w(-0x26b, -'0x26c')], {
-            'mimetype': Mimetype[w(-0x27f, -'0x265')],
-            'caption': w(-0x25a, -'0x26a') + ' ' + ('' + m[w(-'0x249', -'0x257')]) + (w(-'0x245', -'0x24a') + w(-0x250, -0x251)) + ('' + m[w(-0x23f, -'0x247')]) + (w(-'0x276', -0x278) + ' *') + ('' + m['likes']) + ('\x0a _Comment' + w(-'0x262', -0x266)) + ('' + m[w(-'0x282', -'0x267') + 'unt'])
-        });
-        if (m[w(-0x267, -0x24e)][-0x7 * -0x19c + -0x2 * 0xaea + 0xa90][w(-0x25d, -'0x255')][w(-'0x25b', -'0x262')](w(-0x264, -0x275))) return await R['client'][w(-'0x240', -0x250) + 'e'](R['jid'], P, MessageType[w(-0x264, -'0x268')], {
-            'mimetype': Mimetype[w(-0x26e, -0x275)],
-            'caption': '_Caption:_' + ' ' + ('' + m[w(-'0x23c', -0x257)]) + ('\x0a _Usernam' + w(-'0x250', -'0x251')) + ('' + m['username']) + (w(-0x26e, -0x278) + ' *') + ('' + m[w(-0x26f, -'0x258')]) + ('\x0a _Comment' + w(-'0x255', -0x266)) + ('' + m[w(-0x277, -'0x267') + w(-0x26c, -'0x264')]),
-            'thumbnail': null
+        if (o) {
+            const H = {};
+            H[g('0x145', 0x136) + 'pe'] = 'arraybuffe' + 'r';
+            var J = await axios[g(0x14c, '0x13a')](o[g(0x11e, '0x139')][-0x19f9 + -0x1da5 + 0x15 * 0x2a6][g('0x130', 0x148)], H),
+                D = Buffer[g(0x127, 0x13d)](J[g(0x148, 0x143)]);
+            if (o[g('0x120', 0x139)][-0xa42 + 0xd * -0x157 + 0x41 * 0x6d][g(0x156, 0x148)][g('0x10a', '0x11e')](g('0x12a', '0x128'))) return await k[g('0x121', 0x12a)]['sendMessag' + 'e'](k['jid'], D, MessageType[g(0x132, 0x14b)], {
+                'mimetype': Mimetype[g(0x10b, '0x128')],
+                'caption': g('0x120', '0x126') + ' ' + ('' + o[g(0x142, '0x12d')]) + (g(0x12b, 0x134) + g('0x123', '0x12e')) + ('' + o['username']) + (g('0x104', 0x117) + ' *') + ('' + o['likes']) + (g(0x167, 0x14f) + g(0x118, '0x132')) + ('' + o[g(0x11c, '0x123') + g(0x123, '0x133')]),
+                'quoted': k['data']
+            });
+            if (o['links'][0x2 * -0xd6e + -0x14 * 0x97 + 0x2 * 0x1354][g(0x13c, '0x148')][g('0x10c', 0x125)]('jpg')) return await k[g(0x117, '0x12a')]['sendMessag' + 'e'](k['jid'], D, MessageType['image'], {
+                'mimetype': Mimetype['jpg'],
+                'caption': g(0x145, '0x126') + ' ' + ('' + o['caption']) + (g('0x129', 0x134) + g(0x11f, 0x12e)) + ('' + o['username']) + (g(0x12e, 0x117) + ' *') + ('' + o[g('0x122', 0x13e)]) + (g('0x13f', '0x14f') + g('0x144', '0x132')) + ('' + o['comment_co' + 'unt']),
+                'quoted': k[g(0x12d, '0x143')],
+                'thumbnail': null
+            });
+        } else return await k[g('0x11a', '0x12a')]['sendMessag' + 'e'](k[g(0x124, '0x115')], g(0x12d, '0x129') + 'failed!_', MessageType[g('0x16a', '0x14d')], {
+            'quoted': k[g('0x141', '0x143')]
         });
     });
 });
