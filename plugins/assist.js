@@ -4,9 +4,9 @@ const image = require('../buffer');
 const {MessageType} = require('@adiwajshing/baileys');
 const Language = require('../language');
 const Lang = Language.getString('_asena');
-let sourav = Config.WORKTYPE == 'public' ? false : true
+let i = Config.WORKTYPE == 'public' ? false : true
 
-New.addCommand({pattern: 'assist ?(.*)', fromMe: false, dontAddCommandList: true}, (async (message, match) => {
+New.addCommand({pattern: 'assist ?(.*)', fromMe: i, dontAddCommandList: true}, (async (message, match) => {
         var img = await image.skbuffer(Config.LOGOSK)
         var CMD_HELP = '';
             New.commands.map(
