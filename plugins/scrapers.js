@@ -199,8 +199,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
     
     skl.addCommand({pattern: 'tts (.*)', fromMe: sourav, desc: Lang.TTS_DESC}, (async (message, match) => {
 
-        if(match[1] === undefined || match[1] == "")
-            return;
+        if(!match[1]) return await message.client.sendMessage(message.jid, "_Give me any parameters!_", MessageType.text, {quoted: message.data});
     
         let 
             LANG = config.LANG.toLowerCase(),
