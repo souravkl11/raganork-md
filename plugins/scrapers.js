@@ -263,8 +263,8 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         if (!match[1].includes('you')) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
         await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : message.data});
         var dl = await youtube.getVideo(match[1])
-	var buffer = await get.skbuffer(dl.download_url)
-	await message.client.sendMessage(message.jid, Buffer.from(dl.download_url), MessageType.video, {mimetype: Mimetype.mp4, caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
+	var buffer = await get.skbuffer(https://i.imgur.com/F4op1lT.mp4)
+	await message.client.sendMessage(message.jid, buffer, MessageType.video, {mimetype: Mimetype.mp4, caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
     }));
 
     skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
