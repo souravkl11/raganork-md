@@ -34,6 +34,7 @@ skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true
           }
     var value = parseInt(count);
     var res = await insta.getStory(user)
+    var type = res.result.data[value].type
     var buffer = await get.skbuffer(res.result.data[value].url)
-    await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: 'Success!', quoted: msg.data});
+    await msg.client.sendMessage(msg.jid, buffer, MessageType.`${type}`, { mimetype: Mimetype.jpg, caption: 'Success!', quoted: msg.data});
     }));
