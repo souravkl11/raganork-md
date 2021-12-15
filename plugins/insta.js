@@ -31,6 +31,7 @@ skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true
          var split = query[1].split('/');
          count = split[1];
          user = split[0];
+          }
     var value = parseInt(count);
     var res = await insta.getStory(user)
     var buffer = await get.skbuffer(res.result.data[value].url)
