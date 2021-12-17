@@ -34,6 +34,16 @@ skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true
           }
     var value = parseInt(count);
     var res = await insta.getStory(user)
+    var type = ''
+    var mime = ''
+    if (res.result.data[value].type == 'image') { 
+        type = MessageType.image
+        mime = Mimetype.jpg
+    }
+    if (res.result.data[value].type == 'video') {
+        type = MessageType.video
+        mime = Mimetype.mp4
+    }
     var buffer = await get.skbuffer(res.result.data[value].url)
-    await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: 'Success!', quoted: msg.data});
+    await msg.client.sendMessage(msg.jid, buffer, type, { mimetype: mime, caption: '```Story '+query[1]+'``` of '+user, quoted: msg.data});
     }));
