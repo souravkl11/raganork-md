@@ -270,8 +270,14 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
                 var tsts = match[1].replace('watch?v=', '').replace('/shorts/', '/')
                 var alal = tsts.split('/')[3]
                 VID = alal
-            } else {     
-                    var rep = match[1].replace('/shorts/', '/')
+            }
+		else if (match[1].includes('shorts')) {
+                var tsts = match[1]
+                var alal = tsts.split('/')[4]
+                VID = alal
+            }
+		else {     
+                    var rep = match[1]
 		    VID = rep.split('/')[3]
             }
         } catch {
