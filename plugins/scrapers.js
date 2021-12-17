@@ -272,9 +272,9 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
                 VID = alal
             }
 		else if (match[1].includes('shorts')) {
-                var tsts = match[1].replace('?feature=share', '')
+                var tsts = match[1]
                 var alal = tsts.split('/')[4]
-                VID = alal
+                VID = alal.replace('?feature=share', '')
             }
 		else {     
                     var rep = match[1]
