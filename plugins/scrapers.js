@@ -271,7 +271,8 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
                 var alal = tsts.split('/')[3]
                 VID = alal
             } else {     
-                VID = match[1].split('/')[3]
+                    var rep = match[1]match[1].replace('/shorts/', '/')
+		    VID = rep.split('/')[3]
             }
         } catch {
             return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
@@ -284,7 +285,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
             },
             message: {
               "extendedTextMessage": {
-                "text": "*Dowloading*"
+                "text": config.BOTSK
               }
             }
         }
