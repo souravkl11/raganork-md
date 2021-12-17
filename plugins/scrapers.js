@@ -261,11 +261,43 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
 
         if (!match[1]) return await message.client.sendMessage(message.jid,Lang.NEED_VIDEO,MessageType.text);    
         if (!match[1].includes('you')) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
-        await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : message.data});
         var dl = await youtube.getVideo(match[1])
-	var buffer = await get.skbuffer(dl.download_url)
-	await message.client.sendMessage(message.jid, buffer, MessageType.video, {mimetype: Mimetype.mp4, caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
-    }));
+	        
+              
+        var VID = '';
+        try {
+            if (match[1].includes('watch')) {
+                var tsts = match[1].replace('watch?v=', '').replace('/shorts/', '/')
+                var alal = tsts.split('/')[3]
+                VID = alal
+            } else {     
+                VID = match[1].split('/')[3]
+            }
+        } catch {
+            return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
+        }
+        var reply = await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : {
+            key: {
+              fromMe: true,
+              participant: "0@s.whatsapp.net",
+              remoteJid: "status@broadcast"
+            },
+            message: {
+              "extendedTextMessage": {
+                "text": "*Dowloading*"
+              }
+            }
+        }
+        });
+        var yt = ytdl(VID, {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
+        yt.pipe(fs.createWriteStream('./' + VID + '.mp4'));
+
+        yt.on('end', async () => {
+            reply = await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
+            await message.client.sendMessage(message.jid,fs.readFileSync('./' + VID + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4, caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
+        });
+
+  }));
 
     skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
 
