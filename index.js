@@ -59,19 +59,5 @@ Array.prototype.remove = function() {
     }
     return this;
 };
-const raganork = new WAConnection();
-var sourav = `${Sourav.AUTOBİO}`
-    setInterval(async () => { 
-        if (sourav == 'on') {
-             var time = new Date().toLocaleString('LK', { timeZone: 'Asia/Kolkata' }).split(' ')[1]
-                const get_localized_date = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                var date = new Date().toLocaleDateString(Sourav.LANG, get_localized_date)
-                const biography = '📅 ' + date + '\n⌚ ' + time + '\n\n' + Sourav.BOTSK
-                await raganork.setStatus(biography)
-            }
-        }
-)
-
-
 
 start.bot();
