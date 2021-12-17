@@ -271,7 +271,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
                 var alal = tsts.split('/')[3]
                 VID = alal
             } else {     
-                    var rep = match[1]match[1].replace('/shorts/', '/')
+                    var rep = match[1].replace('/shorts/', '/')
 		    VID = rep.split('/')[3]
             }
         } catch {
