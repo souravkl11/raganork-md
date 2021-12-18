@@ -265,8 +265,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
 	        
               
         var VID = '';
-        try {
-            if (match[1].includes('?feature=share')) {
+        if (match[1].includes('shorts')) {
                 var tsts = match[1].replace('?feature=share','')
                 var alal = tsts.split('/')[4]
                 VID = alal
@@ -275,9 +274,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
                     var rep = match[1]
 		    VID = rep.split('/')[3]
             }
-        } catch {
-            return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
-        }
+        
         var reply = await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : {
             key: {
               fromMe: true,
