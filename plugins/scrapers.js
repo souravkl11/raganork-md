@@ -297,7 +297,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         }
         });
         var sk;
-        if(sk.includes('?feature=share')) {
+        if(VID.includes('?feature=share')) {
         sk = VID.replace('?feature=share','')
      }
 else sk = VID
