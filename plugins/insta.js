@@ -27,24 +27,20 @@ skl.addCommand({ pattern: 'ig ?(.*)', fromMe: sourav,dontAddCommandList: true },
     }));
 skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
     if (query[1] === '') return await msg.client.sendMessage(msg.jid, need_acc_s, MessageType.text, {quoted: msg.data});
-    var user, count;
-      if (query[1].includes('/')) {
-         var split = query[1].split('/');
-         count = split[1];
-         user = split[0];
-          }
-    var value = parseInt(count);
+    var user = query[1];
     var res = await insta.getStory(user)
+    var value = parseInt(res.stories_count);
+    for (var i = 0; i < (res.length < value ? res.length : value); i++)
     var type = ''
     var mime = ''
-    if (res.result.data[value].type == 'image') { 
+    if (res.result.data[i].type == 'image') { 
         type = MessageType.image
         mime = Mimetype.jpg
     }
-    if (res.result.data[value].type == 'video') {
+    if (res.result.data[i].type == 'video') {
         type = MessageType.video
         mime = Mimetype.mp4
     }
-    var buffer = await get.skbuffer(res.result.data[value].url)
+    var buffer = await get.skbuffer(res.result.data[i].url)
     await msg.client.sendMessage(msg.jid, buffer, type, { mimetype: mime, caption: '```Story '+count+'``` of '+user, quoted: msg.data});
     }));
