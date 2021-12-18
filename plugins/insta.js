@@ -42,5 +42,5 @@ skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true
         mime = Mimetype.mp4
     }
     var buffer = await get.skbuffer(res.result.data[i].url)
-    await msg.client.sendMessage(msg.jid, buffer, type, { mimetype: mime, caption: '```Story '+count+'``` of '+user, quoted: msg.data});
+    await msg.client.sendMessage(msg.jid, buffer, type, { mimetype: mime, caption: '```Story of '+user + '```', quoted: msg.data});
     }));
