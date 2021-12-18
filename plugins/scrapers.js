@@ -272,9 +272,9 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
                 VID = alal
             }
 		else if (match[1].includes('shorts')) {
-                var tsts = match[1]
-                var alal = tsts.split('/')[4]
-                VID = alal
+                var alal = match[1].split('/')[4]
+                var tsts = alal.replace('?feature=share','')
+                VID = tsts
             }
 		else {     
                     var rep = match[1]
@@ -296,12 +296,8 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
             }
         }
         });
-        var sk;
-        if(VID.includes('?feature=share')) {
-        sk = VID.replace('?feature=share','')
-     }
-else sk = VID
-        var yt = ytdl(sk, {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
+        
+        var yt = ytdl(VID, {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
         yt.pipe(fs.createWriteStream('./' + VID + '.mp4'));
 
         yt.on('end', async () => {
