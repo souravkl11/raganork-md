@@ -264,7 +264,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         var dl = await youtube.getVideo(match[1])
 	        
               
-        var VID = '';
+        var VID;
         if (match[1].includes('shorts')) {
                 var tsts = match[1].replace('?feature=share','')
                 var alal = tsts.split('/')[4]
