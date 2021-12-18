@@ -266,15 +266,10 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
               
         var VID = '';
         try {
-            if (match[1].includes('watch')) {
-                var tsts = match[1].replace('watch?v=', '')
-                var alal = tsts.split('/')[3]
+            if (match[1].includes('?feature=share')) {
+                var tsts = match[1].replace('?feature=share','')
+                var alal = tsts.split('/')[4]
                 VID = alal
-            }
-		else if (match[1].includes('shorts')) {
-                var alal = match[1].split('/')[4]
-                var tsts = alal.replace('?feature=share','')
-                VID = tsts
             }
 		else {     
                     var rep = match[1]
