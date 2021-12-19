@@ -264,26 +264,18 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         var dl = await youtube.getVideo(match[1])
 	        
               
-        var VID = '';
-        try {
-            if (match[1].includes('watch')) {
-                var tsts = match[1].replace('watch?v=', '')
-                var alal = tsts.split('/')[3]
+        var VID;
+        if (match[1].includes('shorts')) {
+                var tsts = match[1].replace('?feature=share','')
+                var alal = tsts.split('/')[4]
                 VID = alal
-            }
-		else if (match[1].includes('shorts')) {
-                var alal = match[1].split('/')[4]
-                var tsts = alal.replace('?feature=share','')
-                VID = tsts
             }
 		else {     
                     var rep = match[1]
 		    VID = rep.split('/')[3]
             }
-        } catch {
-            return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
-        }
-        var reply = await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : {
+        
+        await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : {
             key: {
               fromMe: true,
               participant: "0@s.whatsapp.net",
@@ -301,8 +293,8 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         yt.pipe(fs.createWriteStream('./' + VID + '.mp4'));
 
         yt.on('end', async () => {
-            reply = await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
-            await message.client.sendMessage(message.jid,fs.readFileSync('./' + VID + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4, caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
+            await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
+            await message.client.sendMessage(message.jid,fs.readFileSync('./' + VID + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
         });
 
   }));
