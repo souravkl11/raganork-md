@@ -38,7 +38,7 @@ const New = require(_0x48389d(0x1dd)),
     axios = require('axios'),
     Config = require(_0x48389d(0x1df));
 let sourav = Config[_0x48389d(0x1e8)] == _0x48389d(0x1db) ? ![] : !![];
-New['addcommand']({
+New['addCommand']({
     'pattern': 'thumb',
     'fromMe': sourav
 }, async (_0x2a0fa3, _0x532f8c) => {
@@ -59,7 +59,7 @@ New['addcommand']({
             'thumbnail': fs[_0x69cb5a(0x1dc)](_0x69cb5a(0x1d0))
         });
     } else return await _0x2a0fa3[_0x69cb5a(0x1d4)][_0x69cb5a(0x1de)]('_Reply to any image!_');
-}), Asena['addCommand']({
+}), New['addCommand']({
     'pattern': _0x48389d(0x1d3),
     'fromMe': sourav
 }, async (_0x4de992, _0x50c4fd) => {
