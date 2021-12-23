@@ -1,6 +1,6 @@
 const New = require('../events');
 const Config = require('../config');
-const image = require('../buffer');
+const image = require('./Data/Buffer');
 const {MessageType} = require('@adiwajshing/baileys');
 const Language = require('../language');
 const Lang = Language.getString('_asena');

@@ -3,7 +3,7 @@ Licensed under the  GPL-3.0 License;
 you may not use this file except in compliance with the License.
 WhatsAsena - Yusuf Usta
 */
-const get = require('../buffer');
+const get = require('./Data/Buffer');
 const skl = require('../events');
 const {MessageType,Mimetype} = require('@adiwajshing/baileys');
 const translatte = require('translatte');
@@ -30,7 +30,7 @@ const googleTTS = require('google-translate-tts');
 //=====================================================================================
 //============================== YOUTUBE ==============================================
 const ytdl = require('ytdl-core');
-const youtube = require('../yt_scrap');
+const youtube = require('./Data/youtube');
 const ffmpeg = require('fluent-ffmpeg');
 const yts = require( 'yt-search' )
 const got = require("got");
