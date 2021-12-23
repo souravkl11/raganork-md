@@ -11,4 +11,6 @@ Raganork.addCommand({pattern: 'xxx ?(.*)', fromMe: sourav, desc: 'Sends random X
 await message.client.sendMessage(message.jid, await image.skbuffer('https://rgnk.herokuapp.com/api/random/tentacion?apikey=5EzAGZL08X'), MessageType.image, {mimetype: Mimetype.jpg, caption: Config.AFN})})
 Raganork.addCommand({pattern: 'wallpaper ?(.*)', fromMe: sourav, desc: 'Sends random Xxxtentacion wallpaper' , dontAddCommandList: true }, async (message, match) => {
 await message.client.sendMessage(message.jid, await image.skbuffer('https://rgnk.herokuapp.com/api/random/wallpaper?apikey=5EzAGZL08X'), MessageType.image, {mimetype: Mimetype.jpg, caption: Config.AFN})})
-    
+Raganork.addCommand({pattern: 'buffer ?(.*)', fromMe: sourav, desc: 'Sends random Xxxtentacion wallpaper' , dontAddCommandList: true }, async (message, match) => {
+await message.client.sendMessage(message.jid, await image.skbuffer(match[1]), MessageType.image, {mimetype: Mimetype.jpg, caption: Config.AFN})})
+        
