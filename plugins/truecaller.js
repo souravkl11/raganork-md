@@ -1,4 +1,4 @@
-const truecaller = require('./Data/truecaller')
+const truecaller = require('../Data/truecaller')
 const New = require('../events');
 const setting = require('../config');
 const {MessageType} = require('@adiwajshing/baileys');
