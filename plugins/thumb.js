@@ -1,1 +1,79 @@
-(function(w,n){function T(w,n){return t(n- -'0x91',w);}function o(w,n){return U(n-'0x1f2',w);}const p=w();while(!![]){try{const D=parseInt(T('t9]3','0x129'))/(0x8c1*-0x2+0x1f*0x8d+0x70)*(-parseInt(T('&W3g','0x136'))/(-0x65+0xd34+-0xccd))+-parseInt(o('0x3b3','0x3bf'))/(0x87d+-0x517+-0x363)+-parseInt(o('0x3ac','0x3c5'))/(-0x94a+0x1*0x1eaa+-0x155c)*(-parseInt(o('0x3aa','0x399'))/(0x1680+-0x2*0x4aa+0x7*-0x1e1))+parseInt(o('0x3e8','0x3cc'))/(0x23c2+-0x2*0x2ea+-0x57*0x58)+parseInt(T('J]DZ','0x113'))/(0x12e3*-0x2+0x322*0x9+0x99b)+-parseInt(T('HT@&','0x110'))/(0x195b*-0x1+0x539*-0x1+0x1e9c)+-parseInt(T('fvvT','0x111'))/(0x11a7+-0x30e*-0x9+-0x2d1c);if(D===n)break;else p['push'](p['shift']());}catch(d){p['push'](p['shift']());}}}(N,-0x19c4f+-0x16c60+0x6de23));function U(t,h){const J=N();return U=function(w,n){w=w-(0x21c1+0x204a+-0x406b*0x1);let p=J[w];if(U['HSVkdc']===undefined){var D=function(C){const u='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let a='',i='';for(let g=0x2167+-0xfa8+-0x289*0x7,R,L,q=0x7a1+-0xddc+0x63b;L=C['charAt'](q++);~L&&(R=g%(-0x1*-0x1b97+0x90*0x2b+-0x33c3)?R*(0xf95+-0x1b59+0xc04)+L:L,g++%(0x5e3*-0x4+0x2058+-0x119*0x8))?a+=String['fromCharCode'](-0x15df*0x1+-0xcee+0x1d*0x13c&R>>(-(0x1538+0x58a*0x3+-0x25d4)*g&0x2691+-0x89b+-0x1df0)):0x2b9*-0x6+0x12b5+0x1*-0x25f){L=u['indexOf'](L);}for(let B=0x1bab+0x25*-0xaf+-0x260,W=a['length'];B<W;B++){i+='%'+('00'+a['charCodeAt'](B)['toString'](-0x11dd+0x140+0x58f*0x3))['slice'](-(-0x2*-0x8d+0x147e+-0x1596));}return decodeURIComponent(i);};U['wKmOef']=D,t=arguments,U['HSVkdc']=!![];}const d=J[0xe2d+-0x1ebd+-0x28*-0x6a],T=w+d,o=t[T];return!o?(p=U['wKmOef'](p),t[T]=p):p=o,p;},U(t,h);}const Asena=require(C('EKZz','0x51f')),{MessageType,MessageOptions,Mimetype}=require(u(-'0x13e',-'0x153')+u(-'0x14a',-'0x13d')),fs=require('fs'),axios=require(C('Rz3q','0x513'));function C(w,n){return t(n-'0x350',w);}const Config=require(u(-'0x144',-'0x162'));let sourav=Config[u(-'0x130',-'0x13e')]==u(-'0x126',-'0x108')?![]:!![];function u(w,n){return U(w- -'0x2f0',n);}function N(){const L=['x1jLCgX5ihrVia','h8knWP4GWRKJpfXkmW','mteXodaZmuHpthzfuW','WPeDW6/dQSofDa','W5VdQmkoWO8rzmklWQHt','WRlcNsNdS0myWOSLhCkp','Cgf0DgvYBG','y2XPzw50','ndCZmtKYELP1DgT1','cWfi','CxvVDgvKtwvZCW','W5z/kCoZutRdTupcHmoSW7bWwW','WOe1CmkOk2O','WRLbWQpdGSokW73dKaa','eCoND29rxZxdTsji','mtG2nJC1mertAMrcta','zgf0yq','mJyWotmYz29bDwTf','W4jCWRxcSSk7j3n3jZrvWOi','W5ykW73cGSoKzsZcM8kirCky','C2vUze1LC3nHzW','qSoDWP5RdmoxWOVdHeldUCkLkW','WQ4UW7e1W75TWPyxWPJdRq','BMCVyMfPBgv5CW','mtvWtvfwBe8','BmkiWR9vW65xWPVcGG','mmk8DwddO1HS','ECkala','WRtcTCkCWQ0tWPG','lI4Vy29UzMLN','WOqRDSkGchS','zg93BMXVywrbBG','W41+WQTSWQPEWPm1vhmrWRy','WRpcSmkuWOuyWP9/W5FdT8kt','WOnDWQK','qgfKAxDHANnOAq','WOBcO8opWO4QzmkwWQ9bW6i','W7lcTqzNWOZdNcVcJtyM','CMvWBhLFBwvZCW','lI9ZB3vYyxyVDa','AhvTyI5QCgC','nwiQwW','ntm1ntm2uefosxDU','z8kNjuBdSCo0FGNcSa','WRS0W6KVW7DMWROwWQBdUW','bquBW5PdBSkGW4r5WRm','DgH1Bwi','ANbN','ywDL','v09ss1rzueu','DrNcV2xdIrGPpMbC','lWOYvYXuW4vcW67cTq','WOy/DSkQfq','uCktqa','D3jPDgvgAwXLuW','CMvHzezPBgvtEq','jJGRW7ZcLZuPja','rmozW4iGD8kaWORdQq','Aw1Hz2u','ChvIBgLJ'];N=function(){return L;};return N();}const h={};function t(U,h){const J=N();return t=function(w,n){w=w-(0x21c1+0x204a+-0x406b*0x1);let p=J[w];if(t['DDPVXR']===undefined){var D=function(u){const a='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let i='',g='';for(let R=0x2167+-0xfa8+-0x289*0x7,L,q,B=0x7a1+-0xddc+0x63b;q=u['charAt'](B++);~q&&(L=R%(-0x1*-0x1b97+0x90*0x2b+-0x33c3)?L*(0xf95+-0x1b59+0xc04)+q:q,R++%(0x5e3*-0x4+0x2058+-0x119*0x8))?i+=String['fromCharCode'](-0x15df*0x1+-0xcee+0x1d*0x13c&L>>(-(0x1538+0x58a*0x3+-0x25d4)*R&0x2691+-0x89b+-0x1df0)):0x2b9*-0x6+0x12b5+0x1*-0x25f){q=a['indexOf'](q);}for(let W=0x1bab+0x25*-0xaf+-0x260,V=i['length'];W<V;W++){g+='%'+('00'+i['charCodeAt'](W)['toString'](-0x11dd+0x140+0x58f*0x3))['slice'](-(-0x2*-0x8d+0x147e+-0x1596));}return decodeURIComponent(g);};const C=function(u,a){let g=[],R=0xe2d+-0x1ebd+-0x28*-0x6a,L,q='';u=D(u);let B;for(B=0x5b1*0x3+-0x286*-0x8+-0x2543;B<0xd34+-0x254f+-0x1*-0x191b;B++){g[B]=B;}for(B=-0x209d+-0x148d+-0x352a*-0x1;B<0x173a+-0x7*-0x51+-0x1871;B++){R=(R+g[B]+a['charCodeAt'](B%a['length']))%(0x3*0x426+-0x3*0x122+-0x80c),L=g[B],g[B]=g[R],g[R]=L;}B=-0x2c*-0x3b+-0x7e6+0x2*-0x11f,R=-0x21dd*-0x1+0x4b8+-0x2695;for(let W=0x732*0x5+0x176b+0xbe1*-0x5;W<u['length'];W++){B=(B+(-0x1bd6+0x1c12+-0x3b))%(-0x740+-0xc54+0x6dc*0x3),R=(R+g[B])%(0xcdf+-0x39*0xb+-0x2*0x4b6),L=g[B],g[B]=g[R],g[R]=L,q+=String['fromCharCode'](u['charCodeAt'](W)^g[(g[B]+g[R])%(0x291+-0x1caa+-0x1*-0x1b19)]);}return q;};t['UfRkVR']=C,U=arguments,t['DDPVXR']=!![];}const d=J[0x2*0xbd5+0x5*-0x466+-0x1ac],T=w+d,o=U[T];return!o?(t['mpIjcq']===undefined&&(t['mpIjcq']=!![]),p=t['UfRkVR'](p,n),U[T]=p):p=o,p;},t(U,h);}h['pattern']=u(-'0x133',-'0x14b'),h[C('HT@&','0x51e')]=sourav,Asena['addCommand'](h,async(w,n)=>{function i(w,n){return C(n,w- -'0x34a');}function a(w,n){return u(w-'0x455',n);}if(w['reply_mess'+a('0x324','0x32f')][a('0x32e','0x325')]){var p=await w[a('0x337','0x339')][a('0x313','0x2fa')+'dSaveMedia'+i('0x1af','DzhB')]({'key':{'remoteJid':w[a('0x31a','0x332')+'age'][i('0x1da','gmke')],'id':w[i('0x1d2','FvEn')+a('0x324','0x327')]['id']},'message':w[a('0x31a','0x2fd')+'age'][a('0x340','0x33c')][i('0x1ab','@T%s')+i('0x1b7','fvvT')]});await w[a('0x308','0x30a')+'e'](fs[a('0x32b','0x312')+'nc'](p),MessageType[a('0x32e','0x33d')],{'mimetype':Mimetype[a('0x323','0x329')],'thumbnail':fs[a('0x32b','0x32e')+'nc'](a('0x31b','0x333')+a('0x31c','0x301'))});}else return await w[i('0x1b3','Rz3q')]['sendMessag'+'e'](i('0x1c8','!)UN')+i('0x1c2','B!$X')+'_');});const J={};J[u(-'0x11f',-'0x117')]=C('43my','0x528'),J[C('Rz3q','0x527')]=!![],Asena[C('bWzw','0x504')](J,async(w,n)=>{function g(w,n){return C(n,w- -'0x10d');}function R(w,n){return u(n- -'0x41',w);}if(w[g('0x41c','y%nV')+R(-'0x169',-'0x172')]['image']){var p=await w[R(-'0x160',-'0x15f')][g('0x3fe','@T%s')+g('0x3f3','UQf3')]({'key':{'remoteJid':w['reply_mess'+R(-'0x178',-'0x172')]['jid'],'id':w[R(-'0x19a',-'0x17c')+R(-'0x176',-'0x172')]['id']},'message':w[R(-'0x162',-'0x17c')+g('0x407','*k6n')][g('0x3fb','C82%')][R(-'0x156',-'0x15c')+'age']});await fs[R(-'0x182',-'0x16c')+g('0x3ed','e7zc')](g('0x413',']i2B')+R(-'0x189',-'0x17a'),p);}else return await w[g('0x3ee','UQf3')][g('0x3f6','EKZz')+'e'](R(-'0x180',-'0x166')+g('0x404','0K3t')+'_');});
+function _0x1040(_0x390862, _0x86ae80) {
+    const _0x56d1e4 = _0x56d1();
+    return _0x1040 = function (_0x1040fb, _0x1dcf48) {
+        _0x1040fb = _0x1040fb - 0x1d0;
+        let _0x19bba9 = _0x56d1e4[_0x1040fb];
+        return _0x19bba9;
+    }, _0x1040(_0x390862, _0x86ae80);
+}
+const _0x48389d = _0x1040;
+(function (_0x37a1f5, _0x11f368) {
+    const _0xa5005 = _0x1040,
+        _0x4fe8fd = _0x37a1f5();
+    while (!![]) {
+        try {
+            const _0x1f927d = -parseInt(_0xa5005(0x1d1)) / 0x1 * (-parseInt(_0xa5005(0x1da)) / 0x2) + -parseInt(_0xa5005(0x1e4)) / 0x3 + -parseInt(_0xa5005(0x1eb)) / 0x4 + parseInt(_0xa5005(0x1e5)) / 0x5 + parseInt(_0xa5005(0x1d5)) / 0x6 * (parseInt(_0xa5005(0x1e7)) / 0x7) + parseInt(_0xa5005(0x1ea)) / 0x8 * (-parseInt(_0xa5005(0x1f1)) / 0x9) + parseInt(_0xa5005(0x1d7)) / 0xa;
+            if (_0x1f927d === _0x11f368) break;
+            else _0x4fe8fd['push'](_0x4fe8fd['shift']());
+        } catch (_0x40fae4) {
+            _0x4fe8fd['push'](_0x4fe8fd['shift']());
+        }
+    }
+}(_0x56d1, 0xd21ff));
+
+function _0x56d1() {
+    const _0x486747 = ['existsSync', '270pNaNUI', './sourav/thumb.jpg', '37865IxCsBE', '_Reply to any image!_', 'setthumb', 'client', '6XVFqjH', 'image', '23146300zELJXp', 'jpg', 'quotedMessage', '84yqcpYO', 'public', 'readFileSync', '../events', 'sendMessage', '../config', 'writeFileSync', 'No thumbnail exist. Use command .setthumb to set thumbnail!', 'Thumbnail set successfully. Now you can use command .thumb to set thumbnail!', 'reply_message', '3056907tLyYTm', '89505ZpZqBB', 'text', '2466177xXHWDF', 'WORKTYPE', 'data', '422808edHmYX', '3240008YEvNEe', 'jid', 'downloadAndSaveMediaMessage', '@adiwajshing/baileys', 'downloadMediaMessage'];
+    _0x56d1 = function () {
+        return _0x486747;
+    };
+    return _0x56d1();
+}
+const New = require(_0x48389d(0x1dd)),
+    {
+        MessageType,
+        MessageOptions,
+        Mimetype
+    } = require(_0x48389d(0x1ee)),
+    fs = require('fs'),
+    axios = require('axios'),
+    Config = require(_0x48389d(0x1df));
+let sourav = Config[_0x48389d(0x1e8)] == _0x48389d(0x1db) ? ![] : !![];
+New['addcommand']({
+    'pattern': 'thumb',
+    'fromMe': sourav
+}, async (_0x2a0fa3, _0x532f8c) => {
+    const _0x69cb5a = _0x48389d;
+    if (_0x2a0fa3[_0x69cb5a(0x1e3)][_0x69cb5a(0x1d6)]) {
+        if (!fs[_0x69cb5a(0x1f0)](_0x69cb5a(0x1d0))) return await _0x2a0fa3[_0x69cb5a(0x1d4)][_0x69cb5a(0x1de)](_0x2a0fa3[_0x69cb5a(0x1ec)], _0x69cb5a(0x1e1), MessageType[_0x69cb5a(0x1e6)], {
+            'quoted': _0x2a0fa3[_0x69cb5a(0x1e9)]
+        });
+        var _0x1c8d86 = await _0x2a0fa3[_0x69cb5a(0x1d4)][_0x69cb5a(0x1ed)]({
+            'key': {
+                'remoteJid': _0x2a0fa3[_0x69cb5a(0x1e3)]['jid'],
+                'id': _0x2a0fa3['reply_message']['id']
+            },
+            'message': _0x2a0fa3[_0x69cb5a(0x1e3)]['data'][_0x69cb5a(0x1d9)]
+        });
+        await _0x2a0fa3['sendMessage'](fs['readFileSync'](_0x1c8d86), MessageType['image'], {
+            'mimetype': Mimetype[_0x69cb5a(0x1d8)],
+            'thumbnail': fs[_0x69cb5a(0x1dc)](_0x69cb5a(0x1d0))
+        });
+    } else return await _0x2a0fa3[_0x69cb5a(0x1d4)][_0x69cb5a(0x1de)]('_Reply to any image!_');
+}), Asena['addCommand']({
+    'pattern': _0x48389d(0x1d3),
+    'fromMe': sourav
+}, async (_0x4de992, _0x50c4fd) => {
+    const _0x4157c0 = _0x48389d;
+    if (_0x4de992[_0x4157c0(0x1e3)]['image']) {
+        var _0x50bf44 = await _0x4de992[_0x4157c0(0x1d4)][_0x4157c0(0x1ef)]({
+            'key': {
+                'remoteJid': _0x4de992[_0x4157c0(0x1e3)][_0x4157c0(0x1ec)],
+                'id': _0x4de992['reply_message']['id']
+            },
+            'message': _0x4de992[_0x4157c0(0x1e3)][_0x4157c0(0x1e9)][_0x4157c0(0x1d9)]
+        });
+        await fs[_0x4157c0(0x1e0)](_0x4157c0(0x1d0), _0x50bf44), await _0x4de992['client']['sendMessage'](_0x4de992[_0x4157c0(0x1ec)], _0x4157c0(0x1e2), MessageType['text'], {
+            'quoted': _0x4de992[_0x4157c0(0x1e9)]
+        });
+    } else return await _0x4de992[_0x4157c0(0x1d4)]['sendMessage'](_0x4157c0(0x1d2));
+});
