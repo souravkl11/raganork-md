@@ -32,7 +32,7 @@ skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true
     var type = ''
     var mime = ''
     var link = '';
-        res.data.map((result) => {
+        res.result.data.map((result) => {
         link = result.url
         if (result.type == 'image') { 
         type = MessageType.image
