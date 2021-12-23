@@ -29,18 +29,20 @@ skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true
     if (query[1] === '') return await msg.client.sendMessage(msg.jid, need_acc_s, MessageType.text, {quoted: msg.data});
     var user = query[1];
     var res = await insta.getStory(user)
-    var value = parseInt(res.stories_count);
-    for (var i = 0; i < (res.length < value ? res.length : value); i++)
     var type = ''
     var mime = ''
-    if (res.result.data[i].type == 'image') { 
+    var link = '';
+        res.data.map((result) => {
+        link = result.url
+        if (result.type == 'image') { 
         type = MessageType.image
         mime = Mimetype.jpg
     }
-    if (res.result.data[i].type == 'video') {
+    if (result.type == 'video') {
         type = MessageType.video
         mime = Mimetype.mp4
     }
-    var buffer = await get.skbuffer(res.result.data[i].url)
+        });
+    var buffer = await get.skbuffer(link)
     await msg.client.sendMessage(msg.jid, buffer, type, { mimetype: mime, caption: '```Story of '+user + '```', quoted: msg.data});
     }));
