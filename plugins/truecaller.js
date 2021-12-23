@@ -15,16 +15,16 @@ New.addCommand({pattern: 'true ?(.*)', desc: 'Searches for number in truecaller!
     var code = fin.toUpperCase();
     const res = await truecaller.find(number, code)
 		await msg.client.sendMessage(msg.jid, '*✅' + "NUMBER: " +'* ```' + res.phones[0].e164Format + '```\n' +
-        '*👤' + "NAME: " +'* ```' + res.name+ '```\n' +
-        '*🗺' + "ACCESS: " +'* ```' + res.access + '```\n' +
-        '*🔢' + "CARRIER: " +'* ```' + res.phones[0].carrier + '```\n' +
-        '*🌍' + "COUNTRY : " +'* ```' + res.phones[0].countryCode + '```\n' +
-        '*🚩' + "CITY: " +'* ```' + res.addresses[0].city + '```\n' +
-        '*📃' + "PREFIX: " +'* ```' + res.phones[0].dialingCode + '```\n' +
-        '*🔌' + "SCORE: " +'* ```' + res.score + '```\n\n' +
-        '*📡' + "UID: " +'* ```' + res.id + '```\n' +
-        '*🛡' + "NUMBER TYPE: " +'* ```' + res.phones[0].numberType + '```\n' +
-        '*⌚' + "TIME ZONE: " +'* ```' + res.addresses[0].timeZone + '```\n', MessageType.text, {quoted: msg.data});
+        '*👤' + "NAME:" +'* ```' + res.name+ '```\n' +
+        '*🗺' + "ACCESS:" +'* ```' + res.access + '```\n' +
+        '*🔢' + "CARRIER:" +'* ```' + res.phones[0].carrier + '```\n' +
+        '*🌍' + "COUNTRY:" +'* ```' + res.phones[0].countryCode + '```\n' +
+        '*🚩' + "CITY:" +'* ```' + res.addresses[0].city + '```\n' +
+        '*📃' + "PREFIX:" +'* ```' + res.phones[0].dialingCode + '```\n' +
+        '*🔌' + "SCORE:" +'* ```' + res.score + '```\n\n' +
+        '*📡' + "UID:" +'* ```' + res.id + '```\n' +
+        '*🛡' + "NUMBER TYPE:" +'* ```' + res.phones[0].numberType + '```\n' +
+        '*⌚' + "TIME ZONE:" +'* ```' + res.addresses[0].timeZone + '```\n', MessageType.text, {quoted: msg.data});
     }	
     else return await msg.client.sendMessage(msg.jid, 'Wrong format! \n\n .true +91 XXXX XXXX/IN', MessageType.text, {quoted: msg.data})
  });
