@@ -14,7 +14,7 @@ New.addCommand({pattern: 'true ?(.*)', desc: 'Searches for number in truecaller!
     var number = initt.replace('+','')
     var code = fin.toUpperCase();
     const res = await truecaller.find(number, code)
-		await message.client.sendMessage(msg.jid, '*✅' + "NUMBER: " +'* ```' + res.phones[0].e164Format + '```\n' +
+		await msg.client.sendMessage(msg.jid, '*✅' + "NUMBER: " +'* ```' + res.phones[0].e164Format + '```\n' +
         '*👤' + "NAME: " +'* ```' + res.name+ '```\n' +
         '*🗺' + "ACCESS: " +'* ```' + res.access + '```\n' +
         '*🔢' + "CARRIER: " +'* ```' + res.phones[0].carrier + '```\n' +
