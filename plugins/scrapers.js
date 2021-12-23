@@ -30,7 +30,7 @@ const googleTTS = require('google-translate-tts');
 //=====================================================================================
 //============================== YOUTUBE ==============================================
 const ytdl = require('ytdl-core');
-const youtube = require('./Data/youtube');
+const youtube = require('../Data/youtube');
 const ffmpeg = require('fluent-ffmpeg');
 const yts = require( 'yt-search' )
 const got = require("got");

@@ -1,6 +1,6 @@
 const Raganork = require('../events');
 const {MessageType, Mimetype} = require('@adiwajshing/baileys');
-const image = require('./Data/Buffer');
+const image = require('../Data/Buffer');
 const Config = require('../config');
 let sourav = Config.WORKTYPE == 'public' ? false : true
 Raganork.addCommand({pattern: 'cat ?(.*)', fromMe: sourav, desc: 'Sends random car wallpaper' , dontAddCommandList: true }, async (message, match) => {
