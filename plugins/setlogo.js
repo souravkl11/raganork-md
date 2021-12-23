@@ -8,7 +8,7 @@ const heroku = new Heroku({token: config.HEROKU.API_KEY});
 let baseURI = '/apps/' + config.HEROKU.APP_NAME;
 New.addCommand({ pattern: 'setlogo ?(.*)', fromMe: true}, (async (message, match) => {
         if (match[1] == '') {return await message.sendMessage('_Need an image link!_')}
-         if (match[1].includes('jpeg') || match[1].includes('raganork') || (match[1].includes('rgnk')) {
+         if (match[1].includes('jpeg') || match[1].includes('raganork')) {
 var newimg = await axios.get(match[1], { responseType: 'arraybuffer' })
    
     await message.sendMessage(Buffer.from(newimg.data), MessageType.image, {mimetype: Mimetype.jpg, caption: "_Added new image! Restarting..._"})
