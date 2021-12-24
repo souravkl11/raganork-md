@@ -1,13 +1,13 @@
 const New = require('../events');
 const Config = require('../config');
-const image = require('../Data/Buffer');
+const image = require('raganork-bot');
 const {MessageType} = require('@adiwajshing/baileys');
 const Language = require('../language');
 const Lang = Language.getString('_asena');
 let sourav = Config.WORKTYPE == 'public' ? false : true
 
 New.addCommand({pattern: 'assist ?(.*)', fromMe: sourav, dontAddCommandList: true}, (async (message, match) => {
-        var img = await image.skbuffer(Config.LOGOSK)
+        var img = await image.query.skbuffer(Config.LOGOSK)
         var CMD_HELP = '';
         if (match[1] === '') {
             New.commands.map(
