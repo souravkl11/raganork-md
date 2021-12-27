@@ -1,2 +1,90 @@
 // Music finder - souravkl11/raganork
-function p(h,j){return v(h- -'0x386',j);}function F(){var y=['jid','public','6727835BGGLUU','fromMe','use\x20this\x20c','video','223113jXbHyZ','_Error\x20','1918178yxEIsa','raganork-b','@adiwajshi','owner\x20can\x20','_Title:_\x20*','ng/baileys','find\x20?(.*)','../config','result','error_code','ZEKAIS_API','music','release_da','downloadAn','error','WORKTYPE','_Failed!_','../events','e\x20date:_\x20*','Message','_Reply\x20to\x20','query','age','dSaveMedia','client','1391892cWekSS','sticker','ommand!_','quotedMess','10546392ReYPkE','text','12CeYuAD','reply_mess',':_\x20*','_\x20*','addCommand','_Only\x20the\x20','848599YfeHxJ','sendMessag','2570183siUmRG','data','title','undefined','pattern'];F=function(){return y;};return F();}(function(h,j){function w(h,j){return v(j-0x59,h);}var K=h();while(!![]){try{var U=parseInt(w(0x19b,'0x1a1'))/(-0x33b*0xa+0x162c+-0x361*-0x3)+-parseInt(w(0x185,'0x17c'))/(-0x3*-0x95a+0xe94+-0x2aa0)+-parseInt(w(0x188,'0x17a'))/(0x8*0x241+-0x1d4b+0xb46)+parseInt(w('0x17f','0x195'))/(0x1*-0x1fed+-0x1*-0x11c1+0x1*0xe30)+parseInt(w('0x17f','0x176'))/(0x2330+0x652+-0x331*0xd)+-parseInt(w(0x191,'0x19b'))/(-0x1*0x1fe7+-0x45a*0x2+0xd8b*0x3)*(-parseInt(w('0x18d','0x1a3'))/(0x1f4a+0x2*0x98+-0x75*0x47))+-parseInt(w('0x18e',0x199))/(-0x6*-0x5ef+0xeab+-0x10bf*0x3);if(U===j)break;else K['push'](K['shift']());}catch(c){K['push'](K['shift']());}}}(F,0x1b6a52+0x1*-0x6d706+-0x6771e));function v(u,Z){var h=F();return v=function(j,K){j=j-(0x621+0x1269+-0x176d);var U=h[j];return U;},v(u,Z);}var New=require(p(-0x252,-'0x24c')),{MessageType,Mimetype}=require(p(-0x261,-'0x250')+p(-'0x25e',-'0x266'));const setting=require(p(-'0x25c',-'0x272'));var find=require(p(-0x262,-0x26e)+'ot');let sourav=setting[p(-0x254,-'0x23d')]==p(-'0x236',-'0x22e')?![]:!![];var u={};u['pattern']='find\x20?(.*)',u[p(-'0x268',-0x271)]=!![],New[p(-'0x240',-'0x230')](u,async(h,j)=>{function B(h,j){return p(j-0x65,h);}if(!h[B(-0x1d1,-0x1de)+B(-0x1d2,-'0x1e8')]['text']&&!h[B(-'0x1e8',-'0x1de')+'age'][B(-0x206,-'0x201')]&&!h['reply_mess'+B(-0x1e6,-'0x1e8')][B(-0x1e0,-'0x1e4')]&&!h[B(-'0x1c4',-'0x1de')+B(-0x1e9,-'0x1e8')]['image']){var K=await h[B(-0x1f6,-0x1e6)][B(-'0x1f1',-'0x1f1')+B(-'0x1d2',-'0x1e7')+B(-'0x1e8',-'0x1eb')]({'key':{'remoteJid':h[B(-0x1d1,-0x1de)+'age'][B(-0x1cd,-0x1d2)],'id':h[B(-0x1cf,-'0x1de')+B(-0x1fa,-'0x1e8')]['id']},'msg':h[B(-'0x1c5',-0x1de)+B(-0x1eb,-0x1e8)]['data'][B(-'0x1c8',-0x1e2)+'age']});if(setting['CHANNEL']!==B(-'0x1ca',-'0x1d4'))return;var U=setting[B(-0x200,-0x1f4)],c=await find[B(-'0x1e8',-'0x1e9')][B(-0x206,-0x1f3)](K,U);if(c[B(-'0x1f0',-'0x1f6')])return await h[B(-'0x1ff',-'0x1e6')][B(-'0x1f1',-0x1d8)+'e'](h[B(-'0x1da',-'0x1d2')],B(-'0x213',-0x1fa)+c[B(-0x1ff,-0x1f6)][B(-0x1e4,-'0x1d5')]+('*\x20\x0a_Album:'+B(-'0x1c5',-'0x1dc'))+c[B(-'0x203',-0x1f6)]['album']+('*\x20\x0a_Artist'+B(-'0x1cb',-0x1dd))+c['result']['artist']+('*\x20\x0a_Releas'+B(-0x1d7,-'0x1ec'))+c['result'][B(-0x202,-'0x1f2')+'te']+'*',MessageType['text'],{'quoted':h['reply_mess'+'age'][B(-'0x1d4',-'0x1d6')]});if(c['error'])return await h['client'][B(-0x1e2,-'0x1d8')+'e'](h[B(-0x1e7,-'0x1d2')],B(-'0x213',-'0x1ff')+c[B(-'0x1e2',-0x1f0)][B(-0x1fb,-'0x1f5')]+'_',MessageType[B(-0x1d7,-'0x1e0')],{'quoted':h[B(-0x1df,-0x1d6)]});if(!c[B(-0x1ec,-'0x1f6')])return await h[B(-'0x1e9',-0x1e6)][B(-'0x1c5',-'0x1d8')+'e'](h['jid'],B(-'0x1e8',-0x1ee),MessageType[B(-0x1fa,-'0x1e0')],{'quoted':h[B(-0x1ef,-0x1d6)]});}else return await h[B(-0x1d6,-0x1e6)][B(-0x1ed,-0x1d8)+'e'](h[B(-'0x1db',-0x1d2)],B(-0x1d4,-0x1ea)+'any\x20music!'+'_',MessageType['text'],{'quoted':h[B(-0x1c4,-'0x1d6')]});});if(setting[p(-0x254,-'0x243')]==='public'){var Z={};Z[p(-0x238,-'0x23c')]=p(-'0x25d',-0x256),Z[p(-0x268,-'0x280')]=![],New[p(-0x240,-'0x23f')](Z,async(h,j)=>{function z(h,j){return p(h-'0x2fa',j);}return await h[z('0xaf','0xbe')][z(0xbd,0xb2)+'e'](h[z('0xc3','0xd3')],z('0xbb','0xbe')+z('0x9a',0x8f)+z('0x93','0x79')+z(0xb2,0xc7),MessageType[z('0xb5','0xca')],{'quoted':h['data']});});}
+(function (h, j) {
+    var K = h();
+
+    function p(h, j) {
+        return v(j - -'0x3cb', h);
+    }
+    while (!![]) {
+        try {
+            var U = -parseInt(p(-'0x2bb', -'0x2aa')) / (0x18d4 + 0x23c9 + -0x3c9c) + parseInt(p(-0x298, -0x298)) / (-0x2e * 0x10 + -0x13be + 0x16a0) + parseInt(p(-0x2a7, -'0x295')) / (-0x253f + -0xb5 * 0x20 + 0xd2 * 0x49) + parseInt(p(-0x27f, -0x28d)) / (-0x1d86 + -0x464 * 0x6 + -0x37e2 * -0x1) + -parseInt(p(-0x27f, -'0x27e')) / (-0x1ec7 + 0x985 + 0x1547) + -parseInt(p(-'0x26a', -'0x27c')) / (-0x171a + 0x241e * 0x1 + -0x1 * 0xcfe) + parseInt(p(-'0x294', -'0x281')) / (-0x1cdf + 0x1 * 0x160a + -0x2 * -0x36e) * (parseInt(p(-'0x2ad', -'0x2b1')) / (0x267f + 0x1 * 0xa9 + -0x272 * 0x10));
+            if (U === j) break;
+            else K['push'](K['shift']());
+        } catch (c) {
+            K['push'](K['shift']());
+        }
+    }
+}(F, -0xdbd * -0x151 + -0x5a7b2 * -0x3 + -0x19905e));
+var New = require(B('0x43', '0x2b')),
+    {
+        MessageType,
+        Mimetype
+    } = require(B(0x22, '0x29') + 'ng/baileys');
+
+function v(u, Z) {
+    var h = F();
+    return v = function (j, K) {
+        j = j - (0x88f + 0x325 * 0xb + -0x301 * 0xe);
+        var U = h[j];
+        return U;
+    }, v(u, Z);
+}
+const setting = require(B(0x1d, 0x35));
+var find = require(B(0x62, 0x4d) + 'ot');
+let sourav = setting[B(0x31, 0x2c)] == B('0x2f', '0x1a') ? ![] : !![];
+
+function F() {
+    var m = ['album', 'uery=', 'label', 'Message', 'com/result', 'query', '_Only the ', 'e date:_ *', '* \x0a_Label:', 'music', '* \x0a_Releas', '14689143LmLocg', 'data', '_Failed!_', '3352130JgUUzi', 'result', '4679208WzPTEC', 'raganork-b', 'ommand!_', 'pattern', 'https://ww', '8jilhJO', 'owner can ', 'ZEKAIS_KEY', 'public', 'join', ':_ *', 'error_code', '1140018CkLohH', 'w.youtube.', '_Title:_ *', 'title', 'any music!', 'quotedMess', 'fromMe', 'video', 'client', '_ *', 'use this c', '@adiwajshi', '* \x0a_Artist', '../events', 'WORKTYPE', 'find ?(.*)', '* \x0a_Album:', 'jid', '768356YDZRPF', 'age', 'addCommand', '334929kXxQFP', 'sendMessag', '../config', 'reply_mess', 'sticker', 'ink:_ ', 'text', 'downloadAn', '2470972ZXkcCP'];
+    F = function () {
+        return m;
+    };
+    return F();
+}
+var u = {};
+u[B(0x1d, '0x15')] = B('0x3f', '0x2d');
+
+function B(h, j) {
+    return v(j - -0x103, h);
+}
+u[B(0x1c, 0x24)] = !![], New[B(0x3b, 0x32)](u, async (h, j) => {
+    function z(h, j) {
+        return B(h, j - 0x36b);
+    }
+    if (!h[z(0x384, 0x3a1) + z(0x39b, 0x39c)][z('0x390', '0x3a4')] && !h['reply_mess' + z('0x386', '0x39c')][z(0x38f, 0x390)] && !h[z('0x38d', '0x3a1') + 'age'][z('0x3a1', 0x3a2)] && !h['reply_mess' + 'age']['image']) {
+        var K = await h['client'][z('0x3b3', 0x3a5) + 'dSaveMedia' + z(0x3b4, 0x3aa)]({
+                'key': {
+                    'remoteJid': h[z(0x39f, 0x3a1) + z('0x3b3', 0x39c)][z('0x393', 0x39a)],
+                    'id': h[z('0x398', 0x3a1) + z('0x3a0', '0x39c')]['id']
+                },
+                'message': h[z(0x3ad, '0x3a1') + z('0x3ac', 0x39c)][z('0x3cd', 0x3b3)][z(0x39e, 0x38e) + 'age']
+            }),
+            U = setting[z(0x38e, 0x384)],
+            c = await find[z(0x39c, '0x3ac')][z('0x3b9', '0x3b0')](K, U);
+        console['log'](c);
+        if (c['result']) {
+            let w = z('0x385', '0x38b') + c[z(0x3cc, 0x3b6)][z(0x3a6, 0x38c)] + (z('0x3ab', 0x399) + z(0x383, 0x392)) + c[z('0x3a9', '0x3b6')][z('0x3ac', 0x3a7)] + (z(0x392, 0x395) + z('0x376', 0x387)) + c[z('0x3ce', '0x3b6')]['artist'] + (z('0x3bb', 0x3af) + z(0x37b, 0x392)) + c[z(0x3b1, 0x3b6)][z('0x394', '0x3a9')] + (z(0x3ae, 0x3b1) + z('0x3ac', 0x3ae)) + c[z(0x39c, 0x3b6)]['release_da' + 'te'] + ('* \x0a_Song l' + z('0x3bc', '0x3a3')) + (z(0x383, '0x381') + z(0x387, 0x38a) + z('0x3ac', '0x3ab') + 's?search_q' + z(0x38c, '0x3a8')) + c['result'][z('0x399', 0x38c)]['split'](' ')[z(0x375, '0x386')]('') + '*';
+            return await h['client'][z('0x392', 0x39f) + 'e'](h['jid'], w, MessageType[z(0x3c0, 0x3a4)], {
+                'quoted': h[z('0x3b9', '0x3a1') + z('0x389', '0x39c')][z('0x3a5', '0x3b3')]
+            });
+        }
+        if (c['error']) return await h['client'][z(0x397, 0x39f) + 'e'](h[z('0x38d', 0x39a)], '_Error ' + c['error'][z(0x39d, '0x388')] + '_', MessageType[z(0x38b, 0x3a4)], {
+            'quoted': h[z(0x3b6, 0x3b3)]
+        });
+        if (!c[z('0x3ac', '0x3b6')]) return await h['client']['sendMessag' + 'e'](h[z(0x39d, '0x39a')], z('0x3ba', '0x3b4'), MessageType[z(0x39b, 0x3a4)], {
+            'quoted': h[z('0x3b1', '0x3b3')]
+        });
+    } else return await h[z('0x3ab', '0x391')][z('0x3b4', '0x39f') + 'e'](h[z(0x38e, 0x39a)], '_Reply to ' + z(0x377, 0x38d) + '_', MessageType[z(0x392, '0x3a4')], {
+        'quoted': h[z(0x3b3, '0x3b3')]
+    });
+});
+if (setting[B('0x48', '0x2c')] === B(-0x2, '0x1a')) {
+    var Z = {};
+    Z[B('0x28', 0x15)] = B(0x23, '0x2d'), Z['fromMe'] = ![], New[B('0x3d', '0x32')](Z, async (h, j) => {
+        function y(h, j) {
+            return B(h, j - '0x3b8');
+        }
+        return await h[y('0x3dd', 0x3de)][y(0x3fa, '0x3ec') + 'e'](h[y('0x3d2', '0x3e7')], y(0x3de, 0x3fa) + y('0x3c3', 0x3d0) + y('0x3f4', 0x3e0) + y(0x408, 0x406), MessageType['text'], {
+            'quoted': h['data']
+        });
+    });
+}
