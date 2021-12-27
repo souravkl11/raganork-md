@@ -257,13 +257,11 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
 
 
     skl.addCommand({pattern: 'video ?(.*)', fromMe: sourav, desc: Lang.VIDEO_DESC}, (async (message, match) => { 
-
+        if (match[1] && !msg.reply_message.text) {
         if (!match[1]) return await message.client.sendMessage(message.jid,Lang.NEED_VIDEO,MessageType.text);    
         if (!match[1].includes('you')) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
         var dl = await get.query.getVideo(match[1])
-	        
-              
-        var VID;
+	    var VID;
         if (match[1].includes('shorts')) {
                 var tsts = match[1].replace('?feature=share','')
                 var alal = tsts.split('/')[4]
@@ -295,8 +293,47 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
             await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
             await message.client.sendMessage(message.jid,fs.readFileSync('./' + VID + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
         });
+    }
+    if (!match[1] && msg.reply_message.text) {
+        if (!msg.reply_message.text.includes('https://you')) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
+        var s1 = msg.reply_message.text
+        var souravk = s1.split('://you')
+        var q = 'https://you' + souravk[1]
+        var dl = await get.query.getVideo(q)
+	    var VID;
+        if (q.includes('shorts')) {
+                var tsts =q.replace('?feature=share','')
+                var alal = tsts.split('/')[4]
+                VID = alal
+            }
+		else {     
+                    var rep = q
+		    VID = rep.split('/')[3]
+            }
+        
+        await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : {
+            key: {
+              fromMe: true,
+              participant: "0@s.whatsapp.net",
+              remoteJid: "status@broadcast"
+            },
+            message: {
+              "extendedTextMessage": {
+                "text": config.BOTSK
+              }
+            }
+        }
+        });
+        
+        var yt = ytdl(VID, {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
+        yt.pipe(fs.createWriteStream('./' + VID + '.mp4'));
 
-  }));
+        yt.on('end', async () => {
+            await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
+            await message.client.sendMessage(message.jid,fs.readFileSync('./' + VID + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
+        });
+    }
+}));
 
     skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
 
