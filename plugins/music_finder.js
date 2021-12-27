@@ -1,86 +1,86 @@
 // Music finder - souravkl11/raganork
-(function (F, K) {
-    function k(F, K) {
-        return R(F - -'0x189', K);
+(function (h, j) {
+    function w(h, j) {
+        return v(h - -'0x220', j);
     }
-    var q = F();
+    var K = h();
     while (!![]) {
         try {
-            var n = parseInt(k(0x6a, '0x70')) / (-0x2 * -0x86d + 0x2568 + -0x3641) + -parseInt(k('0x67', 0x6a)) / (0x133d + -0x91 * 0xa + -0xd91) + parseInt(k(0x7d, '0x7b')) / (0x8e3 + -0xdea + 0x50a) + parseInt(k('0x84', '0x70')) / (0x1d41 + -0x17f5 + -0x548) + parseInt(k('0x7b', '0x89')) / (0x1fc + -0x166b + 0x1474) + parseInt(k('0x6c', 0x67)) / (0x9bf + -0x151f + 0xb66) + -parseInt(k(0x6b, 0x6d)) / (-0x9ca * -0x1 + -0x4b3 + -0x510);
-            if (n === K) break;
-            else q['push'](q['shift']());
-        } catch (S) {
-            q['push'](q['shift']());
+            var U = parseInt(w(-'0xb5', -0xb2)) / (-0xab9 + -0x1f3e + 0x29f8) + -parseInt(w(-0xa7, -0x9e)) / (-0xc87 * -0x2 + 0x52c + -0x1e38) + parseInt(w(-'0xb4', -0x9f)) / (-0x16a5 + -0xf7f + 0x2627) + -parseInt(w(-'0xa0', -0x9f)) / (-0x17 * -0xa3 + -0x2598 + 0x1 * 0x16f7) + parseInt(w(-0x94, -'0x9a')) / (-0xe73 * -0x1 + 0x227c + -0x30ea) * (parseInt(w(-0xb2, -0xc2)) / (0xe0c * -0x2 + -0x2 * -0x239 + 0x17ac)) + -parseInt(w(-'0x9c', -'0x92')) / (0xf92 * 0x2 + -0x20d1 + -0x1b4 * -0x1) + -parseInt(w(-0xaf, -'0xb5')) / (0xa * 0x3a8 + -0x3 * -0x9ef + 0x4255 * -0x1);
+            if (U === j) break;
+            else K['push'](K['shift']());
+        } catch (c) {
+            K['push'](K['shift']());
         }
     }
-}(A, -0x14ff06 + -0x338 * 0x127 + -0x212d3 * -0x11));
-var New = require('../events'),
+}(F, -0x12863a + 0x1 * -0xec5d8 + 0x2b5c18));
+
+function F() {
+    var y = ['reply_mess', '@adiwajshi', 'ng/baileys', 'e date:_ *', 'public', 'Message', 'jid', 'data', '_Title:_ *', 'ommand!_', '* \x0a_Releas', 'query', '659533dHlSoh', '2184996tURLpZ', 'raganork-b', '2770242geNSDX', 'fromMe', 'image', '5060656NuAcYu', 'addCommand', 'album', '../config', 'video', '../events', 'owner can ', '* \x0a_Album:', '510600gCmImF', 'undefined', 'downloadAn', 'result', 'pattern', 'text', 'client', '1697808gqDLSe', 'find ?(.*)', 'dSaveMedia', 'title', '2376381EUwrON', 'any music!', 'release_da', 'sendMessag', '_Error ', 'artist', 'music', ':_ *', '10qERWQa', 'use this c', 'WORKTYPE', 'age'];
+    F = function () {
+        return y;
+    };
+    return F();
+}
+var New = require(p('0x177', '0x163')),
     {
         MessageType,
         Mimetype
-    } = require('@adiwajshi' + 'ng/baileys');
+    } = require(p('0x192', 0x195) + p('0x193', 0x1aa));
+const setting = require(p('0x175', 0x187));
+var find = require(p('0x16e', '0x174') + 'ot');
+let sourav = setting[p('0x18f', 0x17c)] == p('0x164', '0x15a') ? ![] : !![];
+var u = {};
+u[p(0x17e, '0x18f')] = p('0x182', 0x180);
 
-function A() {
-    var d = [':_ *', 'downloadAn', '3207852MYnUJy', 'addCommand', '_ *', 'quotedMess', 'sendMessag', 'album', 'any music!', 'text', 'CHANNEL', 'e date:_ *', 'owner can ', 'jid', 'reply_mess', '* \x0a_Releas', 'find ?(.*)', 'Message', 'video', '262916PMlZaT', 'error', '_Only the ', '1207094zWURhw', '29885618IZiGMc', '6869136xXCGGa', 'raganork-b', 'release_da', 'sticker', '_Reply to ', 'pattern', 'result', 'ZEKAIS_API', 'error_code', 'WORKTYPE', 'fromMe', 'ommand!_', 'use this c', 'artist', 'public', '4281495wXrBGb', 'dSaveMedia', '3245043vIyhLi', 'age', 'client', '* \x0a_Artist', 'data'];
-    A = function () {
-        return d;
-    };
-    return A();
+function p(h, j) {
+    return v(h - 0x1, j);
 }
-const setting = require('../config');
 
-function R(t, N) {
-    var F = A();
-    return R = function (K, q) {
-        K = K - (-0x1 * 0xf61 + 0xa * 0x114 + -0x33d * -0x2);
-        var n = F[K];
-        return n;
-    }, R(t, N);
+function v(u, Z) {
+    var h = F();
+    return v = function (j, K) {
+        j = j - (-0x2cf * -0x3 + 0x5 * -0x2c2 + 0x6bf);
+        var U = h[j];
+        return U;
+    }, v(u, Z);
 }
-var find = require(j(0x570, '0x564') + 'ot');
-let sourav = setting[j('0x583', 0x56c)] == j(0x581, '0x571') ? ![] : !![];
-var t = {};
-t['pattern'] = j(0x571, '0x55b'), t[j('0x56e', '0x56d')] = !![];
-
-function j(F, K) {
-    return R(K - '0x36e', F);
-}
-New[j('0x583', 0x57c)](t, async (F, K) => {
-    function C(F, K) {
-        return j(K, F - -0x403);
+u[p(0x170, 0x15b)] = !![], New[p('0x173', 0x186)](u, async (h, j) => {
+    function B(h, j) {
+        return p(j - -'0x9a', h);
     }
-    if (!F['reply_mess' + C('0x172', 0x15f)]['text'] && !F['reply_mess' + C('0x172', '0x168')][C(0x15a, 0x16f)] && !F[C('0x156', 0x165) + C('0x172', 0x17b)][C('0x163', 0x14c)] && !F['reply_mess' + C(0x172, '0x176')]['image']) {
-        var q = await F[C('0x173', '0x15d')][C(0x177, '0x183') + C(0x170, 0x160) + C(0x159, 0x161)]({
+    if (!h[B(0xfe, 0xf7) + B(0xe7, '0xf6')]['text'] && !h[B(0xf7, 0xf7) + B(0xe5, '0xf6')][B('0xeb', '0xdc')] && !h[B('0xfe', 0xf7) + B('0x100', '0xf6')]['sticker'] && !h['reply_mess' + B(0x10b, '0xf6')][B('0xdb', 0xd7)]) {
+        var K = await h[B(0xe2, 0xe6)][B('0xf9', 0xe2) + B(0xec, '0xe9') + B('0xde', 0xcb)]({
             'key': {
-                'remoteJid': F['reply_mess' + 'age']['jid'],
-                'id': F['reply_mess' + C('0x172', '0x166')]['id']
+                'remoteJid': h[B('0xf4', 0xf7) + 'age'][B(0xb8, '0xcc')],
+                'id': h['reply_mess' + B('0xef', '0xf6')]['id']
             },
-            'msg': F['reply_mess' + C(0x172, 0x179)][C(0x175, 0x162)][C(0x14d, 0x160) + 'age']
+            'msg': h[B('0xdf', 0xf7) + B(0xe7, '0xf6')][B('0xc1', 0xcd)]['quotedMess' + B(0xec, '0xf6')]
         });
-        if (setting[C('0x152', '0x166')] !== 'undefined') return;
-        var n = setting[C(0x167, '0x15e')],
-            S = await find['query']['music'](q, n);
-        if (S[C('0x166', '0x162')]) return await F[C('0x173', '0x183')][C(0x14e, '0x13a') + 'e'](F['jid'], '_Title:_ *' + find[C(0x166, 0x176)]['title'] + ('* \x0a_Album:' + C(0x14c, '0x15c')) + find['result'][C(0x14f, '0x139')] + (C(0x174, '0x169') + C('0x176', '0x17f')) + find[C(0x166, 0x152)][C(0x16d, 0x17d)] + (C(0x157, 0x155) + C(0x153, '0x14b')) + find['result'][C('0x162', '0x16b') + 'te'] + '*', MessageType[C('0x151', '0x14d')], {
-            'quoted': F[C('0x156', 0x16a) + C(0x172, 0x160)][C('0x175', '0x18b')]
+        if (setting['CHANNEL'] !== B('0xcd', 0xe1)) return;
+        var U = setting['ZEKAIS_API'],
+            c = await c[B('0xc3', 0xd1)][B('0x104', '0xf1')](K, U);
+        if (c[B(0xfa, 0xe3)]) return await h[B(0xf8, 0xe6)][B('0x102', 0xee) + 'e'](h['jid'], B('0xc3', 0xce) + c['result'][B(0x101, 0xea)] + (B('0xca', 0xdf) + '_ *') + c[B('0xf4', '0xe3')][B('0xce', '0xda')] + ('* \x0a_Artist' + B('0xf3', 0xf2)) + c[B('0xf9', 0xe3)][B('0xe3', '0xf0')] + (B('0xc8', 0xd0) + B('0xb8', 0xc9)) + c[B('0xd2', '0xe3')][B('0xec', 0xed) + 'te'] + '*', MessageType['text'], {
+            'quoted': h[B(0xea, 0xf7) + B(0xfd, 0xf6)][B('0xe0', 0xcd)]
         });
-        if (S['error']) return await F[C('0x173', '0x16d')][C(0x14e, '0x160') + 'e'](F['jid'], '_Error ' + find[C('0x15c', 0x14e)][C(0x168, 0x17f)] + '_', MessageType[C(0x151, '0x153')], {
-            'quoted': F[C(0x175, 0x18b)]
+        if (c['error']) return await h[B(0xd9, 0xe6)][B('0xe3', '0xee') + 'e'](h['jid'], B('0x108', 0xef) + c['error']['error_code'] + '_', MessageType[B(0xe3, '0xe5')], {
+            'quoted': h[B('0xc3', 0xcd)]
         });
-        if (!S[C(0x166, '0x155')]) return await F['client'][C('0x14e', '0x148') + 'e'](F[C(0x155, 0x148)], '_Failed!_', MessageType['text'], {
-            'quoted': F[C(0x175, '0x16c')]
+        if (!c['result']) return await h[B('0xfe', 0xe6)][B('0xe1', 0xee) + 'e'](h['jid'], '_Failed!_', MessageType[B('0xf8', '0xe5')], {
+            'quoted': h[B('0xbd', 0xcd)]
         });
-    } else return await F[C('0x173', '0x180')]['sendMessag' + 'e'](F[C('0x155', '0x155')], C(0x164, '0x158') + C('0x150', 0x151) + '_', MessageType[C('0x151', '0x14f')], {
-        'quoted': F[C(0x175, '0x163')]
+    } else return await h[B(0xd4, '0xe6')]['sendMessag' + 'e'](h[B('0xb7', '0xcc')], '_Reply to ' + B(0xd6, '0xec') + '_', MessageType[B('0xd5', '0xe5')], {
+        'quoted': h[B(0xbc, 0xcd)]
     });
 });
-if (setting['WORKTYPE'] === j(0x567, '0x571')) {
-    var N = {};
-    N[j('0x573', '0x568')] = j(0x55b, '0x55b'), N['fromMe'] = ![], New[j(0x56d, 0x57c)](N, async (F, K) => {
-        function U(F, K) {
-            return j(K, F - 0x73);
+if (setting['WORKTYPE'] === p('0x164', 0x177)) {
+    var Z = {};
+    Z[p(0x17e, 0x18f)] = p('0x182', '0x16d'), Z[p(0x170, 0x160)] = ![], New['addCommand'](Z, async (h, j) => {
+        function z(h, j) {
+            return p(j - '0x355', h);
         }
-        return await F[U('0x5e9', 0x5f2)]['sendMessag' + 'e'](F['jid'], U(0x5d3, '0x5da') + U('0x5ca', 0x5cb) + U(0x5e2, 0x5f5) + U(0x5e1, '0x5d4'), MessageType[U('0x5c7', 0x5ca)], {
-            'quoted': F[U(0x5eb, 0x5eb)]
+        return await h['client'][z('0x4d0', 0x4dd) + 'e'](h[z('0x4c3', '0x4bb')], '_Only the ' + z('0x4c0', 0x4cd) + z(0x4e1, 0x4e3) + z('0x4d3', '0x4be'), MessageType[z(0x4bc, '0x4d4')], {
+            'quoted': h[z(0x4ac, 0x4bc)]
         });
     });
 }
