@@ -435,7 +435,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
 skl.addCommand({pattern: 'github ?(.*)', fromMe: sourav, desc: Glang.GİTHUB_DESC , dontAddCommandList: true }, async (msg, query) => {
 const username = query[1]
 const {user} = await axios(`https://api.github.com/users/${username}`)
-const { message, login, avatar_url, html_url, followers, following, bio, name, type, location, blog, pulic_repos, public_gists, created_at, updated_at, id, company } = user
+const { login, avatar_url, html_url, followers, following, bio, name, type, location, blog, pulic_repos, public_gists, created_at, updated_at, id, company } = user
 if (!username) { 
 	return await msg.client.sendMessage(msg.jid, Glang.REPLY , MessageType.text, { quoted: msg.data });
 }
