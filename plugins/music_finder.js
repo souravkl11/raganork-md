@@ -45,7 +45,7 @@ t['pattern'] = j(0x571, '0x55b'), t[j('0x56e', '0x56d')] = !![];
 function j(F, K) {
     return R(K - '0x36e', F);
 }
-Raganork[j('0x583', 0x57c)](t, async (F, K) => {
+New[j('0x583', 0x57c)](t, async (F, K) => {
     function C(F, K) {
         return j(K, F - -0x403);
     }
@@ -75,7 +75,7 @@ Raganork[j('0x583', 0x57c)](t, async (F, K) => {
 });
 if (setting['WORKTYPE'] === j(0x567, '0x571')) {
     var N = {};
-    N[j('0x573', '0x568')] = j(0x55b, '0x55b'), N['fromMe'] = ![], Raganork[j(0x56d, 0x57c)](N, async (F, K) => {
+    N[j('0x573', '0x568')] = j(0x55b, '0x55b'), N['fromMe'] = ![], New[j(0x56d, 0x57c)](N, async (F, K) => {
         function U(F, K) {
             return j(K, F - 0x73);
         }
