@@ -6,6 +6,7 @@ let w = require('../config');
 let v = w.SUPPORT3
 let i = require('raganork-bot');
 let a = w.WORKTYPE == 'public' ? false : true;
+let ffmpeg = require('fluent-ffmpeg');
 e.addCommand({pattern: 'steal ?(.*)', fromMe: a, desc:'Changes sticker pack & author name!'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var s = w.SOURAVKL11.split('|');
