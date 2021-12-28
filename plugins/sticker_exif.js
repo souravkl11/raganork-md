@@ -12,7 +12,7 @@ var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_mes
 var s = w.SOURAVKL11.split('|');
 var au = s[1];
 var p = s[0];
-ffmpeg(location)
+ffmpeg(q)
 .fromFormat('webp_pipe')
 .save('ex.png')
 .on('end', async () => {
@@ -28,7 +28,7 @@ p = s[0];}
 else {
 p = t[1]
 au = ' '}
-ffmpeg(location)
+ffmpeg(q)
 .fromFormat('webp_pipe')
 .save('ex.png')
 .on('end', async () => {
@@ -40,7 +40,7 @@ var au,p;
 var s = w.SOURAVKL11.split('|');
 var au = s[1];
 var p = s[0];
-ffmpeg(location)
+ffmpeg(q)
 .fromFormat('webp_pipe')
 .save('ex.png')
 .on('end', async () => {
