@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/souravkl11/Raganork#readme",
   "dependencies": {
-    "raganork-bot": "1.6.0",
+    "raganork-bot": "1.6.1",
     "supervisor": "0.12.0"
   }
 }
