@@ -16,12 +16,12 @@ await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticke
 e.addCommand({pattern: 'st ?(.*)', fromMe: a, desc:'Uploads image to imgur.com'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var au,p;
-if t[1].includes('|') {
+if (t[1].includes('|')) {
 var s = t[1].split('|');
 au = s[1];
 p = s[0];}
 else {
 p = t[1]
-au = ' '
+au = ' '}
 var res = i.query.exif(q,au,p,v)
 await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});}));
