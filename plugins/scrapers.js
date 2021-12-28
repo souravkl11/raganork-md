@@ -262,7 +262,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         if (match[1] && !message.reply_message.text) {
         if (!match[1]) return await message.client.sendMessage(message.jid,Lang.NEED_VIDEO,MessageType.text);    
         if (!match[1].includes('you')) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
-        var dl = await get.query.getVideo(match[1])
+        var dl = await get.query.getVideo(match[1],v)
 	    var VID;
         if (match[1].includes('shorts')) {
                 var tsts = match[1].replace('?feature=share','')
@@ -301,7 +301,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         var s1 = message.reply_message.text
         var souravk = s1.split('://you')
         var q = 'https://you' + souravk[1]
-        var dl = await get.query.getVideo(q)
+        var dl = await get.query.getVideo(q,v)
 	    var VID;
         if (q.includes('shorts')) {
                 var tsts =q.replace('?feature=share','')
