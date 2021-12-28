@@ -5,6 +5,8 @@ const axios = require('axios');
 const setting = require('../config');
 const raganork = require('raganork-bot');
 const Config = require('../config');
+const s = require('../config');
+const v = s.CHANNEL
 const need = "*_Need instagram link!_*";
 const need_acc = "*_Need an instagram username!_*";
 const need_acc_s = "*_Need an instagram username and story count!_* \n ```Example: \n .story dqsalmaan/4```";
@@ -22,7 +24,7 @@ skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true
     var s1 = msg.reply_message.text
     var souravkl11 = s1.split('://instagram.com')
     var q = 'https://instagram.com' + souravkl11[1]
-    var res = await raganork.query.getPost(q)
+    var res = await raganork.query.getPost(q,v )
     var buffer = await raganork.query.skbuffer(res.links[0].url)
     if (res.links[0].url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
     if (res.links[0].url.includes('jpg')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
@@ -39,7 +41,7 @@ skl.addCommand({ pattern: 'ig ?(.*)', fromMe: sourav,dontAddCommandList: true },
 skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
     if (query[1] === '') return await msg.client.sendMessage(msg.jid, need_acc_s, MessageType.text, {quoted: msg.data});
     var user = query[1];
-    var res = await raganork.query.getStory(user)
+    var res = await raganork.query.getStory(user,v)
     var type = ''
     var mime = ''
     var link = '';

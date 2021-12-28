@@ -8,9 +8,11 @@ const skl = require('../events');
 const {MessageType,Mimetype} = require('@adiwajshing/baileys');
 const translatte = require('translatte');
 const config = require('../config');
+const s = require('../config');
 const LanguageDetect = require('languagedetect');
 const lngDetector = new LanguageDetect();
 const Heroku = require('heroku-client');
+const v = s.SUPPORT3
 let sourav = config.WORKTYPE == 'public' ? false : true
 const heroku = new Heroku({
     token: config.HEROKU.API_KEY

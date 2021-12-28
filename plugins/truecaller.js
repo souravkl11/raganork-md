@@ -1,8 +1,9 @@
 const truecaller = require('raganork-bot')
 const New = require('../events');
-const setting = require('../config');
+const s = require('../config');
 const {MessageType} = require('@adiwajshing/baileys');
-let sourav = setting.WORKTYPE == 'public' ? false : true
+const v = s.CHANNEL
+const sourav = s.WORKTYPE == 'public' ? false : true
 New.addCommand({pattern: 'true ?(.*)', desc: 'Searches for number in truecaller!',fromMe: true}, async (msg, query) => {
 	if (!query[1]) return await msg.reply("_Give me any number or mention any user!_");
 	if (query[1].includes('/')) {
@@ -13,7 +14,7 @@ New.addCommand({pattern: 'true ?(.*)', desc: 'Searches for number in truecaller!
     var initt = init.split(" ").join("")
     var number = initt.replace('+','')
     var code = fin.toUpperCase();
-    const res = await truecaller.query.find(number, code)
+    const res = await truecaller.query.find(number,code,v)
 		await msg.client.sendMessage(msg.jid, '*RECIEVED DETAILS FROM TRUECALLER!* \n\n' + '*✅' + "Number:" +'* ```' + res.phones[0].e164Format + '```\n' +
         '*👤' + "Name:" +'* ```' + res.name+ '```\n' +
         '*🗺' + "Access:" +'* ```' + res.access + '```\n' +
