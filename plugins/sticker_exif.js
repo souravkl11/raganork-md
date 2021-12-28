@@ -11,9 +11,13 @@ var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_mes
 var s = w.SOURAVKL11.split('|');
 var au = s[1];
 var p = s[0];
-var res = i.query.exif(q,au,p,v)
-await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});}));
-e.addCommand({pattern: 'st ?(.*)', fromMe: a, desc:'Uploads image to imgur.com'}, (async (m, t) => { 
+ffmpeg(location)
+.fromFormat('webp_pipe')
+.save('ex.png')
+.on('end', async () => {
+var res = await i.query.sticker('ex.png',au,p,v)
+await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});})}));
+e.addCommand({pattern: 'st ?(.*)', fromMe: a, desc:'Sets sticker pack & author name with given ones.'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var au,p;
 if (t[1].includes('|')) {
@@ -23,5 +27,22 @@ p = s[0];}
 else {
 p = t[1]
 au = ' '}
-var res = i.query.exif(q,au,p,v)
-await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});}));
+ffmpeg(location)
+.fromFormat('webp_pipe')
+.save('ex.png')
+.on('end', async () => {
+var res = await i.query.sticker('ex.png',au,p,v)
+await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});})}));
+e.addCommand({pattern: 'crop ?(.*)', fromMe: a, desc:'Crops sticker'}, (async (m, t) => { 
+var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
+var au,p;
+var s = w.SOURAVKL11.split('|');
+var au = s[1];
+var p = s[0];
+ffmpeg(location)
+.fromFormat('webp_pipe')
+.save('ex.png')
+.on('end', async () => {
+var res = await i.query.stickercrop('ex.png',au,p,v)
+await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});})}));
+    
