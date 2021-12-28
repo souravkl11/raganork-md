@@ -7,6 +7,9 @@ let v = w.SUPPORT3
 let i = require('raganork-bot');
 let a = w.WORKTYPE == 'public' ? false : true;
 let ffmpeg = require('fluent-ffmpeg');
+const h = require('heroku-client');
+const he = new h({token: w.HEROKU.API_KEY});
+let ur = '/apps/' + config.HEROKU.APP_NAME;
 e.addCommand({pattern: 'take ?(.*)', fromMe: a, desc:'Changes sticker pack & author name!'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var s = w.SOURAVKL11.split('|');
@@ -46,4 +49,9 @@ ffmpeg(q)
 .on('end', async () => {
 var res = await i.query.stickercrop('ex.png',au,p,v)
 await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});})}));
+New.addCommand({ pattern: 'setexif ?(.*)', fromMe: true}, (async (m, qu) => {
+if (!qu[1]) {return await m.client.sendMessage(m.jid,'_Need some data \n Example: \n .setexif Name|Author_',MessageType.text,{quoted:m.data})}
+if (!qu[1].includes('|')) {return await m.client.sendMessage(m.jid,'_Wrong format! \n Example: \n .setexif Name|Author_',MessageType.text,{quoted:m.data})}
+await m.client.sendMessage(m.jid, '_Added new exif!_',MessageType.text,{quoted:m.data});
+await he.patch(ur + '/config-vars', { body: {['STICKER_DATA']: qu[1]}});}));
     
