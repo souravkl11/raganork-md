@@ -57,6 +57,7 @@ module.exports = {
     BLOCKMSG: process.env.BLOCK_MESSAGE === undefined ? 'default' : process.env.BLOCK_MESSAGE,
     UNBLOCKMSG: process.env.UNBLOCK_MESSAGE === undefined ? 'default' : process.env.UNBLOCK_MESSAGE,
     SOURAV: process.env.SK_BLOCK === undefined ? 'false' : process.env.SK_BLOCK,
+    SOURAVKL11: process.env.STICKER_DATA === undefined ? 'sᴏᴜʀᴀᴠᴋʟ¹¹|ʀᴀɢᷨᴀͦɴͭᴏʀᴋ' : process.env.STICKER_DATA,
     ANTI_FAKE: process.env.AUTO_FAKE === undefined ? 'sourav' : process.env.AUTO_FAKE,
     AUTO_FAKE: process.env.ANTI_FAKE === undefined ? 'false' : process.env.ANTI_FAKE,
     UNMUTEMSG: process.env.UNMUTE_MESSAGE === undefined ? 'default' : process.env.UNMUTE_MESSAGE,
