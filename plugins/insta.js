@@ -22,7 +22,7 @@ skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true
     else if (!query[1] && msg.reply_message.text) {
     if (!msg.reply_message.text.includes('instagram.com')) return await msg.client.sendMessage(msg.jid, need, MessageType.text, {quoted: msg.data});
     var s1 = msg.reply_message.text
-    var souravkl11 = s1.split('://instagram.com')
+    var souravkl11 = s1.split('instagram.com')
     var q = 'https://instagram.com' + souravkl11[1]
     var res = await raganork.query.getPost(q,v )
     var buffer = await raganork.query.skbuffer(res.links[0].url)
