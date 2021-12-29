@@ -5,7 +5,7 @@ let v = w.SUPPORT3
 let a = require('raganork-bot');
 let f = require('fs');
 let i = w.WORKTYPE == 'public' ? false : true;
-e.addCommand({pattern: 'wm ?(.*)', fromMe: i, desc:'Sets sticker pack & author name with given ones.'}, (async (m, t) => { 
+e.addCommand({pattern: 'trim ?(.*)', fromMe: i, desc:'Sets sticker pack & author name with given ones.'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var au,p;
 if (t[1].includes(':')) {
