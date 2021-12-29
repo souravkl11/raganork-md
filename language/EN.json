@@ -160,7 +160,7 @@
             "BLOCKED_UPPER": "Blocked!",
             "UNBLOCKED_UPPER": "Unblocked.",
             "NEED_USER": "Give me a user!",
-            "JID_DESC": "Gives user's JID.",
+            "JID_DESC": "Gives user's JID."
         },
         "removebg": {
             "REMOVEBG_DESC": "Removes the background of the photos.",
