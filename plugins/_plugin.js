@@ -98,14 +98,7 @@ Asena.addCommand({pattern: 'remove(?: |$)(.*)', fromMe: true, desc: Lang.REMOVE_
         await message.client.sendMessage(message.jid, Lang.DELETED, MessageType.text);
         
         await new Promise(r => setTimeout(r, 1000));
-    
-        await message.sendMessage(NLang.AFTER_UPDATE);
-
-        console.log(baseURI);
-        await heroku.delete(baseURI + '/dynos').catch(async (error) => {
-            await message.sendMessage(error.message);
-
-        });
+        
     }
 
 }));
