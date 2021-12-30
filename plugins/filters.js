@@ -12,6 +12,11 @@ if (Config.WORKTYPE == 'private') {
 Asena.addCommand({pattern: 'filter ?(.*)', fromMe: true, desc: Lang.FILTER_DESC, dontAddCommandList: true}, (async (message, match) => {
     match = match[1].match(/[\'\"\“](.*?)[\'\"\“]/gsm);
 
+    if (message.reply_message.text) {
+        await FilterDb.setFilter(message.jid, match[0].replace(/['"“]+/g, ''), message.reply_message.text, match[0][0] === "'" ? true : false);
+        await message.client.sendMessage(message.jid,Lang.FILTERED.format(match[0].replace(/['"]+/g, '')),MessageType.text);
+    
+    }
     if (match === null) {
         filtreler = await FilterDb.getFilter(message.jid);
         if (filtreler === false) {
@@ -65,6 +70,11 @@ else if (Config.WORKTYPE == 'public') {
 Asena.addCommand({pattern: 'filter ?(.*)', fromMe: true, desc: Lang.FILTER_DESC, dontAddCommandList: true}, (async (message, match) => {
     match = match[1].match(/[\'\"\“](.*?)[\'\"\“]/gsm);
 
+    if (message.reply_message.text) {
+        await FilterDb.setFilter(message.jid, match[0].replace(/['"“]+/g, ''), message.reply_message.text, match[0][0] === "'" ? true : false);
+        await message.client.sendMessage(message.jid,Lang.FILTERED.format(match[0].replace(/['"]+/g, '')),MessageType.text);
+    
+    }
     if (match === null) {
         filtreler = await FilterDb.getFilter(message.jid);
         if (filtreler === false) {
