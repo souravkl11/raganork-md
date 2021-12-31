@@ -2,13 +2,13 @@
   
 [![Run on Repl.it](https://www.linkpicture.com/q/Untitled-3_10.jpg)](https://replit.com/@souravkl11/Raganork-QR)
 <div>
-<a href="https://youtu.be/_D4ZYuUSXjs" target="blank"><img align="center" src="https://i.imgur.com/8n5MytU.jpeg" height="20" width="90" /></a>
+<a href="https://heroku.com/deploy?template=https://github.com/phathicusthiccy/deploy-1.git" target="blank"><img align="center" src="https://i.imgur.com/8n5MytU.jpeg" height="20" width="90" /></a>
 <div>
-<a href="https://youtu.be/_D4ZYuUSXjs" target="blank"><img align="center" src="https://i.imgur.com/ofq7Mds.jpegvg.png" height="20" width="90" /></a>
+<a href="https://heroku.com/deploy?template=https://github.com/phathicusthiccy/deploy-2.git" target="blank"><img align="center" src="https://i.imgur.com/ofq7Mds.jpegvg.png" height="20" width="90" /></a>
 <div>
-<a href="https://youtu.be/_D4ZYuUSXjs" target="blank"><img align="center" src="https://i.imgur.com/XIJTK7W.jpeg" height="20" width="90" /></a>
+<a href="https://heroku.com/deploy?template=https://github.com/phathicusthiccy/deploy-3.git" target="blank"><img align="center" src="https://i.imgur.com/XIJTK7W.jpeg" height="20" width="90" /></a>
 <div>
-<a href="https://youtu.be/_D4ZYuUSXjs" target="blank"><img align="center" src="https://i.imgur.com/TvKY6bS.jpeg" height="20" width="90" /></a>
+<a href="https://heroku.com/deploy?template=https://github.com/phathicusthiccy/deploy-4.git" target="blank"><img align="center" src="https://i.imgur.com/TvKY6bS.jpeg" height="20" width="90" /></a>
 
 <div>
 
