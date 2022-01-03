@@ -22,11 +22,11 @@ var res = await i.query.edit(q,'blur',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'draw ?(.*)', fromMe: a, desc:'Edits photo to a drawing effect'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
-var res = await i.query.edit(q,'draw-image',v)
+var res = await i.query.edit(q,'draw',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'sketch ?(.*)', fromMe: a, desc:'Edits photo to a sketch effect'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
-var res = await i.query.edit(q,'sketch-image',v)
+var res = await i.query.edit(q,'sketch',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'rip ?(.*)', fromMe: a, desc:'Edits photo to a rip effect'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
