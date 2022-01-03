@@ -14,7 +14,7 @@ var res = await i.query.edit(q,'wanted',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'wasted ?(.*)', fromMe: a, desc:'Edits photo to a wasted effect'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
-var res = await i.query.wasted(q,v)
+var res = await i.query.edit(q,'wasted',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'blur ?(.*)', fromMe: a, desc:'Edits photo to a blur effect'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
