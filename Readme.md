@@ -22,4 +22,4 @@
 
 <div>
   
-<a href="https://bit.ly/raganork"><img src="https://i0.wp.com/www.printinlondon.co.uk/blog/wp-content/uploads/2017/07/visit-website-button.png?ssl=1" alt="Join our group" height="50" width="150" border="0"></a>
+<a href="https://bit.ly/Raganork"><img src="https://www.linkpicture.com/q/LPic61d2ff4fe761e1108933519.png" alt="Join our group" height="80" width="150" border="0"></a>
