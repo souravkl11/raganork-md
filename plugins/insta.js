@@ -51,7 +51,7 @@ res.result.data.map((result) => {
 url += result.url + ','});
 var que = url !== false ? url.split(',') : [];
 for (var i = 0; i < (que.length < res.result.data.length ? que.length : res.result.data.length); i++) {
-var get = got(query[i], {https: {rejectUnauthorized: false}});
+var get = got(que[i], {https: {rejectUnauthorized: false}});
 var stream = get.buffer();
 stream.then(async (video) => {
 await msg.client.sendMessage(msg.jid, video, MessageType.video, { mimetype: Mimetype.mp4, caption: '```Story of '+user + '```', quoted: msg.data});
