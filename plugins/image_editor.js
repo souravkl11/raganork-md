@@ -60,7 +60,19 @@ e.addCommand({pattern: 'fire ?(.*)', fromMe: a, desc:'Edits photo to a fire meme
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var res = await i.query.edit(q,'fire',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
-e.addCommand({pattern: 'approve ?(.*)', fromMe: a, desc:'Edits photo to a approved effect'}, (async (m, match) => { 
+e.addCommand({pattern: 'trash ?(.*)', fromMe: a, desc:'Edits photo to a trash meme effect'}, (async (m, match) => { 
+var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
+var res = await i.query.edit(q,'trash',v)
+await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
+/*e.addCommand({pattern: 'challenge ?(.*)', fromMe: a, desc:'Edits text to a challenge completed effect'}, (async (m, match) => { 
+var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
+var res = await i.query.edit(match[1],'fire',v)
+await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
+e.addCommand({pattern: 'pstore ?(.*)', fromMe: a, desc:'Edits photo to a playstore app effect'}, (async (m, match) => { 
+if (!match[1].includes('|')) return await m.sendMessage("Wrong format! \n Use | to split words")
+var res = await i.query.edit(match[1],'play-store',v)
+await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
+*/e.addCommand({pattern: 'approve ?(.*)', fromMe: a, desc:'Edits photo to a approved effect'}, (async (m, match) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var res = await i.query.edit(q,'approved',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
@@ -72,7 +84,7 @@ var split = match[1].split('|');
 t3 = split[2];
 t2 = split[1];
 t1 = split[0];}
-else return await m.sendMessage("Wrong format!")
+else return await m.sendMessage("Wrong format! \n Use | to split words")
 var res = await i.query.editxtra(q,t1,t2,t3,v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'trigger ?(.*)', fromMe: a, desc:'Edits photo to a wanted effect'}, (async (m, match) => { 
