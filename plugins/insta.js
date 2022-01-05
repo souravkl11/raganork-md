@@ -11,10 +11,10 @@ const raganork = require('raganork-bot');
 const Config = require('../config');
 const s = require('../config');
 const v = s.CHANNEL
-const need = "*_Need instagram link!_*";
-const need_acc = "*_Need an instagram username!_*";
+const need = "_Need instagram link!_";
+const need_acc = "_Need an instagram username!_";
 const fail = "*_Download failed! Check your link and try again_*";
-const need_acc_s = "*_Need an instagram username and story count!_* \n ```Example: \n .story dqsalmaan/4```";
+const need_acc_s = "_Need username or link!_";
 let sourav = setting.WORKTYPE == 'public' ? false : true
 skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
 if (query[1] && !msg.reply_message.text) {
