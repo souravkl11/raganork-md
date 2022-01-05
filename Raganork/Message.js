@@ -31,6 +31,12 @@ class Message extends Base {
             this.reply_message = new ReplyMessage(this.client, data.message.extendedTextMessage.contextInfo); } else {
                 this.reply_message = false;
             }
+       /* if (data.message.hasOwnProperty('buttonResponseMessage') &&
+                data.message.extendedTextMessage.hasOwnProperty('contextInfo') === true && 
+                data.message.extendedTextMessage.contextInfo.hasOwnProperty('quotedMessage')) { 
+            this.reply_message = new ReplyMessage(this.client, data.message.extendedTextMessage.contextInfo); } else {
+                this.reply_message = false;
+            }*/
         
         if (data.message.hasOwnProperty('extendedTextMessage') &&
         data.message.extendedTextMessage.hasOwnProperty('contextInfo') === true && 
