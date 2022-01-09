@@ -21,10 +21,12 @@ if (query[1] && !msg.reply_message.text) {
 if (!query[1].includes('instagram.com')) return await msg.client.sendMessage(msg.jid, need, MessageType.text, {quoted: msg.data});
 var res = await raganork.query.getPost(query[1],v)
 var buffer = await raganork.query.skbuffer(res.links[0].url)
-if (!res) return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
+if (res) { 
 if (res.links[0].url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
 if (res.links[0].url.includes('jpg')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
-}
+}}
+else return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
+
 else if (!query[1] && msg.reply_message.text) {
 if (!msg.reply_message.text.includes('instagram.com')) return await msg.client.sendMessage(msg.jid, need, MessageType.text, {quoted: msg.data});
 var s1 = msg.reply_message.text
