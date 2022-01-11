@@ -47,7 +47,7 @@ module.exports = {
     NOLOG: process.env.NO_LOG === undefined ? 'false' : process.env.NO_LOG,
     CHATBOT: process.env.CHAT_BOT === undefined ? 'false' : process.env.CHAT_BOT,
     BOTSK: process.env.BOT_NAME === undefined ? 'PUBLIC BOT' : process.env.BOT_NAME,
-    SUPPORT: process.env.ASENA === undefined ? '919074309534-1632403322' : process.env.ASENA,
+    SUPPORT: process.env.ASENA === undefined ? '919074309534-1632403322,120363038867058369' : process.env.ASENA,
     GIF_WEL: process.env.GIF_WEL === undefined ? 'https://c.tenor.com/G9Bu13ZlhVkAAAPo/dancing-funny-dance.mp4' : process.env.GIF_WEL,
     SLINK: process.env.IG === undefined ? 'instagram.com/sourav_kl11' : process.env.IG,
     JID: process.env.VERIFIED === undefined ? '0@s.whatsapp.net' : process.env.VERIFIED,
