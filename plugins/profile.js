@@ -151,12 +151,8 @@ else if (Config.WORKTYPE == 'public') {
             await message.client.sendMessage(message.jid, message.reply_message.jid, MessageType.text, {
                 quotedMessage: message.reply_message.data
             });
-        } else if (message.mention !== false) {
-            message.mention.map(async user => {
-                await message.client.sendMessage(message.jid, Lang.JID.format(user.split('@')[0], user), MessageType.text
-                });    
-            });
-        } else {
+        }
+        else {
             await message.client.sendMessage(message.jid, message.jid, MessageType.text);
         }
     }));
