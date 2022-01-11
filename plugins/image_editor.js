@@ -24,6 +24,11 @@ if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var res = await i.query.edit(q,'delete',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
+e.addCommand({pattern: 'respect ?(.*)', fromMe: a, desc:'Edits photo to a delete file effect'}, (async (m, match) => { 
+if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
+var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
+var res = await i.query.edit(q,'respect',v)
+await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'wasted ?(.*)', fromMe: a, desc:'Edits photo to a wasted effect'}, (async (m, match) => { 
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
