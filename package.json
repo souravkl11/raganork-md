@@ -26,6 +26,7 @@
   "homepage": "https://github.com/souravkl11/Raganork#readme",
   "dependencies": {
     "raganork-bot": "1.6.8",
-    "supervisor": "0.12.0"
+    "supervisor": "0.12.0",
+    "sequelize": "6.13.0"
   }
 }
