@@ -76,7 +76,7 @@ if (match[1] !== '') {
 		user = use }
 		var scan = await message.client.isOnWhatsApp(user)
 		if (scan) {
-		
+		    console.log(`Adding ${user}@s.whatsapp.net to ${message.jid}`)
 			await message.client.groupAdd(message.jid, [user + "@s.whatsapp.net"]);
             await message.client.sendMessage(message.jid,'```' + user + ' ' + Lang.ADDED +'```', MessageType.text);
 	}
