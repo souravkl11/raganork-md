@@ -20,8 +20,8 @@ skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true
 if (query[1] && !msg.reply_message.text) {
 if (!query[1].includes('instagram.com')) return await msg.client.sendMessage(msg.jid, need, MessageType.text, {quoted: msg.data});
 var res = await raganork.query.getPost(query[1],v)
-var buffer = await raganork.query.skbuffer(res.links[0].url)
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
+var buffer = await raganork.query.skbuffer(res.links[0].url)
 if (res.links[0].url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
 if (res.links[0].url.includes('jpg')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
 }
@@ -31,8 +31,8 @@ var s1 = msg.reply_message.text
 var souravkl11 = s1.split('instagram.com')
 var q = 'https://instagram.com' + souravkl11[1]
 var res = await raganork.query.getPost(q,v )
-var buffer = await raganork.query.skbuffer(res.links[0].url)
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
+var buffer = await raganork.query.skbuffer(res.links[0].url)
 if (res.links[0].url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
 if (res.links[0].url.includes('jpg')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: '_Caption:_ ' + `${res.caption}` + '\n\n _Username:_ *' + `${res.username}` + '*\n _Name:_ *' + `${res.name}` + '*\n _Likes:_ *' + `${res.likes}` + '*\n _Comments:_ *' + `${res.comment_count}` + '*', quoted: msg.data});
 }
@@ -41,8 +41,8 @@ else return await msg.client.sendMessage(msg.jid, need, MessageType.text, {quote
 skl.addCommand({ pattern: 'ig ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
     if (query[1] === '') return await msg.client.sendMessage(msg.jid, need_acc, MessageType.text, {quoted: msg.data});
     var res = await raganork.query.getStalk(query[1])
-    var buffer = await raganork.query.skbuffer(res.user.hd_profile_pic_url_info.url)
     if (res === "false") return await msg.client.sendMessage(msg.jid, "_Username invalid!_", MessageType.text, {quoted: msg.data})
+    var buffer = await raganork.query.skbuffer(res.user.hd_profile_pic_url_info.url)
     await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: '_*Name:*_ ' + `${res.user.full_name}` + '\n _*Bio:*_ ' + `${res.user.biography}`+ '\n _*Private account:*_ ' + `${res.user.is_private} ` + '\n _*Followers:*_ ' + `${res.user.follower_count}` + '\n _*Following:*_ ' + `${res.user.following_count}` + '\n _*Posts:*_ ' + `${res.user.media_count}` + '\n _*Verified:*_ ' + `${res.user.is_verified} ` + '\n _*IGTV videos:*_ ' + `${res.user.total_igtv_videos}`, quoted: msg.data});
     }));
 skl.addCommand({ pattern: 'story ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
