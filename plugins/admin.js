@@ -67,13 +67,9 @@ Asena.addCommand({pattern: 'add ?(.*)', fromMe: true, desc: Lang.ADD_DESC}, (asy
 	var im = await checkImAdmin(message);
     if (!im) return await message.client.sendMessage(message.jid,Lang.IM_NOT_ADMIN,MessageType.text);
 if (match[1] !== '') {
-            var use = match[1].split(' ').join('')
-			var user;
-			if (match[1].includes('+')) {
-			user = use.replace('+','')
-		}
-		else{
-		user = use }
+    var init = match[1]
+    var initt = init.split(" ").join("")
+    var user = initt.replace('+','')
 		var scan = await message.client.isOnWhatsApp(user)
 		if (scan) {
 		    console.log(`Adding ${user}@s.whatsapp.net to ${message.jid}`)
