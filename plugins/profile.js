@@ -129,7 +129,7 @@ Asena.addCommand({pattern: 'unblock ?(.*)', fromMe: true, dontAddCommandList: tr
    Asena.addCommand({pattern: 'jid ?(.*)', fromMe: sourav, desc: Lang.JID_DESC}, (async (message, match) => {    
         if (message.reply_message !== false) {
             await message.client.sendMessage(message.jid, message.reply_message.jid, MessageType.text, {quoted: message.data}
-            });
+            );
         } else if (message.mention !== false) {
             message.mention.map(async user => {
                 await message.client.sendMessage(message.jid, user, MessageType.text, {quoted: message.data});    
