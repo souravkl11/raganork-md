@@ -52,27 +52,6 @@ New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match)
           }
         
     }));
-New.addCommand({ pattern: 'antifake ?(.*)', fromMe: true}, (async (message, match) => {
-        if (!match[1]) {
-          return await message.sendMessage('Need a response! \n .antifake on or off')
-        }
-         else if (match[1] === 'on') {
-         await heroku.patch(baseURI + '/config-vars', {
-            body: {
-                ['ANTI_FAKE']: 'true'
-            }
-        });  
-         await message.sendMessage("_Auto fake remove turned on! Restarting.._")
-         }
-        else if (match[1] === 'off') {
-         await heroku.patch(baseURI + '/config-vars', {
-            body: {
-                ['ANTI_FAKE']: 'false'
-            }
-        });  
-         await message.sendMessage("_Auto fake remove turned off. Restarting.._")
-         }
-    }));
 
 New.addCommand({ pattern: 'mycode ?(.*)', fromMe: true}, (async (message, match) => {
         if (!match[1]) {
