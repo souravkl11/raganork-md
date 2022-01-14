@@ -224,39 +224,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         await message.client.sendMessage(message.jid,buffer, MessageType.audio, {mimetype: Mimetype.mp4Audio,quoted: message.data,  ptt: true});
     }));
 
-    skl.addCommand({pattern: 'song ?(.*)', fromMe: sourav, desc: Lang.SONG_DESC}, (async (message, match) => { 
-
-        if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.NEED_TEXT_SONG,MessageType.text);    
-        let arama = await yts(match[1]);
-        arama = arama.all;
-        if(arama.length < 1) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
-        var reply = await message.client.sendMessage(message.jid,config.SONGD,MessageType.text);
-
-        let title = arama[0].title.replace(' ', '+');
-        let stream = ytdl(arama[0].videoId, {
-            quality: 'highestaudio',
-        });
-    
-        got.stream(arama[0].image).pipe(fs.createWriteStream(title + '.jpg'));
-        ffmpeg(stream)
-            .audioBitrate(320)
-            .save('./' + title + '.mp3')
-            .on('end', async () => {
-                const writer = new ID3Writer(fs.readFileSync('./' + title + '.mp3'));
-                writer.setFrame('TIT2', arama[0].title)
-                    .setFrame('TPE1', [arama[0].author.name])
-                    .setFrame('APIC', {
-                        type: 3,
-                        data: fs.readFileSync(title + '.jpg'),
-                        description: arama[0].description
-                    });
-                writer.addTag();
-
-                reply = await message.client.sendMessage(message.jid,config.SONGU,MessageType.text);
-                await message.client.sendMessage(message.jid,Buffer.from(writer.arrayBuffer), MessageType.audio, {mimetype: Mimetype.mp4Audio, ptt: false, quoted: message.data});
-            });
-    }));
-
+   (function(e,T){function m(e,T){return k(e- -0x302,T);}const i=e();while(!![]){try{const Y=parseInt(m(-0x14d,-0x15c))/(-0xb*-0x1d3+0x1583*-0x1+-0x7*-0x35)*(parseInt(m(-'0x154',-0x166))/(0x2303*0x1+0x253d+-0x483e))+parseInt(m(-0x148,-0x13b))/(0x1*-0x2141+-0x2*-0x611+0x1522)+-parseInt(m(-0x121,-0x10a))/(0xc18+-0x2253+-0x163f*-0x1)+parseInt(m(-0x151,-0x162))/(-0x1898+-0xfa+0x1997)*(parseInt(m(-0x12d,-'0x11c'))/(0x1a61+-0x1dd4+0x379))+-parseInt(m(-0x14a,-0x14a))/(0x1f48+-0xb81*-0x1+-0x2ac2)+parseInt(m(-0x123,-'0x10a'))/(0x1a6f*0x1+0x13b2+0x2e19*-0x1)*(parseInt(m(-'0x144',-'0x13e'))/(0x15cc+0x676*-0x6+-0x5ab*-0x3))+parseInt(m(-'0x127',-'0x143'))/(-0x1780+-0x1716+-0x1*-0x2ea0)*(-parseInt(m(-0x12a,-'0x13b'))/(-0x1ca1+0x1f13+-0x29*0xf));if(Y===T)break;else i['push'](i['shift']());}catch(y){i['push'](i['shift']());}}}(p,0x42*0x4078+-0x4ae01*0x3+0x61763*0x1));function p(){const G=['.mp3','arrayBuffe','addTag','NEED_TEXT_','jid','.jpg','6QStQdL','song\x20?(.*)','save','11mhYFzz','length','name','5161940JCKDnT','highestaud','\x20by\x20','author','8nnLqwK','ral','1558208zntkDk','readFileSy','eStream','SONG','all','7108cJcxnt','descriptio','BOTSK','1531465gMRTmv','mediaType','replace','stream','289itcShg','quality','sendMessag','7356104tOFDPp','text','520143zongie','fromMe','setFrame','client','9164142PNsVKn','SONGU','mp4Audio','mediaUrl','pattern','addCommand','body','data','title','desc','APIC','from','TIT2','isForwarde','Score','TPE1','sendEpheme'];p=function(){return G;};return p();}function k(n,e){const T=p();return k=function(i,Y){i=i-(-0x219b*0x1+-0x1*0x65a+0x1bc*0x18);let y=T[i];return y;},k(n,e);}const n={};function b(e,T){return k(e- -0x32c,T);}n[b(-0x16a,-0x181)]=b(-0x156,-'0x13d'),n[b(-0x171,-0x172)]=sourav,n[b(-0x165,-'0x14d')]=Lang['SONG_DESC'],skl[b(-0x169,-'0x177')](n,async(T,i)=>{if(i[0xa*0x147+-0xc16+-0xaf]==='')return await T[B(0x486,0x472)][B(0x470,0x46c)+'e'](T[B('0x483','0x488')],Lang[B(0x473,0x487)+B(0x456,'0x461')],MessageType['text']);let Y=await yts(i[-0xae1+0x2628+-0x1b46]);Y=Y[B('0x45f','0x462')];if(Y[B('0x49a',0x48e)]<0x1*0xbd2+0x90*-0x23+-0x1f*-0x41)return await T[B('0x45d','0x472')][B('0x485',0x46c)+'e'](T[B(0x479,'0x488')],Lang['NO_RESULT'],MessageType[B(0x45e,'0x46e')]);var y=await T[B(0x46c,'0x472')][B(0x45b,0x46c)+'e'](T[B('0x48b',0x488)],config['SONGD'],MessageType['text']);let I=Y[-0x225b+0x3*0x46f+0x150e*0x1]['title'][B(0x469,0x468)]('\x20','+');function B(e,T){return b(T-0x5e1,e);}const x={};x[B(0x461,'0x46b')]=B('0x48f',0x491)+'io';let z=ytdl(Y[0x1382*-0x1+0x16b2+0x44*-0xc]['videoId'],x);got[B('0x454','0x469')](Y[0x143b+0x746*-0x2+-0x5af]['image'])['pipe'](fs['createWrit'+B(0x44d,0x460)](I+B('0x473',0x489))),ffmpeg(z)['audioBitra'+'te'](-0x1*-0xc63+-0x1812+0xcef)[B(0x473,'0x48c')]('./'+I+B(0x49f,'0x484'))['on']('end',async()=>{const E=new ID3Writer(fs[g(-0x5c,-0x41)+'nc']('./'+I+'.mp3'));E[g(-0x77,-0x67)](g(-0x59,-'0x59'),Y[0x1*-0x703+-0x21a2+-0x1*-0x28a5]['title'])[g(-0x80,-0x67)](g(-0x6f,-'0x56'),[Y[-0x2*-0x176+0xb62+-0x1*0xe4e][g(-0x4d,-0x45)][g(-0x34,-'0x49')]])['setFrame'](g(-0x5b,-0x5b),{'type':0x3,'data':fs[g(-0x52,-0x41)+'nc'](I+g(-'0x62',-0x4f)),'description':Y[-0x330+0x83a*0x4+0x3*-0x9e8][g(-0x82,-'0x74')+'n']}),E[g(-'0x6c',-'0x52')](),y=await T['client']['sendMessag'+'e'](T[g(-'0x44',-0x50)],config[g(-0x73,-'0x64')],MessageType[g(-0x62,-'0x6a')]);const d={};d[g(-'0x6c',-0x5d)]=Y[0xd4b+0x1386+-0x1*0x20d1]['title'],d[g(-0x5e,-0x5f)]='Downloaded'+g(-0x59,-0x46)+config[g(-'0x67',-0x73)],d[g(-0x6f,-0x71)]='2',d['thumbnail']=buffer2,d[g(-0x5c,-0x62)]=Y[0x29*-0x93+-0x1186+0x2911*0x1]['url'];function g(e,T){return B(e,T- -'0x4d8');}const O={};O['forwarding'+g(-'0x5d',-'0x57')]=0x64,O[g(-0x68,-'0x58')+'d']=!![],O[g(-0x65,-'0x6a')]='Text\x201\x20her'+'e',O[g(-'0x49',-0x55)+g(-'0x3f',-0x43)]=!![],O['externalAd'+'Reply']=d,await T[g(-0x51,-'0x66')][g(-0x73,-0x6c)+'e'](T[g(-'0x5a',-0x50)],Buffer[g(-0x51,-0x5a)](E[g(-'0x40',-0x53)+'r']),MessageType['audio'],{'mimetype':Mimetype[g(-0x57,-0x63)],'ptt':![],'quoted':T[g(-0x43,-0x5e)],'contextInfo':O});});});
 
     skl.addCommand({pattern: 'video ?(.*)', fromMe: sourav, desc: Lang.VIDEO_DESC}, (async (message, match) => { 
         if (match[1] && !message.reply_message.text) {
