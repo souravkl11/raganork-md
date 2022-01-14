@@ -80,10 +80,18 @@ var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_mes
 var res = await i.query.edit(q,'contrast',v)
 await m.client.sendMessage(m.jid, res,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'aadhar ?(.*)', fromMe: a, desc:'Makes an aadhar card with given image, name and gender'}, (async (m, text) => { 
+if (!text[1]) return await message.sendMessage("Need any text")
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var res = await i.query.upload(q,v1)
 var msg = await i.query.skbuffer(`https://raganork-api.herokuapp.com/api/image_editor?apikey=made_by_souravkl11&style=aadhar&text=${text[1]}&url=${res.link}`)
+await m.client.sendMessage(m.jid, msg,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
+e.addCommand({pattern: 'ytcomment ?(.*)', fromMe: a, desc:'Makes an aadhar card with given image, name and gender'}, (async (m, text) => { 
+if (!text[1]) return await message.sendMessage("Need any text")
+if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
+var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
+var res = await i.query.upload(q,v1)
+var msg = await i.query.skbuffer(`https://raganork-api.herokuapp.com/api/image_editor?apikey=made_by_souravkl11&style=ytcomment&text=${text[1]}&url=${res.link}`)
 await m.client.sendMessage(m.jid, msg,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'burn ?(.*)', fromMe: a, desc:'Edits photo to a fire effect'}, (async (m, match) => { 
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
