@@ -21,28 +21,11 @@ let baseURI = '/apps/' + config.HEROKU.APP_NAME;
         anti_off = 'ഇനി ഗ്രൂപ്പിൽ നിങ്ങൾക്ക് ഏത് വാക്കുകളും ഉപയോഗിക്കാംകാം'
     }
    
-    Asena.addCommand({pattern: 'antiword ?(.*)', fromMe: true, desc: 'Turns on anti word mode! Will be kicked when using some filtered words', usage: '.antiword on / off or .antiword Word1,Word2,etc' }, (async (message, match) => {
-        if (match[1] == 'off') {
-                await heroku.patch(baseURI + '/config-vars', { 
-                    body: { 
-                        ['ANTI_KICK']: 'false'
-                    } 
-                });
-                await message.sendMessage(anti_off)
-        } else if (match[1] == 'on') {
-                await heroku.patch(baseURI + '/config-vars', { 
-                    body: { 
-                        ['ANTI_KICK']: 'true'
-                    } 
-                });
-                await message.sendMessage(anti_on)
-        }
-        else if (match[1].includes(',')) {
-                await heroku.patch(baseURI + '/config-vars', { 
+    Asena.addCommand({pattern: 'addword ?(.*)', fromMe: true, desc: 'Turns on anti word mode! Will be kicked when using some filtered words', usage: '.antiword on / off or .antiword Word1,Word2,etc' }, (async (message, match) => {
+               await heroku.patch(baseURI + '/config-vars', { 
                     body: { 
                         ['REMOVE_FILTER']: match[1]
                     } 
                 });
                 await message.sendMessage('Added ' + match[1] + ' to filtered words!')
-        }
     }));
