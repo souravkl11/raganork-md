@@ -30,7 +30,7 @@ au = s[1];
 p = s[0];}
 else {
 p = t[1]
-au = ' '}
+au = ''}
 ffmpeg(q)
 .fromFormat('webp_pipe')
 .save('ex.png')
