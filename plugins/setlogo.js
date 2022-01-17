@@ -32,7 +32,7 @@ New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match)
                 ['M_REPLY_VAR']: 'true'
             }
         });  
-         await message.sendMessage("_Mention reply turned on! Restarting.._")
+         await message.sendMessage("_Mention reply turned on! Restarting._")
          }
         else if (match[1] === 'off') {
          await heroku.patch(baseURI + '/config-vars', {
@@ -40,15 +40,23 @@ New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match)
                 ['M_REPLY_VAR']: 'false'
             }
         });  
-         await message.sendMessage("_Mention reply turned off. Restarting.._")
+         await message.sendMessage("_Mention reply turned off. Restarting._")
          }
+         else if (message.reply_message.text) {
+            await heroku.patch(baseURI + '/config-vars', {
+               body: {
+                   ['M_REPLY_VAR']: message.reply_message.text
+               }
+           });  
+            await message.sendMessage("_New mention reply added. Restarting._")
+            }
           else {
             await heroku.patch(baseURI + '/config-vars', {
             body: {
                 ['M_REPLY']: match[1]
             }
         });
-        await message.sendMessage("_Added mention reply message! Restarting.._")
+        await message.sendMessage("_Added mention reply message! Restarting._")
           }
         
     }));
