@@ -23,8 +23,8 @@ var newimg = await axios.get(match[1], { responseType: 'arraybuffer' })
 
 New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match) => {
         
-        if (!match[1]) {
-          return await message.sendMessage('Need a response! \n .mreply on \n or \n .mreply Message')
+        if (!match[1] && !message.reply_message) {
+          return await message.sendMessage('Need a response! \n .mreply on/off \n or \n .mreply Message \n or reply to any message')
         }
          else if (match[1] === 'on') {
          await heroku.patch(baseURI + '/config-vars', {
