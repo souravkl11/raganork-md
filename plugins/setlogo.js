@@ -45,7 +45,7 @@ New.addCommand({ pattern: 'mreply ?(.*)', fromMe: true}, (async (message, match)
          else if (message.reply_message.text) {
             await heroku.patch(baseURI + '/config-vars', {
                body: {
-                   ['M_REPLY_VAR']: message.reply_message.text
+                   ['M_REPLY']: message.reply_message.text
                }
            });  
             await message.sendMessage("_New mention reply added. Restarting._")
