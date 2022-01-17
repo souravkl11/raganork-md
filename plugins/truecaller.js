@@ -9,7 +9,7 @@ New.addCommand({pattern: 'true ?(.*)', desc: 'Searches for number in truecaller!
 	if (query[1].includes('/')) return await msg.client.sendMessage(msg.jid, 'Wrong format! \n\n .true +91 6282344739', MessageType.text, {quoted: msg.data})
 	var go;
 	if (msg.reply_message) go = msg.reply_message.jid.split('@')[0]
-	else if (query[1]) go = query[1]
+	else if (!query[1].includes('@')) go = query[1]
 	else if (msg.mention) {
 	var mm = '';
             msg.mention.map(async (user) => {
