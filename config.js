@@ -73,6 +73,7 @@ module.exports = {
     HANDLERS: process.env.HANDLERS === undefined ? '^[.!;]' : process.env.HANDLERS,
     SEND_READ: process.env.SEND_READ === undefined ? false : convertToBool(process.env.SEND_READ),
     YAK: process.env.YAK === undefined ? '919074309534' : process.env.YAK,
+    sourav_g_link: process.env.GROUP_LINK === undefined ? 'https://chat.whatsapp.com/KwstIqsJBbE0s7xGcAD7P2' : process.env.GROUP_LINK,
     BRANCH: 'master',
     HEROKU: {
         HEROKU: process.env.HEROKU === undefined ? false : convertToBool(process.env.HEROKU),
