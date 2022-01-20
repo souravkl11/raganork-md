@@ -46,13 +46,9 @@ Asena.addCommand({pattern: 'install ?(.*)', fromMe: true, desc: Lang.INSTALL_DES
     var response = await got(url);
     if (response.statusCode == 200) {
         // plugin adı
-        var plugin_name = response.body.match(/addCommand\({.*pattern: ["'](.*)["'].*}/);
-        if (Config.CHATBOT === 'false') {
-            plugin_name = "__" + plugin_name;
-        } else {
-            plugin_name = "__" + Math.random().toString(36).substring(8);
-        }
-
+        let plugin_name = /pattern: ["'](.*)["'],/g.exec(response.body)
+          plugin_name = plugin_name[1].split(" ")[0]
+        
         fs.writeFileSync('./plugins/' + plugin_name + '.js', response.body);
         try {
             require('./' + plugin_name);
@@ -78,7 +74,7 @@ Asena.addCommand({pattern: 'plugin', fromMe: true, desc: Lang.PLUGIN_DESC }, (as
     } else {
         plugins.map(
             (plugin) => {
-                mesaj += '' + plugin.dataValues.name + ': ' + plugin.dataValues.url + '\n';
+                mesaj += '*' + plugin.dataValues.name + '* : ' + plugin.dataValues.url + '\n\n';
             }
         );
         return await message.client.sendMessage(message.jid, mesaj, MessageType.text);
@@ -95,7 +91,7 @@ Asena.addCommand({pattern: 'remove(?: |$)(.*)', fromMe: true, desc: Lang.REMOVE_
         await plugin[0].destroy();
         delete require.cache[require.resolve('./' + match[1] + '.js')]
         fs.unlinkSync('./plugins/' + match[1] + '.js');
-        await message.client.sendMessage(message.jid, Lang.DELETED, MessageType.text);
+        await message.client.sendMessage(message.jid, Lang.DELETED + '\n *Restart to make changes!*', MessageType.text);
         
         await new Promise(r => setTimeout(r, 1000));
         
