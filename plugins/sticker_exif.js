@@ -29,8 +29,7 @@ var s = t[1].split('|');
 au = s[1];
 p = s[0];}
 else {
-p = t[1]
-au = ''}
+p = t[1]}
 ffmpeg(q)
 .fromFormat('webp_pipe')
 .save('ex.png')
