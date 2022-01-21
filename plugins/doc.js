@@ -11,5 +11,5 @@ let fn1 = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_m
 let fn = await m.client.downloadMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage})
 let fnm = q[1] ? q[1] : 'File'
 let mime = await fromBuffer(fn)
-await m.client.sendMessage(m.jid,fn, MessageType.document, {filename: fm+p.extname(fn1), mimetype: mime.mime});
+await m.client.sendMessage(m.jid,fn, MessageType.document, {filename: fnm+p.extname(fn1), mimetype: mime.mime});
 })
