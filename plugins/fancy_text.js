@@ -34,4 +34,21 @@ if (!m.reply_message) return await m.sendMessage(`_Reply to a text message_ \n E
 27. 𝔗𝔢𝔵𝔱 ℌ𝔢𝔯𝔢       
 28. Ｔｅｘｔ Ｈｅｒｅ`)
     var r = i.query.Fancy(m.reply_message.text,v)
-    await m.client.sendMessage(m.jid,r.res+q[1],MessageType.text,{quoted: m.data})}));
+    var msg;
+if (q[1] == '1') msg = r.res1
+if (q[1] == '2') msg = r.res2
+if (q[1] == '3') msg = r.res3
+if (q[1] == '4') msg = r.res4
+if (q[1] == '5') msg = r.res5
+if (q[1] == '6') msg = r.res6
+if (q[1] == '7') msg = r.res7
+if (q[1] == '8') msg = r.res8
+if (q[1] == '9') msg = r.res9
+if (q[1] == '10') msg = r.res10
+if (q[1] == '11') msg = r.res11
+if (q[1] == '12') msg = r.res12
+if (q[1] == '13') msg = r.res13
+if (q[1] == '14') msg = r.res14
+if (q[1] == '15') msg = r.res15
+if (q[1] == '16') msg = r.res16
+    await m.client.sendMessage(m.jid,msg,MessageType.text,{quoted: m.data})}));
