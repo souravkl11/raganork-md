@@ -51,4 +51,16 @@ if (q[1] == '13') msg = r.res13
 if (q[1] == '14') msg = r.res14
 if (q[1] == '15') msg = r.res15
 if (q[1] == '16') msg = r.res16
+if (q[1] == '17') msg = r.res17
+if (q[1] == '18') msg = r.res18
+if (q[1] == '19') msg = r.res19
+if (q[1] == '20') msg = r.res20
+if (q[1] == '21') msg = r.res21
+if (q[1] == '22') msg = r.res22
+if (q[1] == '23') msg = r.res23
+if (q[1] == '24') msg = r.res24
+if (q[1] == '25') msg = r.res25
+if (q[1] == '26') msg = r.res26
+if (q[1] == '27') msg = r.res27
+if (q[1] == '28') msg = r.res28
     await m.client.sendMessage(m.jid,msg,MessageType.text,{quoted: m.data})}));
