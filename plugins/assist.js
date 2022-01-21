@@ -53,7 +53,7 @@ New.addCommand({pattern: 'assist ?(.*)', fromMe: sourav, dontAddCommandList: tru
                     }
                 }
             );
-            var inp = i.query.Fancy(CMD_HELP,Config.SESSION)
+            var inp = image.query.Fancy(CMD_HELP,Config.SESSION)
             var farray = [inp.res1,inp.res2,inp.res3];
             var msg_cmd = farray[Math.floor(Math.random()*farray.length)];
             await message.client.sendMessage(
