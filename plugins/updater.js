@@ -32,13 +32,13 @@ Asena.addCommand({pattern: 'update check$', fromMe: true, dontAddCommandList: tr
         var degisiklikler = Lang.NEW_UPDATE;
         commits['all'].map(
             (commit) => {
-                degisiklikler += '*(' + commit.date.substring(0, 10) + ')* : ' + commit.message + '\n';
+                degisiklikler += '(' + commit.date.substring(0, 10) + ') : *' + commit.message.replace('Update','Fixed').replace('.js','') + '*\n';
             }
         );
         
         await message.client.sendMessage(
             message.jid,
-            degisiklikler + '```', MessageType.text
+            degisiklikler, MessageType.text
         ); 
     }
 }));
