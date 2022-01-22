@@ -17,20 +17,11 @@ const fail = "*_Download failed! Check your link and try again_*";
 const need_acc_s = "_Need an instagram username or link!_";
 let sourav = setting.WORKTYPE == 'public' ? false : true
 skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
-if (query[1] && !msg.reply_message.text) {
-if (!query[1].includes('instagram.com')) return await msg.client.sendMessage(msg.jid, need, MessageType.text, {quoted: msg.data});
-var res = await raganork.query.getPost(query[1],v)
-if (res == "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
-var buffer = await raganork.query.skbuffer(res.url)
-if (res.url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: res.caption, quoted: msg.data});
-if (res.url.includes('jpg')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: res.caption, quoted: msg.data});
-}
-else if (!query[1] && msg.reply_message.text) {
-if (!msg.reply_message.text.includes('instagram.com')) return await msg.client.sendMessage(msg.jid, need, MessageType.text, {quoted: msg.data});
-var s1 = msg.reply_message.text
-var souravkl11 = s1.split('instagram.com')
-var q = 'https://instagram.com' + souravkl11[1]
-var res = await raganork.query.getPost(q,v )
+var q = !msg.reply_message ? match : msg.reply_message.text
+var getid = /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com(?:\/.+?)?\/(p|reel|tv)\/)([\w-]+)(?:\/)?(\?.*)?$/
+var url = getid.exec(q)
+if (url!==null) {
+var res = await raganork.query.getPost(url[0],v )
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
 var buffer = await raganork.query.skbuffer(res.url)
 if (res.url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: res.caption, quoted: msg.data});
