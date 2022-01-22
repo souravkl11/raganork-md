@@ -20,7 +20,7 @@ skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true
 var q = !msg.reply_message ? match : msg.reply_message.text
 var getid = /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com(?:\/.+?)?\/(p|reel|tv)\/)([\w-]+)(?:\/)?(\?.*)?$/
 var url = getid.exec(q)
-if (url!==null) {
+if (url) {
 var res = await raganork.query.getPost(url[0],v )
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
 var buffer = await raganork.query.skbuffer(res.url)
