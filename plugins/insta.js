@@ -18,8 +18,9 @@ const need_acc_s = "_Need an instagram username or link!_";
 let sourav = setting.WORKTYPE == 'public' ? false : true
 skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
 var q = !msg.reply_message ? query[1] : msg.reply_message.text
+var linksplit = q.split('https://')[1]
 var getid = /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com(?:\/.+?)?\/(p|reel|tv)\/)([\w-]+)(?:\/)?(\?.*)?$/
-var url = getid.exec(q)
+var url = getid.exec('https://'+linksplit)
 if (url) {
 var res = await raganork.query.getPost(url[0],v )
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
