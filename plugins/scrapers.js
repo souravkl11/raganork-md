@@ -255,7 +255,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
             await message.client.sendMessage(message.jid,fs.readFileSync('./' + q[1] + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
         });
     }
-    if (!match[1] && message.reply_message.text) {
+    if (!match[1] && message.reply_message) {
         if (!message.reply_message.text.includes('https://you')) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
         var s1 = message.reply_message.text
         var souravk = s1.split('://you')
@@ -263,26 +263,10 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         var dl = await get.query.getVideo(q,v)
 	    const getID =
         /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*(?:|\&)v=|embed|shorts\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
-        var qq = getID.exec(match[1])
-        
-        
-        await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : {
-            key: {
-              fromMe: true,
-              participant: "0@s.whatsapp.net",
-              remoteJid: "status@broadcast"
-            },
-            message: {
-              "extendedTextMessage": {
-                "text": config.BOTSK
-              }
-            }
-        }
-        });
-        
+        var qq = getID.exec(message.reply_message.text)
+        await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : { key: {fromMe: true,participant: "0@s.whatsapp.net",remoteJid: "status@broadcast"},message: {"extendedTextMessage": {"text": config.BOTSK }}}});
         var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
         yt.pipe(fs.createWriteStream('./' + qq[1] + '.mp4'));
-
         yt.on('end', async () => {
             await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
             await message.client.sendMessage(message.jid,fs.readFileSync('./' + qq[1] + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
