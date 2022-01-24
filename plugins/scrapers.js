@@ -240,7 +240,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
             await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
             await message.client.sendMessage(message.jid,fs.readFileSync('./' + qq[1] + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:'```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'});
         });
-    }
+    
 }));
 
     skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
