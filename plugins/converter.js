@@ -73,6 +73,22 @@ Asena.addCommand({pattern: 'mp3$', fromMe: sk, desc: Lang.MP4TOAUDİO_DESC}, (as
             });
         return await message.client.deleteMessage(mid, {id: downloading.key.id, remoteJid: message.jid, fromMe: true})
     }));
+    Asena.addCommand({pattern: 'setinfo', fromMe: sk, desc: 'Changes title, author, image info of audio files!'}, (async (message, match) => {    
+        const mid = message.jid
+        if (!match[1]) return await message.sendMessage('Need info! \n .setinfo Title;Artist;Description;Imagelink')
+        if (!match[1].includes(';')) return await message.sendMessage('Wrong format! \n .setinfo Title;Artist;Description;Imagelink')
+        if (message.reply_message === false) return await message.client.sendMessage(mid, '_Reply to a voice or video!_', MessageType.text);
+        var downloading = await message.client.sendMessage(mid,Lang.MP4TOAUDİO,MessageType.text);
+        var location = await message.client.downloadAndSaveMediaMessage({key: {remoteJid: message.reply_message.jid,id: message.reply_message.id },message: message.reply_message.data.quotedMessage});
+        ffmpeg(location)
+            .save('info.mp3')
+            .on('end', async () => {
+                var s = match[1].split(';')
+                var res = await query.addInfo('info.mp3',s[0],s[1],[s2], await query.skbuffer(s[3]),Config.SESSION)
+                await message.client.sendMessage(mid, res, MessageType.audio, {mimetype: Mimetype.mp4Audio, ptt: false});
+            });
+        return await message.client.deleteMessage(mid, {id: downloading.key.id, remoteJid: message.jid, fromMe: true})
+    }));
 
     Asena.addCommand({pattern: 'photo$', fromMe: sk, desc: Lang.STİCKER_DESC}, (async (message, match) => {   
         const mid = message.jid
