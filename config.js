@@ -89,7 +89,7 @@ module.exports = {
     DEBUG: DEBUG,
     COFFEEHOUSE_API_KEY: process.env.COFFEEHOUSE_API_KEY === undefined ? false : process.env.COFFEEHOUSE_API_KEY,
     WITAI_API: "TEYMELA6DMC4XB5YM3SPTTQWUUIBKURG",
-    ZEKAIS_API: "d2a8e1cf665bfddfffdcb530694fdde7",
+    ZEKAIS_API: "4c99a382ec56fb78b3e308b9b3cdb012",
     SUPPORT2: "916282344739",
     SUPPORT3: "919074309534"
 };
