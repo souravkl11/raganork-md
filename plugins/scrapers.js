@@ -255,7 +255,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
     search.all.map((video) => {
         const getID = /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*(?:|\&)v=|embed|shorts\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
         var s = getID.exec(video.url)
-        msg += video.title + ' - https://youtu.be/' + s[1] + '\n'
+        msg +='*'+ video.title + '* - _https://youtu.be/' + s[1] + '_ \n\n'
     });
 
     await message.client.sendMessage(message.jid,msg,MessageType.text,{quoted: message.data});
