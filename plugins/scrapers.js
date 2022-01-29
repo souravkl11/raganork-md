@@ -242,7 +242,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         });
     
 }));
-   skl.addCommand({pattern: 'yts ?(.*)', fromMe: false, desc: Lang.YT_DESC}, (async (message, match) => { 
+   skl.addCommand({pattern: 'yts ?(.*)', fromMe: sourav, desc: Lang.YT_DESC}, (async (message, match) => { 
     if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.NEED_WORDS,MessageType.text);    
     var reply = await message.client.sendMessage(message.jid,'Searching on youtube...',MessageType.text);
     try {
