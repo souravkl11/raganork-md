@@ -242,6 +242,25 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
         });
     
 }));
+   skl.addCommand({pattern: 'yts ?(.*)', fromMe: false, desc: Lang.YT_DESC}, (async (message, match) => { 
+    if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.NEED_WORDS,MessageType.text);    
+    var reply = await message.client.sendMessage(message.jid,'Searching on youtube...',MessageType.text);
+    try {
+        var search = await yts(match[1]);
+    } catch {
+        return await message.client.sendMessage(message.jid,Lang.NOT_FOUND,MessageType.text);
+    }
+
+    var msg = '';
+    search.all.map((video) => {
+        const getID = /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*(?:|\&)v=|embed|shorts\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
+        var s = getID.exec(video.url)
+        msg += video.title + ' - https://youtu.be/' + s[1] + '\n'
+    });
+
+    await message.client.sendMessage(message.jid,msg,MessageType.text,{quoted: message.data});
+    await reply.delete();
+}));
 
     skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
 
