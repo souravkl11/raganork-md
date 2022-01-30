@@ -10,11 +10,12 @@ const setting = require('../config');
 const raganork = require('raganork-bot');
 const Config = require('../config');
 const s = require('../config');
-const v = s.CHANNEL
-const need = "*_Need instagram link!_*";
-const need_acc = "*_Need an instagram username!_*";
-const fail = "*_Download failed! Check your link and try again_*";
-const need_acc_s = "_Need an instagram username or link!_";
+var v = s.CHANNEL
+var need = "*_Need instagram link!_*";
+var downloading = "_Downloading_";
+var need_acc = "*_Need an instagram username!_*";
+var fail = "*_Download failed! Check your link and try again_*";
+var need_acc_s = "_Need an instagram username or link!_";
 let sourav = setting.WORKTYPE == 'public' ? false : true
 skl.addCommand({ pattern: 'insta ?(.*)', fromMe: sourav,dontAddCommandList: true }, (async (msg, query) => {
 var q = !msg.reply_message ? query[1] : msg.reply_message.text
@@ -24,6 +25,7 @@ var url = getid.exec(q)
 if (url != null) {
 var res = await raganork.query.getPost(url[0],v )
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
+else await msg.client.sendMessage(msg.jid, downloading, MessageType.text, {quoted: msg.data});
 var buffer = await raganork.query.skbuffer(res.links[0].url)
 if (res.links[0].url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: res.caption, quoted: msg.data});
 if (res.links[0].url.includes('jpg')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: res.caption, quoted: msg.data});
@@ -32,6 +34,7 @@ else if (url == null) {
 var linksplit = q.split('https://')[1]
 var res = await raganork.query.getPost('https://'+linksplit,v )
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
+else await msg.client.sendMessage(msg.jid, downloading, MessageType.text, {quoted: msg.data});
 var buffer = await raganork.query.skbuffer(res.links[0].url)
 if (res.links[0].url.includes('mp4')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.video, { mimetype: Mimetype.mp4, caption: res.caption, quoted: msg.data});
 if (res.links[0].url.includes('jpg')) return await msg.client.sendMessage(msg.jid, buffer, MessageType.image, { mimetype: Mimetype.jpg, caption: res.caption, quoted: msg.data});
