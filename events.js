@@ -12,6 +12,9 @@ var Commands = [];
 var skl11;
 if (config.HANDLERS == 'false') skl11 = '^'
 else skl11 = config.HANDLERS
+var sk;
+if (!skl11.startsWith('^[')) sk = '^[' + skl11 + ']'
+else sk = skl11
 function addCommand(info, func) {
     // Basit bir fonksiyon, komut eklemek için.
     var types = ['photo', 'image', 'text', 'message'];
@@ -36,10 +39,10 @@ function addCommand(info, func) {
         infos.on = info['on'];
 
         if (info['pattern'] !== undefined) {
-            infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? skl11 : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
+            infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? sk : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
         }
     } else {
-        infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? skl11 : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
+        infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? sk : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
     }
 
     Commands.push(infos);
