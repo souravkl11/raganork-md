@@ -13,7 +13,7 @@ var skl11;
 if (config.HANDLERS == 'false') skl11 = '^'
 else skl11 = config.HANDLERS
 var sk;
-if (!skl11.startsWith('^[')) sk = '^[' + skl11 + ']'
+if (!skl11.startsWith('^[') && !skl11 === '^') sk = '^[' + skl11 + ']'
 else sk = skl11
 function addCommand(info, func) {
     // Basit bir fonksiyon, komut eklemek için.
