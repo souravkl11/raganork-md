@@ -9,11 +9,13 @@ WhatsAsena - Yusuf Usta
 // Komutları burada tutacağız.
 var config = require('./config');
 var Commands = [];
-
+var skl11;
+if (config.HANDLERS == 'false') skl11 = '^'
+else skl11 = config.HANDLERS
 function addCommand(info, func) {
     // Basit bir fonksiyon, komut eklemek için.
     var types = ['photo', 'image', 'text', 'message'];
-
+    
     var infos = {
         fromMe: info['fromMe'] === undefined ? true : info['fromMe'], // Or Sudo
         onlyGroup: info['onlyGroup'] === undefined ? false : info['onlyGroup'],
@@ -34,10 +36,10 @@ function addCommand(info, func) {
         infos.on = info['on'];
 
         if (info['pattern'] !== undefined) {
-            infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? config.HANDLERS : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
+            infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? skl11 : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
         }
     } else {
-        infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? config.HANDLERS : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
+        infos.pattern = new RegExp((info['handler'] === undefined || info['handler'] === true ? skl11 : '') + info.pattern, (info['flags'] !== undefined ? info['flags'] : ''));
     }
 
     Commands.push(infos);
