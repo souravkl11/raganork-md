@@ -51,13 +51,13 @@ var user = query[1];
 var res = await raganork.query.getStory(user,v)
 if (res === "false") return await msg.client.sendMessage(msg.jid, "_Story not found!_", MessageType.text, {quoted: msg.data})
 var url = ''
-res.result.data.map((result) => {
+res.result.stories.map((result) => {
 url += result.url + ','});
 var que = url !== false ? url.split(',') : [];
-for (var i = 0; i < (que.length < res.result.data.length ? que.length : res.result.data.length); i++) {
+for (var i = 0; i < (que.length < res.result.stories.length ? que.length : res.result.stories.length); i++) {
 var get = got(que[i], {https: {rejectUnauthorized: false}});
 var stream = get.buffer();
 stream.then(async (video) => {
-await msg.client.sendMessage(msg.jid, video, MessageType.video, { mimetype: Mimetype.mp4, caption: '```Story of '+user + '```', quoted: msg.data});
+await msg.client.sendMessage(msg.jid, video, MessageType.video, { mimetype: Mimetype.mp4, caption: '```Story of '+res.result.username + '```', quoted: msg.data});
 })};
 }));
