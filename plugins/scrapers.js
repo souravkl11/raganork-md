@@ -240,7 +240,7 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
        cap = '```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'
        
 } catch {
- cap = 'Video info unavailable
+ cap = 'Video info unavailable'
 }
 var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
         yt.pipe(fs.createWriteStream('./' + qq[1] + '.mp4'));
