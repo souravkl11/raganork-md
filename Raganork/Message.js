@@ -15,12 +15,12 @@ class Message extends Base {
         super(client);
         if (data) this._patch(data);
     }
-
+    
     _patch(data) {
         this.id = data.key.id === undefined ? undefined : data.key.id;
         this.jid = data.key.remoteJid;
         this.fromMe = data.key.fromMe;
-        this.message = data.message.extendedTextMessage === null ? data.message.conversation : data.message.extendedTextMessage.text;
+        this.message = data.message && data.message.extendedTextMessage === null ? data.message.conversation : data.message.extendedTextMessage.text;
         this.unreadCount = data.unreadCount;
         this.timestamp = typeof(data.messageTimestamp) === 'object' ? data.messageTimestamp.low : data.messageTimestamp;
         this.data = data;
