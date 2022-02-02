@@ -91,8 +91,10 @@ if (!text[1]) return await m.sendMessage("Need any text")
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var res = await i.query.upload(q,v1)
-var msg = await i.query.skbuffer(`https://raganork-api.herokuapp.com/api/image-search?apikey=souravkl11&image=${res.link}`)
-await m.client.sendMessage(m.jid, msg,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
+var search = await axios(`https://raganork-api.herokuapp.com/api/image-search?apikey=souravkl11&image=${res.link}`)
+var msg = '';
+search.data.result.map((google) => {msg +='```Title:``` *'+google.title+'*\n ```Desc:``` *'+google.description+'* \n ```Link:``` *'+google.url+'* \n\n'});
+await m.client.sendMessage(m.jid, msg,MessageType.text,{quoted:m.data});}));
 e.addCommand({pattern: 'ytcomment ?(.*)', fromMe: a, desc:'Makes an aadhar card with given image, name and gender'}, (async (m, text) => { 
 if (!text[1]) return await m.sendMessage("Need any text")
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
