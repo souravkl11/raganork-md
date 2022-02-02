@@ -237,7 +237,7 @@ skl.addCommand({pattern: 'video ?(.*)', fromMe: sourav, desc: Lang.VIDEO_DESC}, 
       var dl = await get.query.getVideo(qq[0],v)
 var cap;
 if (dl.details == 'error') cap = "_Unable to fetch video info!_";
-else cap = '```' + dl.details.title + '``` \n\n _*Description:*_ ' + dl.details.shortDescription + '\n\n _*Views :*_ ```' + dl.details.viewCount + '```'
+else cap = '*' + dl.details.title + '* \n\n _*Views :*_ ' + dl.details.viewCount
 
 var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
         yt.pipe(fs.createWriteStream('./' + qq[1] + '.mp4'));
