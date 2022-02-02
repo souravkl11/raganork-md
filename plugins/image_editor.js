@@ -6,6 +6,7 @@ let w = require('../config');
 let v = w.SESSION
 let v1 = w.SUPPORT2
 let i = require('raganork-bot');
+let x = require('axios');
 let a = w.WORKTYPE == 'public' ? false : true;
 let ffmpeg = require('fluent-ffmpeg');
 let fs = require('fs');
@@ -90,7 +91,7 @@ e.addCommand({pattern: 'google', fromMe: a, desc:'Searches image in google. Like
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var res = await i.query.upload(q,v1)
-var search = await axios(`https://raganork-api.herokuapp.com/api/image-search?apikey=souravkl11&image=${res.link}`)
+var search = await x(`https://raganork-api.herokuapp.com/api/image-search?apikey=souravkl11&image=${res.link}`)
 var msg = '';
 search.data.result.map((google) => {msg +='```Title:``` *'+google.title+'*\n ```Desc:``` *'+google.description+'* \n ```Link:``` *'+google.url+'* \n\n'});
 await m.client.sendMessage(m.jid, msg,MessageType.text,{quoted:m.data});}));
