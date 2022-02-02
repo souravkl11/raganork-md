@@ -235,15 +235,12 @@ skl.addCommand({pattern: 'video ?(.*)', fromMe: sourav, desc: Lang.VIDEO_DESC}, 
         var qq = getID.exec(s1)
         await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : { key: {fromMe: true,participant: "0@s.whatsapp.net",remoteJid: "status@broadcast"},message: {"extendedTextMessage": {"text": config.BOTSK }}}});
       var dl = await get.query.getVideo(qq[0],v)
-var cap;
-if (dl.details == 'error') cap = "_Unable to fetch video info!_";
-else cap = '*' + dl.details.title + '* \n\n _*Views :*_ ' + dl.details.viewCount
-
+var cap = dl.details.title != 'error' ? dl.details.title : s.AFN
 var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
         yt.pipe(fs.createWriteStream('./' + qq[1] + '.mp4'));
         yt.on('end', async () => {
             await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
-            await message.client.sendMessage(message.jid,fs.readFileSync('./' + qq[1] + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:cap});
+            await message.client.sendMessage(message.jid,fs.readFileSync('./' + qq[1] + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:cap, thumbnail: await get.query.skbuffer(dl.details.thumb) });
         });
     
 }));
@@ -264,7 +261,6 @@ var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '
     });
 
     await message.client.sendMessage(message.jid,msg,MessageType.text,{quoted: message.data});
-    await reply.delete();
 }));
 
     skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
