@@ -52,7 +52,7 @@ Asena.addCommand({pattern: 'tagall ?(.*)', fromMe: true, dontAddCommandList: tru
                 jids.push(uye.id.replace('c.us', 's.whatsapp.net'));
             }
         );
-        var tx = message.reply_message.text
+        var tx = message.reply_message.message
         await message.client.sendMessage(message.jid,tx, MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
     }
 }));
