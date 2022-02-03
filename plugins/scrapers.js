@@ -240,7 +240,7 @@ var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '
         yt.pipe(fs.createWriteStream('./' + qq[1] + '.mp4'));
         yt.on('end', async () => {
             await message.client.sendMessage(message.jid,Lang.UPLOADING_VIDEO,MessageType.text);
-            await message.client.sendMessage(message.jid,fs.readFileSync('./' + qq[1] + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:cap, thumbnail: await get.query.skbuffer(dl.details.thumb) });
+            await message.client.sendMessage(message.jid,fs.readFileSync('./' + qq[1] + '.mp4'), MessageType.video, {mimetype: Mimetype.mp4 , caption:cap/*, thumbnail: await get.query.skbuffer(dl.details.thumb) */});
         });
     
 }));
