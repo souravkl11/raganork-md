@@ -53,6 +53,6 @@ Asena.addCommand({pattern: 'tagall ?(.*)', fromMe: true, dontAddCommandList: tru
             }
         );
         var tx = message.reply_message.message
-        await message.client.sendMessage(message.jid,tx, MessageType.extendedText, {contextInfo: {mentionedJid: jids}, previewType: 0})
+        await message.client.sendMessage(message.jid,tx, MessageType.text, {contextInfo: {mentionedJid: jids}, previewType: 0})
     }
 }));
