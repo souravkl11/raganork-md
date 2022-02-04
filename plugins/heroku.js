@@ -24,7 +24,7 @@ const heroku = new Heroku({
 
 let baseURI = '/apps/' + Config.HEROKU.APP_NAME;
 
-Asena.addCommand({pattern: 'degis ?(.*)', fromMe: true, dontAddCommandList: true, desc: Lang.DEGİS_DESC}, (async (message, match) => {
+Asena.addCommand({pattern: 'setmsg ?(.*)', fromMe: true, dontAddCommandList: true, desc: Lang.DEGİS_DESC}, (async (message, match) => {
 
     if (match[1] == '') {
         return await message.client.sendMessage(message.jid, Lang.DEGİS_NONE, MessageType.text); 
@@ -693,7 +693,7 @@ Asena.addCommand({pattern: 'getvar ?(.*)', fromMe: true, dontAddCommandList: tru
     if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.KEY_VAL_MISSING, MessageType.text);
     await heroku.get(baseURI + '/config-vars').then(async (vars) => {
         for (vr in vars) {
-            if (match[1].trim() == vr) return await message.sendMessage("```{} - {}```".format(vr, vars[vr]));
+            if (match[1].trim() == vr) return await message.client.sendMessage(message.jid, vars[vr], MessageType.text,{quoted: message.data});
         }
         await message.client.sendMessage(message.jid,Lang.NOT_FOUND, MessageType.text);
     }).catch(async (error) => {
