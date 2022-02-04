@@ -148,7 +148,7 @@ Asena.addCommand({on: 'text', fromMe: false}, (async (message, match) => {
         if(Config.AUTOSTICKER){
         let banned = jid.find( Jid => Jid === message.jid);
         if(banned !== undefined) return
-const array = ['Akshan','Anthass','Ayin','Aysheri','Ayye','Ayyo','Bgm','Bye','Da','Ded','Ee','Eee','Enth','Entha','Enthada','Girls','Good morning','Good night','Hello','Hi','Hy','Kurippe','Kurumb','Line','Logan','Love','Mm','Monu','Msd','Nope','Ok','Pattumo','Pm','Poda','Poli','Pova','Raganork','Save','Sed','Shoo','Smile','Sourav','Sunny','Udayipp','Vaa','Vannu','Vijay','Wait','ban','bot','broken','bye','chattho','cheyyatte','cute','edit','engane und','etha','fear','filter','gn','help','ithokke enth','ivan','left','mention','myre','naanam','nadakkatte','number','paavam','padikk','para','photo','please','poda','power','poyi','remove','sed','seth','setth','sho','sticker','support','tag','tagall','umma','update','vibe','work','yo','ys']
+const array = ['alive','Hi','Good morning','Good night','help']
 array.map( async (a) => {
 let pattern = new RegExp(`\\b${a}\\b`, 'g');
 if(pattern.test(message.message)){
