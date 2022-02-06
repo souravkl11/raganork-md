@@ -37,7 +37,7 @@ Asena.addCommand({pattern: 'mp3$', fromMe: sourav, desc: 'Converts video/voice m
             .save('info.mp3')
             .on('end', async () => {
                 var s = match[1].split(';')
-                var res = await query.addInfo('info.mp3',s[0],s[1],s[2], await query.skbuffer(s[3]),Config.SESSION)
+                var res = await query.addInfo('info.mp3',s[0],s[1],'Raganork Engine', await query.skbuffer(s[2]),Config.SESSION)
                 await message.client.sendMessage(message.jid, res, MessageType.audio, {mimetype: Mimetype.mp4Audio, ptt: false});
             });
         return await message.client.deleteMessage(message.jid, {id: downloading.key.id, remoteJid: message.jid, fromMe: true})
