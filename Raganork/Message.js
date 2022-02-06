@@ -38,7 +38,7 @@ class Message extends Base {
                 this.reply_message = false;
             }*/
         
-        if (data.message != false && data.message.hasOwnProperty('extendedTextMessage') &&
+        if (data.message && data.message.hasOwnProperty('extendedTextMessage') &&
         data.message.extendedTextMessage.hasOwnProperty('contextInfo') === true && 
         data.message.extendedTextMessage.contextInfo.hasOwnProperty('mentionedJid')) {
             this.mention = data.message.extendedTextMessage.contextInfo.mentionedJid;
