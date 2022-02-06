@@ -25,7 +25,7 @@ class Message extends Base {
         this.timestamp = typeof(data.messageTimestamp) === 'object' ? data.messageTimestamp.low : data.messageTimestamp;
         this.data = data;
         
-        if (data.message != false && data.message.hasOwnProperty('extendedTextMessage') &&
+        if (data.message && data.message.hasOwnProperty('extendedTextMessage') &&
                 data.message.extendedTextMessage.hasOwnProperty('contextInfo') === true && 
                 data.message.extendedTextMessage.contextInfo.hasOwnProperty('quotedMessage')) { 
             this.reply_message = new ReplyMessage(this.client, data.message.extendedTextMessage.contextInfo); } else {
