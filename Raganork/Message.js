@@ -20,7 +20,7 @@ class Message extends Base {
         this.id = data.key.id === undefined ? undefined : data.key.id;
         this.jid = data.key.remoteJid;
         this.fromMe = data.key.fromMe;
-        this.message = data && data.message && data.message.extendedTextMessage ?  data.message.extendedTextMessage.text : data.message.conversation;
+        this.message = data && data.message && data.message.extendedTextMessage ?  data.message.extendedTextMessage.text : /*data.message.conversation*/ '';
         this.unreadCount = data.unreadCount;
         this.timestamp = typeof(data.messageTimestamp) === 'object' ? data.messageTimestamp.low : data.messageTimestamp;
         this.data = data;
