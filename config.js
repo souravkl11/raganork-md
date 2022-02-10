@@ -18,7 +18,7 @@ DEBUG = process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBU
 module.exports = {
     VERSION: 'v3.0.0',
     CHANNEL: 'undefined',
-    SESSION: process.env.RAGANORK_CODE === undefined ? '' : process.env.RAGANORK_CODE,
+    SESSION: process.env.RAGANORK_CODE === undefined ? 'apikey' : process.env.RAGANORK_CODE,
     ANTİLİNK: process.env.ANTİ_LİNK === undefined ? 'false' : process.env.ANTİ_LİNK,
     AFN: process.env.ALL_CAPTION === undefined ? '*MADE BY YOUR BOT NAME*' : process.env.ALL_CAPTION,
     AUTOBİO: process.env.AUTO_BİO === undefined ? 'false' : process.env.AUTO_BİO,
