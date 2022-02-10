@@ -55,6 +55,7 @@ module.exports = {
     GIF_BYE: process.env.GIF_BYE === undefined ? 'https://c.tenor.com/6tlIWiAlT_gAAAPo/cat-impressed-cat-wow.mp4' : process.env.GIF_BYE,
     LOGOSK: process.env.ALL_IMG === undefined ? 'https://www.linkpicture.com/q/rgnk.jpg' : process.env.ALL_IMG,
     created_by_souravkl11: process.env.ALL_IMG2 === undefined ? 'https://www.linkpicture.com/q/rgnk.jpg' : process.env.ALL_IMG2,
+    find_key: process.env.FIND_KEY === undefined ? '' : process.env.FIND_KEY,
     SKDL: process.env.DIALOGUE === undefined ? '❤️‍🔥 𝗞𝗜𝗟𝗟𝗔𝗗𝗜𝗦𝗠 𝗡𝗘𝗩𝗘𝗥 𝗘𝗡𝗗𝗦 ❤️‍🔥' : process.env.DIALOGUE,
     BLOCKMSG: process.env.BLOCK_MESSAGE === undefined ? 'default' : process.env.BLOCK_MESSAGE,
     UNBLOCKMSG: process.env.UNBLOCK_MESSAGE === undefined ? 'default' : process.env.UNBLOCK_MESSAGE,
@@ -89,7 +90,6 @@ module.exports = {
     DEBUG: DEBUG,
     COFFEEHOUSE_API_KEY: process.env.COFFEEHOUSE_API_KEY === undefined ? false : process.env.COFFEEHOUSE_API_KEY,
     WITAI_API: "TEYMELA6DMC4XB5YM3SPTTQWUUIBKURG",
-    ZEKAIS_API: "b53bfe6883aa83271af09d2748c29031",
     SUPPORT2: "916282344739",
     SUPPORT3: "919074309534"
 };
