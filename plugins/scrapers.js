@@ -236,7 +236,7 @@ skl.addCommand({pattern: 'video ?(.*)', fromMe: sourav, desc: Lang.VIDEO_DESC}, 
         /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*(?:|\&)v=|embed|shorts\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
         var qq = getID.exec(s1)
         await message.client.sendMessage(message.jid,Lang.DOWNLOADING_VIDEO,MessageType.text, {quoted : { key: {fromMe: true,participant: "0@s.whatsapp.net",remoteJid: "status@broadcast"},message: {"extendedTextMessage": {"text": config.BOTSK }}}});
-     var dl = await get.query.getVideo(qq[0],v)
+     var dl = await get.query.getVideo(qq[1],v)
 var cap = dl.details.title != 'error' ? dl.details.title : s.AFN
 var th = dl.details.title != 'error' ? dl.details.thumbnail.url : null
 var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)});
