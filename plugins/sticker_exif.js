@@ -19,14 +19,10 @@ if (stickermsg) {
 var s = w.SOURAVKL11.split('|');
 var au = s[1];
 var p = s[0];
-ffmpeg(q)
-.fromFormat('webp_pipe')
-.save('ex.png')
-.on('end', async () => {
-var res = await i.query.sticker('ex.png',au,p,v)
-await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});})
+var res = await i.query.sticker(q,au,p,v)
+await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});
 } 
-else if (audiomsg) {
+if (!stickermsg && audiomsg) {
 ffmpeg(q)
 .save('info.mp3')
 .on('end', async () => {
@@ -47,24 +43,16 @@ au = s[1];
 p = s[0];}
 else {
 p = t[1]}
-ffmpeg(q)
-.fromFormat('webp_pipe')
-.save('ex.png')
-.on('end', async () => {
-var res = await i.query.sticker('ex.png',au,p,v)
-await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});})}));
+var res = await i.query.sticker(q,au,p,v)
+await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});}));
 e.addCommand({pattern: 'crop ?(.*)', fromMe: a, desc:'Crops sticker'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var au,p;
 var s = w.SOURAVKL11.split('|');
 var au = s[1];
 var p = s[0];
-ffmpeg(q)
-.fromFormat('webp_pipe')
-.save('ex.png')
-.on('end', async () => {
-var res = await i.query.stickercrop('ex.png',au,p,v)
-await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});})}));
+var res = await i.query.stickercrop(q,au,p,v)
+await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});}));
 e.addCommand({ pattern: 'setexif ?(.*)', fromMe: true}, (async (m, qu) => {
 if (!qu[1]) {return await m.client.sendMessage(m.jid,'_Need some data \n Example: \n .setexif Name|Author_',MessageType.text,{quoted:m.data})}
 await m.client.sendMessage(m.jid, '_Added new exif!_',MessageType.text,{quoted:m.data});
