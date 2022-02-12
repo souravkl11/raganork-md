@@ -10,7 +10,7 @@ let ffmpeg = require('fluent-ffmpeg');
 const h = require('heroku-client');
 const he = new h({token: w.HEROKU.API_KEY});
 let ur = '/apps/' + w.HEROKU.APP_NAME;
-e.addCommand({pattern: 'take ?(.*)', fromMe: a, desc:'Changes sticker pack & author name!'}, (async (m, match) => { 
+e.addCommand({pattern: 'take ?(.*)', fromMe: a, desc:'Changes sticker/audio pack & author name. Title, artist, thumbnail etc.'}, (async (m, match) => { 
 if (!m.reply_message.data.quotedMessage) return await m.sendMessage('_Reply to an audio or a sticker_')
 var audiomsg = m.reply_message.data.quotedMessage.audioMessage;
 var stickermsg = m.reply_message.data.quotedMessage.stickerMessage;
@@ -32,7 +32,7 @@ var spl = w.AUDIO_DATA.split(';')
     });
     
 }
-if (!audiomsg && !stickermsg) return await m.sendMessage('_Reply to an audio or a sticker_')
+if (!audiomsg && !stickermsg) return await m.client.sendMessage(m.jid,'_Reply to an audio or a sticker_',MessageType.text,{quoted: m.data})
 }));
 e.addCommand({pattern: 'wm ?(.*)', fromMe: a, desc:'Sets sticker pack & author name with given ones.'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
