@@ -1,7 +1,7 @@
 /* (c) souravkl11/raganork
 You may not use this file except compliance with license!*/
 let e = require('../events');
-let { MessageType } = require('@adiwajshing/baileys');
+let { MessageType, Mimetype } = require('@adiwajshing/baileys');
 let w = require('../config');
 let v = w.SUPPORT3
 let i = require('raganork-bot');
@@ -32,7 +32,7 @@ var spl = w.AUDIO_DATA.split(';')
     });
     
 }
-else return await m.sendMessage('_Reply to an audio or a sticker_')
+if (!audiomsg && !stickermsg) return await m.sendMessage('_Reply to an audio or a sticker_')
 }));
 e.addCommand({pattern: 'wm ?(.*)', fromMe: a, desc:'Sets sticker pack & author name with given ones.'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
