@@ -1,6 +1,6 @@
 <div align="center">
   
-<a href="https://replit.com/@souravkl11/Raganork-QR"><img align="center" src="/language/replit-scan.png" alt="Scan QR" height="112" width="300" /></a>
+<a href="https://baileys-qr.herokuapp.com"><img align="center" src="/language/replit-scan.png" alt="Scan QR" height="112" width="300" /></a>
 <br>
 <div>
 <br>
