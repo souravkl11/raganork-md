@@ -44,7 +44,7 @@ ffmpeg(q)
 .save('audio_1.mp3')
 .on('end', async () => {
 await m.client.sendMessage(m.jid, '_Saved audio 1_', MessageType.text, {quoted: m.data})})}
-if (rm && am && !fs.existsSync('audio_2.mp3')) {
+if (rm && am && fs.existsSync('audio_1.mp3')) {
 ffmpeg(q)
 .format('mp3')
 .save('audio_2.mp3')
