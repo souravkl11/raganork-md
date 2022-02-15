@@ -19,7 +19,7 @@ if (rm && vm && !fs.existsSync('vid.mp4')) {
 await fs.writeFileSync('vid.mp4',q)
 await m.client.sendMessage(m.jid, '_Saved video! Next, reply to the audio to be mixed_', MessageType.text, {quoted: m.data})}
 if (rm && vm && fs.existsSync('aud.mp3') && fs.existsSync('vid.mp4')) {
-query.AVmix('vid.mp4','aud.mp3','AV_mix.mp4',v, async function(video) {
+query.AVmix('aud.mp3','vid.mp4','AV_mix.mp4',v, async function(video) {
 await m.client.sendMessage(m.jid, video, MessageType.video, { mimetype: Mimetype.mp4, quoted: m.data});
 });    
 }
