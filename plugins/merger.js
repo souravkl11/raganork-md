@@ -27,7 +27,8 @@ if (rm && vm && fs.existsSync('audio_v.mp3') && fs.existsSync('vid.mp4')) {
 query.AVmix('vid.mp4','audio_v.mp3','AV_mix.mp4',v, async function(video) {
 await m.client.sendMessage(m.jid, video, MessageType.video, { mimetype: Mimetype.mp4, quoted: m.data});
 await fs.unlinkSync('vid.mp4')
-await fs.unlinkSync('audio_v.mp3')
+await fs.unlinkSync('audio_2.m4a')
+await fs.unlinkSync('AV_mix.mp4')
 return;
 });    
 }
@@ -51,10 +52,11 @@ ffmpeg(q)
 .on('end', async () => {
 await m.client.sendMessage(m.jid, '_Saved audio 2. Processing..._', MessageType.text, {quoted: m.data})})}
 if (rm && am && fs.existsSync('audio_1.m4a') && fs.existsSync('audio_2.m4a')) {
-query.MixAudio('audio_2.m4a','audio_1.m4a','amix.m4a',v, async function(audio) {
+query.MixAudio('audio_2.m4a','audio_1.m4a','amix.mp3',v, async function(audio) {
 await m.client.sendMessage(m.jid, audio, MessageType.audio, { mimetype: 'audio/m4a', quoted: m.data});
 await fs.unlinkSync('audio_1.m4a')
 await fs.unlinkSync('audio_2.m4a')
+await fs.unlinkSync('amix.mp3')
 return;
 });    
 }
