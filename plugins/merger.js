@@ -38,23 +38,23 @@ var am = m.reply_message.data.quotedMessage.audioMessage;
 var q = await m.client.downloadAndSaveMediaMessage({key: { remoteJid: m.reply_message.jid,id: m.reply_message.id}, message: m.reply_message.data.quotedMessage});
 if (!rm) return await m.client.sendMessage(m.jid, '_Reply to an audio or video!_', MessageType.text, {quoted: m.data})
 if (!am) return await m.client.sendMessage(m.jid, '_Reply to an audio or video!_', MessageType.text, {quoted: m.data})
-if (rm && am && !fs.existsSync('audio_1.mp3' && !fs.existsSync('audio_2.mp3'))) {
+if (rm && am && !fs.existsSync('audio_1.m4a') && !fs.existsSync('audio_2.m4a')) {
 ffmpeg(q)
-.format('mp3')
-.save('audio_1.mp3')
+.format('m4a')
+.save('audio_1.m4a')
 .on('end', async () => {
 await m.client.sendMessage(m.jid, '_Saved audio 1_', MessageType.text, {quoted: m.data})})}
-if (rm && am && fs.existsSync('audio_1.mp3') && !fs.existsSync('audio_2.mp3')) {
+if (rm && am && fs.existsSync('audio_1.m4a') && !fs.existsSync('audio_2.m4a')) {
 ffmpeg(q)
-.format('mp3')
-.save('audio_2.mp3')
+.format('m4a')
+.save('audio_2.m4a')
 .on('end', async () => {
 await m.client.sendMessage(m.jid, '_Saved audio 2. Processing..._', MessageType.text, {quoted: m.data})})}
-if (rm && am && fs.existsSync('audio_1.mp3') && fs.existsSync('audio_2.mp3')) {
-query.MixAudio('audio_2.mp3','audio_1.mp3','amix.mp3',v, async function(audio) {
-await m.client.sendMessage(m.jid, audio, MessageType.audio, { mimetype: Mimetype.mp3, quoted: m.data});
-await fs.unlinkSync('audio_1.mp3')
-await fs.unlinkSync('audio_2.mp3')
+if (rm && am && fs.existsSync('audio_1.m4a') && fs.existsSync('audio_2.m4a')) {
+query.MixAudio('audio_2.m4a','audio_1.m4a','amix.m4a',v, async function(audio) {
+await m.client.sendMessage(m.jid, audio, MessageType.audio, { mimetype: 'audio/m4a', quoted: m.data});
+await fs.unlinkSync('audio_1.m4a')
+await fs.unlinkSync('audio_2.m4a')
 return;
 });    
 }
