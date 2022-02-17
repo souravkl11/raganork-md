@@ -19,7 +19,8 @@ if (stickermsg) {
 var s = w.SOURAVKL11.split('|');
 var au = s[1];
 var p = s[0];
-var res = await i.query.sticker(q,au,p,v)
+if (!w.take_key) return await m.sendMessage('_No API key given! Get your key from https://api.imgbb.com/ and add setvar FIND_KEY:key_')
+var res = await i.query.sticker(q,au,p,w.take_key,v)
 await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});
 } 
 if (!stickermsg && audiomsg) {
@@ -43,7 +44,7 @@ au = s[1];
 p = s[0];}
 else {
 p = t[1]}
-var res = await i.query.sticker(q,au,p,v)
+var res = await i.query.sticker(q,au,p,w.take_key,v)
 await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});}));
 e.addCommand({pattern: 'crop ?(.*)', fromMe: a, desc:'Crops sticker'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
