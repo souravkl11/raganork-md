@@ -1,4 +1,4 @@
-const Asena = require('../events');
+const Asena = require('../Utilis/events');
 const {MessageType} = require('@adiwajshing/baileys');
 const axios = require('axios');
 const Config = require('../config');
