@@ -19,7 +19,7 @@ if (stickermsg) {
 var s = w.SOURAVKL11.split('|');
 var au = s[1];
 var p = s[0];
-if (!w.take_key) return await m.sendMessage('_No API key given! Get your key from https://api.imgbb.com/ and add setvar FIND_KEY:key_')
+if (!w.take_key) return await m.sendMessage('_No API key given! Get your key from https://api.imgbb.com/ and add setvar TAKE_KEY:key_')
 var res = await i.query.sticker(q,au,p,w.take_key,v)
 await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});
 } 
