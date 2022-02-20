@@ -20,7 +20,7 @@ go = mm
 var initt = go.split(" ").join("")
 var number = initt.replace('+','')
 const res = await truecaller.query.find(number,'',v)
-if (!res) return await msg.sendMessage("Server returned with an error: 429")
+if (res.name == 'error') return await msg.sendMessage("_Truecaller limit over! (20/20) Contact owner_")
 await msg.client.sendMessage(msg.jid, '*Number info from truecaller:* \n\n' + "Number: " +res.phones[0].e164Format + '\n' +
 "Name:" +' *' + res.name+ '*\n' +
 "Access:" +' *' + res.access + '*\n' +
