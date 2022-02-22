@@ -27,7 +27,7 @@ if (url != null) {
 var res = await raganork.query.getPost(url[0],v )
 if (res === "false") return await msg.client.sendMessage(msg.jid, fail, MessageType.text, {quoted: msg.data});
 else await msg.client.sendMessage(msg.jid, downloading, MessageType.text, {quoted: msg.data});
-var url = res.link
+var url = res.data
 for (var i = 0; i < (url.length); i++) {
 var get = got(url[i], {https: {rejectUnauthorized: false}});
 var type = url[i].includes('mp4') ? MessageType.video : MessageType.image
