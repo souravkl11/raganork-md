@@ -65,8 +65,10 @@ url += result.url + ','});
 var que = url !== false ? url.split(',') : [];
 for (var i = 0; i < (que.length < res.result.stories.length ? que.length : res.result.stories.length); i++) {
 var get = got(que[i], {https: {rejectUnauthorized: false}});
+var type = que[i].includes('mp4') ? MessageType.video : MessageType.image
+var mime = que[i].includes('mp4') ? Mimetype.mp4 : Mimetype.jpg
 var stream = get.buffer();
 stream.then(async (video) => {
-await msg.client.sendMessage(msg.jid, video, MessageType.video, { mimetype: Mimetype.mp4, caption: '```Story of '+res.result.username + '```', quoted: msg.data});
+await msg.client.sendMessage(msg.jid, video, type, { mimetype: mime, caption: '```Story of '+res.result.username + '```', quoted: msg.data});
 })};
 }));
