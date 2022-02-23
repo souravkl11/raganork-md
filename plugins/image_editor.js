@@ -87,6 +87,13 @@ var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_mes
 var res = await i.query.upload(q,v1)
 var msg = await i.query.skbuffer(`https://raganork-api.herokuapp.com/api/image_editor?apikey=made_by_souravkl11&style=aadhar&text=${text[1]}&url=${res.link}`)
 await m.client.sendMessage(m.jid, msg,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
+e.addCommand({pattern: 'blur ?(.*)', fromMe: a, desc:'Makes an aadhar card with given image, name and gender'}, (async (m, text) => { 
+let value = text[1] ? text[1] : 5
+if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
+var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
+var res = await i.query.upload(q,v1)
+var msg = await i.query.skbuffer(`https://raganork-api.herokuapp.com/api/image_editor?apikey=made_by_souravkl11&style=blur&count=${value}&url=${res.link}`)
+await m.client.sendMessage(m.jid, msg,MessageType.image,{mimetype: Mimetype.jpg ,quoted:m.data});}));
 e.addCommand({pattern: 'google', fromMe: a, desc:'Searches image in google. Like Google lens'}, (async (m, text) => { 
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
@@ -95,7 +102,7 @@ var search = await x(`https://raganork-api.herokuapp.com/api/image-search?apikey
 var msg = '';
 search.data.result.map((google) => {msg +='```Title:``` *'+google.title+'*\n ```Desc:``` *'+google.description+'* \n ```Link:``` *'+google.url+'* \n\n'});
 await m.client.sendMessage(m.jid, msg,MessageType.text,{quoted:m.data});}));
-e.addCommand({pattern: 'ytcomment ?(.*)', fromMe: a, desc:'Makes an aadhar card with given image, name and gender'}, (async (m, text) => { 
+e.addCommand({pattern: 'ytcomment ?(.*)', fromMe: a, desc:'Makes a youtube comment image with image,text and username'}, (async (m, text) => { 
 if (!text[1]) return await m.sendMessage("Need any text")
 if (!m.reply_message.image) return await m.sendMessage("_Reply to an image!_")
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
