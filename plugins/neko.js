@@ -21,7 +21,7 @@ let sk = Config.WORKTYPE == 'public' ? false : true
         if (!message.reply_message) return await message.sendMessage(Lang.NEED_REPLY);
         if (!message.reply_message.text) return await message.sendMessage(Lang.MUST_TEXT);
         try {
-            lib.nekobin(message.reply_message.message).then(async (data) => {
+            raganork.nekobin(message.reply_message.message).then(async (data) => {
               await message.client.sendMessage(message.jid,'Text saved to: '+data.url,MessageType.text,{quoted:message.data})
             })        
         } catch (err) {
