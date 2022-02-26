@@ -1,4 +1,5 @@
-/* Credits: souravkl11, raganork-api
+/* Code Credits: souravkl11, raganork-api
+Please give credit to the creator :)
 (c) souravkl11 2022 All rights reserved
 */
 const skl = require('../events');
