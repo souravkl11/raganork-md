@@ -19,9 +19,9 @@ var msg = "```Warning ⚠️```"+ '\n' +
 "Reason:" +' *' + reason+ '*\n' +
 "Remaining:" +' *' + warn + '*\n' 
 if (warn !== 0) {
-    return await m.client.sendMessage(chat,msg,MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: par}})
+    return await m.client.sendMessage(chat,msg,MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})
 } else {
-    await m.client.sendMessage(chat,'_Warn limit('+cnt+') exceeded. Removing @'+par.split('@')[0]+ '_',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: par}})
+    await m.client.sendMessage(chat,'```Warn limit('+cnt+') of @'+par.split('@')[0]+'exceeded. Removing participant```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})
     await m.client.groupRemove(m.jid, [m.reply_message.data.participant]);
 }
 }));
@@ -32,6 +32,6 @@ e.addCommand({pattern: 'reset warn', fromMe: true, desc:'Warns user. Removes use
     var chat = m.jid
     if (!chat.endsWith('@g.us')) return await m.sendMessage('_Only works in groups!_')
     await query.deletewarn(me,chat,par,v)
-    await m.client.sendMessage(chat,'_Successfully reset warn limits ('+cnt+') of @'+par.split('@')[0]+ '_',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: par}})    
+    await m.client.sendMessage(chat,'```Successfully reset warn limits ('+cnt+') of @'+par.split('@')[0]+ '```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})    
 }));
     
