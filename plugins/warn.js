@@ -7,7 +7,8 @@ let v = w.SESSION
 let cnt = w.warn_count
 let {query} = require('raganork-bot');
 e.addCommand({pattern: 'warn ?(.*)', fromMe: true, desc:'Warns user. Removes user after maximum number of warns'}, (async (m, mat) => { 
-var par = m.reply_message.jid
+if (!m.reply_message) return await m.sendMessage('Reply to any message!_')
+    var par = m.reply_message.jid
 var me = m.client.user.jid
 var chat = m.jid
 if (!chat.endsWith('@g.us')) return await m.sendMessage('_Only works in groups!_')
@@ -19,8 +20,9 @@ var msg = "```Warning ⚠️```"+ '\n' +
 "Remaining:" +' *' + warn + '*\n' +
 "Career:" +' *' + res.phones[0].carrier + '*\n'
 if (warn !== 0) {
-    return await m.client.sendMessage(chat,msg,MessageType.text,{quoted:m.data})
+    return await m.client.sendMessage(chat,msg,MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: par}})
 } else {
-    return await m.client.sendMessage(chat,'_Warn limit() exceeded. Removing @'+par.split('@')[0]+ '_',MessageType.text,{quoted:m.data})
+    await m.client.sendMessage(chat,'_Warn limit() exceeded. Removing @'+par.split('@')[0]+ '_',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: par}})
+    await m.client.groupRemove(m.jid, [m.reply_message.data.participant]);
 }
 }));
