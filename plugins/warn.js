@@ -9,7 +9,7 @@ let {query} = require('raganork-bot');
 e.addCommand({pattern: 'warn ?(.*)', fromMe: true, desc:'Warns user. Removes user after maximum number of warns'}, (async (m, mat) => { 
 if (!m.reply_message) return await m.sendMessage('Reply to any message!_')
     var par = m.reply_message.jid
-var me = m.client.user.jid
+var me = m.client.user.jid.split('@')[0]
 var chat = m.jid
 if (!chat.endsWith('@g.us')) return await m.sendMessage('_Only works in groups!_')
 var warn = await query.setwarn(me,chat,par,cnt,v)
