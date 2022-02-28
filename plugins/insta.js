@@ -70,6 +70,7 @@ var type = que[i].includes('mp4') ? MessageType.video : MessageType.image
 var mime = que[i].includes('mp4') ? Mimetype.mp4 : Mimetype.jpg
 var stream = get.buffer();
 stream.then(async (video) => {
-await msg.client.sendMessage(msg.jid, video, type, { mimetype: mime, caption: '```Story of '+res.result.username + '```', quoted: msg.data});
+await msg.sendMessage('```Downloading '+res.result.stories_count+' stories of '+res.result.username+'```');
+await msg.client.sendMessage(msg.jid, video, type, { mimetype: mime,quoted: msg.data});
 })};
 }));
