@@ -60,6 +60,7 @@ if (query[1] === '') return await msg.client.sendMessage(msg.jid, need_acc_s, Me
 var user = query[1];
 var res = await raganork.query.getStory(user,v)
 if (res === "false") return await msg.client.sendMessage(msg.jid, "_Story not found!_", MessageType.text, {quoted: msg.data})
+if (res.error) return await msg.client.sendMessage(msg.jid, res.error.replace('status','story'), MessageType.text, {quoted: msg.data})
 var url = ''
 res.result.stories.map((result) => {
 url += result.url + ','});
