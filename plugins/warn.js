@@ -7,7 +7,7 @@ let v = w.SESSION
 let cnt = w.warn_count
 let {query} = require('raganork-bot');
 e.addCommand({pattern: 'warn ?(.*)', fromMe: true, desc:'Warns user. Removes user after maximum number of warns'}, (async (m, mat) => { 
-if (!m.reply_message) return await m.sendMessage('Reply to any message!_')
+if (!m.reply_message) return await m.sendMessage('_Reply to any message!_')
     var par = m.reply_message.jid
 var me = m.client.user.jid.split('@')[0]
 var chat = m.jid
@@ -25,13 +25,27 @@ if (warn !== 0) {
     await m.client.groupRemove(m.jid, [m.reply_message.data.participant]);
 }
 }));
-e.addCommand({pattern: 'reset warn', fromMe: true, desc:'Warns user. Removes user after maximum number of warns'}, (async (m, mat) => { 
-    if (!m.reply_message) return await m.sendMessage('Reply to any message!_')
+e.addCommand({pattern: 'reset warn', fromMe: true, desc:'Resets the warn count of the user'}, (async (m, mat) => { 
+    if (!m.reply_message) return await m.sendMessage('_Reply to any message!_')
         var par = m.reply_message.jid
     var me = m.client.user.jid.split('@')[0]
     var chat = m.jid
     if (!chat.endsWith('@g.us')) return await m.sendMessage('_Only works in groups!_')
     await query.deletewarn(me,chat,par,v)
     await m.client.sendMessage(chat,'```Successfully reset warn limits ('+cnt+') of @'+par.split('@')[0]+ '```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})    
+}));
+e.addCommand({pattern: 'get warn', fromMe: true, desc:'Get the number of warns of specific user'}, (async (m, mat) => { 
+    if (!m.reply_message) return await m.sendMessage('_Reply to any message!_')
+        var par = m.reply_message.jid
+    var me = m.client.user.jid.split('@')[0]
+    var chat = m.jid
+    if (!chat.endsWith('@g.us')) return await m.sendMessage('_Only works in groups!_')
+    var war = await query.getwarn(me,chat,par,v)
+    var warns = war.length
+    if (warns === 0) {
+    return await m.client.sendMessage(chat,'```User @'+par.split('@')[0]+ ' is not in the warn list ✅```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})    
+    } else {
+    return await m.client.sendMessage(chat,'```User @'+par.split('@')[0]+' has only '+cnt-warns+') warnings left ⚠```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})    
+    }
 }));
     
