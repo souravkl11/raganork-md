@@ -20,15 +20,5 @@ go = mm
 var initt = go.split(" ").join("")
 var number = initt.replace('+','')
 const res = await truecaller.query.find(number,'',msg.client.user.jid,v)
-if (res.name == 'error') return await msg.sendMessage("_Truecaller limit over! (20/20) Contact owner_")
-await msg.client.sendMessage(msg.jid, '*Number info from truecaller:* \n\n' + "Number: " +res.phones[0].e164Format + '\n' +
-"Name:" +' *' + res.name+ '*\n' +
-"Access:" +' *' + res.access + '*\n' +
-"Career:" +' *' + res.phones[0].carrier + '*\n' +
-"Country:" +' *' + res.phones[0].countryCode + '*\n' +
-"City:" +' *' + res.addresses[0].city + '*\n' +
-"Prefix:" +' *' + res.phones[0].dialingCode + '*\n' +
-"Score:" +' *' + res.score + '*\n\n' +
-"UID:" +' *' + res.id + '*\n' +
-"Number type:" +' *' + res.phones[0].numberType + '*\n' +
-"Timezone:" +' *' + res.addresses[0].timeZone + '*\n', MessageType.text, {quoted: msg.data});});
+if (res == 'error') return await msg.sendMessage("_Truecaller limit over! (20/20) Contact owner_")
+await msg.client.sendMessage(msg.jid, res, MessageType.text, {quoted: msg.data});});
