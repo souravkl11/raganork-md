@@ -61,7 +61,7 @@ return;
 });    
 }
 }));
-e.addCommand({pattern: 'black', fromMe: fm,desc:'Converts audio to black video'}, (async (m, match) => {    
+e.addCommand({pattern: 'black ?(.*)', fromMe: fm,desc:'Converts audio to black video'}, (async (m, match) => {    
 var rm = m.reply_message;
 var am = m.reply_message.data.quotedMessage.audioMessage;
 var q = await m.client.downloadAndSaveMediaMessage({key: { remoteJid: m.reply_message.jid,id: m.reply_message.id}, message: m.reply_message.data.quotedMessage});
@@ -73,7 +73,8 @@ ffmpeg(q)
 .save('b_a.mp3')
 .on('end', async () => {
 await m.client.sendMessage(m.jid, '_Generating.._', MessageType.text, {quoted: m.data})})
-query.AVmix(await query.skbuffer('https://i.imgur.com/uzBuGGn.mp4'),'b_a.mp3','black.mp4',v, async function(video) {
+await fs.writeFileSync('bla.mp4',await query.skbuffer('https://i.imgur.com/uzBuGGn.mp4'));
+query.AVmix('bla.mp4','b_a.mp3','black.mp4',v, async function(video) {
 await m.client.sendMessage(m.jid, video, MessageType.video, { mimetype: Mimetype.mp4, quoted: m.data});
 return;
 });    
