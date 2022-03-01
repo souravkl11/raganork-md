@@ -45,7 +45,7 @@ e.addCommand({pattern: 'get warn', fromMe: true, desc:'Get the number of warns o
     if (warns === 0) {
     return await m.client.sendMessage(chat,'```User @'+par.split('@')[0]+ ' is not in the warn list ✅```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})    
     } else {
-    return await m.client.sendMessage(chat,'```User @'+par.split('@')[0]+' has only '+cnt-warns+') warnings left ⚠```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})    
+    return await m.client.sendMessage(chat,'```User @'+par.split('@')[0]+' has only ('+parseInt(cnt)-warns+') warnings left ⚠```',MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})    
     }
 }));
     
