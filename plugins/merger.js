@@ -6,7 +6,7 @@ const c = require('../config')
 var {query} = require('raganork-bot')
 var v = c.SESSION
 var fm = c.WORKTYPE == 'public' ? false : true
-e.addCommand({pattern: 'avmix ?(.*)', fromMe: fm}, (async (m, match) => {    
+e.addCommand({pattern: 'avmix ?(.*)', fromMe: fm,desc:'Mixes audio and video'}, (async (m, match) => {    
 var rm = m.reply_message;
 var am = m.reply_message.data.quotedMessage.audioMessage;
 var vm = m.reply_message.data.quotedMessage.videoMessage;
@@ -61,4 +61,20 @@ return;
 });    
 }
 }));
-    
+e.addCommand({pattern: 'black', fromMe: fm,desc:'Converts audio to black video'}, (async (m, match) => {    
+var rm = m.reply_message;
+var am = m.reply_message.data.quotedMessage.audioMessage;
+var q = await m.client.downloadAndSaveMediaMessage({key: { remoteJid: m.reply_message.jid,id: m.reply_message.id}, message: m.reply_message.data.quotedMessage});
+var qb = await m.client.downloadMediaMessage({key: { remoteJid: m.reply_message.jid,id: m.reply_message.id}, message: m.reply_message.data.quotedMessage});
+if (!rm) return await m.client.sendMessage(m.jid, '_Reply to an audio!_', MessageType.text, {quoted: m.data})
+if (!am) return await m.client.sendMessage(m.jid, '_Reply to an audio!_', MessageType.text, {quoted: m.data})
+ffmpeg(q)
+.format('mp3')
+.save('b_a.mp3')
+.on('end', async () => {
+await m.client.sendMessage(m.jid, '_Generating.._', MessageType.text, {quoted: m.data})})
+query.AVmix(await query.skbuffer('https://i.imgur.com/uzBuGGn.mp4'),'b_a.mp3','black.mp4',v, async function(video) {
+await m.client.sendMessage(m.jid, video, MessageType.video, { mimetype: Mimetype.mp4, quoted: m.data});
+return;
+});    
+}));    
