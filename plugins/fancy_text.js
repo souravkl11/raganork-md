@@ -65,5 +65,5 @@ if (q[1] == '26') msg = r.res26
 if (q[1] == '27') msg = r.res27
 if (q[1] == '28') msg = r.res28
 if (q[1] == '29') msg = r.res29
-    else msg = 'Wrong parameter. Use numbers from fancy table'
+if (parseInt(q[1]) > 30) msg = 'Wrong parameter. Use numbers from fancy table below 30'
     await m.client.sendMessage(m.jid,msg,MessageType.text,{quoted: m.data})}));
