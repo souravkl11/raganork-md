@@ -1,7 +1,3 @@
-/* Copyright (c) Yusuf Usta & souravkl11
-Licenced under GNU
-Copying strictly proibited!
-*/
 
 const { Sequelize } = require('sequelize');
 const fs = require('fs');
@@ -18,7 +14,7 @@ DEBUG = process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBU
 module.exports = {
     VERSION: 'v3.0.0',
     CHANNEL: 'undefined',
-    SESSION: process.env.RAGANORK_CODE === undefined ? 'apikey' : process.env.RAGANORK_CODE,
+    SESSION: process.env.AXYA_CODE === undefined ? 'apikey' : process.env.AXYA_CODE,
     ANTİLİNK: process.env.ANTİ_LİNK === undefined ? 'false' : process.env.ANTİ_LİNK,
     AFN: process.env.ALL_CAPTION === undefined ? '*MADE BY YOUR BOT NAME*' : process.env.ALL_CAPTION,
     AUTOBİO: process.env.AUTO_BİO === undefined ? 'false' : process.env.AUTO_BİO,
@@ -33,11 +29,11 @@ module.exports = {
     M_REPLY_VAR: process.env.M_REPLY_VAR === undefined ? 'true' : process.env.M_REPLY_VAR,
     AFNN: process.env.TAG_REPLY === undefined ? '919074309534@s.whatsapp.net' : process.env.TAG_REPLY,
     NBSK: process.env.ALL_NUMBER === undefined ? '916282344739' : process.env.ALL_NUMBER,
-    AUDIO_DATA: process.env.AUDIO_DATA === undefined ? 'sᴏᴜʀᴀᴠᴋʟ¹¹;ʀᴀɢᷨᴀͦɴͭᴏʀᴋ;https://www.linkpicture.com/q/rgnk.jpg' : process.env.AUDIO_DATA,
+    AUDIO_DATA: process.env.AUDIO_DATA === undefined ? 'ᴀxʏᴀ';https://www.linkpicture.com/q/axya.jpg' : process.env.AUDIO_DATA,
     BLOCKCHAT: process.env.BLOCK_CHAT === undefined ? false : process.env.BLOCK_CHAT,
     ADDMSG: process.env.ADD_MESSAGE === undefined ? 'default' : process.env.ADD_MESSAGE,
     MUTEMSG: process.env.MUTE_MESSAGE === undefined ? 'default' : process.env.MUTE_MESSAGE,
-    PLK: process.env.OWNER_NAME === undefined ? 'sᴏᴜʀᴀᴠᴋʟ¹¹' : process.env.OWNER_NAME,
+    PLK: process.env.OWNER_NAME === undefined ? 'ɪᴛsᴍᴇ-ʙʟᴀᴄᴋ' : process.env.OWNER_NAME,
     SONGD: process.env.SONGD === undefined ? '𝙎𝙚𝙖𝙧𝙘𝙝𝙞𝙣𝙜 𝙨𝙤𝙣𝙜... 🔍' : process.env.SONGD,
     SONGU: process.env.SONGU === undefined ? '𝙎𝙤𝙣𝙜 𝙛𝙤𝙪𝙣𝙙! 𝙐𝙥𝙡𝙤𝙖𝙙𝙞𝙣𝙜... ⏫' : process.env.SONGU,
     BGMFILTER: process.env.BGM_FILTER === undefined ? false : convertToBool(process.env.BGM_FILTER),
@@ -57,11 +53,11 @@ module.exports = {
     created_by_souravkl11: process.env.ALL_IMG2 === undefined ? 'https://www.linkpicture.com/q/rgnk.jpg' : process.env.ALL_IMG2,
     take_key: process.env.TAKE_KEY === undefined ? '' : process.env.TAKE_KEY,
     find_key: process.env.FIND_KEY === undefined ? '' : process.env.FIND_KEY,
-    SKDL: process.env.DIALOGUE === undefined ? '❤️‍🔥 𝗞𝗜𝗟𝗟𝗔𝗗𝗜𝗦𝗠 𝗡𝗘𝗩𝗘𝗥 𝗘𝗡𝗗𝗦 ❤️‍🔥' : process.env.DIALOGUE,
+    SKDL: process.env.DIALOGUE === undefined ? 'ᴀxʏᴀ     ᴏɴᴇ &ᴏɴʟʏ ʟᴇɢᴇɴᴅ🍭' : process.env.DIALOGUE,
     BLOCKMSG: process.env.BLOCK_MESSAGE === undefined ? 'default' : process.env.BLOCK_MESSAGE,
     UNBLOCKMSG: process.env.UNBLOCK_MESSAGE === undefined ? 'default' : process.env.UNBLOCK_MESSAGE,
     SOURAV: process.env.SK_BLOCK === undefined ? 'false' : process.env.SK_BLOCK,
-    SOURAVKL11: process.env.STICKER_DATA === undefined ? 'sᴏᴜʀᴀᴠᴋʟ¹¹|ʀᴀɢᷨᴀͦɴͭᴏʀᴋ' : process.env.STICKER_DATA,
+    SOURAVKL11: process.env.STICKER_DATA === undefined ? 'ɪᴛsᴍᴇ-ʙʟᴀᴄᴋ;ᴀxʏᴀ' : process.env.STICKER_DATA,
     ANTI_FAKE: process.env.AUTO_FAKE === undefined ? 'sourav' : process.env.AUTO_FAKE,
     AUTO_FAKE: process.env.ANTI_FAKE === undefined ? 'false' : process.env.ANTI_FAKE,
     UNMUTEMSG: process.env.UNMUTE_MESSAGE === undefined ? 'default' : process.env.UNMUTE_MESSAGE,
