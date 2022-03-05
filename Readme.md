@@ -1,4 +1,9 @@
 <div align="center">
+ <p align="center"> 
+     <a href="https://git.io/J0hKr"> 
+         <img src="https://readme-typing-svg.herokuapp.com?size=30&width=800&lines=Welcome+To+BLACK+444+Profile." alt="Typing SVG"</img> 
+     </a> 
+ </p>
 <img border-radius:15px src="axya.jpg" width="200" height="200">
 <a href="https://baileys-qr.herokuapp.com"><img align="center" src="/language/replit-scan.png" alt="Scan QR" height="112" width="300" /></a>
 <br>
