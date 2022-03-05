@@ -1,14 +1,14 @@
 {
-  "name": "raganork",
+  "name": "axya",
   "version": "4.0.0",
-  "description": "Raganork whatsapp bot- Modified version of Whatsasena by Yusuf usta.",
-  "main": "./Raganork/bot.js",
+  "description": "axya whatsapp bot- Modified version of Whatsasena by Yusuf usta.",
+  "main": "./axya/bot.js",
   "scripts": {
     "start": "supervisor -s index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/souravkl11/Raganork.git"
+    "url": "git+https://github.com/itsme-black/axya.git"
   },
   "keywords": [
     "whatsapp",
@@ -18,16 +18,16 @@
     "WhatsAsena"
   ],
   "author": "AsenaDev / Yusuf Usta",
-  "developer": "Raganork / @souravkl11",
+  "developer": "axya / @itsme-black",
   "license": "GPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/souravkl11/Raganork/issues"
+    "url": "https://github.com/itsme-black/axya/issues"
   },
-  "homepage": "https://github.com/souravkl11/Raganork#readme",
+  "homepage": "https://github.com/itsme-black/axya#readme",
   "dependencies": {
     "file-type": "16.5.2",
     "nekobin": "0.0.1",
-    "raganork-bot": "1.8.3",
+    "axya-bot": "1.8.3",
     "sequelize": "6.13.0",
     "supervisor": "0.12.0"
      }
