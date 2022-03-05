@@ -5,7 +5,6 @@ you may not use this file except in compliance with the License.
 
 WhatsAsena - Yusuf Usta
 */
-
 const fs = require('fs');
 
 class StringSession {
@@ -13,7 +12,7 @@ class StringSession {
     }
 
     deCrypt(string = undefined) {
-        if ('RAGANORK_CODE' in process.env && string === undefined) {
+        if ('axya_CODE' in process.env && string === undefined) {
             string = process.env.STRING_SESSION;
         } else if (string !== undefined) {
             if (fs.existsSync(string)) {
@@ -28,7 +27,7 @@ class StringSession {
     }
 
     createStringSession(dict) {
-        return 'RAGANORK;;;' + Buffer.from(JSON.stringify(dict)).toString('base64');
+        return 'axya;;;' + Buffer.from(JSON.stringify(dict)).toString('base64');
     }
 }
 
