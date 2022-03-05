@@ -1,5 +1,5 @@
 <div align="center">
-  
+<img border-radius:15px src="axya.jpg" width="200" height="200">
 <a href="https://baileys-qr.herokuapp.com"><img align="center" src="/language/replit-scan.png" alt="Scan QR" height="112" width="300" /></a>
 <br>
 <div>
