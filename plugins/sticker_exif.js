@@ -16,9 +16,10 @@ var audiomsg = m.reply_message.data.quotedMessage.audioMessage;
 var stickermsg = m.reply_message.data.quotedMessage.stickerMessage;
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 if (stickermsg) {
-var s = w.SOURAVKL11.split('|');
-var au = s[1];
-var p = s[0];
+let inf = match[1] ? match[1] : w.SOURAVKL11        
+var s = inf.split('|');
+var au = s[1] ? s[1] : w.SOURAVKL11.split('|')[1]
+var p =  s[0] ? s[0] : w.SOURAVKL11.split('|')[0]
 if (!w.take_key) return await m.sendMessage('_No API key given! Get your key from https://api.imgbb.com/ and add setvar TAKE_KEY:key_')
 var res = await i.query.sticker(q,au,p,w.take_key,v)
 await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});
@@ -27,14 +28,14 @@ if (!stickermsg && audiomsg) {
 ffmpeg(q)
 .save('info.mp3')
 .on('end', async () => {
-var spl = w.AUDIO_DATA.split(';')
-        var res = await i.query.addInfo('info.mp3',spl[0],spl[1],'Raganork Engine', await i.query.skbuffer(spl[2]),w.SESSION)
-        await m.client.sendMessage(m.jid, res, MessageType.audio, {quoted:m.data,mimetype: Mimetype.mp4Audio, ptt: false});
-    });
-    
-}
-if (!audiomsg && !stickermsg) return await m.client.sendMessage(m.jid,'_Reply to an audio or a sticker_',MessageType.text,{quoted: m.data})
-}));
+let inf = match[1] ? match[1] : w.AUDIO_DATA        
+var spl = inf.split(';')
+let im = spl[2].startsWith('http') ? spl[2] : w.LOGOSK
+let tit = spl[0] ? spl[0] : w.AUDIO_DATA.split(';')[0]
+let auth = spl[1] ? spl[1] : w.AUDIO_DATA.split(';')[1]
+var res = await i.query.addInfo('info.mp3',tit,auth,'Raganork Engine', await i.query.skbuffer(im),w.SESSION)
+await m.client.sendMessage(m.jid, res, MessageType.audio, {quoted:m.data,mimetype: Mimetype.mp4Audio, ptt: false});});}
+if (!audiomsg && !stickermsg) return await m.client.sendMessage(m.jid,'_Reply to an audio or a sticker_',MessageType.text,{quoted: m.data})}));
 e.addCommand({pattern: 'wm ?(.*)', fromMe: a, desc:'Sets sticker pack & author name with given ones.'}, (async (m, t) => { 
 var q = await m.client.downloadAndSaveMediaMessage({key: {remoteJid: m.reply_message.jid,id: m.reply_message.id},message: m.reply_message.data.quotedMessage});
 var au,p;
@@ -42,8 +43,7 @@ if (t[1].includes('|')) {
 var s = t[1].split('|');
 au = s[1];
 p = s[0];}
-else {
-p = t[1]}
+else {p = t[1]}
 var res = await i.query.sticker(q,au,p,w.take_key,v)
 await m.client.sendMessage(m.jid, await i.query.skbuffer(res),MessageType.sticker,{quoted:m.data});}));
 e.addCommand({pattern: 'crop ?(.*)', fromMe: a, desc:'Crops sticker'}, (async (m, t) => { 
