@@ -69,9 +69,9 @@ let sk = Config.WORKTYPE == 'public' ? false : true
 
         ffmpeg(location)
             .fromFormat('webp_pipe')
-            .save('output.jpg')
+            .save('output.png')
             .on('end', async () => {
-                await message.client.sendMessage(mid, fs.readFileSync('output.jpg'), MessageType.image, {mimetype: Mimetype.jpg});
+                await message.client.sendMessage(mid, fs.readFileSync('output.png'), MessageType.image, {mimetype: Mimetype.jpg});
             });
         return await message.client.deleteMessage(mid, {id: downloading.key.id, remoteJid: message.jid, fromMe: true})
     }));
