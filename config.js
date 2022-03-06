@@ -48,6 +48,7 @@ module.exports = {
     CODE: process.env.C_CODE === undefined ? '91' : process.env.C_CODE,
     DISSTICKER: process.env.DISABLE_STICKER === undefined ? false : process.env.DISABLE_STICKER,
     NOLOG: process.env.NO_LOG === undefined ? 'false' : process.env.NO_LOG,
+    AUTO_ACTION: process.env.AUTO_ACTION === undefined ? 'true' : process.env.AUTO_ACTION,
     CHATBOT: process.env.CHAT_BOT === undefined ? 'false' : process.env.CHAT_BOT,
     BOTSK: process.env.BOT_NAME === undefined ? 'PUBLIC BOT' : process.env.BOT_NAME,
     SUPPORT: process.env.ASENA === undefined ? '919074309534-1632403322,120363038867058369' : process.env.ASENA,
