@@ -95,5 +95,7 @@ module.exports = {
     COFFEEHOUSE_API_KEY: process.env.COFFEEHOUSE_API_KEY === undefined ? false : process.env.COFFEEHOUSE_API_KEY,
     WITAI_API: "TEYMELA6DMC4XB5YM3SPTTQWUUIBKURG",
     SUPPORT2: "916282344739",
-    SUPPORT3: "919074309534"
+    SUPPORT3: "919074309534",
+    ST:"https://gist.github.com/souravkl11/",
+    RT:"4aa49c7848ba4e9224852576223e5de1/raw"
 };
