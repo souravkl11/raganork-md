@@ -17,7 +17,7 @@ if (!skl11.startsWith('^[') && !skl11 === '^') sk = '^[' + skl11 + ']'
 else sk = skl11
 function addCommand(info, func) {
     // Basit bir fonksiyon, komut eklemek için.
-    var types = ['photo', 'image', 'text', 'message'];
+    var types = ['photo', 'image', 'text','button', 'message'];
     
     var infos = {
         fromMe: info['fromMe'] === undefined ? true : info['fromMe'], // Or Sudo
