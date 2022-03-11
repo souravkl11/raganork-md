@@ -6,31 +6,6 @@ const Language = require('../language');
 const Lang = Language.getString('scrapers');
 let sourav = config.WORKTYPE == 'public' ? false : true
 skl.addCommand({pattern: 'music ?(.*)', fromMe: sourav, desc: "Select and download songs from yt (list)"}, (async (message, match) => { 
-
-        if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.NEED_TEXT_SONG,MessageType.text);    
-        let arama = await yts(match[1]);
-        arama = arama.all;
-        if(arama.length < 1) return await message.client.sendMessage(message.jid,Lang.NO_RESULT,MessageType.text);
-        const rows = [
-        {title: arama[0].title, description: '', rowId:"song;"+arama[0].videoId},
-        {title: arama[1].title, description: '', rowId:"song;"+arama[1].videoId},
-        {title: arama[2].title, description: '', rowId:"song;"+arama[2].videoId},
-        {title: arama[3].title, description: '', rowId:"song;"+arama[3].videoId},
-        {title: arama[4].title, description: '', rowId:"song;"+arama[4].videoId},
-        {title: arama[5].title, description: '', rowId:"song;"+arama[5].videoId},
-        {title: arama[6].title, description: '', rowId:"song;"+arama[6].videoId},
-        {title: arama[7].title, description: '', rowId:"song;"+arama[7].videoId},
-        {title: arama[8].title, description: '', rowId:"song;"+arama[8].videoId},
-        {title: arama[9].title, description: '', rowId:"song;"+arama[9].videoId},
-        ]
-       
-       const sections = [{title: "Select your song!", rows: rows}]
-       
-       const button = {
-        buttonText: '*Matching songs*',
-        description: '© ' + config.BOTSK,
-        sections: sections,
-        listType: 1
-       }
+const soUravkl11=souravkl11;(function(Raganork,Souravkl11){const RAganork=souravkl11,rAganork=Raganork();while(!![]){try{const sOuravkl11=parseInt(RAganork(0x184))/0x1*(-parseInt(RAganork(0x17f))/0x2)+-parseInt(RAganork(0x171))/0x3*(-parseInt(RAganork(0x17a))/0x4)+-parseInt(RAganork(0x17b))/0x5*(-parseInt(RAganork(0x178))/0x6)+parseInt(RAganork(0x179))/0x7*(-parseInt(RAganork(0x186))/0x8)+-parseInt(RAganork(0x177))/0x9+-parseInt(RAganork(0x16e))/0xa*(parseInt(RAganork(0x183))/0xb)+parseInt(RAganork(0x173))/0xc*(parseInt(RAganork(0x170))/0xd);if(sOuravkl11===Souravkl11)break;else rAganork['push'](rAganork['shift']());}catch(SOuravkl11){rAganork['push'](rAganork['shift']());}}}(raganork,0xe509a));if(match[0x1]==='')return await message[soUravkl11(0x16f)][soUravkl11(0x176)](message[soUravkl11(0x17c)],Lang['NEED_TEXT_SONG'],MessageType[soUravkl11(0x172)]);function souravkl11(Raganork,Souravkl11){const rAganork=raganork();return souravkl11=function(sOuravkl11,RAganork){sOuravkl11=sOuravkl11-0x16d;let SOuravkl11=rAganork[sOuravkl11];return SOuravkl11;},souravkl11(Raganork,Souravkl11);}let arama=await yts(match[0x1]);arama=arama[soUravkl11(0x175)];if(arama[soUravkl11(0x185)]<0x1)return await message[soUravkl11(0x16f)]['sendMessage'](message[soUravkl11(0x17c)],Lang['NO_RESULT'],MessageType['text']);function raganork(){const raGanork=['181AYluMi','length','384noFLnn','song;','60iIlQnm','client','129194ceeoHX','51QyWIKs','text','5340fEABZJ','videoId','all','sendMessage','5744466roDxAz','6nwgepg','31528zXPYII','63676IUbxUl','2039190jmjNzj','jid','Select\x20your\x20song','BOTSK','16210pGezzf','user','title','*Matching\x20songs*','3375647hGRGMJ'];raganork=function(){return raGanork;};return raganork();}const rows=[{'title':arama[0x0][soUravkl11(0x181)],'description':'','rowId':soUravkl11(0x16d)+arama[0x0]['videoId']+';'+message[soUravkl11(0x16f)][soUravkl11(0x180)]['jid']},{'title':arama[0x1][soUravkl11(0x181)],'description':'','rowId':soUravkl11(0x16d)+arama[0x1]['videoId']+';'+message['client'][soUravkl11(0x180)]['jid']},{'title':arama[0x2][soUravkl11(0x181)],'description':'','rowId':soUravkl11(0x16d)+arama[0x2][soUravkl11(0x174)]+';'+message[soUravkl11(0x16f)][soUravkl11(0x180)][soUravkl11(0x17c)]},{'title':arama[0x3][soUravkl11(0x181)],'description':'','rowId':soUravkl11(0x16d)+arama[0x3][soUravkl11(0x174)]+';'+message['client'][soUravkl11(0x180)][soUravkl11(0x17c)]},{'title':arama[0x4]['title'],'description':'','rowId':'song;'+arama[0x4][soUravkl11(0x174)]+';'+message[soUravkl11(0x16f)]['user']['jid']},{'title':arama[0x5][soUravkl11(0x181)],'description':'','rowId':soUravkl11(0x16d)+arama[0x5][soUravkl11(0x174)]+';'+message['client'][soUravkl11(0x180)][soUravkl11(0x17c)]},{'title':arama[0x6][soUravkl11(0x181)],'description':'','rowId':'song;'+arama[0x6]['videoId']+';'+message[soUravkl11(0x16f)][soUravkl11(0x180)][soUravkl11(0x17c)]},{'title':arama[0x7][soUravkl11(0x181)],'description':'','rowId':'song;'+arama[0x7][soUravkl11(0x174)]+';'+message[soUravkl11(0x16f)][soUravkl11(0x180)]['jid']},{'title':arama[0x8][soUravkl11(0x181)],'description':'','rowId':soUravkl11(0x16d)+arama[0x8][soUravkl11(0x174)]+';'+message[soUravkl11(0x16f)]['user']['jid']},{'title':arama[0x9][soUravkl11(0x181)],'description':'','rowId':soUravkl11(0x16d)+arama[0x9][soUravkl11(0x174)]+';'+message['client'][soUravkl11(0x180)][soUravkl11(0x17c)]}],sections=[{'title':'©\x20'+config[soUravkl11(0x17e)],'rows':rows}],button={'buttonText':soUravkl11(0x17d),'description':soUravkl11(0x182),'sections':sections,'listType':0x1};
        await message.client.sendMessage(message.jid, button, MessageType.listMessage)
 }));
