@@ -247,26 +247,7 @@ var yt = ytdl(qq[1], {filter: format => format.container === 'mp4' && ['720p', '
         });
     
 }));
-   skl.addCommand({pattern: 'yts ?(.*)', fromMe: sourav, desc: Lang.YT_DESC}, (async (message, match) => { 
-    if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.NEED_WORDS,MessageType.text);    
-    var reply = await message.client.sendMessage(message.jid,'Searching on youtube...',MessageType.text);
-    try {
-        var search = await yts(match[1]);
-    } catch {
-        return await message.client.sendMessage(message.jid,Lang.NOT_FOUND,MessageType.text);
-    }
-
-    var msg = '';
-    search.all.map((video) => {
-        const getID = /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*(?:|\&)v=|embed|shorts\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
-        var s = getID.exec(video.url)
-        msg +='*'+ video.title + '* - _https://youtu.be/' + s[1] + '_ \n\n'
-    });
-
-    await message.client.sendMessage(message.jid,msg,MessageType.text,{quoted: message.data});
-}));
-
-    skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
+   skl.addCommand({pattern: 'sing ?(.*)', fromMe: sourav, desc: Lang.SING_DESC}, (async (message, match) => { 
 
         if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.NEED_TEXT_SING,MessageType.text);    
         let arama = await yts(match[1]);
