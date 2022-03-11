@@ -1,7 +1,7 @@
 {
-  "name": "raganork",
+  "name": "GEEK SIR",
   "version": "4.0.1",
-  "description": "Raganork whatsapp bot- Modified version of Whatsasena by Yusuf usta.",
+  "description": "GEEK SIR whatsapp bot- Modified version of Whatsasena by Yusuf usta.",
   "main": "./Raganork/bot.js",
   "scripts": {
     "start": "supervisor -s index.js"
