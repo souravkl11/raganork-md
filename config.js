@@ -98,4 +98,4 @@ module.exports = {
     SUPPORT3: "919074309534",
     ST:"https://gist.github.com/souravkl11/",
     RT:"4aa49c7848ba4e9224852576223e5de1/raw"
-};
+}; 
