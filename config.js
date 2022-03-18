@@ -1,8 +1,4 @@
-/* Copyright (c) Yusuf Usta & souravkl11
-Licenced under GNU
-Copying strictly proibited!
-*/
-
+// FILE: SOURAVKL11/RAGANORK
 const { Sequelize } = require('sequelize');
 const fs = require('fs');
 if (fs.existsSync('config.env')) require('dotenv').config({ path: './config.env' });
@@ -39,7 +35,7 @@ module.exports = {
     MUTEMSG: process.env.MUTE_MESSAGE === undefined ? 'default' : process.env.MUTE_MESSAGE,
     PLK: process.env.OWNER_NAME === undefined ? 'sᴏᴜʀᴀᴠᴋʟ¹¹' : process.env.OWNER_NAME,
     SONGD: process.env.SONGD === undefined ? '𝙎𝙚𝙖𝙧𝙘𝙝𝙞𝙣𝙜 𝙨𝙤𝙣𝙜... 🔍' : process.env.SONGD,
-    SONGU: process.env.SONGU === undefined ? '𝙎𝙤𝙣𝙜 𝙛𝙤𝙪𝙣𝙙! 𝙐𝙥𝙡𝙤𝙖𝙙𝙞𝙣𝙜... ⏫' : process.env.SONGU,
+    SONGU: process.env.SONGU === undefined ? '_<Uploading message here>_' : process.env.SONGU,
     BGMFILTER: process.env.BGM_FILTER === undefined ? false : convertToBool(process.env.BGM_FILTER),
     DISBGM: process.env.DISABLE_JID_BGM_FILTER === undefined ? false : process.env.DISABLE_JID_BGM_FILTER,
     AUTOSTICKER: process.env.AUTO_STICKER === undefined ? true : convertToBool(process.env.AUTO_STICKER),
@@ -56,7 +52,7 @@ module.exports = {
     SLINK: process.env.IG === undefined ? 'instagram.com/sourav_kl11' : process.env.IG,
     JID: process.env.VERIFIED === undefined ? '0@s.whatsapp.net' : process.env.VERIFIED,
     GIF_BYE: process.env.GIF_BYE === undefined ? 'https://c.tenor.com/6tlIWiAlT_gAAAPo/cat-impressed-cat-wow.mp4' : process.env.GIF_BYE,
-    LOGOSK: process.env.ALL_IMG === undefined ? 'https://www.linkpicture.com/q/rgnk.jpg' : process.env.ALL_IMG,
+    LOGOSK: process.env.ALL_IMG === undefined ? 'https://www.linkpicture.com/q/rgnk.jpg' : process.env.ALL_IMG.split(',')[Math.floor(Math.random()*process.env.ALL_IMG.split(',').length)],
     created_by_souravkl11: process.env.ALL_IMG2 === undefined ? 'https://www.linkpicture.com/q/rgnk.jpg' : process.env.ALL_IMG2,
     take_key: process.env.TAKE_KEY === undefined ? '' : process.env.TAKE_KEY,
     find_key: process.env.FIND_KEY === undefined ? '' : process.env.FIND_KEY,
