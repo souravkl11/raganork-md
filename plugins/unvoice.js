@@ -4,7 +4,7 @@ const fs = require('fs');
 const ffmpeg = require('fluent-ffmpeg');
 const Config = require('../config');
 const Language = require('../language');
-const {query} = require('raganork-bot');
+const {addInfo,skbuffer} = require('raganork-bot');
 const Lang = Language.getString('unvoice');
 let sourav = Config.WORKTYPE == 'public' ? false : true
 
@@ -42,7 +42,7 @@ Asena.addCommand({pattern: 'mp3$', fromMe: sourav, desc: 'Converts video/voice m
             .save('info.mp3')
             .on('end', async () => {
                 var s = match[1].split(';')
-                var res = await query.addInfo('info.mp3',s[0],s[1],'Raganork Engine', await query.skbuffer(s[2]),Config.SESSION)
+                var res = await addInfo('info.mp3',s[0],s[1],'Raganork Engine', await skbuffer(s[2]),Config.SESSION)
                 await message.client.sendMessage(message.jid, res, MessageType.audio, {mimetype: Mimetype.mp4Audio, ptt: false});
             });
         return await message.client.deleteMessage(message.jid, {id: downloading.key.id, remoteJid: message.jid, fromMe: true})

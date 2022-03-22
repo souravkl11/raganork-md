@@ -7,7 +7,7 @@ const cwebp = require('cwebp-bin');
 const Config = require('../config');
 let w = require('../config');
 let v = w.SUPPORT3
-let i = require('raganork-bot');
+let {skbuffer,sticker} = require('raganork-bot');
 const Language = require('../language');
 const Lang = Language.getString('sticker');
 
@@ -35,8 +35,8 @@ Asena.addCommand({pattern: 'sticker$', fromMe: sk, desc: Lang.STICKER_DESC}, (as
                         var s = w.SOURAVKL11.split('|');
                         var au = s[1];
                         var p = s[0];
-                        var res = await i.query.sticker('st.webp',au,p,w.take_key,v)
-                        await message.client.sendMessage(message.jid,await i.query.skbuffer(res), MessageType.sticker);
+                        var res = await sticker('st.webp',au,p,w.take_key,v)
+                        await message.client.sendMessage(message.jid,await skbuffer(res), MessageType.sticker);
                     }
                     else await message.sendMessage(fs.readFileSync('st.webp'), MessageType.sticker);
             });
@@ -53,8 +53,8 @@ Asena.addCommand({pattern: 'sticker$', fromMe: sk, desc: Lang.STICKER_DESC}, (as
                     var s = w.SOURAVKL11.split('|');
                     var au = s[1];
                     var p = s[0];
-                    var res = await i.query.sticker('sticker.webp',au,p,w.take_key,v)
-                    await message.client.sendMessage(message.jid,await i.query.skbuffer(res), MessageType.sticker);
+                    var res = await sticker('sticker.webp',au,p,w.take_key,v)
+                    await message.client.sendMessage(message.jid,await skbuffer(res), MessageType.sticker);
                 }
                 else await message.sendMessage(fs.readFileSync('sticker.webp'), MessageType.sticker);
             });

@@ -1,4 +1,4 @@
-const truecaller = require('raganork-bot')
+const {find} = require('raganork-bot')
 const New = require('../events');
 const s = require('../config');
 const {MessageType} = require('@adiwajshing/baileys');
@@ -19,6 +19,6 @@ go = mm
 } 
 var initt = go.split(" ").join("")
 var number = initt.replace('+','')
-const res = await truecaller.query.find(number,'',msg.client.user.jid,v)
+const res = await find(number,'',msg.client.user.jid,v)
 if (res == 'error') return await msg.sendMessage("_Truecaller limit over! (20/20) Contact owner_")
 await msg.client.sendMessage(msg.jid, res, MessageType.text, {quoted: msg.data});});

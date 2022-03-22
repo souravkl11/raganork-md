@@ -1,6 +1,6 @@
 // credit - souravkl11
 const axios = require('axios');
-const {query} = require('raganork-bot');
+const {skbuffer} = require('raganork-bot');
 const New = require('../events');
 const {MessageType,Mimetype} = require('@adiwajshing/baileys');
 const config = require('../config');
@@ -10,7 +10,7 @@ let baseURI = '/apps/' + config.HEROKU.APP_NAME;
 New.addCommand({ pattern: 'setlogo ?(.*)', fromMe: true}, (async (message, match) => {
         if (match[1] == '') {return await message.sendMessage('_Need an image link!_')}
 var newimg;
-         try { newimg = await query.skbuffer(match[1]) } catch {await message.sendMessage('_Image link invalid_ ❌ \n _Use command *.url* to get image link!_')}
+         try { newimg = await skbuffer(match[1]) } catch {await message.sendMessage('_Image link invalid_ ❌ \n _Use command *.url* to get image link!_')}
    
     await message.sendMessage(newimg, MessageType.image, {mimetype: Mimetype.jpg, caption: "_Added new image! Restarting..._", quoted:message.data})
     await heroku.patch(baseURI + '/config-vars', {

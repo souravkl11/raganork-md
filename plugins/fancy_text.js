@@ -1,7 +1,7 @@
 let e = require('../events');
 let c = require('../config');
 let v = c.SESSION
-let i = require('raganork-bot');
+let {Fancy} = require('raganork-bot');
 let {MessageType} = require('@adiwajshing/baileys');
 let Language = require('../language');
 let fm = c.WORKTYPE == 'public' ? false : true
@@ -34,7 +34,7 @@ if (!m.reply_message) return await m.sendMessage(`_Reply to a text message_ \n E
 27. 𝔗𝔢𝔵𝔱 ℌ𝔢𝔯𝔢       
 28. Ｔｅｘｔ Ｈｅｒｅ
 29. ᴛᴇxᴛ ʜᴇʀᴇ`)
-    var r = i.query.Fancy(m.reply_message.text,v)
+    var r = Fancy(m.reply_message.text,v)
     var msg;
 if (q[1] == '1') msg = r.res1
 if (q[1] == '2') msg = r.res2
