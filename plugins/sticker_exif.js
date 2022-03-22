@@ -5,7 +5,7 @@ let { MessageType, Mimetype } = require('@adiwajshing/baileys');
 let w = require('../config');
 let {SESSION,take_key} = require('../config');
 let v = w.SUPPORT3
-let {addInfo,sticker,stickercrop,webp2mp4} = require('raganork-bot');
+let {addInfo,skbuffer,sticker,stickercrop,webp2mp4} = require('raganork-bot');
 let a = w.WORKTYPE == 'public' ? false : true;
 let ffmpeg = require('fluent-ffmpeg');
 const h = require('heroku-client');
