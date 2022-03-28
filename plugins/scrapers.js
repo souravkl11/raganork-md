@@ -203,17 +203,17 @@ skl.addCommand({pattern: 'trt(?: |$)(\\S*) ?(\\S*)', desc: Lang.TRANSLATE_DESC, 
     skl.addCommand({pattern: 'tts (.*)', fromMe: sourav, desc: Lang.TTS_DESC}, (async (message, match) => {
 
         if(!match[1]) return await message.client.sendMessage(message.jid, "_Give me any parameters!_", MessageType.text, {quoted: message.data});
-    
+        var text = !message.reply_message ? match[1] : message.reply_message.message
         let 
             LANG = config.LANG.toLowerCase(),
-            ttsMessage = match[1],
+            ttsMessage = text,
             SPEED = 1.0
 
-        if(langMatch = match[1].match("\\{([a-z]{2})\\}")) {
+        if(langMatch = text.match("\\{([a-z]{2})\\}")) {
             LANG = langMatch[1]
             ttsMessage = ttsMessage.replace(langMatch[0], "")
         } 
-        if(speedMatch = match[1].match("\\{([0].[0-9]+)\\}")) {
+        if(speedMatch = text.match("\\{([0].[0-9]+)\\}")) {
             SPEED = parseFloat(speedMatch[1])
             ttsMessage = ttsMessage.replace(speedMatch[0], "")
         }
