@@ -133,7 +133,7 @@ Asena.addCommand(
 
 Asena.addCommand(
   {
-    pattern: "bfk ?(.*)",
+    pattern: "afk ?(.*)",
     fromMe: true,
     deleteCommand: false,
     desc: Lang.AFK_DESC,
