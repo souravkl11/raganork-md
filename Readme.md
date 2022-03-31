@@ -1,6 +1,6 @@
 <div align="center">
   
-<a href="https://baileys-qr-souravkl11.vercel.app/api"><img align="center" src="/language/replit-scan.png" alt="Scan QR" height="112" width="300" /></a>
+<a href="https://baileys-qr.vercel.app/api"><img align="center" src="/language/replit-scan.png" alt="Scan QR" height="112" width="300" /></a>
 <br>
 <div>
 <br>
