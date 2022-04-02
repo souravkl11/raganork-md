@@ -37,7 +37,20 @@ class ReplyMessage extends Base {
             this.height = data.quotedMessage.videoMessage.height;
             this.width = data.quotedMessage.videoMessage.width;
             this.mediaKey = data.quotedMessage.videoMessage.mediaKey;
+            this.seconds = data.quotedMessage.videoMessage.seconds;
             this.video = true;
+        } else if (data.quotedMessage && data.quotedMessage.audioMessage) {
+            this.ptt = data.quotedMessage.audioMessage.ptt == '' ? '' : data.quotedMessage.audioMessage.ptt;
+            this.seconds = data.quotedMessage.audioMessage.seconds;
+            this.url = data.quotedMessage.audioMessage.url;
+            this.mimetype = data.quotedMessage.audioMessage.mimetype;
+            this.mediaKey = data.quotedMessage.audioMessage.mediaKey;
+            this.audio = true;
+        }   else if (data.quotedMessage && data.quotedMessage.stickerMessage) {
+            this.animated = data.quotedMessage.stickerMessage.isAnimated;
+            this.mimetype = data.quotedMessage.stickerMessage.mimetype;
+            this.mediaKey = data.quotedMessage.stickerMessage.mediaKey;
+            this.sticker = true;
         } else if (data.quotedMessage && data.quotedMessage.conversation) {
             this.message = data.quotedMessage.conversation;
             this.text = data.quotedMessage.conversation;
