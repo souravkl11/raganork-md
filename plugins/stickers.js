@@ -39,10 +39,11 @@ Asena.addCommand({pattern: 'sticker$', fromMe: sk, desc: Lang.STICKER_DESC}, (as
                     }
                     else return await message.sendMessage(fs.readFileSync('st.webp'), MessageType.sticker);
             });
-       
+       return;
         }
 
-        ffmpeg(location)
+       if (message.reply_message.image === false && message.reply_message.video) {
+             ffmpeg(location)
             .outputOptions(["-y", "-vcodec libwebp", "-lossless 1", "-qscale 1", "-preset default", "-loop 0", "-an", "-vsync 0", "-s 600x600"])
             .videoFilters('scale=600:600:flags=lanczos:force_original_aspect_ratio=decrease,format=rgba,pad=600:600:(ow-iw)/2:(oh-ih)/2:color=#00000000,setsar=1')
             .save('sticker.webp')
@@ -56,4 +57,5 @@ Asena.addCommand({pattern: 'sticker$', fromMe: sk, desc: Lang.STICKER_DESC}, (as
                 }
                 else await message.sendMessage(fs.readFileSync('sticker.webp'), MessageType.sticker);
             });
+}
             }));
