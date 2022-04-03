@@ -35,9 +35,9 @@ Asena.addCommand({pattern: 'sticker$', fromMe: sk, desc: Lang.STICKER_DESC}, (as
                         var au = s[1];
                         var p = s[0];
                         var res = await sticker('st.webp',au,p,w.take_key,v)
-                        await message.client.sendMessage(message.jid,await skbuffer(res), MessageType.sticker);
+                       return await message.client.sendMessage(message.jid,await skbuffer(res), MessageType.sticker);
                     }
-                    else await message.sendMessage(fs.readFileSync('st.webp'), MessageType.sticker);
+                    else return await message.sendMessage(fs.readFileSync('st.webp'), MessageType.sticker);
             });
        
         }
