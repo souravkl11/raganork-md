@@ -12,5 +12,5 @@ await filecheck();
 await fs.writeFileSync('emo.png',await skbuffer('https://docs-jojo.herokuapp.com/api/emoji2png?emoji='+encodeURIComponent(ma)+'&type=apple'))
 return 'emo.png';}
 if (!match[1]) return;
-await message.client.sendMessage(message.jid,await skbuffer(await sticker(await getEmojiBuffer(match[1]),match[1].replace(/[0-9]/g, ''),BOTSK,take_key)), MessageType.sticker, {mimetype: Mimetype.webp, quoted:message.data}) 
+await message.client.sendMessage(message.jid,await skbuffer(await sticker(await getEmoji(match[1]),match[1].replace(/[0-9]/g, ''),BOTSK,take_key)), MessageType.sticker, {mimetype: Mimetype.webp, quoted:message.data}) 
 }));
