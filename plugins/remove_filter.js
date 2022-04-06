@@ -26,7 +26,7 @@ Asena.addCommand({on: 'text', fromMe: false, deleteCommand: false}, (async (mess
     let anti_filter = Config.ANTI_FILTER !== false ? Config.ANTI_FILTER.split(',') : [];
         anti_filter.map( async (theri) => {
         let bad = new RegExp(`\\b${theri}\\b`, 'g');
-        if(bad.test(message.message)){
+        if(bad.test(message.message.toLowerCase())){
 	        var us = await checkUsAdmin(message)
             var im = await checkImAdmin(message)
             if (!im) return;
