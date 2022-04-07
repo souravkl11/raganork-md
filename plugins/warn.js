@@ -13,11 +13,18 @@ var me = m.client.user.jid.split('@')[0]
 var chat = m.jid
 if (!chat.endsWith('@g.us')) return await m.sendMessage('_Only works in groups!_')
 var warn = await setwarn(me,chat,par,cnt,v)
-var reason = mat[1] ? mat[1] : 'Replied message'
+var ms = 'Replied message';
+if (m.reply_message.audio) ms = 'Audio Message'
+if (m.reply_message.sticker) ms = 'Sticker Message'
+if (m.reply_message.text) ms = m.reply_message.text
+if (m.reply_message.video) ms = 'Video Message'
+if (m.reply_message.image) ms = 'Image Message'
+if (m.reply_message.data.quotedMessage.listMessage) ms = 'List message'
+var reason = mat[1] ? mat[1] : ms
 var msg = "```Warning ⚠️```"+ '\n' +
-"User: " +'@'+par.split('@')[0] + '\n' +
-"Reason:" +' *' + reason+ '*\n' +
-"Remaining:" +' *' + warn + '*\n' 
+"*User:* " +'@'+par.split('@')[0] + '\n' +
+"*Reason:* " + reason+ '\n' +
+"*Remaining:* "  + warn + '*\n' 
 if (warn !== 0) {
     return await m.client.sendMessage(chat,msg,MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})
 } else {
