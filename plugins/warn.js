@@ -24,7 +24,7 @@ var reason = mat[1] ? mat[1] : ms
 var msg = "```Warning ⚠️```"+ '\n' +
 "*User:* " +'@'+par.split('@')[0] + '\n' +
 "*Reason:* " + reason+ '\n' +
-"*Remaining:* "  + warn + '*\n' 
+"*Remaining:* "  + warn + '\n' 
 if (warn !== 0) {
     return await m.client.sendMessage(chat,msg,MessageType.text,{quoted:m.data,contextInfo: {mentionedJid: [par]}})
 } else {
