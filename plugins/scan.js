@@ -17,10 +17,10 @@ if (Config.WORKTYPE == 'private') {
 
         var exists = await message.client.isOnWhatsApp(match[1])
         if (exists) {
-            await message.client.sendMessage(message.jid, '```' + match[1] + '``` \n' + Lang.SUC + '\n' + exists.jid, MessageType.text);
+            await message.client.sendMessage(message.jid, '```' + match[1] + '``` \n' + "Found" + '\n' + exists.jid, MessageType.text);
         }
         else {
-            await message.client.sendMessage(message.jid,'```' + match[1] + '``` \n' + Lang.UNSUC, MessageType.text);
+            await message.client.sendMessage(message.jid,'```' + match[1] + '``` \n' + "Not found", MessageType.text);
         }
     }));
 }
@@ -31,10 +31,10 @@ else if (Config.WORKTYPE == 'public') {
 
         var exists = await message.client.isOnWhatsApp(match[1])
         if (exists) {
-            await message.client.sendMessage(message.jid, '```' + match[1] + '``` \n' + Lang.SUC + '\n' + exists.jid, MessageType.text);
+            await message.client.sendMessage(message.jid, '```' + match[1] + '``` \n' + "Found" + '\n' + exists.jid, MessageType.text);
         }
         else {
-            await message.client.sendMessage(message.jid,'```' + match[1] + '``` \n' + Lang.UNSUC, MessageType.text);
+            await message.client.sendMessage(message.jid,'```' + match[1] + '``` \n' + "Found", MessageType.text);
         }
     }));
 }

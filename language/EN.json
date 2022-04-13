@@ -92,7 +92,7 @@
         },
         "filters": {
             "FILTER_DESC": "It adds a filter. If someone writes your filter, it send the answer. If you just write .filter, it show's your filter list.",
-            "NO_FILTER": "*No filters found in this chat!❌*",
+            "NO_FILTER": "_No filters found in this chat_",
             "FILTERS": "*🔎 Your filters in this chat:*",
             "NEED_REPLY": "*❌ Please type in reply!*\n*Example:*",
             "FILTERED": "*✅ Successfully set* _{}_ *to filter!*",
@@ -138,7 +138,7 @@
             "USER": " From User Number \n",
             "FROM": " From the group with ID, ",
             "MSG": "Message: \n\n",
-            "SUC": "*Message Successfully Saved to Bot number!*"
+            "SUC": "_Message successfully saved to log number_"
         },
         "ocr": {
             "OCR_DESC": "Reads the text on the photo you have replied.",
@@ -151,7 +151,7 @@
             "KICKME_DESC": "It kicks you from the group you are using it in.",
             "KICKME": "_Leaving from the group..._",
             "PP_DESC": "Makes the profile photo what photo you reply.",
-            "NEED_PHOTO": "*Reply to a photo!*",
+            "NEED_PHOTO": "_Reply to a photo_",
             "PPING": "_Setting profile photo..._",
             "BLOCK_DESC": "Block user.",
             "UNBLOCK_DESC": "Unblock user.",
@@ -160,9 +160,7 @@
             "BLOCKED_UPPER": "Blocked!",
             "UNBLOCKED_UPPER": "Unblocked.",
             "NEED_USER": "Give me a user!",
-            "JID_DESC": "Giving user's JID.",
-            "JID": "*JID of* @{} : {}",
-            "JID_CHAT": "{}"
+            "JID_DESC": "Gives user's JID."
         },
         "removebg": {
             "REMOVEBG_DESC": "Removes the background of the photos.",
@@ -172,7 +170,7 @@
         },
         "scrapers": {
             "TRANSLATE_DESC": "It translates with Google Translate. You must reply any message.",
-            "TRANSLATE_USAGE": ".trt tr it (From Turkish to Italian)",
+            "TRANSLATE_USAGE": ".trt en ml (From English to Malayalam)",
             "NEED_REPLY": "_Please reply to any message!_",
             "LANG": "Language",
             "FROM": "Translated Language",
@@ -203,8 +201,8 @@
         },
         "sticker": {
             "STICKER_DESC": "It converts your replied photo or video to sticker.",
-            "NEED_REPLY": "*Reply to a photo or video!*",
-            "DOWNLOADING": "_Converting to sticker..._"
+            "NEED_REPLY": "_Reply to a photo or short video_",
+            "DOWNLOADING": "_Please wait..._"
         },
         "system_stats": {
             "ALIVE_DESC": "Checks if the bot is working or not",
@@ -212,18 +210,18 @@
         },
         "tagall": {
             "TAGALL_DESC": "Tags everyone in the group.",
-            "ADMİN": "*I am not admin in this group!*"
+            "ADMİN": "_I am not admin in this group!_"
         },
         "updater": {
-            "UPDATER_DESC": "Checks the update.",
-            "UPDATE": "_BOT UP TO DATE!_",
+            "UPDATER_DESC": "Checks if your bot has updates.",
+            "UPDATE": "_This is already the latest version_",
             "NEW_UPDATE": "\n",
             "UPDATE_NOW_DESC": "It makes updates.",
-            "UPDATING": "_⏫ Updating to the latest version. This may take few minutes_",
-            "INVALID_HEROKU": "*❌ Your Heroku information is wrong!*",
-            "UPDATED": "_Build finished!_",
+            "UPDATING": "_Build started_",
+            "INVALID_HEROKU": "_Your Heroku information is wrong_",
+            "UPDATED": "_Build finished_",
             "UPDATED_LOCAL": "*✅ Successfully Updated!*",
-            "AFTER_UPDATE": "_Restarting and applying changes_ ✅"
+            "AFTER_UPDATE": "_Restarting_"
         },
         "weather": {
             "WEATHER_DESC": "Shows the weather.",

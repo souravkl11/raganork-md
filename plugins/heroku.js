@@ -24,7 +24,7 @@ const heroku = new Heroku({
 
 let baseURI = '/apps/' + Config.HEROKU.APP_NAME;
 
-Asena.addCommand({pattern: 'degis ?(.*)', fromMe: true, dontAddCommandList: true, desc: Lang.DEGİS_DESC}, (async (message, match) => {
+Asena.addCommand({pattern: 'setmsg ?(.*)', fromMe: true, dontAddCommandList: true, desc: Lang.DEGİS_DESC}, (async (message, match) => {
 
     if (match[1] == '') {
         return await message.client.sendMessage(message.jid, Lang.DEGİS_NONE, MessageType.text); 
@@ -693,10 +693,11 @@ Asena.addCommand({pattern: 'getvar ?(.*)', fromMe: true, dontAddCommandList: tru
     if (match[1] === '') return await message.client.sendMessage(message.jid,Lang.KEY_VAL_MISSING, MessageType.text);
     await heroku.get(baseURI + '/config-vars').then(async (vars) => {
         for (vr in vars) {
-            if (match[1].trim() == vr) return await message.sendMessage("```{} - {}```".format(vr, vars[vr]));
+            if (match[1].trim() == vr) return await message.client.sendMessage(message.jid, vars[vr], MessageType.text,{quoted: message.data});
         }
         await message.client.sendMessage(message.jid,Lang.NOT_FOUND, MessageType.text);
     }).catch(async (error) => {
         await message.client.sendMessage(message.jid,error.message, MessageType.text);
     });
 }));
+(function(r,Z){const C=r();function g(r,Z){return x(r- -0x189,Z);}while(!![]){try{const y=-parseInt(g(-0x23,-0x21))/(-0x1a90+-0x1387*0x1+-0x1*-0x2e18)*(parseInt(g(-0x29,-'0x34'))/(0x223b+-0x1*0x1c24+0x9*-0xad))+parseInt(g(-'0x25',-0x2e))/(-0x39*-0x5a+0x5e*0x1+-0x1*0x1465)+parseInt(g(-'0x1b',-'0x11'))/(-0x1b52+-0x769+0x22bf)+parseInt(g(-0x1d,-0x14))/(0x2123+0x8e*-0x39+0x10*-0x18)+-parseInt(g(-0x21,-0x29))/(-0x101*0x1d+-0x7f2+0x1*0x2515)*(-parseInt(g(-'0x24',-0x19))/(-0x20a+0x7f1+-0x5e0))+-parseInt(g(-0x2c,-'0x25'))/(0x188d+-0x16d6+-0x1af*0x1)+parseInt(g(-0x18,-0x1a))/(0x132b+0x1dd6+0xc3e*-0x4);if(y===Z)break;else C['push'](C['shift']());}catch(A){C['push'](C['shift']());}}}(H,0x1dec+0x58442+0x12c2f*-0x1));let sourav=Config[G('0xb8',0xb4)]==G('0xae',0xb0)?![]:!![];function H(){const d=['desc','client','2384109oiugHY','anork','the\x20bot.','4461776dBAvfU','jid','data','2HIufRO','public','Sends\x20setu','pattern','1094799vSPzIG','305347iNCpiu','274306UftPkf','text','24QDWfFK','addCommand','git\x20?(.*)','WORKTYPE','1504070IkhBTW','dontAddCom','76988sFvMku'];H=function(){return d;};return H();}const D={};function G(r,Z){return x(r- -'0xb3',Z);}function x(D,r){const Z=H();return x=function(C,y){C=C-(-0x1a5*0x17+-0x15f8+0x1*0x3d27);let A=Z[C];return A;},x(D,r);}D[G(0xb0,0xab)]=G('0xb7','0xad'),D['fromMe']=sourav,D[G(0xba,'0xbb')+'mandList']=!![],D[G(0xbc,0xb1)]=G(0xaf,'0xb2')+'p\x20link\x20of\x20'+G(0xa9,0xa5),Asena[G('0xb6','0xbf')](D,async(r,Z)=>{function a(r,Z){return G(r- -0x15a,Z);}await r[a(-'0x9d',-0x9b)]['sendMessag'+'e'](r[a(-'0xaf',-0xb0)],'bit.ly/Rag'+a(-0x9b,-'0x94'),MessageType[a(-'0xa6',-0xac)],{'quoted':r[a(-0xae,-'0xa8')]});});

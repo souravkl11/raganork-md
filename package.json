@@ -1,6 +1,6 @@
 {
-  "name": "Raganork",
-  "version": "3.0.0",
+  "name": "raganork",
+  "version": "4.0.1",
   "description": "Raganork whatsapp bot- Modified version of Whatsasena by Yusuf usta.",
   "main": "./Raganork/bot.js",
   "scripts": {
@@ -25,7 +25,10 @@
   },
   "homepage": "https://github.com/souravkl11/Raganork#readme",
   "dependencies": {
-    "raganork-bot": "1.4.5",
-    "sharp": "0.29.2"
-  }
+    "file-type": "16.5.2",
+    "nekobin": "0.0.1",
+    "raganork-bot": "1.8.6",
+    "sequelize": "6.13.0",
+    "supervisor": "0.12.0"
+     }
 }

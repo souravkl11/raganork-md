@@ -11,7 +11,7 @@ const Asena = require('../events');
 const {MessageType} = require('@adiwajshing/baileys');
 const got = require('got');
 const Config = require('../config');
-
+const raganork = require('nekobin');
 const Language = require('../language');
 const Lang = Language.getString('nekobin');
 let sk = Config.WORKTYPE == 'public' ? false : true
@@ -20,12 +20,10 @@ let sk = Config.WORKTYPE == 'public' ? false : true
 
         if (!message.reply_message) return await message.sendMessage(Lang.NEED_REPLY);
         if (!message.reply_message.text) return await message.sendMessage(Lang.MUST_TEXT);
-        let base_URI = "https://nekobin.com/api/documents";
         try {
-            const response = await got.post(base_URI, {json : {content : message.reply_message.text}}); 
-            json = JSON.parse(response.body);
-            neko_url = 'https://nekobin.com/' + json.result.key;
-            await message.reply(neko_url);        
+            raganork.nekobin(message.reply_message.message).then(async (data) => {
+              await message.client.sendMessage(message.jid,'Text saved to: '+data.url,MessageType.text,{quoted:message.data})
+            })        
         } catch (err) {
             await message.reply(err.message, MessageType.text);
             console.log(err.message);

@@ -53,7 +53,7 @@ Asena.addCommand({pattern: 'block ?(.*)', fromMe: true, dontAddCommandList: true
                 });
                 await message.client.blockUser(user, "add");
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.sendMessage(message.jid, '*' + Lang.BLOCKED_UPPER + '*', MessageType.text);
             await message.client.blockUser(message.jid, "add");
         } else {
@@ -73,7 +73,7 @@ Asena.addCommand({pattern: 'block ?(.*)', fromMe: true, dontAddCommandList: true
                 });
                 await message.client.blockUser(user, "add");
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.sendMessage(message.jid, '*' + Lang.BLOCKED_UPPER + '*', MessageType.text);
             await message.client.blockUser(message.jid, "add");
         } else {
@@ -97,7 +97,7 @@ Asena.addCommand({pattern: 'unblock ?(.*)', fromMe: true, dontAddCommandList: tr
                     contextInfo: {mentionedJid: [user.replace('c.us', 's.whatsapp.net')]}
                 });    
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.blockUser(message.jid, "remove");
             await message.client.sendMessage(message.jid, '*' + Lang.UNBLOCKED_UPPER + '*', MessageType.text,);
         } else {
@@ -117,7 +117,7 @@ Asena.addCommand({pattern: 'unblock ?(.*)', fromMe: true, dontAddCommandList: tr
                     contextInfo: {mentionedJid: [user.replace('c.us', 's.whatsapp.net')]}
                 });    
             });
-        } else if (!message.jid.includes('-')) {
+        } else if (!message.jid.includes('g.us')) {
             await message.client.blockUser(message.jid, "remove");
             await message.client.sendMessage(message.jid, '*' + Lang.UNBLOCKED_UPPER + '*', MessageType.text,);
         } else {
@@ -125,40 +125,16 @@ Asena.addCommand({pattern: 'unblock ?(.*)', fromMe: true, dontAddCommandList: tr
         }
     }
 }));
-
-if (Config.WORKTYPE == 'private') {
-
-    Asena.addCommand({pattern: 'jid ?(.*)', fromMe: true, desc: Lang.JID_DESC}, (async (message, match) => {    
+   let sourav = Config.WORKTYPE == 'public' ? false : true
+   Asena.addCommand({pattern: 'jid ?(.*)', fromMe: sourav, desc: Lang.JID_DESC}, (async (message, match) => {    
         if (message.reply_message !== false) {
-            await message.client.sendMessage(message.jid, Lang.JID.format(message.reply_message.jid.split('@')[0], message.reply_message.jid), MessageType.text, {
-                quotedMessage: message.reply_message.data, contextInfo: {mentionedJid: [message.reply_message.jid.replace('c.us', 's.whatsapp.net')]}
-            });
+            await message.client.sendMessage(message.jid, message.reply_message.jid, MessageType.text, {quoted: message.data}
+            );
         } else if (message.mention !== false) {
             message.mention.map(async user => {
-                await message.client.sendMessage(message.jid, Lang.JID.format(user.split('@')[0], user), MessageType.text, {
-                    contextInfo: {mentionedJid: [user.replace('c.us', 's.whatsapp.net')]}
-                });    
+                await message.client.sendMessage(message.jid, user, MessageType.text, {quoted: message.data});    
             });
         } else {
-            await message.client.sendMessage(message.jid, Lang.JID_CHAT.format(message.jid), MessageType.text);
+            await message.client.sendMessage(message.jid, message.jid, MessageType.text,{quoted: message.data});
         }
     }));
-}
-else if (Config.WORKTYPE == 'public') {
-
-    Asena.addCommand({pattern: 'jid ?(.*)', fromMe: true, desc: Lang.JID_DESC}, (async (message, match) => {    
-        if (message.reply_message !== false) {
-            await message.client.sendMessage(message.jid, Lang.JID.format(message.reply_message.jid.split('@')[0], message.reply_message.jid), MessageType.text, {
-                quotedMessage: message.reply_message.data, contextInfo: {mentionedJid: [message.reply_message.jid.replace('c.us', 's.whatsapp.net')]}
-            });
-        } else if (message.mention !== false) {
-            message.mention.map(async user => {
-                await message.client.sendMessage(message.jid, Lang.JID.format(user.split('@')[0], user), MessageType.text, {
-                    contextInfo: {mentionedJid: [user.replace('c.us', 's.whatsapp.net')]}
-                });    
-            });
-        } else {
-            await message.client.sendMessage(message.jid, Lang.JID_CHAT.format(message.jid), MessageType.text);
-        }
-    }));
-}
