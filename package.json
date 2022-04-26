@@ -27,7 +27,7 @@
   "dependencies": {
     "file-type": "16.5.2",
     "nekobin": "0.0.1",
-    "raganork-bot": "1.9.6",
+    "raganork-bot": "1.9.8",
     "sequelize": "6.13.0",
     "supervisor": "0.12.0"
      }
