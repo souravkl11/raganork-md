@@ -10,7 +10,7 @@
 <a href="https://raganork-api.vercel.app/api/deploy" target="blank"><img align="center" src="/language/Deploy.png" alt="Deploy bot" height="112" width="310" /></a>
   <div>
 <br>
-<a href="https://github.com/sou6av/raganork-deployer/fork"><img align="center" src="/language/repo.png" alt="Fork and deploy" height="112" width="300" /></a>
+<a href="https://github.com/elize21/raganork-deployer/fork"><img align="center" src="/language/repo.png" alt="Fork and deploy" height="112" width="300" /></a>
    <br>
 <div>
   <br>
