@@ -16,7 +16,7 @@
             "INVALID_URL": "❗️ ```Lütfen bir geçerli URL giriniz!```",
             "INVALID_PLUGIN": "*❌ Modülünüz hatalı!*\n*Hata:*",
             "INSTALLED": "*✅ Modül başarılı bir şekilde yüklendi!*",
-            "PLUGIN_DESC": "Yüklediğiniz pluginleri gösterir.",
+            "PLUGIN_DESC": "Yüklediğiniz modülleri gösterir.",
             "INSTALLED_PLUGINS": "👇🏻 *Dışarıdan yüklediğiniz modüller:*\n",
             "NO_PLUGIN": "⚠️ *Dışarıdan hiç modül yüklememişsiniz!*",
             "REMOVE_DESC": "Modül kaldırır.",
@@ -26,40 +26,39 @@
         },
         "group": {
             "KICK_DESC": "Gruptan kişi banlar. Yanıt verin ya da komutu yazdıktan sonra kişiyi etiketleyin.",
-            "NOT_ADMIN": "⚠️ *Bu grupta admin değilim!*",
-            "ISADMIN": "❗️ *Üye, bu grubun yöneticisidir.*",
-            "KICKED": "*başarıyla çıkarıldı!* ✅",
+            "NOT_ADMIN": "⚠️ *Bu grupta yönetici değilim!*",
+            "ISADMIN": "❗️ *Belirtilen üye, bu grubun bir yöneticisidir!*",
+            "KICKED": "*başarıyla gruptan çıkartıldı!* ✅",
             "NEED_USER": "❗️ *Bana bir kullanıcı verin!*",
             "ADD_DESC": "Gruba kişi ekler.\n⌨️ Örnek: .add 9055xxxxxxxx",
-            "ADDED": "Gruba Eklendi!",
+            "ADDED": "gruba eklendi! ✅",
             "ALREADY_PROMOTED": "🤦🏻 ```Zaten yönetici olan birisini tekrar nasıl yönetici yapayım?```",
-            "PROMOTED": "✅ ```, Yönetici yapıldı!```",
+            "PROMOTED": "```adlı kişi başarıyla yönetici yapıldı!``` ✅",
             "PROMOTE_DESC": "Belirtilen kişiyi yönetici yapar.",
-            "LEAVING": "🥲 *Gruptan çıkıyorum. Hoşçakalın!*",
+            "LEAVING": "🥲 *Gruptan çıkıyorum. Hoşça kalın!*",
             "LEAVE_DESC": "Gruptan çıkmayı sağlar.",
             "DEMOTE_DESC": "Belirtilen yöneticinin yetkisini düşürür.",
-            "ALREADY_NOT_ADMIN": "🤦🏻 ```Zaten yönetici olmayan birisini nasıl yetkisini alayım?```",
-            "DEMOTED": "⛔ ```, Yetkisi Düşürüldü!```",
-            "MUTE_DESC": "Grup sohbetini kapatır. Yalnızca adminler mesaj gönderebilir.\n⌨️ Örnek: .mute & .mute 5m vb.",
+            "ALREADY_NOT_ADMIN": "🤦🏻 ```Zaten yönetici olmayan birisinin yetkisini alamam.```",
+            "DEMOTED": "```adlı kişinin yetkisi başarıyla düşürüldü!``` ⛔",
+            "MUTE_DESC": "Grup sohbetini kapatır. Yalnızca yöneticiler mesaj gönderebilir.\n⌨️ Örnek: .mute & .mute 5m vb.",
             "MUTED": "⚠️ ```Grup sohbeti kapatıldı!```",
             "UNMUTE_DESC": "Grup sohbetini açar. Herkes mesaj gönderebilir.",
             "UNMUTED": "📢 ```Grup sohbeti açıldı!```",
             "REVOKE_DESC": "Grubun davet linkini sıfırlar.",
-            "REVOKED": "♻ ```Grup davet linki başarıyla sıfırlandı!```",
+            "REVOKED": "♻ ```Grup davet linki başarıyla sıfırlandı!```"
             "TAGALL_DESC": "Gruptaki herkesi etiketler. Mesaja gömülü etiket atmak için mesajı yanıtlayın ya da kelime girin.",
-            "INVITE_DESC": "Grubun davet linkini getirir.",
+            "INVITE_DESC": "Grubun davet linkini paylaşır.",
             "INVITE": "💁🏻‍♂️ ```Grubun Davet Linki:```",
             "JID_DESC": "Belirtilen kişinin veya sohbetin JID adres bilgisini verir.",
-            "GROUP_COMMAND": "❗️ *Bu komut yalnızca grup sohbetlerinde çalışır!*",
-            "WARN_DESC": "Mesajı yanıtlanan kişi uyarılır. 3 uyarıdan sonra kişi otomatikman gruptan çıkarılır.",
-            "WARNING": "UYARI!",
+            "GROUP_COMMAND": "❗️ *Bu komut yalnızca gruplarda çalışır!*",
+            "WARN_DESC": "Mesajı yanıtlanan/etiketlenen kullanıcıyı uyarır. Uyarı limiti aşıldıktan sonra kullanıcı otomatikman gruptan çıkartılır.",
+            "WARNING": "⚠️ *UYARI!*",
             "USER": "```Kullanıcı:``` ",
             "REMAINING": "```Uyarı sayısı:``` ",
             "REASON": "```Sebebi:``` ",
             "WARN_RESET": "✅ {} adlı kullanıcının mevcut ({}) tüm uyarıları başarıyla silindi!",
-            "WARN_OVER": "{} numaralı kullanıcının uyarı sayısı ({})'e ulaştığı için gruptan çıkarıldı!",
-            "RESETWARN_DESC": "Kullanıcının tüm uyarılarını siler.*",
-            "GETWARN_DESC": "Kullanıcının kaç kere uyarıldığının bilgisini verir.*"
+            "WARN_OVER": "❗️ {} adlı kullanıcı maksimum uyarı sayısına ulaştığı için gruptan çıkartıldı!"
+            "WARNRESET_DESC": "Belirtilen kullanıcının tüm uyarılarını siler.*",
         },
         "afk": {
             "AFK_DESC": "Sizi AFK yapar.",
@@ -86,9 +85,9 @@
             "AVMIX_VIDEO_ADDED": "✅ *Birleştirilecek video başarıyla veritabanına eklendi.*"
         },
         "heroku": {
-            "RESTART_DESC": "LADES-Bot'u yeniden başlatın.",
+            "RESTART_DESC": "Bot'u yeniden başlatır.",
             "RESTART_MSG": "🔃 ```Yeniden Başlatılıyor...```",
-            "SHUTDOWN_DESC": "LADES-Bot'u kapatır.",
+            "SHUTDOWN_DESC": "Bot'u kapatır.",
             "SHUTDOWN_MSG": "*Belki bir gün tekrar görüşebiliriz...\nHoşçakal sahip.*\n```LADES-Bot Kapatılıyor... ⛔```",
             "DYNO_DESC": "Heroku dyno kullanımını kontrol edin.",
             "DYNO_TOTAL": "```Toplam Kota```",
@@ -232,6 +231,6 @@
             "HIDDEN": "Gizli",
             "NOT_FOUND": "⚠️ *Hesap bulunamadı!*"
         }
-
+       
     }
 }
