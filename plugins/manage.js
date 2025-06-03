@@ -1,0 +1,570 @@
+function containsDisallowedWords(str, disallowedWords) {
+    str = str.toLowerCase()
+    for (let word of disallowedWords) {
+        if (str.match(word)) {
+            let otherWords = str.replace(word, '±').split('±')
+            for (let _word of otherWords) {
+                str = str.replace(_word, '')
+            }
+            let filteredWord = str;
+            return filteredWord;
+        }
+    }
+}
+
+function checkLinks(links, allowedWords) {
+    let testArray = []
+    for (let i = 0; i < links.length; i++) {
+        const link = links[i];
+        let isAllowed = true;
+        for (let j = 0; j < allowedWords.length; j++) {
+            const allowedWord = allowedWords[j];
+            if (link.includes(allowedWord)) {
+                isAllowed = true;
+                break;
+            }
+            isAllowed = false;
+        }
+        testArray.push(isAllowed)
+    }
+    return testArray.includes(false)
+}
+const {
+    Module
+} = require('../main');
+const {
+    isAdmin,
+    antilink,
+    antiword,
+    antibot,
+    antispam,
+    antipromote,
+    antidemote,
+    pdm,
+} = require('./utils');
+const config = require('../config');
+const { getCommands: getAvailableCommands } = require('./commands');
+const { settingsMenu, ADMIN_ACCESS } = config;
+const fs = require('fs');
+const { BotVariable } = require('../core/database');
+
+var handler = config.HANDLERS !== 'false' ? config.HANDLERS.split("")[0] : ""
+
+async function setVar(key, value, message = false) {
+    await BotVariable.upsert({ key: key.trim(), value: value });
+    config[key.trim()] = value;
+    if (message) {
+        await message.sendReply(`_${key.trim()} set to '${value}' successfully!_`);
+    }
+
+}
+// New setvar implementation
+Module({
+    pattern: 'setvar ?(.*)',
+    fromMe: true,
+    desc: "Set bot variables remotely",
+    usage: ".setvar MY_VAR=some_value"
+}, async (message, args) => {
+    const input = args[1];
+    if (!input || !input.includes('=')) {
+        return await message.sendReply('_Invalid format. Use: .setvar KEY=VALUE_');
+    }
+
+    const [key, ...valueParts] = input.split('=');
+    const value = valueParts.join('=').trim();
+
+    try {
+        // Upsert the variable in the database
+        
+        await message.sendReply(`_Variable '${key.trim()}' set to '${value}' successfully!_`);
+    } catch (error) {
+        await message.sendReply(`_Failed to set variable '${key.trim()}'. Error: ${error.message}_`);
+    }
+});
+
+// New getvar implementation
+Module({
+    pattern: 'getvar ?(.*)',
+    fromMe: true,
+    desc: "Get bot variable value",
+    usage: ".getvar MY_VAR"
+}, async (message, args) => {
+    const key = args[1]?.trim();
+    if (!key) {
+        return await message.sendReply('_Please provide a variable name. Use: .getvar MY_VAR_');
+    }
+
+    const variable = config[key];
+    if (variable) {
+        await message.sendReply(`_Variable '${key}': ${variable}_`);
+    } else {
+        await message.sendReply(`_Variable '${key}' not found._`);
+    }
+});
+
+Module({
+    pattern: 'allvar',
+    fromMe: true,
+    desc: "Get all bot variables",
+    use: 'owner'
+}, async (message, match) => {
+    try {
+        let msg = "*All Bot Variables:*\n\n";
+        for (const key in config) {
+            if (!variables.find(v => v.key === key)) {
+                msg += `*${key}*: ${config[key]}\n`;
+            }
+        }
+        
+        await message.sendReply(msg);
+    } catch (error) {
+        await message.sendReply(`_Failed to fetch variables. Error: ${error.message}_`);
+    }
+});
+
+Module({
+    pattern: 'platform',
+    fromMe: true,
+    use: 'settings'
+}, async (message, match) => {
+    return await message.sendReply(`_Bot is running on ${config.PLATFORM}_`)
+});
+
+Module({
+    pattern: 'language ?(.*)',
+    fromMe: true,
+    desc: "Change bot's language for some commands",
+    use: 'settings'
+}, async (message, match) => {
+    if (!match[1] || !["english", "manglish", "turkish"].includes(match[1].toLowerCase())) return await message.sendReply("_Invalid language! Available languages are English, Manglish and Turkish_");
+    return await setVar("LANGUAGE", match[1].toLowerCase(), message)
+});
+
+Module({
+    pattern: 'settings ?(.*)',
+    fromMe: true,
+    desc: "Bot settings to enable extra options related to WhatsApp bot functionality.",
+    use: 'owner'
+}, async (message, match) => {
+    let configs = settingsMenu
+    if (match[1]) {
+        if (configs.map(e => e.title).includes(match[1])) {
+            let buttons = {
+                type: 'quick_reply',
+                head: {
+                    title: match[1],
+                    subtitle: "",
+                    footer: `Select an action, on or off?`
+                },
+                body: [{
+                    name: "quick_reply",
+                    buttonParamsJson: `{"display_text":"ON","id":"${handler}setvar ${configs.filter(e => e.title == match[1])[0].env_var}:true"}`
+                }, {
+                    name: "quick_reply",
+                    buttonParamsJson: `{"display_text":"OFF","id":"${handler}setvar ${configs.filter(e => e.title == match[1])[0].env_var}:false"}`
+                }]
+            }
+            return await message.sendInteractiveMessage(message.jid, buttons, { quoted: message.data })
+        }
+    }
+    let list = {
+        type: 'single_select',
+        head: {
+            title: "*Settings configuration menu*",
+            subtitle: "",
+            footer: ''
+        },
+        body: {
+            title: "Select an option",
+            sections: [
+                {
+                    title: "Select an option",
+                    highlight_label: "",
+                    rows: []
+                }
+            ]
+        }
+    }
+    configs.map((e) => {
+        list.body.sections[0].rows.push({
+            title: e.title,
+            description: '',
+            id: handler + "settings " + e.title
+        })
+    })
+    return await message.sendInteractiveMessage(message.jid, list, { quoted: message.data })
+});
+
+Module({
+    pattern: 'mode ?(.*)',
+    fromMe: true,
+    desc: "Change bot mode to public & private",
+    use: 'settings'
+}, async (message, match) => {
+    if (match[1]?.toLowerCase() == "public" || match[1]?.toLowerCase() == "private") {
+        return await setVar("MODE", match[1], message)
+    } else {
+        return await message.sendReply(`_*Mode manager*_\n_Current mode: ${config.MODE}_\n_Use .mode public/private_`)
+    }
+});
+
+Module({
+    pattern: 'setsudo ?(.*)',
+    fromMe: true,
+    use: 'owner'
+}, async (message, mm) => {
+    var m = message;
+    var newSudo = (m.reply_message ? m.reply_message.jid : '' || m.mention?.[0] || mm[1]).split("@")[0]
+    if (!newSudo) return await m.sendReply("_Need reply/mention/number_")
+    const oldSudo = config.SUDO?.split(",")
+    var newSudo = (m.reply_message ? m.reply_message.jid : '' || m.mention?.[0] || mm[1]).split("@")[0]
+    if (!newSudo) return await m.sendReply("_Need reply/mention/number_")
+    newSudo = newSudo.replace(/[^0-9]/g, '');
+    if (!oldSudo.includes(newSudo)) {
+        oldSudo.push(newSudo)
+        var setSudo = oldSudo
+        setSudo = setSudo.map(x => {
+            if (typeof x === 'number') {
+                return x.toString();
+            } else {
+                return x.replace(/[^0-9]/g, '');
+            }
+        }).join(',')
+        await m.client.sendMessage(m.jid, { text: '_Added @' + newSudo + ' as sudo_', mentions: [newSudo + "@s.whatsapp.net"] })
+        await setVar("SUDO", setSudo, m)
+    } else return await m.sendReply("_User is already a sudo_")
+});
+
+Module({
+    pattern: 'getsudo ?(.*)',
+    fromMe: true,
+    use: 'owner'
+}, async (message, match) => {
+    return await message.sendReply(config.SUDO);
+});
+
+Module({
+    pattern: 'delsudo ?(.*)', fromMe: true, desc: "Deletes sudo"
+}, async (m, mm) => {
+    const oldSudo = config.SUDO?.split(",")
+    var newSudo = (m.reply_message ? m.reply_message.jid : '' || m.mention[0] || mm[1]).split("@")[0]
+    if (!newSudo) return await m.sendReply("*Need reply/mention/number*")
+    if (oldSudo.includes(newSudo)) {
+        oldSudo.push(newSudo)
+        var setSudo = oldSudo
+        setSudo = setSudo.filter(x => x !== newSudo.replace(/[^0-9]/g, '')).join(',')
+        await m.client.sendMessage(m.jid, { text: '_Removed @' + newSudo + ' from sudo!_', mentions: [newSudo + "@s.whatsapp.net"] })
+        await setVar("SUDO", setSudo, m)
+    } else return await m.sendReply("_User is already not a sudo_")
+});
+
+Module({
+    pattern: 'toggle ?(.*)',
+    fromMe: true,
+    desc: "To toggle commands on/off (enable/disable)",
+    usage: '.toggle img',
+    use: 'group'
+}, async (message, match) => {
+    var disabled = process.env.DISABLED_COMMANDS?.split(',') || []
+    match = match[1]
+    const commands = getCommands()
+    if (match) {
+        if (!commands.includes(match.trim())) return await message.sendReply(`_${handler}${match.trim()} is not a valid command!_`)
+        if (!disabled.includes(match)) {
+            disabled.push(match.trim())
+            await message.sendReply(`_Successfully turned off \`${handler}${match}\` command_\n_Use ${handler}toggle ${match} to enable this command back_`)
+            return await setVar("DISABLED_COMMANDS", disabled.join(','), false)
+        } else {
+            await message.sendReply(`_Successfully turned on \`${handler}${match}\` command_`)
+            return await setVar("DISABLED_COMMANDS", disabled.filter(x => x != match).join(',') || "null", false)
+        }
+    } else return await message.sendReply(`_Example: ${handler}toggle img_\n\n_(This will disable .img command)_`)
+});
+
+Module({
+    pattern: 'antibot ?(.*)',
+    fromMe: false,
+    desc: "Detects other bot's messages and kicks.",
+    use: 'group'
+}, async (message, match) => {
+    let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
+    if (message.fromOwner || adminAccesValidated) {
+        match[1] = match[1] ? match[1].toLowerCase() : ""
+        var db = await antibot.get();
+        const jids = []
+        db.map(data => {
+            jids.push(data.jid)
+        });
+        if (match[1] === "on") {
+            if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+            await antibot.set(message.jid)
+        }
+        if (match[1] === "off") {
+            await antibot.delete(message.jid)
+        }
+        if (match[1] !== "on" && match[1] !== "off") {
+            var status = jids.includes(message.jid) ? 'on' : 'off';
+            var { subject } = await message.client.groupMetadata(message.jid)
+            return await message.sendReply(`_Antibot menu of ${subject}_` + "\n\n_Antibot is currently turned *" + status + "*_\n\n_Use .antibot on/off_")
+        }
+        await message.sendReply(match[1] === "on" ? "_Antibot activated!_" : "_Antibot turned off!_");
+    }
+});
+
+Module({
+    pattern: 'antispam ?(.*)',
+    fromMe: false,
+    desc: "Detects spam messages and kicks user.",
+    use: 'group'
+}, async (message, match) => {
+    let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
+    if (message.fromOwner || adminAccesValidated) {
+        match[1] = match[1] ? match[1].toLowerCase() : ""
+        var db = await antispam.get();
+        const jids = []
+        db.map(data => {
+            jids.push(data.jid)
+        });
+        if (match[1] === "on") {
+            if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+            await antispam.set(message.jid)
+        }
+        if (match[1] === "off") {
+            await antispam.delete(message.jid)
+        }
+        if (match[1] !== "on" && match[1] !== "off") {
+            var status = jids.includes(message.jid) ? 'on' : 'off';
+            var { subject } = await message.client.groupMetadata(message.jid)
+            return await message.sendReply(`_Anti spam menu of ${subject}_` + "\n\n_Antispam is currently turned *" + status + "*_\n\n_Use .antispam on/off_")
+        }
+        await message.sendReply(match[1] === "on" ? "_Antispam activated!_" : "_Antispam turned off!_");
+    }
+});
+
+Module({
+    pattern: 'pdm ?(.*)',
+    fromMe: false,
+    desc: "Detects promote/demote and sends alert.",
+    use: 'group'
+}, async (message, match) => {
+    let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
+    if (message.fromOwner || adminAccesValidated) {
+        match[1] = match[1] ? match[1].toLowerCase() : ""
+        var db = await pdm.get();
+        const jids = []
+        db.map(data => {
+            jids.push(data.jid)
+        });
+        if (match[1] === "on") {
+            await pdm.set(message.jid)
+        }
+        if (match[1] === "off") {
+            await pdm.delete(message.jid)
+        }
+        if (match[1] !== "on" && match[1] !== "off") {
+            var status = jids.includes(message.jid) ? 'on' : 'off';
+            var { subject } = await message.client.groupMetadata(message.jid)
+            return await message.sendReply(`_Promote|demote alert message menu of ${subject}_` + "\n\n_PDM alert is currently turned *" + status + "*_\n\n_Use .pdm on/off_")
+        }
+        await message.sendReply(match[1] === "on" ? "_Pdm activated!_" : "_Pdm turned off!_");
+    }
+});
+
+Module({
+    pattern: 'antidemote ?(.*)',
+    fromMe: true,
+    desc: "Detects demote and automatically promotes demoted one and demotes person who demoted.",
+    use: 'group'
+}, async (message, match) => {
+    match[1] = match[1] ? match[1].toLowerCase() : ""
+    var db = await antidemote.get();
+    const jids = []
+    db.map(data => {
+        jids.push(data.jid)
+    });
+    if (match[1] === "on") {
+        await antidemote.set(message.jid)
+    }
+    if (match[1] === "off") {
+        await antidemote.delete(message.jid)
+    }
+    if (match[1] !== "on" && match[1] !== "off") {
+        var status = jids.includes(message.jid) ? 'on' : 'off';
+        var { subject } = await message.client.groupMetadata(message.jid)
+        return await message.sendReply(`_Anti demote menu of ${subject}_` + "\n\n_This feature is currently turned *" + status + "*_\n\n_Use .antidemote on/off_")
+    }
+    await message.sendReply(match[1] === "on" ? "_Antidemote activated!_" : "_Antidemote turned off!_");
+});
+
+Module({
+    pattern: 'antipromote ?(.*)',
+    fromMe: true,
+    desc: "Detects promote and automatically demotes promoted one and demotes person who promoted.",
+    use: 'group'
+}, async (message, match) => {
+    match[1] = match[1] ? match[1].toLowerCase() : ""
+    var db = await antipromote.get();
+    const jids = []
+    db.map(data => {
+        jids.push(data.jid)
+    });
+    if (match[1] === "on") {
+        await antipromote.set(message.jid)
+    }
+    if (match[1] === "off") {
+        await antipromote.delete(message.jid)
+    }
+    if (match[1] !== "on" && match[1] !== "off") {
+        var status = jids.includes(message.jid) ? 'on' : 'off';
+        var { subject } = await message.client.groupMetadata(message.jid)
+        return await message.sendReply(`_Anti promote menu of ${subject}_` + "\n\n_This feature is currently turned *" + status + "*_\n\n_Use .antipromote on/off_")
+    }
+    await message.sendReply(match[1] === "on" ? "_Antipromote activated!_" : "_Antipromote turned off!_");
+});
+
+Module({
+    pattern: 'antilink ?(.*)',
+    fromMe: false,
+    desc: "Activates antilink, kicks if user sends link",
+    use: 'group'
+}, async (message, match) => {
+    let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
+    if (message.fromOwner || adminAccesValidated) {
+        match[1] = match[1] ? match[1].toLowerCase() : ""
+        var db = await antilink.get();
+        const jids = []
+        db.map(data => {
+            jids.push(data.jid)
+        });
+        var antilinkWarn = process.env.ANTILINK_WARN?.split(',') || []
+        if (match[1].includes("warn")) {
+            if (match[1].endsWith("on")) {
+                if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+                if (!antilinkWarn.includes(message.jid)) {
+                    antilinkWarn.push(message.jid)
+                    await setVar("ANTILINK_WARN", antilinkWarn.join(','), false)
+                }
+                return await message.sendReply(`_Antilink warn has been activated in this group!_`);
+            }
+            if (match[1].endsWith("off")) {
+                if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+                if (antilinkWarn.includes(message.jid)) {
+                    await message.sendReply(`_Antilink warn deactivated!_`)
+                    await setVar("ANTILINK_WARN", antilinkWarn.filter(x => x != message.jid).join(',') || "null", false)
+                }
+                return await message.sendReply(`_Antilink warn de-activated!_`);
+            }
+
+        }
+        if (match[1] === "on") {
+            if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+            await antilink.set(message.jid)
+        }
+        if (match[1] === "off") {
+            await antilink.delete(message.jid)
+        }
+        if (match[1] !== "on" && match[1] !== "off") {
+            var status = jids.includes(message.jid) || antilinkWarn.includes(message.jid) ? 'on' : 'off';
+            var { subject } = await message.client.groupMetadata(message.jid)
+            return await message.sendReply(`_Antilink menu of ${subject}_` + "\n\n_Antilink is currently turned *" + status + "*_\n\n_Eg: .antilink on/off_\n_.antilink warn on/off_\n\n_Use `setvar ALLOWED_LINKS:fb.com,google.com` to allow specific links_")
+        }
+        await message.sendReply(match[1] === "on" ? "_Antilink activated!_" : "_Antilink turned off!_");
+    }
+});
+
+Module({
+    pattern: 'antiword ?(.*)',
+    fromMe: false,
+    desc: "Activates antiword, kicks if user sends not allowed words",
+    use: 'group'
+}, async (message, match) => {
+    let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
+    if (message.fromOwner || adminAccesValidated) {
+        match[1] = match[1] ? match[1].toLowerCase() : ""
+        var db = await antiword.get();
+        const jids = []
+        db.map(data => {
+            jids.push(data.jid)
+        });
+        var antiwordWarn = process.env.ANTIWORD_WARN?.split(',') || []
+        if (match[1].includes("warn")) {
+            if (match[1].endsWith("on")) {
+                if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+                if (!antiwordWarn.includes(message.jid)) {
+                    antiwordWarn.push(message.jid)
+                    await setVar("ANTIWORD_WARN", antiwordWarn.join(','), false)
+                }
+                return await message.sendReply(`_Antiword warn has been activated in this group!_`);
+            }
+            if (match[1].endsWith("off")) {
+                if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+                if (antiwordWarn.includes(message.jid)) {
+                    await message.sendReply(`_Antiword warn deactivated!_`)
+                    return await setVar("ANTIWORD_WARN", antiwordWarn.filter(x => x != message.jid).join(',') || "null", false)
+                }
+            }
+
+        }
+        if (match[1] === "on") {
+            if (!(await isAdmin(message))) return await message.sendReply("_I'm not an admin!_")
+            await antiword.set(message.jid)
+        }
+        if (match[1] === "off") {
+            await antiword.delete(message.jid)
+        }
+        if (match[1] !== "on" && match[1] !== "off") {
+            var status = jids.includes(message.jid) || antiwordWarn.includes(message.jid) ? 'on' : 'off';
+            var { subject } = await message.client.groupMetadata(message.jid)
+            return await message.sendReply(`_Antiword menu of ${subject}_` + "\n\n_Antiword is currently turned *" + status + "*_\n\n_Eg: .antiword on/off_\n_.antiword warn on/off_\n\n_Use `setvar ANTI_WORDS:fuck,nigga` to block custom words or set `ANTI_WORDS:auto` to auto detect bad words (It's already enabled by default!)_")
+        }
+        await message.sendReply(match[1] === "on" ? "_Antiword activated!_" : "_Antiword turned off!_");
+    }
+});
+
+Module({
+    on: 'text',
+    fromMe: false
+}, async (message, match) => {
+    var db = await antilink.get();
+    const jids = []
+    db.map(data => {
+        jids.push(data.jid)
+    });
+    var antiworddb = await antiword.get();
+    const antiwordjids = []
+    antiworddb.map(data => {
+        antiwordjids.push(data.jid)
+    });
+    if (antiwordjids.includes(message.jid)) {
+        var antiwordWarn = process.env.ANTIWORD_WARN?.split(',') || []
+        if (antiwordWarn.includes(message.jid)) return;
+        let disallowedWords = (process.env.ANTI_WORDS || "auto").split(",");
+        if (process.env.ANTI_WORDS == 'auto') disallowedWords = require('badwords/array');
+        let thatWord = containsDisallowedWords(message.message, disallowedWords)
+        if (thatWord) {
+            await message.sendReply(`_The word ${thatWord} is not allowed in this chat!_`);
+            await message.client.groupParticipantsUpdate(message.jid, [message.sender], "remove")
+            return await message.client.sendMessage(message.jid, { delete: message.data.key })
+
+        }
+    }
+    if (/\bhttps?:\/\/\S+/gi.test(message.message)) {
+        if (jids.includes(message.jid)) {
+            var antilinkWarn = process.env.ANTILINK_WARN?.split(',') || []
+            if (antilinkWarn.includes(message.jid)) return;
+            let allowed = (process.env.ALLOWED_LINKS || "gist,instagram,youtu").split(",");
+            let linksInMsg = message.message.match(/\bhttps?:\/\/\S+/gi)
+            if (checkLinks(linksInMsg, allowed)) {
+                if (!(await isAdmin(message, message.sender))) {
+                    var usr = message.sender.includes(":") ? message.sender.split(":")[0] + "@s.whatsapp.net" : message.sender
+                    await message.client.sendMessage(message.jid, { delete: message.data.key })
+                    await message.sendReply("_Link not allowed!_");
+                    await message.client.groupParticipantsUpdate(message.jid, [usr], "remove")
+                }
+            }
+        }
+    }
+
+});
+
+module.exports = { containsDisallowedWords }
