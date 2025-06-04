@@ -28,6 +28,7 @@
     "js-confuser": "^2.0.0",
     "node-cache": "^5.1.2",
     "node-webpmux": "^3.2.1",
+    "pm2": "^6.0.6",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7"
   }
