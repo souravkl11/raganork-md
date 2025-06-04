@@ -34,6 +34,9 @@ Module({
 }, (async (message, match) => {
     // disableCertificateCheck();
     let mediaLink = match[1] || message.reply_message?.text;
+    if (/\bhttps?:\/\/\S+/gi.test(mediaLink)) {
+        mediaLink = mediaLink.match(/\bhttps?:\/\/\S+/gi)[0];
+    }
     if (mediaLink && (mediaLink.startsWith('l') || mediaLink.includes('youtu'))) return;
     if (!mediaLink) return await message.sendReply("*Need Instagram link*");
     mediaLink = await checkRedirect(mediaLink);
