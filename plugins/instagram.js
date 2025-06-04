@@ -8,6 +8,7 @@ const {
     fromBuffer
 } = require('file-type');
 const botConfig = require('../config');
+const axios = require("axios");
 const isFromMe = botConfig.MODE === 'public' ? false : true;
 const commandHandlerPrefix = botConfig.HANDLERS !== 'false' ? botConfig.HANDLERS.split("")[0] : "";
 
@@ -16,7 +17,14 @@ function disableCertificateCheck() {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
     }
 }
-
+async function checkRedirect(url){
+    let split_url = url.split("/");
+    if(split_url.includes("share")){
+        let res = await axios.get(url);
+        return res.request.path;
+    }
+    return url
+}
 Module({
     pattern: 'insta ?(.*)',
     fromMe: isFromMe,
@@ -26,9 +34,9 @@ Module({
 }, (async (message, match) => {
     // disableCertificateCheck();
     let mediaLink = match[1] || message.reply_message?.text;
-
     if (mediaLink && (mediaLink.startsWith('l') || mediaLink.includes('youtu'))) return;
     if (!mediaLink) return await message.sendReply("*Need Instagram link*");
+    mediaLink = await checkRedirect(mediaLink);
     if (mediaLink.includes("stories")) return await message.sendReply("*_Use .story command!_*");
     if (mediaLink && !mediaLink.includes('instagram.com')) {
         return await message.client.sendMessage(message.jid, {
