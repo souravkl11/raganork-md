@@ -21,7 +21,7 @@ async function checkRedirect(url){
     let split_url = url.split("/");
     if(split_url.includes("share")){
         let res = await axios.get(url);
-        return res.request.path;
+        return res.request.res.responseUrl;
     }
     return url
 }
