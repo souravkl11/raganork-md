@@ -43,7 +43,7 @@ const settingsMenu = [
 ];
 
 const baseConfig = {
-    VERSION: 'v6.0.0',
+    VERSION: 'v6.0.1',
     ALIVE: process.env.ALIVE || "https://i.imgur.com/KCnoMM2.jpg Hey {sender}, I'm alive \n Uptime: {uptime}",
     BLOCK_CHAT: process.env.BLOCK_CHAT || '',
     PM_ANTISPAM: convertToBool(process.env.PM_ANTISPAM) || '',
