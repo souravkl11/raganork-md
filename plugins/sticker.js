@@ -4,19 +4,15 @@ const {
   const fs = require('fs');
   const ffmpeg = require('fluent-ffmpeg');
   
-  const {
-      MODE
-  } = require('../config');
+  const config = require('../config'), MODE = config.MODE;
   const {
       getString
   } = require('./utils/lang');
   const {
     avMix,  
-    bass,
     circle,
     rotate 
   } = require('./utils');
-const config = require("../config");
 const acrcloud = require("acrcloud");
 const acr = new acrcloud({
   host: "identify-eu-west-1.acrcloud.com",

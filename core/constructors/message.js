@@ -1,12 +1,11 @@
 const {generateWAMessageFromContent, proto, prepareWAMessageMedia, generateForwardMessageContent, getContentType, downloadMediaMessage} = require("baileys");
 const Base = require('./base');
-const {SUDO} = require('../../config');
-const ReplyMessage = require('./reply-message'); // Changed from let to const
-const sudos = SUDO.split(","); // Changed from let to const
-const fs = require("fs"); // Changed from let to const
+let config = require('../../config');
+const ReplyMessage = require('./reply-message'); 
+const fs = require("fs"); 
 
 async function genThumb(url){
-    try { // Added try-catch block
+    try { 
         let size = 301
         const jimp = await require("jimp").read(url);
         function getPossibleRatio(a, b) {
@@ -21,7 +20,7 @@ async function genThumb(url){
         return await jimp.resize(w,h).getBufferAsync('image/jpeg')
     } catch (error) {
         console.error("Error generating thumbnail:", error);
-        return null; // Return null or handle error as appropriate
+        return null; 
     }
 }
 
@@ -37,17 +36,16 @@ class Message extends Base {
         this.isGroup = data.key.remoteJid.endsWith('@g.us');
         this.fromMe = data.key.fromMe;
         this.sender = data.key.remoteJid.endsWith('@g.us') ? data.key.participant : data.key.remoteJid;
-        this.fromOwner = data.key.fromMe || sudos.includes((data.key.remoteJid.endsWith('@g.us') ? data.key.participant : data.key.remoteJid).split("@")[0]);
+        this.fromOwner = data.key.fromMe || config.SUDO?.split(",").includes((data.key.participant).split("@")[0]);
         this.senderName = data.pushName;
         this.myjid = this.client.user.id.split(":")[0];
         this.message = data.message.extendedTextMessage === null ? data.message.conversation : data.message.extendedTextMessage.text;
         this.timestamp = data.messageTimestamp;
         this.data = data;
-        
-        // Refactored reply/quoted message logic
-        this.reply_message = null; // Using null instead of false for "not found"
-        this.reply = null; // Using null instead of false for "not found"
-        this.quoted = null; // Using null instead of false for "not found"
+
+        this.reply_message = false; 
+        this.reply = false; 
+        this.quoted = false; 
 
         const contextInfo = data.message.extendedTextMessage?.contextInfo || data.message.stickerMessage?.contextInfo;
 
@@ -70,27 +68,27 @@ class Message extends Base {
             this.list = JSON.parse(data.message.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson).id;
             this.isOwnResponse = data.message.interactiveResponseMessage?.contextInfo?.participant?.split("@")?.[0] == this.myjid;   
         } else {
-            this.list = null; // Using null instead of false
+            this.list = null; 
         }
         if (data.message.hasOwnProperty('templateButtonReplyMessage')) { 
             this.button = data.message.templateButtonReplyMessage.selectedId;
         } else {
-            this.button = null; // Using null instead of false
+            this.button = null; 
         }			
 	    if (data.hasOwnProperty('messageStubType')) { 
             this.update = data.messageStubType;
             this.participant = data.messageStubParameters;
         } else {
-            this.update = null; // Using null instead of false
+            this.update = null; 
         }
         if (data.message.hasOwnProperty('extendedTextMessage') &&
         data.message.extendedTextMessage.hasOwnProperty('contextInfo') === true && 
         data.message.extendedTextMessage.contextInfo.hasOwnProperty('mentionedJid')) {
             this.mention = data.message.extendedTextMessage.contextInfo.mentionedJid;
         } else {
-            this.mention = null; // Using null instead of false
+            this.mention = null; 
         }
-        
+
         return super._patch(data);
     }
 
@@ -123,9 +121,9 @@ class Message extends Base {
         return await this.sendMessage(content, type = 'text', options)
     }
 
-    async download(type = 'file'){ // Added type parameter with default
+    async download(type = 'file'){ 
         if (this.data.message.ptvMessage) this.data.message = JSON.parse(JSON.stringify(this.data.message).replace("ptvMessage","videoMessage")); 
-        const buffer = await downloadMediaMessage(this.data, 'buffer'); // downloadMediaMessage correctly used   
+        const buffer = await downloadMediaMessage(this.data, 'buffer'); 
         if (type === 'buffer') return buffer;
         var filename = './temp/temp.'+this.data.message[Object.keys(this.data.message)[0]].mimetype?.split("/")[1]
         await fs.writeFileSync(filename,buffer);
@@ -185,7 +183,7 @@ class Message extends Base {
             }
           }, {})
 	}
-    
+
     async getThumb(url) {
         return await genThumb(url)
 	}
@@ -214,7 +212,7 @@ class Message extends Base {
                   "deviceListMetadata": {},
                   "deviceListMetadataVersion": 2
                 },
-                interactiveMessage: proto.Message.InteractiveMessage.create({ // Assuming proto refers to the correct Baileys proto
+                interactiveMessage: proto.Message.InteractiveMessage.create({ 
                   body: proto.Message.InteractiveMessage.Body.create({
                     text: list.head.subtitle
                   }),
@@ -237,7 +235,7 @@ class Message extends Base {
               }
             }
           }, {});
-          
+
           await this.client.relayMessage(jid, msg.message, {
             messageId: msg.key.id
           });
@@ -254,7 +252,7 @@ class Message extends Base {
                 ...message.message.viewOnceMessage.message
             }
         }
-    
+
         if (options.mentions) {
             message.message[mtype].contextInfo.mentionedJid = options.mentions
         }

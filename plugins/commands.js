@@ -10,7 +10,7 @@ const {
 const isPrivateMode = MODE === 'private';
 
 const extractCommandName = (pattern) => {
-    const match = pattern.toString().match(/(\W*)([A-Za-zğüşıiöç1234567890 ]*)/);
+    const match = pattern?.toString().match(/(\W*)([A-Za-z1234567890 ]*)/);
     return match && match[2] ? match[2].trim() : '';
 };
 
@@ -52,9 +52,9 @@ Module({
 Module({
     pattern: "list ?(.*)",
     fromMe: isPrivateMode,
-    dontAddCommandList: true
+    excludeFromCommands: true
 }, async (message, args) => {
-    const availableCommands = commands.filter(cmd => !cmd.dontAddCommandList && cmd.pattern);
+    const availableCommands = commands.filter(cmd => !cmd.excludeFromCommands && cmd.pattern);
     const totalCommandCount = availableCommands.length;
 
     const categorizedCommands = {};
@@ -91,5 +91,5 @@ Module({
 });
 
 module.exports = {
-    getAvailableCommands: () => commands.map(cmd => extractCommandName(cmd.pattern))
+    getAvailableCommands: () => commands.filter(x=>x.pattern).map(cmd => extractCommandName(cmd.pattern))
 };

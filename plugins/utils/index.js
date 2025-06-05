@@ -1,3 +1,4 @@
+// Import all modules
 const dbOperations = require('./db/functions');
 const mediaProcessing = require('./mediaProcessors');
 const utils = require('./misc');

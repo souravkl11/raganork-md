@@ -4,13 +4,8 @@ const {
 const {
     Module
 } = require('../main');
-let {
-    STICKER_DATA,
-    MODE,
-    AUDIO_DATA,
-    BOT_INFO
-} = require('../config');
-let a = MODE == 'public' ? false : true;
+let config = require('../config');
+let a = config.MODE == 'public' ? false : true;
 let fs = require('fs');
 Module({
     pattern: 'take ?(.*)',
@@ -27,15 +22,15 @@ Module({
         var exif = {
             author: match[1].includes(";")?match[1].split(";")[1]:"",
             packname: match[1].includes(";")?match[1].split(";")[0]:match[1],
-            categories: STICKER_DATA.split(";")[2] || "😂",
+            categories: config.STICKER_DATA.split(";")[2] || "😂",
             android: "https://github.com/souravkl11/raganork-md/",
             ios: "https://github.com/souravkl11/raganork-md/"
         } }
         else {
             var exif = {
-                author: STICKER_DATA.split(";")[1] || "",
-                packname: STICKER_DATA.split(";")[0] || "",
-                categories: STICKER_DATA.split(";")[2] || "😂",
+                author: config.STICKER_DATA.split(";")[1] || "",
+                packname: config.STICKER_DATA.split(";")[0] || "",
+                categories: config.STICKER_DATA.split(";")[2] || "😂",
                 android: "https://github.com/souravkl11/raganork-md/",
                 ios: "https://github.com/souravkl11/raganork-md/"
             }
@@ -43,10 +38,10 @@ Module({
         return await m.client.sendMessage(m.jid,{sticker: fs.readFileSync(await addExif(q,exif))},{quoted:m.quoted})
     }
     if (!stickermsg && audiomsg) {
-                let inf = match[1] !== '' ? match[1] : AUDIO_DATA
+                let inf = match[1] !== '' ? match[1] : config.AUDIO_DATA
                 var spl = inf.split(';')
-                var image = spl[2] ? await skbuffer(spl[2]): await skbuffer(BOT_INFO.split(";")[3])
-                var res = await addID3(q,spl[0],spl[1]?spl[1]:AUDIO_DATA.split(";")[1], 'Raganork Engine', image)
+                var image = spl[2] ? await skbuffer(spl[2]): await skbuffer(config.BOT_INFO.split(";")[3])
+                var res = await addID3(q,spl[0],spl[1]?spl[1]:config.AUDIO_DATA.split(";")[1], 'Raganork Engine', image)
                 await m.client.sendMessage(m.jid, {
                     audio: res,
                     mimetype: 'audio/mp4',

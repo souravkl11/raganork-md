@@ -37,7 +37,7 @@ Module({
     if (/\bhttps?:\/\/\S+/gi.test(mediaLink)) {
         mediaLink = mediaLink.match(/\bhttps?:\/\/\S+/gi)[0];
     }
-    if (mediaLink && (mediaLink.startsWith('l') || mediaLink.includes('youtu'))) return;
+    if (mediaLink && (mediaLink.includes('gist') || mediaLink.includes('youtu'))) return;
     if (!mediaLink) return await message.sendReply("*Need Instagram link*");
     mediaLink = await checkRedirect(mediaLink);
     if (mediaLink.includes("stories")) return await message.sendReply("*_Use .story command!_*");

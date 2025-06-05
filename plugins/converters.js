@@ -9,10 +9,9 @@ const {
     addExif,
     attp
 } = require('./utils');
-const {
-    MODE,
-    STICKER_DATA
-} = require('../config');
+const config = require('../config');
+let MODE = config.MODE,
+    STICKER_DATA = config.STICKER_DATA;
 const {
     getString
 } = require('./utils/lang');

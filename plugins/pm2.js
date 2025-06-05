@@ -1,7 +1,7 @@
 const { Module } = require('../main');
 const { exec } = require('child_process');
 const { MODE } = require('../config');
-const PM2_ID = process.env.PM2_ID || '0';
+const PM2_ID = process.env.PM2_ID || '0'; // default to 0 if not set
 let auto = MODE == 'public' ? false : true;
 
 function restartPM2(command) {

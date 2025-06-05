@@ -21,6 +21,7 @@
             "NO_PLUGIN": "Oru plugins um install cheythittilla!",
             "REMOVE_DESC": "Removes plugin.",
             "NEED_PLUGIN": "Oru name thaa. like: .remove news",
+            "PLUGIN_UPDATED": "_Plugin '{}' update cheyth!_",            
             "PLUGIN_NOT_FOUND": "Angane oru plugin nee install akiyittilla",
             "DELETED": "{} plugin remove cheyth. Venenkil reboot cheytho, atha nallath!"
         },

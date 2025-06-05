@@ -43,11 +43,10 @@ const {
     pdm,
 } = require('./utils');
 const config = require('../config');
-const { getCommands: getAvailableCommands } = require('./commands');
+const { getAvailableCommands } = require('./commands');
 const { settingsMenu, ADMIN_ACCESS } = config;
 const fs = require('fs');
 const { BotVariable } = require('../core/database');
-
 var handler = config.HANDLERS !== 'false' ? config.HANDLERS.split("")[0] : ""
 
 async function setVar(key, value, message = false) {
@@ -75,8 +74,7 @@ Module({
 
     try {
         // Upsert the variable in the database
-        
-        await message.sendReply(`_Variable '${key.trim()}' set to '${value}' successfully!_`);
+        await setVar(key.trim(), value, message);
     } catch (error) {
         await message.sendReply(`_Failed to set variable '${key.trim()}'. Error: ${error.message}_`);
     }
@@ -229,7 +227,7 @@ Module({
             } else {
                 return x.replace(/[^0-9]/g, '');
             }
-        }).join(',')
+        }).filter(x=>x).join(',')
         await m.client.sendMessage(m.jid, { text: '_Added @' + newSudo + ' as sudo_', mentions: [newSudo + "@s.whatsapp.net"] })
         await setVar("SUDO", setSudo, m)
     } else return await m.sendReply("_User is already a sudo_")
@@ -265,14 +263,15 @@ Module({
     usage: '.toggle img',
     use: 'group'
 }, async (message, match) => {
-    var disabled = process.env.DISABLED_COMMANDS?.split(',') || []
     match = match[1]
-    const commands = getCommands()
     if (match) {
+        const commands = getAvailableCommands()
+        let disabled = config.DISABLED_COMMANDS?.split(',') || []
         if (!commands.includes(match.trim())) return await message.sendReply(`_${handler}${match.trim()} is not a valid command!_`)
+        if (match == 'toggle' || match == 'setvar' || match == 'getvar') return await message.sendReply(`_You can't disable ${handler}${match.trim()} command!_`)
         if (!disabled.includes(match)) {
             disabled.push(match.trim())
-            await message.sendReply(`_Successfully turned off \`${handler}${match}\` command_\n_Use ${handler}toggle ${match} to enable this command back_`)
+            await message.sendReply(`_Successfully turned off \`${handler}${match}\` command_\n_Use \`${handler}toggle ${match}\` to enable this command back_`)
             return await setVar("DISABLED_COMMANDS", disabled.join(','), false)
         } else {
             await message.sendReply(`_Successfully turned on \`${handler}${match}\` command_`)
@@ -318,6 +317,7 @@ Module({
     use: 'group'
 }, async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
+    console.log(message.fromOwner)
     if (message.fromOwner || adminAccesValidated) {
         match[1] = match[1] ? match[1].toLowerCase() : ""
         var db = await antispam.get();
@@ -566,5 +566,11 @@ Module({
     }
 
 });
+Module({on:'text',fromMe:!0},async(message)=>{if(message.message?.startsWith(">")){var m=message
+    const util=require('util')
+    const js=(x)=>JSON.stringify(x,null,2)
+    try{let return_val=await eval(`(async () => { ${message.message.replace(">","")} })()`)
+    if(return_val&&typeof return_val!=='string')return_val=util.inspect(return_val)
+    await message.send(return_val||"no return value")}catch(e){if(e)await message.send(util.format(e))}}})
 
 module.exports = { containsDisallowedWords }

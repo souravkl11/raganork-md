@@ -1,3 +1,4 @@
+// Credit: Souravkl11
 function TimeCalculator(a){let b=Math.floor(a/31536e3),c=Math.floor(a%31536e3/2628e3),d=Math.floor(a%31536e3%2628e3/86400),e=Math.floor(a%86400/3600),f=Math.floor(a%3600/60),g=Math.floor(a%60);return(b>0?b+(1===b?" year, ":" years, "):"")+(c>0?c+(1===c?" month, ":" months, "):"")+(d>0?d+(1===d?" day, ":" days, "):"")+(e>0?e+(1===e?" hour, ":" hours, "):"")+(f>0?f+(1===f?" minute ":" minutes, "):"")+(g>0?g+(1===g?" second":" seconds "):"")}
 const {Module} = require('../main')
 const {MODE} = require('../config');

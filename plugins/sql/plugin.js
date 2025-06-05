@@ -1,11 +1,3 @@
-/* Copyright (C) 2020 Yusuf Usta.
-
-Licensed under the  GPL-3.0 License;
-you may not use this file except in compliance with the License.
-
-WhatsAsena - Yusuf Usta
-*/
-
 const config = require('../../config');
 const { DataTypes } = require('sequelize');
 
@@ -20,15 +12,15 @@ const PluginDB = config.sequelize.define('Plugin', {
     }
 });
 
-async function installPlugin(adres, file) {
+async function installPlugin(address, file) {
     var Plugin = await PluginDB.findAll({
-        where: {url: adres}
+        where: {url: address}
     });
 
     if (Plugin.length >= 1) {
         return false;
     } else {
-        return await PluginDB.create({ url: adres, name: file });
+        return await PluginDB.create({ url: address, name: file });
     }
 }
 module.exports = { PluginDB: PluginDB, installPlugin: installPlugin };

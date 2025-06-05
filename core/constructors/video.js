@@ -32,8 +32,6 @@ class Video extends Base {
     }
 
     async download() {
-        // Ensure downloadMediaMessage is available from the client or imported.
-        // For Baileys v6+, you'd typically use client.downloadMediaMessage or import it.
         await this.client.downloadMediaMessage(this.data, 'buffer');
         return this.id + '.' + this.mimetype.split('/')[1];
     }

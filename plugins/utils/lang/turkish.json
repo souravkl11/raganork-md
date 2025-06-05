@@ -17,6 +17,7 @@
             "INVALID_PLUGIN": "*❌ Modülünüz hatalı!*\n*Hata:*",
             "INSTALLED": "*✅ Modül başarılı bir şekilde yüklendi!*",
             "PLUGIN_DESC": "Yüklediğiniz pluginleri gösterir.",
+            "PLUGIN_UPDATED": "_Eklenti '{}' güncellendi!_",
             "INSTALLED_PLUGINS": "👇🏻 *Dışarıdan yüklediğiniz modüller:*\n",
             "NO_PLUGIN": "⚠️ *Dışarıdan hiç modül yüklememişsiniz!*",
             "REMOVE_DESC": "Modül kaldırır.",
