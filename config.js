@@ -22,11 +22,12 @@ const sequelize = DATABASE_URL === './bot.db'
     ? new Sequelize({ dialect: "sqlite", storage: DATABASE_URL, logging: DEBUG })
     : new Sequelize(DATABASE_URL, { dialectOptions: { ssl: { require: true, rejectUnauthorized: false } }, logging: DEBUG });
 
-if (!(process.env.SESSION || process.env.SESSION_ID)) {
+const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID
+if (!(SESSION_STRING)) {
     throw new Error("No session found, add session before starting bot");
 }
 
-const SESSION = process.env.SESSION ? process.env.SESSION.split(',').map(s => s.split("~")[1].trim()) : ['test-session'];
+const SESSION = SESSION_STRING ? SESSION_STRING.split(',').map(s => s.split("~")[1].trim()) : ['test-session'];
 
 const settingsMenu = [
     { title: "PM antispam block", env_var: "PM_ANTISPAM" },
