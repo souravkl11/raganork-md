@@ -266,7 +266,7 @@ Module({
     match = match[1]
     if (match) {
         const commands = getAvailableCommands()
-        let disabled = config.DISABLED_COMMANDS?.split(',') || []
+        let disabled = typeof config.DISABLED_COMMANDS === 'string' ? config.DISABLED_COMMANDS.split(",") : [];
         if (!commands.includes(match.trim())) return await message.sendReply(`_${handler}${match.trim()} is not a valid command!_`)
         if (match == 'toggle' || match == 'setvar' || match == 'getvar') return await message.sendReply(`_You can't disable ${handler}${match.trim()} command!_`)
         if (!disabled.includes(match)) {
