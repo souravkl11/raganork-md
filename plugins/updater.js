@@ -2,6 +2,7 @@ const simpleGit = require('simple-git');
 const git = simpleGit();
 const {Module} = require('../main');
 //const {update} = require('./misc/koyeb');
+const renderDeploy = require('./utils/render-api');
 const config = require('../config');
 const fs = require('fs').promises;
 
@@ -25,7 +26,6 @@ Module({
     if (!(await isGitRepo())) {
         return await message.sendReply("_This bot isn't running from a Git repository. Automatic updates aren't available._");
     }
-
     const command = match[1] ? match[1].toLowerCase() : '';
 
     await git.fetch();
@@ -36,6 +36,13 @@ Module({
     }
 
     if (command === 'start') {
+        if (process.env.RENDER_SERVICE_ID){
+            if (!config.RENDER_API_KEY){
+                return await message.sendReply("_Missing RENDER_API_KEY!_");
+            }
+            await renderDeploy(process.env.RENDER_SERVICE_ID, config.RENDER_API_KEY);
+            return await message.sendReply("_Render deploy started!_");
+        }
         if (!__dirname.startsWith("/rgnk")) {
             await require("simple-git")().reset("hard", ["HEAD"]);
             await require("simple-git")().pull();
