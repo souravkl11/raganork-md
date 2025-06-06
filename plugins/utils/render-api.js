@@ -1,5 +1,4 @@
-import axios from 'axios';
-import fetch from 'node-fetch';
+const axios = require('axios');
 
 async function deployLatestCommit(serviceId, apiKey) {
   if (!serviceId) {
@@ -12,53 +11,35 @@ async function deployLatestCommit(serviceId, apiKey) {
     return;
   }
 
-  const disableAutoScaling = async () => {
-    const autoScalingUrl = `https://api.render.com/v1/services/${serviceId}/autoscaling`;
-    const headers = {
-      accept: 'application/json',
-      authorization: `Bearer ${apiKey}`
-    };
-
-    try {
-      const res = await axios.delete(autoScalingUrl, { headers });
-      console.log("Autoscaling disabled:", res.data);
-    } catch (err) {
-      console.error("Error disabling autoscaling:", err.message);
-      return false;
-    }
-    return true;
-  };
-
-  const proceed = await disableAutoScaling();
-  if (!proceed) return;
-
-  const apiUrl = `https://api.render.com/v1/services/${serviceId}/deploys`;
-
-  const headers = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${apiKey}`
-  };
-
-  const payload = {
-    "clearCache": "clear"
-  };
-
-  console.log(`Attempting to deploy service: ${serviceId}...`);
+  const autoScalingUrl = `https://api.render.com/v1/services/${serviceId}/autoscaling`;
 
   try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(payload)
+    const disableRes = await axios.delete(autoScalingUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      }
+    });
+    console.log("Autoscaling disabled:", disableRes.data || "No content");
+  } catch (err) {
+    console.error("Error disabling autoscaling:", err.response?.data || err.message);
+    return;
+  }
+
+  const deployUrl = `https://api.render.com/v1/services/${serviceId}/deploys`;
+
+  try {
+    const response = await axios.post(deployUrl, {
+      clearCache: "clear"
+    }, {
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      }
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-    }
-
-    const deployInfo = await response.json();
+    const deployInfo = response.data;
 
     console.log("\nDeployment initiated successfully!");
     console.log(`Deploy ID: ${deployInfo.id}`);
@@ -69,8 +50,8 @@ async function deployLatestCommit(serviceId, apiKey) {
       console.log(`Commit Message: ${deployInfo.commit.message}`);
     }
     console.log(`Render Dashboard Link: https://dashboard.render.com/web/${serviceId}/deploys/${deployInfo.id}`);
-  } catch (error) {
-    console.error(`An error occurred during deployment: ${error.message}`);
+  } catch (err) {
+    console.error("Error during deployment:", err.response?.data || err.message);
   }
 }
 
