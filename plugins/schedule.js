@@ -181,7 +181,7 @@ Module({
         // *** CHANGE HERE ***
         const pending = await scheduledMessages.getAllPending(); // Use the new function to get all un-sent
         if (pending.length === 0) {
-            return await m.sendReply('📭 *No pending scheduled messages*');
+            return await m.sendReply('📭 _No pending scheduled messages_');
         }
 
         let response = '📋 *Scheduled Messages*\n\n';
