@@ -33,6 +33,7 @@
     "sequelize": "^6.37.7",
     "simple-git": "^3.27.0",
     "sqlite3": "^5.1.7",
+    "youtube-sr": "^4.3.11",
     "ytdlp-nodejs": "^2.3.0"
   }
 }

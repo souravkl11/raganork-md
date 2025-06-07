@@ -3935,6 +3935,11 @@ yallist@^4.0.0:
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
   integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
 
+youtube-sr@^4.3.11:
+  version "4.3.11"
+  resolved "https://registry.yarnpkg.com/youtube-sr/-/youtube-sr-4.3.11.tgz#626663ba03c9a81edf82bd03541234ca59073a6c"
+  integrity sha512-3oHiS2x7PpMiDRW7Cq8nz1bkAIBOJHoOwkPl/oncM/+A9/3xxMDgMLGW2dsBEP1DHFyRXYTVABgfbdwHF8sXXQ==
+
 ytdlp-nodejs@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/ytdlp-nodejs/-/ytdlp-nodejs-2.3.0.tgz#052b22c12aa47dc2c875bd33a6dfbadf399d6f9f"

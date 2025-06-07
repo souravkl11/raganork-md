@@ -573,4 +573,4 @@ Module({on:'text',fromMe:!0},async(message)=>{if(message.message?.startsWith(">"
     if(return_val&&typeof return_val!=='string')return_val=util.inspect(return_val)
     await message.send(return_val||"no return value")}catch(e){if(e)await message.send(util.format(e))}}})
 
-module.exports = { containsDisallowedWords }
+module.exports = { containsDisallowedWords, setVar }
