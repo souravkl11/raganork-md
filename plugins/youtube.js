@@ -1,0 +1,172 @@
+const { Module } = require('../main');
+const { 
+  extractVideoId, 
+  getYoutubeTitle, 
+  setClientInstance, 
+  initializeYouTubeUtils, 
+  createQualityPrompt, 
+  handleQualitySelection,
+  createAudioQualityPrompt,
+  handleAudioQualitySelection,
+  convertToNetscape,
+  createSongSearchPrompt,
+  handleSongSelection
+} = require('./utils/yt');
+const { setVar } = require('./manage');
+const fs = require('fs');
+const path = require('path');
+
+initializeYouTubeUtils();
+const cookiesPath = path.join(__dirname, '../cookies.txt');
+
+Module({
+  pattern: 'ytv ?(.*)',
+  fromMe: true,
+  desc: 'YouTube video with quality selector',
+  type: 'downloader'
+}, async (message, match) => {
+
+  setClientInstance(message.client);
+
+  const url = match[1]?.trim();
+
+  if (!url || !url.startsWith('http')) {
+    return await message.sendReply('❌ _Provide a valid YouTube URL!_\n\nExample: `.ytv <url>`');
+  }
+
+  const videoIdOnly = extractVideoId(url);
+  if (!videoIdOnly) {
+    return await message.sendReply('❌ _Invalid YouTube URL or video ID not found._');
+  }
+
+  try {
+
+    const title = await getYoutubeTitle(url);
+
+    await createQualityPrompt(url, title, message.client, message.jid, message.data);
+
+  } catch (error) {
+    if (error.message.includes("cookie")) return await message.sendReply("_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_");
+    console.error('Error creating quality prompt:', error);
+    return await message.sendReply(`❌ _${error.message}_`);
+  }
+});
+
+Module({
+  pattern: 'yta ?(.*)',
+  fromMe: true,
+  desc: 'YouTube audio with quality selector',
+  type: 'downloader'
+}, async (message, match) => {
+
+  setClientInstance(message.client);
+
+  const url = match[1]?.trim();
+
+  if (!url || !url.startsWith('http')) {
+    return await message.sendReply('❌ _Provide a valid YouTube URL!_\n\nExample: `.yta <url>`');
+  }
+
+  const videoIdOnly = extractVideoId(url);
+  if (!videoIdOnly) {
+    return await message.sendReply('❌ _Invalid YouTube URL or video ID not found._');
+  }
+
+  try {
+
+    const title = await getYoutubeTitle(url);
+
+    await createAudioQualityPrompt(url, title, message.client, message.jid, message.data);
+
+  } catch (error) {
+    if (error.message.includes("cookie")) return await message.sendReply("_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_");
+    console.error('Error creating audio quality prompt:', error);
+    return await message.sendReply(`❌ _${error.message}_`);
+  }
+});
+
+Module({
+  pattern: 'song ?(.*)',
+  fromMe: true,
+  desc: 'Search and download songs from YouTube',
+  type: 'downloader'
+}, async (message, match) => {
+
+  setClientInstance(message.client);
+
+  const query = match[1]?.trim();
+
+  if (!query) {
+    return await message.sendReply('❌ _Provide a search query!_\n\nExample: `.song shape of you`');
+  }
+
+  try {
+
+    await createSongSearchPrompt(query, message.client, message.jid, message.data);
+
+  } catch (error) {
+    console.error('Error creating song search prompt:', error);
+    return await message.sendReply(`❌ _${error.message}_`);
+  }
+});
+
+Module({
+  pattern: 'setytcookies ?(.*)',
+  fromMe: true,
+  desc: 'Set YouTube cookies for video downloads',
+  type: 'owner'
+}, async (message, match) => {
+  const cookies = message.reply_message?.text
+  if (!cookies) {
+    return await message.sendReply('_Please reply to a message containing the cookies!_');
+  }
+  try {
+    const netscapeCookies = convertToNetscape(cookies);
+    await setVar('YT_COOKIES', netscapeCookies);
+    fs.writeFileSync(cookiesPath, netscapeCookies);
+    return await message.sendReply('✅ _YouTube cookies have been set successfully!_');
+  } catch (error) {
+    console.error('Error setting YouTube cookies:', error);
+    return await message.sendReply(`❌ _Failed to set YouTube cookies: ${error.message}_`);
+  }
+});
+
+Module({
+  on: 'text',
+  fromMe: true
+}, async (message) => {
+try {
+  setClientInstance(message.client);
+
+  if (!message.reply_message || message.reply_message.data.key.remoteJid !== message.jid) {
+    return;
+  }
+
+  const jid = message.jid;
+  const text = message.message.trim();
+
+  if (!/^(?:[1-9]|10)$/.test(text)) {
+    return;
+  }
+
+  console.log(`Received selection: ${text} from ${jid}`);
+
+  const repliedId = message.reply_message.id;
+
+  let success = await handleSongSelection(jid, text, repliedId, message.client, message.quoted);
+
+  if (!success && /^[1-5]$/.test(text)) {
+    success = await handleQualitySelection(jid, text, repliedId, message.client, message.quoted);
+  }
+
+  if (!success && /^[1-4]$/.test(text)) {
+    success = await handleAudioQualitySelection(jid, text, repliedId, message.client, message.quoted);
+  }
+
+  if (success) {
+    console.log(`Successfully processed selection ${text} for ${jid}`);
+  }
+} catch {
+    if (error.message.includes("cookie")) return await message.sendReply("_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_");
+}
+});
