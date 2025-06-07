@@ -3,6 +3,7 @@
   "version": "6.0.6",
   "description": "A multi functional wa bot.",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "pm2 start index.js --name raganork-md --attach"
   },
