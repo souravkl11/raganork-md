@@ -10,10 +10,10 @@ RUN apk add --no-cache \
 
 WORKDIR /rgnk
 
-ARG CACHE_BUSTER
-RUN git clone https://github.com/souravkl11/raganork-md.git . && \
-    git reset --hard $CACHE_BUSTER
-    
+ADD https://api.github.com/repos/souravkl11/raganork-md/git/refs/heads/main version.json
+
+RUN git clone -b main https://github.com/souravkl11/raganork-md .
+
 RUN npm install -g --force yarn pm2
 
 RUN yarn install
