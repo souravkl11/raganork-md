@@ -110,7 +110,8 @@ Module(
       pattern: "pupdate ?(.*)",
       fromMe: true,
       use: "owner",
-      desc: "Update a plugin",
+      usage: ".pupdate plugin_name",
+      desc: "Updates a plugin",
     },
     async (m, match) => {
       const plugin = match[1];
@@ -139,6 +140,7 @@ Module(
         return await m.send(Lang.INVALID_PLUGIN + e);
       }
       await m.send(Lang.PLUGIN_UPDATED.format(plugin));
+      process.exit(0)
       return;
     }
   );
