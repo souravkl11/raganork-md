@@ -45,13 +45,11 @@ class Message extends Base {
         this.data = data;
 
         this.reply_message = false; 
-        this.reply = false; 
         this.quoted = false; 
 
         const contextInfo = data.message.extendedTextMessage?.contextInfo || data.message.stickerMessage?.contextInfo;
 
         if (contextInfo?.quotedMessage) {
-            this.reply = data.message.extendedTextMessage || data.message.stickerMessage;
             contextInfo.remoteJid = contextInfo.remoteJid ?? this.jid;
             this.reply_message = new ReplyMessage(this.client, contextInfo);
             this.quoted = {
