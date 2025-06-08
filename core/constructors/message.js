@@ -35,9 +35,10 @@ class Message extends Base {
         this.jid = data.key.remoteJid;
         this.isGroup = data.key.remoteJid.endsWith('@g.us');
         this.fromMe = data.key.fromMe;
-        this.sender = data.key.remoteJid.endsWith('@g.us') ? data.key.participant : data.key.remoteJid;
-        this.fromOwner = data.key.fromMe || config.SUDO?.split(",").includes((data.key.participant).split("@")[0]);
+        this.sender = data.key.participant;
+        this.fromOwner = data.key.fromMe || config.SUDO?.split(",").includes((data.key.participant)?.split("@")[0]);
         this.senderName = data.pushName;
+        this.pushName = data.pushName;
         this.myjid = this.client.user.id.split(":")[0];
         this.message = data.message.extendedTextMessage === null ? data.message.conversation : data.message.extendedTextMessage.text;
         this.timestamp = data.messageTimestamp;
