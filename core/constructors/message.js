@@ -156,14 +156,22 @@ class Message extends Base {
             return await this.client.sendMessage(this.jid, {sticker: content}, {quoted: this.data})
 		}
 	}
-	async reply(content, type = 'text') {
+	async reply(content, type = 'text',options={}) {
 		if (type == 'text') {
             return await this.client.sendMessage(this.jid, {text: content}, {quoted: this.data})
 		}
 		if (type == 'image') {
+            if (options?.thumbnail){
+                const thumbBuffer = await genThumb(options.thumbnail);
+                return await this.client.sendMessage(this.jid, {image: content, jpegThumbnail: thumbBuffer}, {quoted:this.data,...options});    
+            }
             return await this.client.sendMessage(this.jid, {image: content}, {quoted: this.data})
 		}
 		if (type == 'video') {
+            if (options?.thumbnail){
+                const thumbBuffer = await genThumb(options.thumbnail);
+                return await this.client.sendMessage(this.jid, {video: content, jpegThumbnail: thumbBuffer}, {quoted:this.data,...options});    
+            }
             return await this.client.sendMessage(this.jid, {video: content}, {quoted: this.data})
 		}
 		if (type == 'audio') {
