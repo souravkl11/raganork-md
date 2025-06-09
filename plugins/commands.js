@@ -157,15 +157,18 @@ Module({
     const others = (use) => {
         return use === '' ? 'others' : use;
     };
-    let types = shuffleArray(use_.filter((item, index) => use_.indexOf(item) === index).map(others));
+    let types = [...new Set(commands
+    .filter(e => e.pattern)
+    .map(e => e.use || 'General'))];
 
     let cmd_obj = {};
     for (const command of commands) {
-        let type_det = types.includes(command.use) ? command.use : "others";
+        let type_det = command.use || "General";
         if (!cmd_obj[type_det]?.length) cmd_obj[type_det] = [];
         let cmd_name = extractCommandName(command.pattern); 
         if (cmd_name) cmd_obj[type_det].push(cmd_name);
     }
+
 
     let final = '';
     let i = 0;
