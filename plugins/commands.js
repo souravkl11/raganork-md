@@ -172,8 +172,7 @@ Module({
 
     let final = '';
     let i = 0;
-    const handlerPrefix = HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || '.';
-
+    const handlerPrefix = HANDLERS !== 'false' ? HANDLERS.split("")[0] : ""
     for (const n of types) {
         for (const x of cmd_obj[n]) {
             i = i + 1;
