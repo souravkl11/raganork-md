@@ -185,7 +185,7 @@ Module({
     const botOwner = BOT_INFO.split(";")[1] || 'N/A';
     const botName = BOT_INFO.split(";")[0] || 'My Bot';
     const botVersion = "1.0.0"; 
-    const botImageLink = BOT_INFO.split(";")[3] || `https://i.imgur.com/Eykly4J.jpeg`
+    const botImageLink = BOT_INFO.split(";")[3] || `https://i.ibb.co/QFrkS7Lj/Eykly4J.jpg`
 
     const menu = `╭═══〘 ${botName} 〙═══⊷❍
 ┃${star}╭──────────────
