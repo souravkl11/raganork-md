@@ -210,9 +210,8 @@ ${cmdmenu}`;
     try {
 
         await message.client.sendMessage(message.jid, {
-            image: {url: botImageLink}
+            image: {url: botImageLink},
             caption: menu
-
         });
     } catch (error) {
         console.error("Error sending menu:", error);
