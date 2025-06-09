@@ -1,10 +1,18 @@
 # Raganork-MD
 
-A light-weight WhatsApp bot framework with multi-session support and extensive configuration options. This is a complete rewrite of the original Raganork project, built for better stability and performance.
+A lightweight WhatsApp bot framework with multi-session support and extensive configuration options. Complete rewrite of the original Raganork project for better stability and performance.
+
+## Get Started
+
+### Get Your Session String
+
+Visit [raganork.site](https://raganork.site) to scan the QR code and obtain your session string. You'll need this for configuration.
+
+**Important for Cloud Deployments:** If you're deploying on platforms like Render, Koyeb, Railway, or similar cloud services, you'll need a `DATABASE_URL` (PostgreSQL) for persistent storage. VPS deployments can use local file storage.
 
 ## Features
 
-* Lightweight and fast
+* Lightweight and fast performance
 * Multi-device WhatsApp Web support
 * Single and multi-session capabilities
 * Extensive plugin system
@@ -22,45 +30,40 @@ A light-weight WhatsApp bot framework with multi-session support and extensive c
 * FFmpeg
 * Yarn package manager
 * PM2 (for process management)
+* Database URL (for cloud deployments)
 
 ## Installation
 
-### Step 1: Get Session String
-
-Visit [raganork.site](https://raganork.site) to scan QR code and obtain your session string.
-
-### Step 2: Clone Repository
+### Clone Repository
 
 ```bash
 git clone https://github.com/souravkl11/raganork-md.git
 cd raganork-md
 ```
 
-### Step 3: Install Dependencies
+### Install Dependencies
 
 ```bash
 yarn install
 ```
 
-### Step 4: Configuration
+### Configuration
 
-Create a `.env` file in the root directory and configure the following variables:
+Create a `.env` file in the root directory:
 
 #### Session Configuration
 
-For single session:
-
+Single session:
 ```
 SESSION=RGNK~d7a5s66
 ```
 
-For multi-session:
-
+Multi-session:
 ```
 SESSION=RGNK~d7a5s66,RGNK~7ad8cW
 ```
 
-#### Required Configuration Variables
+#### Required Variables
 
 ```
 # Bot Configuration
@@ -68,19 +71,15 @@ BOT_NAME=Your Bot Name
 HANDLERS=.,!
 SUDO=919876543210
 
-# Database
+# Database (Required for cloud platforms)
 DATABASE_URL=your_database_url
 
-# Language
+# Localization
 LANGUAGE=en
-
-# Timezone
 TZ=Asia/Kolkata
 ```
 
-#### Additional Configuration Options can be found [here]().
-
-## Starting the Bot
+## Running the Bot
 
 ```bash
 npm start
@@ -88,59 +87,54 @@ npm start
 
 ## Process Management
 
-### Stop Bot
-
 ```bash
+# Stop bot
 pm2 stop raganork-md
-```
 
-### Restart Bot
-
-```bash
+# Restart bot
 pm2 restart raganork-md
 ```
 
 ## Commands
 
-The bot uses a configurable prefix (default: `.`). Basic commands include:
+Default prefix: `.`
 
-* `.list` – Display available commands
-* `.ping` – Check bot response time
-* `.restart` – Restart the bot (sudo only)
-* `.shutdown` – Stop the bot (sudo only)
+* `.list` – Show available commands
+* `.ping` – Check response time
+* `.restart` – Restart bot (sudo only)
+* `.shutdown` – Stop bot (sudo only)
 
 ## File Structure
 
 ```
 raganork-md/
-├── plugins/              # Bot plugins
-├── core/                 # Core libraries
-├── output/              # Operational outputs
-├── temp/                # Temporary files
-├── config.js            # Configuration handler
-├── index.js             # Main entry point
-└── package.json         # Dependencies
+├── plugins/     # Bot plugins
+├── core/        # Core libraries
+├── output/      # Operational outputs
+├── temp/        # Temporary files
+├── config.js    # Configuration handler
+├── index.js     # Main entry point
+└── package.json # Dependencies
 ```
-
-## Obfuscation Notice
-
-Some files containing sensitive logic or API interactions have been obfuscated for security and anti-abuse reasons. They handle low-level session management and authentication and are **not intended to be modified or reverse engineered.**
 
 ## Support
 
-For support and updates, join our [Telegram group](https://t.me/raganork_in) or visit the [official website](https://raganork.live).
+* [Telegram Group](https://t.me/raganork_in)
+* [Official Website](https://raganork.live)
 
-## License
+## Legal Notice
 
-This project is licensed under the GPL License. See the LICENSE file for details.
-
-## Note
-> **Powered by [Baileys](https://github.com/WhiskeySockets/Baileys),** an unofficial Wa Web API library.
-
-⚠️ This bot uses an unofficial method to access WhatsApp and **may lead to temporary or permanent bans**. Use it at your own risk.
-
-## Legal
+⚠️ **Use at your own risk.** This bot uses unofficial WhatsApp Web API methods and may result in temporary or permanent account bans.
 
 * This code is in no way affiliated, authorized, maintained, sponsored or endorsed by WhatsApp or any of its affiliates.
 * WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries.
-* This software is provided for educational and research purposes only.
+* This software is provided for educational and research purposes only
+* Powered by [Baileys](https://github.com/WhiskeySockets/Baileys)
+
+## License
+
+GPL License - See LICENSE file for details.
+
+---
+
+**Note:** Some files are obfuscated for security reasons and should not be modified.
