@@ -4,8 +4,11 @@ const {
 } = require("../main");
 const {
     MODE,
-    HANDLERS
+    HANDLERS,
+    ALIVE, 
+    BOT_INFO
 } = require("../config");
+const os = require('os'); 
 
 const isPrivateMode = MODE === 'private';
 
@@ -43,7 +46,7 @@ Module({
     infoMessage += `• *Description:* ${commandDetails.desc || 'N/A'}\n`;
     infoMessage += `• *Owner Command:* ${commandDetails.fromMe ? 'Yes' : 'No'}\n`;
     if (commandDetails.use) infoMessage += `• *Type:* ${commandDetails.use}\n`;
-    if (commandDetails.usage) infoMessage += `• *Usage:* ${commandDetails.usage}\n`;
+    if (commandDetails.usage) infoMessage += `• *Usage:* ${commandDetails.name} ${commandDetails.usage}\n`; 
     if (commandDetails.warn) infoMessage += `• *Warning:* ${commandDetails.warn}\n`;
 
     await message.sendReply(infoMessage);
@@ -90,6 +93,134 @@ Module({
     await message.sendReply(responseMessage);
 });
 
+function bytesToSize(bytes) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes === 0) return '0 Byte';
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; 
+    }
+    return array;
+}
+
+async function parseAlive(message, aliveMessage) {
+
+    const defaultAliveMessage = "I'm alive!";
+    await message.sendReply(aliveMessage || defaultAliveMessage);
+}
+
+const manage = {
+    setVar: async (key, value, message) => {
+
+        await message.sendReply(`_Attempted to set ${key} to ${value}. (Note: This is a placeholder and doesn't persist changes in this demo)_`);
+    }
+};
+
+Module({
+    pattern: 'alive',
+    fromMe: isPrivateMode,
+    desc: 'Checks if the bot is alive.'
+}, (async (message, match) => {
+    await parseAlive(message, ALIVE);
+}));
+
+Module({
+    pattern: 'setalive ?(.*)',
+    fromMe: true, 
+    desc: 'Sets the alive message for the bot.',
+    dontAddCommandList: true 
+}, (async (message, match) => {
+    if (match[1]) {
+
+        return await manage.setVar("ALIVE", match[1], message);
+    } else {
+        return await message.sendReply("_Please provide a message to set as the alive message. Example: .setalive I am online!_");
+    }
+}));
+
+Module({
+    pattern: 'menu',
+    fromMe: isPrivateMode,
+    use: 'utility',
+    desc: 'Displays the bot command menu.'
+}, (async (message, match) => {
+    const stars = ['✦', '✯', '✯', '✰', '◬', '✵'];
+    const star = stars[Math.floor(Math.random() * stars.length)];
+
+    let use_ = commands.map(e => e.use);
+    const others = (use) => {
+        return use === '' ? 'others' : use;
+    };
+    let types = shuffleArray(use_.filter((item, index) => use_.indexOf(item) === index).map(others));
+
+    let cmd_obj = {};
+    for (const command of commands) {
+        let type_det = types.includes(command.use) ? command.use : "others";
+        if (!cmd_obj[type_det]?.length) cmd_obj[type_det] = [];
+        let cmd_name = extractCommandName(command.pattern); 
+        if (cmd_name) cmd_obj[type_det].push(cmd_name);
+    }
+
+    let final = '';
+    let i = 0;
+    const handlerPrefix = HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || '.';
+
+    for (const n of types) {
+        for (const x of cmd_obj[n]) {
+            i = i + 1;
+            const newn = n.charAt(0).toUpperCase() + n.slice(1); 
+            final += `${final.includes(newn)?'':'\n\n╭════〘 *_'+newn+"_* 〙════⊷❍\n"}\n┃${star}│ _${i}. ${handlerPrefix}${x.trim()}_${cmd_obj[n]?.indexOf(x)===(cmd_obj[n]?.length-1) ?`\n┃${star}╰─────────────────❍\n╰══════════════════⊷❍`:''}`
+        }
+    }
+
+    let cmdmenu = final.trim();
+
+    const used = bytesToSize(os.freemem());
+    const total = bytesToSize(os.totalmem());
+    const botOwner = BOT_INFO.split(";")[1] || 'N/A';
+    const botName = BOT_INFO.split(";")[0] || 'My Bot';
+    const botVersion = "1.0.0"; 
+    const botImageLink = BOT_INFO.split(";")[3] || `https://i.imgur.com/Eykly4J.jpeg`
+
+    const menu = `╭═══〘 ${botName} 〙═══⊷❍
+┃${star}╭──────────────
+┃${star}│
+┃${star}│ _*Owner*_ : ${botOwner}
+┃${star}│ _*User*_ : ${message.senderName.replace(/[\r\n]+/gm, "")}
+┃${star}│ _*Mode*_ : ${MODE}
+┃${star}│ _*Server*_ : ${os.platform() === 'linux' ? "Linux" : "Unknown OS"}
+┃${star}│ _*Available RAM*_ : ${used} of ${total}
+┃${star}│ _*Version*_ : ${botVersion}
+┃${star}│
+┃${star}│
+┃${star}│  ▎▍▌▌▉▏▎▌▉▐▏▌▎
+┃${star}│  ▎▍▌▌▉▏▎▌▉▐▏▌▎
+┃${star}│   ${botName}
+┃${star}│
+┃${star}╰───────────────
+╰═════════════════⊷
+
+${cmdmenu}`;
+
+    try {
+
+        await message.client.sendMessage(message.jid, {
+            text: menu
+
+        });
+    } catch (error) {
+        console.error("Error sending menu:", error);
+        await message.client.sendMessage(message.jid, {
+            text: menu
+        });
+    }
+}));
+
 module.exports = {
-    getAvailableCommands: () => commands.filter(x=>x.pattern).map(cmd => extractCommandName(cmd.pattern))
+    getAvailableCommands: () => commands.filter(x => x.pattern).map(cmd => extractCommandName(cmd.pattern))
 };
