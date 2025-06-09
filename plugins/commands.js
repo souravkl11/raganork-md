@@ -174,7 +174,7 @@ Module({
         for (const x of cmd_obj[n]) {
             i = i + 1;
             const newn = n.charAt(0).toUpperCase() + n.slice(1); 
-            final += `${final.includes(newn)?'':'\n\n╭════〘 *_'+newn+"_* 〙════⊷❍\n"}\n┃${star}│ _${i}. ${handlerPrefix}${x.trim()}_${cmd_obj[n]?.indexOf(x)===(cmd_obj[n]?.length-1) ?`\n┃${star}╰─────────────────❍\n╰══════════════════⊷❍`:''}`
+            final += `${final.includes(newn)?'':'\n\n╭════〘 *_'+newn+"_* 〙════⊷❍"}\n┃${star}│ _${i}. ${handlerPrefix}${x.trim()}_${cmd_obj[n]?.indexOf(x)===(cmd_obj[n]?.length-1) ?`\n┃${star}╰─────────────────❍\n╰══════════════════⊷❍`:''}`
         }
     }
 
@@ -210,7 +210,8 @@ ${cmdmenu}`;
     try {
 
         await message.client.sendMessage(message.jid, {
-            text: menu
+            image: {url: botImageLink}
+            caption: menu
 
         });
     } catch (error) {
