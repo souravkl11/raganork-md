@@ -6,7 +6,8 @@ const {
     MODE,
     HANDLERS,
     ALIVE, 
-    BOT_INFO
+    BOT_INFO,
+    VERSION
 } = require("../config");
 const os = require('os'); 
 
@@ -184,7 +185,7 @@ Module({
     const total = bytesToSize(os.totalmem());
     const botOwner = BOT_INFO.split(";")[1] || 'N/A';
     const botName = BOT_INFO.split(";")[0] || 'My Bot';
-    const botVersion = "1.0.0"; 
+    const botVersion = VERSION; 
     const botImageLink = BOT_INFO.split(";")[3] || `https://i.ibb.co/QFrkS7Lj/Eykly4J.jpg`
 
     const menu = `╭═══〘 ${botName} 〙═══⊷❍

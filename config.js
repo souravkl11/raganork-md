@@ -14,7 +14,7 @@ const isRailway = __dirname.startsWith("/railway");
 const logger = P({ level: process.env.LOG_LEVEL || 'silent' });
 
 const MAX_RECONNECT_ATTEMPTS = parseInt(process.env.MAX_RECONNECT_ATTEMPTS || '5', 10);
-
+const VERSION = require("./package.json").version
 const DATABASE_URL = process.env.DATABASE_URL === undefined ? './bot.db' : process.env.DATABASE_URL;
 const DEBUG = process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBUG);
 
@@ -43,7 +43,7 @@ const settingsMenu = [
 ];
 
 const baseConfig = {
-    VERSION: 'v6.0.1',
+    VERSION,
     ALIVE: process.env.ALIVE || "https://i.imgur.com/KCnoMM2.jpg Hey {sender}, I'm alive \n Uptime: {uptime}",
     BLOCK_CHAT: process.env.BLOCK_CHAT || '',
     PM_ANTISPAM: convertToBool(process.env.PM_ANTISPAM) || '',
