@@ -15,13 +15,14 @@ const {
 const { setVar } = require('./manage');
 const fs = require('fs');
 const path = require('path');
-
+const botConfig = require('../config');
+const isFromMe = botConfig.MODE === 'public' ? false : true;
 initializeYouTubeUtils();
 const cookiesPath = path.join(__dirname, '../cookies.txt');
 
 Module({
   pattern: 'ytv ?(.*)',
-  fromMe: true,
+  fromMe: isFromMe,
   desc: 'YouTube video with quality selector',
   type: 'downloader'
 }, async (message, match) => {
@@ -54,7 +55,7 @@ Module({
 
 Module({
   pattern: 'yta ?(.*)',
-  fromMe: true,
+  fromMe: isFromMe,
   desc: 'YouTube audio with quality selector',
   type: 'downloader'
 }, async (message, match) => {
@@ -87,7 +88,7 @@ Module({
 
 Module({
   pattern: 'song ?(.*)',
-  fromMe: true,
+  fromMe: isFromMe,
   desc: 'Search and download songs from YouTube',
   type: 'downloader'
 }, async (message, match) => {
