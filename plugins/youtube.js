@@ -134,7 +134,7 @@ Module({
 
 Module({
   on: 'text',
-  fromMe: true
+  fromMe: isFromMe
 }, async (message) => {
 try {
   setClientInstance(message.client);
