@@ -62,7 +62,13 @@ Module({
 
         const quotedMessage = message.reply_message ? message.quoted : message.data;
         for (const mediaUrl of downloadResult) {
-            const mediaBuffer = await getBuffer(mediaUrl);
+            if (mediaLink.includes("reel")){
+            await message.client.sendMessage(message.jid, {
+                ['video']: {url: mediaUrl}
+            }, {
+                quoted: quotedMessage
+            });                
+            }
             const {
                 mime
             } = await fromBuffer(mediaBuffer);
