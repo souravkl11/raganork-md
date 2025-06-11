@@ -523,9 +523,10 @@ Module({
 }, async (message, match) => {
     // Handle settings menu responses
     const configs = settingsMenu;
-    const settingsMatch = message.message.match(/^\d+$/) && message.reply_message?.text && message.reply_message.text.toLowerCase().includes("settings configuration menu") && message.quoted.key.fromMe;
+    const sMatch = message.message.match(/^\d+$/)
+    const settingsMatch = sMatch && message.reply_message?.text && message.reply_message.text.toLowerCase().includes("settings configuration menu") && message.quoted.key.fromMe;
     if (settingsMatch) {
-        const optionNumber = parseInt(settingsMatch[0]);
+        const optionNumber = parseInt(sMatch[0]);
         if (optionNumber > 0 && optionNumber <= configs.length) {
             const setting = configs[optionNumber - 1];
             let msg = `*${setting.title}*\n\n1. ON\n2. OFF`;
