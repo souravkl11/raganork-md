@@ -1,7 +1,7 @@
 # Raganork-MD
 
 <p align="center">
-  <a href="https://raganork.ml">
+  <a href="https://raganork.site">
     <img src="https://i.ibb.co/QL4BQQ6/Untitled-1.png" alt="Get Session" width="300"/>
   </a>
 </p>
@@ -13,7 +13,7 @@ A lightweight WhatsApp bot framework with multi-session support and extensive co
 #### 1. Get Your Session String 
 
 <p align="center">
-  <a href="https://raganork.ml">
+  <a href="https://raganork.site">
     <img src="https://i.ibb.co/fVWcycPc/get-session.png" alt="Get Session" width="200"/>
   </a>
 </p>
@@ -23,7 +23,7 @@ A lightweight WhatsApp bot framework with multi-session support and extensive co
 #### 2. Deploy and setup your bot 
 
 <p align="center">
-  <a href="https://raganork.ml">
+  <a href="https://raganork.site">
     <img src="https://i.ibb.co/fVsfPsjk/deploy-bot.png" alt="Get Session" width="200"/>
   </a>
 </p>
