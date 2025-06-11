@@ -34,7 +34,7 @@ Module({
   if (!url || !url.startsWith('http')) {
     await message.sendReply('_Downloading video matching "'+url+'"_');
     try {
-    await message.sendReply(await downloadVideo(url), "video")
+    return await message.sendReply(await downloadVideo(url), "video")
     } catch (e){
       await m.sendReply(e.message)
     }
