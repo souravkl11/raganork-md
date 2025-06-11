@@ -133,7 +133,7 @@ Module({
 
   try {
 
-    await message.sendReply(await downloadSong(url), "audio")
+    await message.sendReply(await downloadSong(query), "audio")
 
   } catch (error) {
     console.error('Error creating song search prompt:', error);
