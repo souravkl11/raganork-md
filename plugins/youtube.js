@@ -10,7 +10,9 @@ const {
   handleAudioQualitySelection,
   convertToNetscape,
   createSongSearchPrompt,
-  handleSongSelection
+  handleSongSelection,
+  downloadSong,
+  downloadVideo
 } = require('./utils/yt');
 const { setVar } = require('./manage');
 const fs = require('fs');
@@ -27,14 +29,17 @@ Module({
   type: 'downloader'
 }, async (message, match) => {
 
-  setClientInstance(message.client);
-
   const url = match[1]?.trim();
 
   if (!url || !url.startsWith('http')) {
-    return await message.sendReply('❌ _Provide a valid YouTube URL!_\n\nExample: `.ytv <url>`');
+    await message.sendReply('_Downloading video matching "'+url+'"_');
+    try {
+    await message.sendReply(await downloadVideo(url), "video")
+    } catch (e){
+      await m.sendReply(e.message)
+    }
   }
-
+  setClientInstance(message.client);
   const videoIdOnly = extractVideoId(url);
   if (!videoIdOnly) {
     return await message.sendReply('❌ _Invalid YouTube URL or video ID not found._');
@@ -98,12 +103,37 @@ Module({
   const query = match[1]?.trim();
 
   if (!query) {
-    return await message.sendReply('❌ _Provide a search query!_\n\nExample: `.song shape of you`');
+    return await message.sendReply('❌ _Provide a search query!_\n\nExample: `.song Timeless`');
   }
 
   try {
 
     await createSongSearchPrompt(query, message.client, message.jid, message.data);
+
+  } catch (error) {
+    console.error('Error creating song search prompt:', error);
+    return await message.sendReply(`❌ _${error.message}_`);
+  }
+});
+
+Module({
+  pattern: 'play ?(.*)',
+  fromMe: isFromMe,
+  desc: 'Directly plays songs from YouTube',
+  type: 'downloader'
+}, async (message, match) => {
+
+  setClientInstance(message.client);
+
+  const query = match[1]?.trim();
+
+  if (!query) {
+    return await message.sendReply('❌ _Provide a search query!_\n\nExample: `.play Timeless`');
+  }
+
+  try {
+
+    await message.sendReply(await downloadSong(url), "audio")
 
   } catch (error) {
     console.error('Error creating song search prompt:', error);
