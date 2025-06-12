@@ -644,7 +644,6 @@ Module({
         }
     }
 });
-
 module.exports = {
     containsDisallowedWords,
     setVar
