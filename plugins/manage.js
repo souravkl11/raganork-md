@@ -176,7 +176,22 @@ Module({
     if (match[1]?.toLowerCase() == "public" || match[1]?.toLowerCase() == "private") {
         return await setVar("MODE", match[1], message);
     } else {
-        return await message.sendReply(`_*Mode manager*_\n_Current mode: ${config.MODE}_\n_Use .mode public/private_`);
+        return await message.sendReply(`_*Mode manager*_\n_Current mode: ${config.MODE}_\n_Use \`.mode public|private\`_`);
+    }
+});
+
+Module({
+    pattern: 'antidelete ?(.*)',
+    fromMe: true,
+    desc: "Activates anti delete",
+    use: 'settings'
+}, async (message, match) => {
+    let target = match[1]?.toLowerCase()
+    if (target == "chat" || target == "sudo") {
+        await setVar("ANTI_DELETE", match[1]);
+        return await message.sendReply(`_Anti-delete activated ✅_\n\n_Recovered messages will be sent to the ${target == "chat"? "original chat": "first sudo"}_`);
+    } else {
+        return await message.sendReply(`_*Anti delete*_\n\n_Recovers deleted messages and sends automatically_\n\n_Current status: ${config.ANTI_DELETE || "off"}_\n\n_Use \`.antidelete chat|sudo\`_\n\n- "chat" - sends to original chat\n- "sudo" - sends to first sudo_`);
     }
 });
 

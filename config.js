@@ -85,6 +85,7 @@ const baseConfig = {
     MODE: process.env.MODE || 'private',
     WARN: process.env.WARN || '4',
     ANTILINK_WARN: process.env.ANTILINK_WARN || '',
+    ANTI_DELETE: convertToBool(process.env.ANTI_DELETE) || false,
     SUDO: process.env.SUDO || "",
     LANGUAGE: process.env.LANGUAGE || 'english',
     ACR_A: "ff489a0160188cf5f0750eaf486eee74",
