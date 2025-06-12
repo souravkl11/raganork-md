@@ -132,7 +132,7 @@ Module({
   }
 
   try {
-
+    await message.sendReply(`_Playing song matching "${query}"_`);
     await message.sendReply(await downloadSong(query), "audio")
 
   } catch (error) {
