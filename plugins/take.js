@@ -1,5 +1,5 @@
 const {
-    addExif, webp2mp4, addID3
+    addExif, webp2mp4, addID3, uploadImage, getBuffer
 } = require('./utils');
 const {
     Module
@@ -40,7 +40,7 @@ Module({
     if (!stickermsg && audiomsg) {
                 let inf = match[1] !== '' ? match[1] : config.AUDIO_DATA
                 var spl = inf.split(';')
-                var image = spl[2] ? await skbuffer(spl[2]): await skbuffer(config.BOT_INFO.split(";")[3])
+                var image = spl[2] ? await getBuffer(spl[2]): await getBuffer(config.BOT_INFO.split(";")[3])
                 var res = await addID3(q,spl[0],spl[1]?spl[1]:config.AUDIO_DATA.split(";")[1], 'Raganork Engine', image)
                 await m.client.sendMessage(m.jid, {
                     audio: res,
@@ -59,6 +59,7 @@ Module({
 Module({
     pattern: 'mp4 ?(.*)',
     fromMe: a,
+    use: 'edit',
     desc: 'Converts animated sticker to video'
 }, (async (m, t) => {
     if (m.reply_message.sticker) {
@@ -77,4 +78,17 @@ Module({
             }
         }, {quoted:m.quoted});
     } else return await m.sendReply('_Reply to an animated sticker!_');
+}));
+
+Module({
+    pattern: 'url ?(.*)',
+    fromMe: a,
+    desc: 'Uploads image to imgbb and sends a url',
+    use: 'edit'
+}, (async (m, match) => {
+    if (m.reply_message?.image || m.reply_message?.sticker) {
+        var q = await m.reply_message.download();
+        var result = await uploadImage(q);
+        return await m.sendReply(result.url);
+    } else return await m.sendMessage('_Reply to an image or a sticker_');
 }));

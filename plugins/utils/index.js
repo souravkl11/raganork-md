@@ -33,6 +33,8 @@ const { malayalamToManglish, manglishToMalayalam } = language;
 
 const {gis, pinSearch} = require('./gis');
 
+const uploadImage = require("./imgbb");
+
 module.exports = {
     // Database Operations
     getWarn, setWarn, resetWarn,
@@ -56,5 +58,8 @@ module.exports = {
     malayalamToManglish, manglishToMalayalam,
 
     // GIS
-    gis, pinSearch
+    gis, pinSearch,
+
+    // Image Upload
+    uploadImage
 };
