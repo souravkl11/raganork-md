@@ -842,6 +842,13 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
+axios@^0.21.0:
+  version "0.21.4"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz#c67b90dc0568e5c1cf2b0b858c43ba28e2eda575"
+  integrity sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==
+  dependencies:
+    follow-redirects "^1.14.0"
+
 axios@^1.6.0, axios@^1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.9.0.tgz#25534e3b72b54540077d33046f77e3b8d7081901"
@@ -1814,6 +1821,13 @@ global@~4.4.0:
   dependencies:
     min-document "^2.19.0"
     process "^0.11.10"
+
+google-tts-api@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/google-tts-api/-/google-tts-api-2.0.2.tgz#5f02bbde9b41f57569a94a3dd1d2de808a97bb97"
+  integrity sha512-MkQYbBJEdom8hJpfEVDfD3tpBtkz0X59C+FNsoRhbnCiFjZRnzyurGQ5OrAr3xkigII56/jmk0JNwZsp450G+Q==
+  dependencies:
+    axios "^0.21.0"
 
 gopd@^1.0.1, gopd@^1.2.0:
   version "1.2.0"
