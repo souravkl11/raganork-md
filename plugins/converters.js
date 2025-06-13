@@ -1,5 +1,5 @@
 const {
-    Module 
+    Module
 } = require('../main');
 const fs = require('fs');
 const ffmpeg = require('fluent-ffmpeg');
@@ -7,7 +7,8 @@ const {
     bass,
     sticker,
     addExif,
-    attp
+    attp,
+    gtts
 } = require('./utils');
 const config = require('../config');
 let MODE = config.MODE,
@@ -33,9 +34,17 @@ Module({
         ios: "https://github.com/souravkl11/Raganork-md/"
     }
     if (message.reply_message.image === true) {
-        return await message.client.sendMessage(message.jid,{sticker: fs.readFileSync(await addExif(await sticker(savedFile),exif))},{quoted: message.quoted})
-     } else {
-        return await message.client.sendMessage(message.jid,{sticker:fs.readFileSync(await addExif(await sticker(savedFile,'video'),exif))},{quoted: message.quoted})
+        return await message.client.sendMessage(message.jid, {
+            sticker: fs.readFileSync(await addExif(await sticker(savedFile), exif))
+        }, {
+            quoted: message.quoted
+        })
+    } else {
+        return await message.client.sendMessage(message.jid, {
+            sticker: fs.readFileSync(await addExif(await sticker(savedFile, 'video'), exif))
+        }, {
+            quoted: message.quoted
+        })
     }
 }));
 Module({
@@ -45,8 +54,10 @@ Module({
     desc: Lang.MP3_DESC
 }, (async (message, match) => {
     if (!message.reply_message || (!message.reply_message.video && !message.reply_message.audio)) return await message.sendReply(Lang.MP3_NEED_REPLY)
-    var {seconds} = message.quoted.message[Object.keys(message.quoted.message)[0]];
-    if (seconds>120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`)
+    var {
+        seconds
+    } = message.quoted.message[Object.keys(message.quoted.message)[0]];
+    if (seconds > 120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`)
     var savedFile = await message.reply_message.download();
     ffmpeg(savedFile)
         .save('./temp/tomp3.mp3')
@@ -67,8 +78,10 @@ Module({
     desc: "Slows down music & decreases pitch. For making slowed+reverb audios"
 }, (async (message, match) => {
     if (message.reply_message === false) return await message.sendReply(Lang.MP3_NEED_REPLY)
-    var {seconds} = message.quoted.message[Object.keys(message.quoted.message)[0]];
-    if (seconds>120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`)
+    var {
+        seconds
+    } = message.quoted.message[Object.keys(message.quoted.message)[0]];
+    if (seconds > 120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`)
     var savedFile = await message.reply_message.download();
     ffmpeg(savedFile)
         .audioFilter("atempo=0.5")
@@ -91,8 +104,10 @@ Module({
     desc: "Speeds up music & increases pitch. For making sped-up+reverb audios"
 }, (async (message, match) => {
     if (message.reply_message === false) return await message.sendReply(Lang.MP3_NEED_REPLY)
-    var {seconds} = message.quoted.message[Object.keys(message.quoted.message)[0]];
-    if (seconds>120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`)
+    var {
+        seconds
+    } = message.quoted.message[Object.keys(message.quoted.message)[0]];
+    if (seconds > 120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`)
     var savedFile = await message.reply_message.download();
     ffmpeg(savedFile)
         .audioFilter("atempo=0.5")
@@ -133,13 +148,13 @@ Module({
     desc: Lang.PHOTO_DESC
 }, (async (message, match) => {
     if (message.reply_message === false) return await message.send(Lang.PHOTO_NEED_REPLY)
-        var savedFile = await message.reply_message.download();
-        ffmpeg(savedFile)
-            .fromFormat('webp_pipe')
-            .save('output.png')
-            .on('end', async () => {
-                await message.sendReply(fs.readFileSync('output.png'), 'image');
-            });
+    var savedFile = await message.reply_message.download();
+    ffmpeg(savedFile)
+        .fromFormat('webp_pipe')
+        .save('output.png')
+        .on('end', async () => {
+            await message.sendReply(fs.readFileSync('output.png'), 'image');
+        });
 
 }));
 Module({
@@ -149,13 +164,55 @@ Module({
     desc: "Text to animated sticker"
 }, (async (message, match) => {
     if (match[1] == '') return await message.send("*Need text*")
-    var result = await attp(match[1]); 
-        var exif = {
-            author: STICKER_DATA.split(";")[1] || "",
-            packname: message.senderName,
-            categories: STICKER_DATA.split(";")[2] || "😂",
-            android: "https://github.com/souravkl11/Raganork-md/",
-            ios: "https://github.com/souravkl11/Raganork-md/"
-        }
-        await message.sendMessage(fs.readFileSync(await addExif(result,exif)),'sticker')
+    var result = await attp(match[1]);
+    var exif = {
+        author: STICKER_DATA.split(";")[1] || "",
+        packname: message.senderName,
+        categories: STICKER_DATA.split(";")[2] || "😂",
+        android: "https://github.com/souravkl11/Raganork-md/",
+        ios: "https://github.com/souravkl11/Raganork-md/"
+    }
+    await message.sendMessage(fs.readFileSync(await addExif(result, exif)), 'sticker')
 }));
+Module({
+    pattern: 'tts ?(.*)',
+    fromMe: w,
+    desc: Lang.TTS_DESC,
+    use: 'utility'
+}, async (message, match) => {
+    var query = match[1] || message.reply_message.text
+    if (!query) return await message.sendReply(Lang.TTS_NEED_REPLY);
+    if (!fs.existsSync("./temp/tts")) {
+        fs.mkdirSync("./temp/tts")
+    }
+    query = query.replace("tts", "")
+    var lng = 'en';
+    if (/[\u0D00-\u0D7F]+/.test(query)) lng = 'ml';
+    let
+        LANG = lng,
+        ttsMessage = query,
+        SPEED = 1.0
+    if (langMatch = query.match("\\{([a-z]{2})\\}")) {
+        LANG = langMatch[1]
+        ttsMessage = ttsMessage.replace(langMatch[0], "")
+    }
+    if (speedMatch = query.match("\\{([0].[0-9]+)\\}")) {
+        SPEED = parseFloat(speedMatch[1])
+        ttsMessage = ttsMessage.replace(speedMatch[0], "")
+    }
+    try {
+        var audio = await gtts(ttsMessage, LANG)
+    } catch {
+        return await message.sendReply("_" + Lang.TTS_ERROR + "_")
+    }
+    await message.client.sendMessage(message.jid, {
+        audio,
+        mimetype: 'audio/mp4',
+        ptt: true,
+        waveform: Array.from({
+            length: 40
+        }, () => Math.floor(Math.random() * 99))
+    }, {
+        quoted: message.data
+    });
+});
