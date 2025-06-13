@@ -553,7 +553,8 @@ Module({
         for (const setting of configs) {
             if (quotedMsg.includes(setting.title)) {
                 const value = option === 1 ? "true" : "false";
-                await setVar(setting.env_var, value, message);
+                await setVar(setting.env_var, value);
+                await message.sendReply(`${setting.title} set to ${value}`)
                 return;
             }
         }
