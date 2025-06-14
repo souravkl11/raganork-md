@@ -10,6 +10,9 @@ const {
     attp,
     gtts
 } = require('./utils');
+const {
+    aiTTS
+} = require('./utils/aiTTS');
 const config = require('../config');
 let MODE = config.MODE,
     STICKER_DATA = config.STICKER_DATA;
@@ -187,23 +190,44 @@ Module({
     }
     query = query.replace("tts", "")
     var lng = 'en';
-    if (/[\u0D00-\u0D7F]+/.test(query)) lng = 'ml';
-    let
-        LANG = lng,
+    if (/[00-\u0D7F]+/.test(query)) lng = 'ml';
+    let LANG = lng,
         ttsMessage = query,
-        SPEED = 1.0
+        SPEED = 1.0,
+        VOICE = 'coral';
     if (langMatch = query.match("\\{([a-z]{2})\\}")) {
         LANG = langMatch[1]
         ttsMessage = ttsMessage.replace(langMatch[0], "")
     }
-    if (speedMatch = query.match("\\{([0].[0-9]+)\\}")) {
+    if (speedMatch = query.match("\\{([0-9]+\\.[0-9]+)\\}")) {
         SPEED = parseFloat(speedMatch[1])
         ttsMessage = ttsMessage.replace(speedMatch[0], "")
     }
+    if (voiceMatch = query.match("\\{(nova|alloy|ash|coral|echo|fable|onyx|sage|shimmer)\\}")) {
+        VOICE = voiceMatch[1]
+        ttsMessage = ttsMessage.replace(voiceMatch[0], "")
+    }
+    let audio;
     try {
-        var audio = await gtts(ttsMessage, LANG)
-    } catch {
-        return await message.sendReply("_" + Lang.TTS_ERROR + "_")
+        // Try new aiTTS API
+        const ttsResult = await aiTTS(ttsMessage.trim(), VOICE, SPEED.toFixed(2));
+        if (ttsResult.url) {
+            const {
+                data
+            } = await axios.get(ttsResult.url, {
+                responseType: 'arraybuffer'
+            });
+            audio = Buffer.from(data);
+        } else {
+            throw new Error(ttsResult.error || 'AI TTS failed');
+        }
+    } catch (e) {
+        // Fallback to gtts
+        try {
+            audio = await gtts(ttsMessage.trim(), LANG);
+        } catch {
+            return await message.sendReply("_" + Lang.TTS_ERROR + "_");
+        }
     }
     await message.client.sendMessage(message.jid, {
         audio,

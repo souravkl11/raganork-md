@@ -223,6 +223,30 @@ ${cmdmenu}`;
         });
     }
 }));
+Module({
+    pattern: "games ?(.*)",
+    fromMe: isPrivateMode,
+    desc: "Lists all available games"
+}, async (message, args) => {
+    const gameCommands = commands.filter(cmd => cmd.use === 'game' && cmd.pattern);
+    if (!gameCommands.length) {
+        return await message.sendReply("_No games are installed._");
+    }
+    const handlerPrefix = HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || '.';
+    let response = `*───「 Available Games 」───*\n\n`;
+    gameCommands.forEach(cmd => {
+        const name = extractCommandName(cmd.pattern);
+        if (name) {
+            response += `• *Command:* \`${handlerPrefix}${name}\`\n`;
+            response += `• *Description:* ${cmd.desc || 'N/A'}\n`;
+            if (cmd.use) response += `• *Type:* ${cmd.use}\n`;
+            if (cmd.usage) response += `• *Usage:* ${cmd.usage}\n`;
+            if (cmd.warn) response += `• *Warning:* ${cmd.warn}\n`;
+            response += '\n';
+        }
+    });
+    await message.sendReply(response);
+});
 
 module.exports = {
     getAvailableCommands: () => commands.filter(x => x.pattern).map(cmd => extractCommandName(cmd.pattern))
