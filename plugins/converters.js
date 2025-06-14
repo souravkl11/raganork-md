@@ -10,10 +10,9 @@ const {
     attp,
     gtts
 } = require('./utils');
-const {
-    aiTTS
-} = require('./utils/aiTTS');
+const aiTTS = require('./utils/aiTTS');
 const config = require('../config');
+const axios = require('axios');
 let MODE = config.MODE,
     STICKER_DATA = config.STICKER_DATA;
 const {
@@ -187,10 +186,9 @@ Module({
     if (!query) return await message.sendReply(Lang.TTS_NEED_REPLY);
     if (!fs.existsSync("./temp/tts")) {
         fs.mkdirSync("./temp/tts")
-    }
-    query = query.replace("tts", "")
+    }    query = query.replace("tts", "")
     var lng = 'en';
-    if (/[00-\u0D7F]+/.test(query)) lng = 'ml';
+    if (/[\u0D00-\u0D7F]+/.test(query)) lng = 'ml';
     let LANG = lng,
         ttsMessage = query,
         SPEED = 1.0,
@@ -206,29 +204,37 @@ Module({
     if (voiceMatch = query.match("\\{(nova|alloy|ash|coral|echo|fable|onyx|sage|shimmer)\\}")) {
         VOICE = voiceMatch[1]
         ttsMessage = ttsMessage.replace(voiceMatch[0], "")
-    }
-    let audio;
-    try {
-        // Try new aiTTS API
-        const ttsResult = await aiTTS(ttsMessage.trim(), VOICE, SPEED.toFixed(2));
-        if (ttsResult.url) {
-            const {
-                data
-            } = await axios.get(ttsResult.url, {
-                responseType: 'arraybuffer'
-            });
-            audio = Buffer.from(data);
-        } else {
-            throw new Error(ttsResult.error || 'AI TTS failed');
-        }
-    } catch (e) {
-        // Fallback to gtts
+    }    let audio;
+    
+    if (LANG === 'ml') {
         try {
             audio = await gtts(ttsMessage.trim(), LANG);
         } catch {
             return await message.sendReply("_" + Lang.TTS_ERROR + "_");
         }
+    } else {
+        try {
+            const ttsResult = await aiTTS(ttsMessage.trim(), VOICE, SPEED.toFixed(2));
+            if (ttsResult && ttsResult.url) {
+                const {
+                    data
+                } = await axios.get(ttsResult.url, {
+                    responseType: 'arraybuffer'
+                });
+                audio = Buffer.from(data);
+            } else {
+                throw new Error(ttsResult && ttsResult.error ? ttsResult.error : 'AI TTS failed');
+            }
+        } catch (e) {
+            console.error("AI TTS failed, falling back to gtts:", e);
+            try {
+                audio = await gtts(ttsMessage.trim(), LANG);
+            } catch {
+                return await message.sendReply("_" + Lang.TTS_ERROR + "_");
+            }
+        }
     }
+    
     await message.client.sendMessage(message.jid, {
         audio,
         mimetype: 'audio/mp4',
