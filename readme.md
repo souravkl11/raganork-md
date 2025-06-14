@@ -31,30 +31,27 @@ A lightweight WhatsApp bot framework with multi-session support and extensive co
 ## Features
 
 * Lightweight and fast performance
-* Multi-device WhatsApp Web support
 * Single and multi-session capabilities
 * Extensive plugin system
 * Group management tools
 * Media download functionality
-* Configurable command system
 * Excellent caching and session management
-* PM2 process management
-* Environment-based configuration
 
 ## Prerequisites
 
-* Node.js (version 16 or higher)
+* Node.js (version 20 or higher)
 * Git
 * FFmpeg
 * Yarn package manager
 * PM2 (for process management)
-* Database URL (for cloud deployments)
+* Database URL (postgreSQL - for cloud deployments)
 
 ## Installation
 
 ### Clone Repository
 
 ```bash
+npm install -g yarn pm2
 git clone https://github.com/souravkl11/raganork-md.git
 cd raganork-md
 ````
