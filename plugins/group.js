@@ -11,7 +11,8 @@ const {
 const { ADMIN_ACCESS, HANDLERS } = require('../config');
 const {
     Module
-} = require('../main')
+} = require('../main');
+const { fetchFromStore, User, UserStats, getFullMessage } = require('../core/store');
 
 var handler = HANDLERS !== 'false' ? HANDLERS.split("")[0] : ""
 
@@ -178,7 +179,7 @@ Module({
     if (!message.isGroup) return await message.sendReply("_Leave from where? This is a group command bruh!_")
     return await message.client.groupLeave(message.jid);
 }))
-// QUOTED - COPYRIGHT: souravkl11/raganork
+
 Module({
     pattern: 'quoted',
     fromMe: false,
@@ -188,15 +189,66 @@ Module({
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
-    try {
-    var msg = await message.client.store.toJSON()?.messages[message.jid]?.toJSON().filter(e=>e.key.id===message.reply_message.id)
-    var quoted = msg[0].message[Object.keys(msg[0].message)].contextInfo;
-    var quoted2 = await message.client.store.toJSON()?.messages[message.jid]?.toJSON().filter(e=>e.key.id===quoted.stanzaId)
-    if (quoted2.length) return await message.forwardMessage(message.jid,quoted2[0]);
-    var obj = {key: {remoteJid: message.jid,fromMe: false,id: quoted.stanzaId,participant: quoted.participant},message: quoted.quotedMessage}
-    return await message.forwardMessage(message.jid,obj);
-    } catch { return await message.sendReply("_Failed to load message!_") }
-}})) 
+        if (!message.reply_message) {
+            return await message.sendReply("_Please reply to a message!_");
+        }
+
+        try {
+
+            const repliedMessage = await getFullMessage(message.reply_message.id);
+
+            if (!repliedMessage.found) {
+                return await message.sendReply("_Original message not found in database!_");
+            }
+
+            const messageData = repliedMessage.messageData;
+            let quotedMessageId = null;
+            let quotedMessage = null;
+            let participant = null;
+
+            if (messageData.message) {
+                const msgKeys = Object.keys(messageData.message);
+                for (const key of msgKeys) {
+                    const msgContent = messageData.message[key];
+                    if (msgContent?.contextInfo?.stanzaId) {
+                        quotedMessageId = msgContent.contextInfo.stanzaId;
+                        quotedMessage = msgContent.contextInfo.quotedMessage;
+                        participant = msgContent.contextInfo.participant;
+                        break;
+                    }
+                }
+            }
+
+            if (!quotedMessageId) {
+                return await message.sendReply("_The replied message doesn't contain a quoted message!_");
+            }
+
+            const originalQuoted = await getFullMessage(quotedMessageId);
+
+            if (originalQuoted.found) {
+
+                return await message.forwardMessage(message.jid, originalQuoted.messageData);
+            } else if (quotedMessage) {
+
+                const reconstructedMsg = {
+                    key: {
+                        remoteJid: message.jid,
+                        fromMe: false,
+                        id: quotedMessageId,
+                        participant: participant
+                    },
+                    message: quotedMessage
+                };
+                return await message.forwardMessage(message.jid, reconstructedMsg);
+            } else {
+                return await message.sendReply("_Quoted message not found and no cached data available!_");
+            }
+              } catch (error) {
+            console.error('Error in quoted command:', error);
+            return await message.sendReply("_Failed to load quoted message!_");
+        }
+    }
+}))
 Module({
     pattern: 'msgs ?(.*)',
     fromMe: false,
@@ -206,37 +258,62 @@ Module({
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
-    if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
-    var m = message; var conn = message.client;
-    let msgs = await conn.getMessages(m.jid);
-    var users = (await conn.groupMetadata(m.jid)).participants.map(e=>e.id);
-    if (message.mention[0]) users = message.mention;
-    if (message.reply_message && !message.mention.length) users = message.reply_message.jid;
-    function timeSince(date){var seconds=Math.floor((new Date()-date)/1000);var interval=seconds/31536000;if(interval>1){return Math.floor(interval)+" years ago"}
-    interval=seconds/2592000;if(interval>1){return Math.floor(interval)+" months ago"}
-    interval=seconds/86400;if(interval>1){return Math.floor(interval)+" days ago"}
-    interval=seconds/3600;if(interval>1){return Math.floor(interval)+" hours ago"}
-    interval=seconds/60;if(interval>1){return Math.floor(interval)+" minutes ago"}
-    return Math.floor(seconds)+" seconds ago"};
-    const flc = (x) => {
-    if (x === "undefined") x = "others"
-    try { return x.charAt(0).toUpperCase() + x.slice(1) } catch { return x }
-    }
-    let final_msg = "_Messages sent by each users_\n\n";
-    for (let user of users){
-    if (Object.keys(msgs).includes(user)){
-    let count = msgs[user].total
-    let name = msgs[user].name?.replace( /[\r\n]+/gm, "" )
-    let lastMsg = timeSince(msgs[user].time)
-    let types = msgs[user].type
-    let types_msg = "\n"
-    for (var type in types){
-        types_msg+=`_${flc(type)}: *${types[type]}*_\n`
-    } 
-    final_msg+=`_Participant: *+${user.split("@")[0]}*_\n_Name: *${name}*_\n_Total msgs: *${count}*_\n_Last msg: *${lastMsg}*_${types_msg}\n\n`
-}
-}
-return await m.sendReply(final_msg)
+        if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
+
+        var users = (await message.client.groupMetadata(message.jid)).participants.map(e=>e.id);
+        if (message.mention[0]) users = message.mention;
+        if (message.reply_message && !message.mention.length) users = [message.reply_message.jid];
+
+        function timeSince(date) {
+            if (!date) return "Never";
+            var seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            var interval = seconds / 31536000;
+            if (interval > 1) { return Math.floor(interval) + " years ago" }
+            interval = seconds / 2592000;
+            if (interval > 1) { return Math.floor(interval) + " months ago" }
+            interval = seconds / 86400;
+            if (interval > 1) { return Math.floor(interval) + " days ago" }
+            interval = seconds / 3600;
+            if (interval > 1) { return Math.floor(interval) + " hours ago" }
+            interval = seconds / 60;
+            if (interval > 1) { return Math.floor(interval) + " minutes ago" }
+            return Math.floor(seconds) + " seconds ago";
+        }
+
+        const flc = (x) => {
+            if (x === "undefined") x = "others"
+            try { return x.charAt(0).toUpperCase() + x.slice(1) } catch { return x }
+        }
+
+        let userStats = await fetchFromStore(message.jid);
+
+        let final_msg = "_Messages sent by each users_\n\n";
+
+        for (let user of users) {
+
+            let userStat = userStats.find(stat => stat.userJid === user);
+
+            if (userStat) {
+                let count = userStat.totalMessages;
+                let name = userStat.User?.name?.replace(/[\r\n]+/gm, "") || "Unknown";
+                let lastMsg = timeSince(userStat.lastMessageAt);
+
+                let types_msg = "\n";
+                if (userStat.textMessages > 0) types_msg += `_Text: *${userStat.textMessages}*_\n`;
+                if (userStat.imageMessages > 0) types_msg += `_Image: *${userStat.imageMessages}*_\n`;
+                if (userStat.videoMessages > 0) types_msg += `_Video: *${userStat.videoMessages}*_\n`;
+                if (userStat.audioMessages > 0) types_msg += `_Audio: *${userStat.audioMessages}*_\n`;
+                if (userStat.stickerMessages > 0) types_msg += `_Sticker: *${userStat.stickerMessages}*_\n`;
+                if (userStat.otherMessages > 0) types_msg += `_Others: *${userStat.otherMessages}*_\n`;
+
+                final_msg += `_Participant: *+${user.split("@")[0]}*_\n_Name: *${name}*_\n_Total msgs: *${count}*_\n_Last msg: *${lastMsg}*_${types_msg}\n\n`;
+            } else {
+
+                final_msg += `_Participant: *+${user.split("@")[0]}*_\n_Name: *Unknown*_\n_Total msgs: *0*_\n_Last msg: *Never*_\n\n`;
+            }
+        }
+
+        return await message.sendReply(final_msg);
     }
 }))
 Module({
@@ -518,7 +595,6 @@ Module({
   }
 });
 
-
 Module({
     pattern: 'block ?(.*)',
     fromMe: true,
@@ -565,31 +641,31 @@ Module({
     var allGroups = await message.client.groupFetchAllParticipating();
     var groups = Object.keys(allGroups);
     if (!groups.length) return await message.sendReply("No group chats!");
-    
+
     const chunkSize = 100;
     let totalMessages = Math.ceil(groups.length / chunkSize);
-    
+
     for (let msgIndex = 0; msgIndex < totalMessages; msgIndex++) {
         const startIdx = msgIndex * chunkSize;
         const endIdx = Math.min(startIdx + chunkSize, groups.length);
         const currentGroups = groups.slice(startIdx, endIdx);
-        
+
         let _msg = `*Group JIDs*\n`;
         if (totalMessages > 1) {
             _msg += `Part ${msgIndex + 1}/${totalMessages}: Groups ${startIdx + 1}-${endIdx} of ${groups.length}\n\n`;
         }
-        
+
         for (let i = 0; i < currentGroups.length; i++) {
             const jid = currentGroups[i];
             const count = startIdx + i + 1;
             const groupData = allGroups[jid];
             const groupName = groupData ? groupData.subject : "Unknown Group";
-            
+
             _msg += `*${count}.* _Group:_ ${groupName}\n_JID:_ \`${jid}\`\n\n`;
         }
-        
+
         await message.sendReply(_msg);
-        
+
         if (msgIndex < totalMessages - 1) {
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
