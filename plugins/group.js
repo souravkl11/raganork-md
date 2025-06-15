@@ -261,7 +261,7 @@ Module({
         if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
 
         var users = (await message.client.groupMetadata(message.jid)).participants.map(e=>e.id);
-        if (message.mention[0]) users = message.mention;
+        if (message.mention?.[0]) users = message.mention;
         if (message.reply_message && !message.mention.length) users = [message.reply_message.jid];
 
         function timeSince(date) {
@@ -313,7 +313,7 @@ Module({
             }
         }
 
-        return await message.sendReply(final_msg);
+        return await message.sendReply(final_msg.trim());
     }
 }))
 Module({
