@@ -185,8 +185,9 @@ Module({
     fromMe: false,
     desc:"Sends replied message's replied message. Useful for recovering deleted messages.",
     usage: '.quoted (reply to a quoted message)',
-    use: 'misc'
+    use: 'group'
 }, (async (message, match) => {
+    if (!message.isGroup) return await message.sendReply("_Group command!_")
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
         if (!message.reply_message) {
