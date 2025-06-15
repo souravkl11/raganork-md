@@ -19,7 +19,8 @@ Module({
     pattern: 'clear ?(.*)',
     fromMe: true,
     desc: "Clear chat",
-    use: 'misc'
+    use: 'misc',
+    usage: '.clear (clears the current chat)'
 }, (async (message, match) => {
     await message.client.chatModify({
         delete: true,
@@ -31,7 +32,8 @@ Module({
     pattern: 'kick ?(.*)',
     fromMe: false,
     desc: Lang.KICK_DESC,
-    use: 'group'
+    use: 'group',
+    usage: '.kick @mention or reply\n.kick all (removes everyone)\n.kick 91 (removes numbers starting with 91)'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -81,7 +83,8 @@ Module({
     fromMe: true,
     desc: Lang.ADD_DESC,
     warn:"You number might get banned, use with caution",
-    use: 'group'
+    use: 'group',
+    usage: '.add 919876543210'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     var init = match[1] || message.reply_message.jid.split("@")[0]
@@ -96,7 +99,8 @@ Module({
     pattern: 'promote ?(.*)',
     fromMe: false,
     use: 'group',
-    desc: Lang.PROMOTE_DESC
+    desc: Lang.PROMOTE_DESC,
+    usage: '.promote @mention or reply'
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -167,7 +171,9 @@ Module({
 Module({
     pattern: 'leave',
     fromMe: true,
-    desc: Lang.LEAVE_DESC
+    desc: Lang.LEAVE_DESC,
+    usage: '.leave (exits current group)',
+    use: 'group'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply("_Leave from where? This is a group command bruh!_")
     return await message.client.groupLeave(message.jid);
@@ -176,7 +182,9 @@ Module({
 Module({
     pattern: 'quoted',
     fromMe: false,
-    desc:"Sends replied message's replied message. Useful for recovering deleted messages."
+    desc:"Sends replied message's replied message. Useful for recovering deleted messages.",
+    usage: '.quoted (reply to a quoted message)',
+    use: 'misc'
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -192,7 +200,9 @@ Module({
 Module({
     pattern: 'msgs ?(.*)',
     fromMe: false,
-    desc:"Shows number of messages sent by each member. (Only from when bot was set up)"
+    desc:"Shows number of messages sent by each member. (Only from when bot was set up)",
+    usage: '.msgs (all members)\n.msgs @mention (specific member)',
+    use: 'group'
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -233,7 +243,8 @@ Module({
     pattern: 'demote ?(.*)',
     fromMe: false,
     use: 'group',
-    desc: Lang.DEMOTE_DESC
+    desc: Lang.DEMOTE_DESC,
+    usage: '.demote @mention or reply'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -253,7 +264,7 @@ Module({
     use: 'group',
     fromMe: false,
     desc: Lang.MUTE_DESC,
-    usage:'mute 1h\nmute 5m'
+    usage: '.mute (mutes group indefinitely)\n.mute 1h (mutes for 1 hour)\n.mute 5m (mutes for 5 minutes)'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -278,7 +289,8 @@ Module({
     pattern: 'unmute',
     use: 'group',
     fromMe: false,
-    desc: Lang.UNMUTE_DESC
+    desc: Lang.UNMUTE_DESC,
+    usage: '.unmute (unmutes the group)'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -292,7 +304,8 @@ Module({
     pattern: 'jid',
     use: 'group',
     fromMe: false,
-    desc: Lang.JID_DESC
+    desc: Lang.JID_DESC,
+    usage: '.jid (gets current chat jid)\n.jid (reply to get user jid)'
 }, (async (message) => {
     if (message.isGroup){
     let adminAccesValidated = ADMIN_ACCESS && message.isGroup ? await isAdmin(message,message.sender) : false;
@@ -308,7 +321,8 @@ Module({
     pattern: 'invite',
     fromMe: false,
     use: 'group',
-    desc: Lang.INVITE_DESC
+    desc: Lang.INVITE_DESC,
+    usage: '.invite (generates group invite link)'
 }, (async (message) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -324,7 +338,8 @@ Module({
     pattern: 'revoke',
     fromMe: false,
     use: 'group',
-    desc: Lang.REVOKE_DESC
+    desc: Lang.REVOKE_DESC,
+    usage: '.revoke (revokes/resets group invite link)'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -338,7 +353,8 @@ Module({
     pattern: 'glock ?(.*)',
     fromMe: false,
     use: 'group',
-    desc: "Change group settings to allow only admins to edit group's info!"
+    desc: "Change group settings to allow only admins to edit group's info!",
+    usage: '.glock (locks group settings)'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -350,7 +366,8 @@ Module({
     pattern: 'gunlock ?(.*)',
     fromMe: false,
     use: 'group',
-    desc: "Change group settings to allow everyone to edit group's info!"
+    desc: "Change group settings to allow everyone to edit group's info!",
+    usage: '.gunlock (unlocks group settings)'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -362,7 +379,8 @@ Module({
     pattern: 'gname ?(.*)',
     fromMe: false,
     use: 'group',
-    desc: "Change group subject"
+    desc: "Change group subject",
+    usage: '.gname New Group Name'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -377,7 +395,8 @@ Module({
     pattern: 'gdesc ?(.*)',
     fromMe: false,
     use: 'group',
-    desc: "Change group description"
+    desc: "Change group description",
+    usage: '.gdesc New group description here'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
@@ -392,7 +411,8 @@ Module({
     pattern: 'common ?(.*)',
     fromMe: false,
     use: 'group',
-    desc: "Get common participants in two groups, and kick using .common kick jid"
+    desc: "Get common participants in two groups, and kick using .common kick jid",
+    usage: '.common jid1,jid2\n.common kick group_jid'
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -437,7 +457,8 @@ Module({
     pattern: 'diff ?(.*)',
     fromMe: false,
     use: 'utility',
-    desc: "Get difference of participants in two groups"
+    desc: "Get difference of participants in two groups",
+    usage: '.diff jid1,jid2'
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -454,10 +475,11 @@ return await message.sendReply(msg)
 }}));
 
 Module({
-  pattern: 'tag(?:all|admin)?',
-  fromMe: false,
-  desc: Lang.TAGALL_DESC,
-  use: 'group'
+    pattern: 'tag(?:all|admin)?',
+    fromMe: false,
+    desc: Lang.TAGALL_DESC,
+    use: 'group',
+    usage: '.tag (reply to message)\n.tagall (tag everyone)\n.tagadmin (tag admins only)'
 }, async (message, match) => {
   if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
 
@@ -500,7 +522,9 @@ Module({
 Module({
     pattern: 'block ?(.*)',
     fromMe: true,
-    use: 'owner'
+    use: 'owner',
+    desc: "Block a user",
+    usage: '.block (reply to a message)\n.block @mention'
 }, (async (message, match) => {
     var isGroup = message.jid.endsWith('@g.us')
     var user = message.jid
@@ -510,7 +534,9 @@ Module({
 Module({
     pattern: 'join ?(.*)',
     fromMe: true,
-    use: 'owner'
+    use: 'owner',
+    desc: "Join a WhatsApp group using invite link",
+    usage: '.join https://chat.whatsapp.com/abcdef123456'
 }, (async (message, match) => {
     var rgx = /^(https?:\/\/)?chat\.whatsapp\.com\/(?:invite\/)?([a-zA-Z0-9_-]{22})$/
     if (!match[1] || !rgx.test(match[1])) return await message.sendReply("*Need group link*");
@@ -519,18 +545,84 @@ Module({
 Module({
     pattern: 'unblock ?(.*)',
     fromMe: true,
-    use: 'owner'
+    use: 'owner',
+    desc: "Unblock a user",
+    usage: '.unblock (reply to a message)\n.unblock @mention'
 }, (async (message) => {
     var isGroup = message.jid.endsWith('@g.us')
     if (!isGroup) return;
     var user = message.mention[0] || message.reply_message.jid
     await message.client.updateBlockStatus(user, "unblock");
 }));
+
+Module({
+    pattern: 'getjids ?(.*)', 
+    desc: 'Get all groups\' jids',
+    use: 'utility',
+    usage: '.getjids (fetches all group names and JIDs)\n.getjids fast (fetches only JIDs)',
+    fromMe: true
+}, (async (message, match) => {
+    // Fetch all participating groups
+    var groups = Object.keys(await message.client.groupFetchAllParticipating());
+    if (!groups.length) return await message.sendReply("No group chats!");
+    
+    // Check if user wants to avoid fetching names (to prevent rate limits)
+    const skipNames = match[1]?.toLowerCase() === 'fast';
+    
+    if (skipNames) {
+        // Fast mode - just list JIDs without metadata
+        let _msg = "*Group JIDs (Fast Mode)*\n\n";
+        groups.forEach((jid, index) => {
+            _msg += `*${index + 1}.* \`${jid}\`\n\n`;
+        });
+        return await message.sendReply(_msg);
+    }
+    
+    // Normal mode with progressive updates to avoid rate limits
+    let sent_msg = await message.sendReply(`*Group JIDs*\nFetching details for ${groups.length} groups...`);
+    
+    let _msg = "*Group JIDs with Names*\n\n";
+    const batchSize = 20; // Process 20 groups at a time
+    let count = 0;
+    
+    for (let i = 0; i < groups.length; i++) {
+        count++;
+        const jid = groups[i];
+        
+        try {
+            var g_name = (await message.client.groupMetadata(jid)).subject;
+            _msg += `*${count}.* _Group:_ ${g_name}\n_JID:_ \`${jid}\`\n\n`;
+        } catch (error) {
+            _msg += `*${count}.* _Group:_ Can't load name (rate-limit)\n_JID:_ \`${jid}\`\n\n`;
+        }
+        
+        // Update message every 20 groups or at the end
+        if ((i + 1) % batchSize === 0 || i === groups.length - 1) {
+            let progress = `${Math.min(i + 1, groups.length)}/${groups.length} groups processed`;
+            let currentMsg = _msg + `\n_${progress}_`;
+            
+            // Edit the existing message with new content
+            await message.edit(currentMsg, message.jid, sent_msg.key);
+            
+            // Add a delay before processing the next batch (only if more groups exist)
+            if (i < groups.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+        }
+        
+        // Add a small delay between individual API calls to avoid rate limiting
+        if (i < groups.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    }
+}));
+
 Module({
     pattern: 'pp ?(.*)',
     fromMe: true,
     use: 'owner',
-    desc: "Change/Get profile picture (full screen supported) with replied message"
+    desc: "Change/Get profile picture (full screen supported) with replied message",
+    usage: '.pp (reply to image to set profile pic)\n.pp (reply to user to get their profile pic)'
 }, (async (message, match) => {
     if (message.reply_message && message.reply_message.image) {
     var image = await message.reply_message.download()
@@ -546,7 +638,8 @@ Module({
     pattern: 'gpp ?(.*)',
     fromMe: false,
     use: 'owner',
-    desc: "Change/Get group icon (full screen supported) with replied message"
+    desc: "Change/Get group icon (full screen supported) with replied message",
+    usage: '.gpp (reply to image to set group icon)'
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
