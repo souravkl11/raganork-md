@@ -559,35 +559,46 @@ Module({
     pattern: 'getjids ?(.*)', 
     desc: 'Get all groups\' jids',
     use: 'utility',
-    usage: '.getjids (fetches all group names and JIDs)\n.getjids fast (fetches only JIDs)',
+    usage: '.getjids (first 50 groups)\n.getjids fast (JIDs only, no names)\n.getjids >50 (groups 51-100)\n.getjids >100 (groups 101-150)',
     fromMe: true
 }, (async (message, match) => {
-    // Fetch all participating groups
     var groups = Object.keys(await message.client.groupFetchAllParticipating());
     if (!groups.length) return await message.sendReply("No group chats!");
     
-    // Check if user wants to avoid fetching names (to prevent rate limits)
     const skipNames = match[1]?.toLowerCase() === 'fast';
+    const pageSize = 50;
+    let pageNum = 0;
+    
+    if (match[1] && match[1].startsWith('>')) {
+        const startIndex = parseInt(match[1].substring(1));
+        if (!isNaN(startIndex)) {
+            pageNum = Math.floor(startIndex / pageSize);
+        }
+    }
+    
+    const startIdx = pageNum * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, groups.length);
+    const currentGroups = groups.slice(startIdx, endIdx);
     
     if (skipNames) {
-        // Fast mode - just list JIDs without metadata
-        let _msg = "*Group JIDs (Fast Mode)*\n\n";
-        groups.forEach((jid, index) => {
-            _msg += `*${index + 1}.* \`${jid}\`\n\n`;
+        let _msg = `*Group JIDs (Fast Mode)*\nShowing ${startIdx + 1}-${endIdx} of ${groups.length} groups\n\n`;
+        currentGroups.forEach((jid, index) => {
+            _msg += `*${startIdx + index + 1}.* \`${jid}\`\n\n`;
         });
+        
+        if (endIdx < groups.length) {
+            _msg += `\n_Use '.getjids >${endIdx}' to see the next batch_`;
+        }
+        
         return await message.sendReply(_msg);
     }
     
-    // Normal mode with progressive updates to avoid rate limits
-    let sent_msg = await message.sendReply(`*Group JIDs*\nFetching details for ${groups.length} groups...`);
+    let sent_msg = await message.sendReply(`*Group JIDs*\nFetching details for groups ${startIdx + 1}-${endIdx} of ${groups.length}...`);
+    let _msg = `*Group JIDs with Names*\nPage ${pageNum + 1}\n\n`;
     
-    let _msg = "*Group JIDs with Names*\n\n";
-    const batchSize = 20; // Process 20 groups at a time
-    let count = 0;
-    
-    for (let i = 0; i < groups.length; i++) {
-        count++;
-        const jid = groups[i];
+    for (let i = 0; i < currentGroups.length; i++) {
+        const jid = currentGroups[i];
+        const count = startIdx + i + 1;
         
         try {
             var g_name = (await message.client.groupMetadata(jid)).subject;
@@ -596,23 +607,23 @@ Module({
             _msg += `*${count}.* _Group:_ Can't load name (rate-limit)\n_JID:_ \`${jid}\`\n\n`;
         }
         
-        // Update message every 20 groups or at the end
-        if ((i + 1) % batchSize === 0 || i === groups.length - 1) {
-            let progress = `${Math.min(i + 1, groups.length)}/${groups.length} groups processed`;
+        if ((i + 1) % 10 === 0 || i === currentGroups.length - 1) {
+            let progress = `${Math.min(startIdx + i + 1, endIdx)}/${groups.length} total groups`;
             let currentMsg = _msg + `\n_${progress}_`;
             
-            // Edit the existing message with new content
+            if (endIdx < groups.length) {
+                currentMsg += `\n_Use '.getjids >${endIdx}' for next page_`;
+            }
+            
             await message.edit(currentMsg, message.jid, sent_msg.key);
             
-            // Add a delay before processing the next batch (only if more groups exist)
-            if (i < groups.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 3000));
+            if (i < currentGroups.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
         
-        // Add a small delay between individual API calls to avoid rate limiting
-        if (i < groups.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+        if (i < currentGroups.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
     }
 }));
