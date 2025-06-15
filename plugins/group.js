@@ -559,71 +559,39 @@ Module({
     pattern: 'getjids ?(.*)', 
     desc: 'Get all groups\' jids',
     use: 'utility',
-    usage: '.getjids (first 50 groups)\n.getjids fast (JIDs only, no names)\n.getjids >50 (groups 51-100)\n.getjids >100 (groups 101-150)',
+    usage: '.getjids (shows all group JIDs)',
     fromMe: true
 }, (async (message, match) => {
-    var groups = Object.keys(await message.client.groupFetchAllParticipating());
+    var allGroups = await message.client.groupFetchAllParticipating();
+    var groups = Object.keys(allGroups);
     if (!groups.length) return await message.sendReply("No group chats!");
     
-    const skipNames = match[1]?.toLowerCase() === 'fast';
-    const pageSize = 50;
-    let pageNum = 0;
+    const chunkSize = 100;
+    let totalMessages = Math.ceil(groups.length / chunkSize);
     
-    if (match[1] && match[1].startsWith('>')) {
-        const startIndex = parseInt(match[1].substring(1));
-        if (!isNaN(startIndex)) {
-            pageNum = Math.floor(startIndex / pageSize);
-        }
-    }
-    
-    const startIdx = pageNum * pageSize;
-    const endIdx = Math.min(startIdx + pageSize, groups.length);
-    const currentGroups = groups.slice(startIdx, endIdx);
-    
-    if (skipNames) {
-        let _msg = `*Group JIDs (Fast Mode)*\nShowing ${startIdx + 1}-${endIdx} of ${groups.length} groups\n\n`;
-        currentGroups.forEach((jid, index) => {
-            _msg += `*${startIdx + index + 1}.* \`${jid}\`\n\n`;
-        });
+    for (let msgIndex = 0; msgIndex < totalMessages; msgIndex++) {
+        const startIdx = msgIndex * chunkSize;
+        const endIdx = Math.min(startIdx + chunkSize, groups.length);
+        const currentGroups = groups.slice(startIdx, endIdx);
         
-        if (endIdx < groups.length) {
-            _msg += `\n_Use '.getjids >${endIdx}' to see the next batch_`;
+        let _msg = `*Group JIDs*\n`;
+        if (totalMessages > 1) {
+            _msg += `Part ${msgIndex + 1}/${totalMessages}: Groups ${startIdx + 1}-${endIdx} of ${groups.length}\n\n`;
         }
         
-        return await message.sendReply(_msg);
-    }
-    
-    let sent_msg = await message.sendReply(`*Group JIDs*\nFetching details for groups ${startIdx + 1}-${endIdx} of ${groups.length}...`);
-    let _msg = `*Group JIDs with Names*\nPage ${pageNum + 1}\n\n`;
-    
-    for (let i = 0; i < currentGroups.length; i++) {
-        const jid = currentGroups[i];
-        const count = startIdx + i + 1;
-        
-        try {
-            var g_name = (await message.client.groupMetadata(jid)).subject;
-            _msg += `*${count}.* _Group:_ ${g_name}\n_JID:_ \`${jid}\`\n\n`;
-        } catch (error) {
-            _msg += `*${count}.* _Group:_ Can't load name (rate-limit)\n_JID:_ \`${jid}\`\n\n`;
-        }
-        
-        if ((i + 1) % 10 === 0 || i === currentGroups.length - 1) {
-            let progress = `${Math.min(startIdx + i + 1, endIdx)}/${groups.length} total groups`;
-            let currentMsg = _msg + `\n_${progress}_`;
+        for (let i = 0; i < currentGroups.length; i++) {
+            const jid = currentGroups[i];
+            const count = startIdx + i + 1;
+            const groupData = allGroups[jid];
+            const groupName = groupData ? groupData.subject : "Unknown Group";
             
-            if (endIdx < groups.length) {
-                currentMsg += `\n_Use '.getjids >${endIdx}' for next page_`;
-            }
-            
-            await message.edit(currentMsg, message.jid, sent_msg.key);
-            
-            if (i < currentGroups.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
+            _msg += `*${count}.* _Group:_ ${groupName}\n_JID:_ \`${jid}\`\n\n`;
         }
         
-        if (i < currentGroups.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 300));
+        await message.sendReply(_msg);
+        
+        if (msgIndex < totalMessages - 1) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
     }
 }));
