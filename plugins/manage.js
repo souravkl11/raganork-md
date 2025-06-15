@@ -628,6 +628,7 @@ Module({
     var uptime_process = (`_Process : ${hours} Hour(s), ${minutes} minute(s) and ${seconds} second(s)_`);
     return await message.sendReply(`                 _*[ UP-TIME ]*_\n\n${uptime_os}\n${uptime_process}`);
 }));
+if (config.DEBUG) { 
 Module({
     on: 'text',
     fromMe: !0
@@ -645,6 +646,7 @@ Module({
         }
     }
 });
+}
 module.exports = {
     containsDisallowedWords,
     setVar
