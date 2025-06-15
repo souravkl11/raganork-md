@@ -195,7 +195,7 @@ Module({
 
         try {
 
-            const repliedMessage = await getFullMessage(message.reply_message.id);
+            const repliedMessage = await getFullMessage(message.reply_message.id+"_");
 
             if (!repliedMessage.found) {
                 return await message.sendReply("_Original message not found in database!_");
@@ -223,7 +223,7 @@ Module({
                 return await message.sendReply("_The replied message doesn't contain a quoted message!_");
             }
 
-            const originalQuoted = await getFullMessage(quotedMessageId);
+            const originalQuoted = await getFullMessage(quotedMessageId+"_");
 
             if (originalQuoted.found) {
 
@@ -261,7 +261,7 @@ Module({
         if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
 
         var users = (await message.client.groupMetadata(message.jid)).participants.map(e=>e.id);
-        if (message.mention?.[0]) users = message.mention;
+        if (message.mention[0]) users = message.mention;
         if (message.reply_message && !message.mention.length) users = [message.reply_message.jid];
 
         function timeSince(date) {
@@ -313,7 +313,7 @@ Module({
             }
         }
 
-        return await message.sendReply(final_msg.trim());
+        return await message.sendReply(final_msg);
     }
 }))
 Module({
