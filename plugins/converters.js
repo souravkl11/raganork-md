@@ -260,22 +260,35 @@ Module({
     }
     
     try {
-        var buffer = await message.reply_message.download('buffer');
+        const mediaMessage = message.reply_message.data.message;
+        const mediaType = Object.keys(mediaMessage)[0];
+        const mediaInfo = mediaMessage[mediaType];
+        
+        if (mediaInfo.fileLength && mediaInfo.fileLength > 50 * 1024 * 1024) {
+            return await message.send("_File too large! Maximum size is 50MB_");
+        }
+          const processingMsg = await message.send("_Converting to document..._");
+        
+        const stream = await message.reply_message.download('stream');
         var randomHash = Math.random().toString(36).substring(2, 8);
-        var fileName = match[1] || `converted_file_${randomHash}`;
-        var mimetype = 'application/octet-stream';
-          const detectedType = await fileType.fromBuffer(buffer);
-        if (detectedType) {
-            mimetype = detectedType.mime;
-            if (!match[1]) {
-                fileName = `converted_file_${randomHash}.${detectedType.ext}`;
-            } else if (!match[1].includes('.')) {
-                fileName = `${match[1]}.${detectedType.ext}`;
+        var fileName = match[1];
+        var mimetype = mediaInfo.mimetype || 'application/octet-stream';
+        
+        if (message.reply_message.document && mediaInfo.fileName && !match[1]) {
+            fileName = mediaInfo.fileName;
+        } else if (!fileName) {
+            fileName = `converted_file_${randomHash}`;
+        }
+        
+        if (!fileName.includes('.') && mimetype) {
+            const ext = mimetype.split('/')[1];
+            if (ext && ext !== 'octet-stream') {
+                fileName += `.${ext}`;
             }
         }
         
         await message.client.sendMessage(message.jid, {
-            document: buffer,
+            document: stream,
             fileName: fileName,
             mimetype: mimetype,
             caption: match[1] ? '' : '_Converted to document_'
@@ -283,9 +296,19 @@ Module({
             quoted: message.quoted
         });
         
+        await message.client.sendMessage(message.jid, {
+            delete: processingMsg.key
+        });
+        
     } catch (error) {
         console.error('Doc conversion error:', error);
-        await message.send("_Failed to convert media to document_");
+        if (error.message.includes('download')) {
+            await message.send("_Failed to download media. File might be corrupted or expired_");
+        } else if (error.message.includes('large') || error.message.includes('memory')) {
+            await message.send("_File too large to process_");
+        } else {
+            await message.send("_Failed to convert media to document_");
+        }
     }
 });
 Module({
@@ -304,30 +327,24 @@ Module({
         return await message.send("_Please provide a valid URL or reply to a message containing a URL_");
     }
     
-    try {
-        await message.send("_Downloading file..._");
-          const response = await axios.get(url, {
-            responseType: 'arraybuffer',
+    try {        await message.send("_Downloading file..._");
+        
+        const response = await axios.get(url, {
+            responseType: 'stream',
             timeout: 60000,
         });
         
-        const buffer = Buffer.from(response.data);
         var randomHash = Math.random().toString(36).substring(2, 8);        
         var fileName = `downloaded_file_${randomHash}`;
         var mimetype = response.headers['content-type'] || 'application/octet-stream';
-        
-        const detectedType = await fileType.fromBuffer(buffer);
-        if (detectedType) {
-            mimetype = detectedType.mime;
-            fileName = `downloaded_file_${randomHash}.${detectedType.ext}`;
-        }
         
         const contentDisposition = response.headers['content-disposition'];
         if (contentDisposition && contentDisposition.includes('filename=')) {
             const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
             if (filenameMatch) {
                 fileName = filenameMatch[1].replace(/['"]/g, '');
-            }        } else {
+            }
+        } else {
             const urlPath = new URL(url).pathname;
             const urlFileName = urlPath.split('/').pop();
             if (urlFileName && urlFileName.includes('.')) {
@@ -335,8 +352,14 @@ Module({
             }
         }
         
-        await message.client.sendMessage(message.jid, {
-            document: buffer,
+        if (!fileName.includes('.') && response.headers['content-type']) {
+            const ext = response.headers['content-type'].split('/')[1];
+            if (ext && ext !== 'octet-stream') {
+                fileName += `.${ext}`;
+            }
+        }
+          await message.client.sendMessage(message.jid, {
+            document: response.data,
             fileName: fileName,
             mimetype: mimetype,
             caption: `_Downloaded from: ${url}_`
