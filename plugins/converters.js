@@ -101,12 +101,12 @@ Module({
         });
 }));
 Module({
-    pattern: 'speed ?(.*)',
+    pattern: 'sped ?(.*)',
     fromMe: w,
     use: 'edit',
     desc: "Speeds up music & increases pitch. For making sped-up+reverb audios"
 }, (async (message, match) => {
-    if (message.reply_message === false) return await message.sendReply(Lang.MP3_NEED_REPLY)
+    if (!message.reply_message) return await message.sendReply(Lang.MP3_NEED_REPLY)
     var {
         seconds
     } = message.quoted.message[Object.keys(message.quoted.message)[0]];
