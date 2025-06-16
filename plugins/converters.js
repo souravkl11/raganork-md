@@ -266,10 +266,10 @@ Module({
         
         if (mediaInfo.fileLength && mediaInfo.fileLength > 50 * 1024 * 1024) {
             return await message.send("_File too large! Maximum size is 50MB_");
-        }
-          const processingMsg = await message.send("_Converting to document..._");
+        }        const processingMsg = await message.send("_Converting to document..._");
         
-        const stream = await message.reply_message.download('stream');
+        const filePath = await message.reply_message.download();
+        const stream = fs.createReadStream(filePath);
         var randomHash = Math.random().toString(36).substring(2, 8);
         var fileName = match[1];
         var mimetype = mediaInfo.mimetype || 'application/octet-stream';
@@ -286,15 +286,20 @@ Module({
                 fileName += `.${ext}`;
             }
         }
-        
-        await message.client.sendMessage(message.jid, {
-            document: stream,
+          await message.client.sendMessage(message.jid, {
+            document: { stream: stream },
             fileName: fileName,
             mimetype: mimetype,
             caption: match[1] ? '' : '_Converted to document_'
         }, {
             quoted: message.quoted
         });
+        
+        try {
+            fs.unlinkSync(filePath);
+        } catch (e) {
+            console.log('Failed to delete temp file:', filePath);
+        }
         
         await message.client.sendMessage(message.jid, {
             delete: processingMsg.key
@@ -357,9 +362,8 @@ Module({
             if (ext && ext !== 'octet-stream') {
                 fileName += `.${ext}`;
             }
-        }
-          await message.client.sendMessage(message.jid, {
-            document: response.data,
+        }        await message.client.sendMessage(message.jid, {
+            document: { stream: response.data },
             fileName: fileName,
             mimetype: mimetype,
             caption: `_Downloaded from: ${url}_`
