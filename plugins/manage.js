@@ -550,7 +550,7 @@ Module({
             let msg = `*${setting.title}*\n\n1. ON\n2. OFF`;
             return await message.sendReply(msg);
         }
-    } else if (message.message?.match(/^(1|2)$/) && message.reply_message?.text.includes("1. ON") && message.quoted.key.fromMe) {
+    } else if (message.message?.match(/^(1|2)$/) && message.reply_message?.text?.includes("1. ON") && message.quoted.key.fromMe) {
         const quotedMsg = message.reply_message.message;
         const option = parseInt(message.message);
         for (const setting of configs) {
