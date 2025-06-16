@@ -190,8 +190,11 @@ Module({
     if (target == "chat" || target == "sudo") {
         await setVar("ANTI_DELETE", match[1]);
         return await message.sendReply(`_Anti-delete activated ✅_\n\n_Recovered messages will be sent to the ${target == "chat"? "original chat": "first sudo"}_`);
+    } else if (target == "off") {
+        await setVar("ANTI_DELETE", "off");
+        return await message.sendReply(`_Anti-delete deactivated ❌_`);
     } else {
-        return await message.sendReply(`_*Anti delete*_\n\n_Recovers deleted messages and sends automatically_\n\n_Current status: ${config.ANTI_DELETE || "off"}_\n\n_Use \`.antidelete chat|sudo\`_\n\n- "chat" - sends to original chat\n- "sudo" - sends to first sudo_`);
+        return await message.sendReply(`_*Anti delete*_\n\n_Recovers deleted messages and sends automatically_\n\n_Current status: ${config.ANTI_DELETE || "off"}_\n\n_Use \`.antidelete chat|sudo|off\`_\n\n- "chat" - sends to original chat\n- "sudo" - sends to first sudo\n- "off" - disables anti-delete_`);
     }
 });
 
