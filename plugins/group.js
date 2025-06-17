@@ -761,7 +761,7 @@ Module({
                 const fullMessage = await getFullMessage(msg.messageId+"_");
                 if (fullMessage.found && fullMessage.messageData) {
 
-                    await message.forwardMessage(message.jid, fullMessage.messageData);
+                    await message.forwardMessage(message.jid, fullMessage.messageData, {contextInfo: {isForwarded: false}});
                     sentCount++;
                 } else {  
                     if (msg.content) {
