@@ -13,8 +13,6 @@ const {
     Module
 } = require('../main');
 const { fetchFromStore, User, UserStats, getFullMessage } = require('../core/store');
-const config = require('../config');
-const { Op } = require('sequelize');
 
 var handler = HANDLERS !== 'false' ? HANDLERS.split("")[0] : ""
 
@@ -709,75 +707,4 @@ if (!message.reply_message.image) {
    try { var image = await message.client.profilePictureUrl(message.jid,'image') } catch {return await message.sendReply("Profile pic not found!")}
    return await message.sendReply({url:image},"image")
 }
-}}))
-Module({
-    pattern: 'stealth ?(.*)',
-    fromMe: true,
-    desc: "Read the last n messages of a JID without blue ticks",
-    usage: '.stealth jid number_of_messages\n.stealth number_of_messages jid',
-    use: 'owner'
-}, (async (message, match) => {
-    if (!match[1]) {
-        return await message.sendReply("_Please provide JID and number of messages!_\n\n*Usage:*\n`.stealth jid number_of_messages`\n`.stealth number_of_messages jid`");
-    }
-    const args = match[1].trim().split(/\s+/);
-    if (args.length !== 2) {
-        return await message.sendReply("_Please provide exactly 2 arguments: JID and number of messages!_\n\n*Usage:*\n`.stealth jid number_of_messages`\n`.stealth number_of_messages jid`");
-    }
-    let jid, numberOfMessages;
-    if (isNumeric(args[0]) && !isNumeric(args[1])) {
-        numberOfMessages = parseInt(args[0]);
-        jid = args[1];
-    } else if (isNumeric(args[1]) && !isNumeric(args[0])) {
-        numberOfMessages = parseInt(args[1]);
-        jid = args[0];
-    } else {
-        return await message.sendReply("_Invalid arguments! One should be a number and one should be a JID._\n\n*Usage:*\n`.stealth jid number_of_messages`\n`.stealth number_of_messages jid`");
-    }
-    if (numberOfMessages <= 0 || numberOfMessages > 50) {
-        return await message.sendReply("_Number of messages should be between 1 and 50._");
-    }
-    if (!jid.includes('@')) {
-        jid = jid + '@s.whatsapp.net';
-    }
-    try {   
-        const Message = config.sequelize.models.Message;
-        const messages = await Message.findAll({
-            where: {
-                chatJid: jid
-            },
-            order: [['timestamp', 'DESC']],
-            limit: numberOfMessages,
-            attributes: ['messageId', 'timestamp', 'senderJid', 'content', 'messageType']
-        });
-        if (!messages || messages.length === 0) {
-            return await message.sendReply(`_No messages found for JID: ${jid}_`);
-        }
-        await message.sendReply(`_Found ${messages.length} messages from ${jid}. Sending them now..._`);
-        messages.reverse();
-        let sentCount = 0;
-        for (const msg of messages) {
-            try {
-                const fullMessage = await getFullMessage(msg.messageId+"_");
-                if (fullMessage.found && fullMessage.messageData) {
-
-                    await message.forwardMessage(message.jid, fullMessage.messageData, {contextInfo: {isForwarded: false}});
-                    sentCount++;
-                } else {  
-                    if (msg.content) {
-                        const senderName = msg.senderJid.split('@')[0];
-                        await message.send(`*From ${senderName}:*\n${msg.content}`);
-                        sentCount++;
-                    }
-                }
-                await new Promise(resolve => setTimeout(resolve, 500)); 
-            } catch (error) {
-                console.error(`Error sending message ${msg.messageId}:`, error);
-           }
-        }
-        await message.sendReply(`_Successfully sent ${sentCount} out of ${messages.length} messages._`);
-    } catch (error) {
-        console.error('Error in stealth command:', error);
-        return await message.sendReply("_Failed to retrieve messages from database!_");
-    }
-}));
+}}));
