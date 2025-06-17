@@ -758,7 +758,7 @@ Module({
         let sentCount = 0;
         for (const msg of messages) {
             try {
-                const fullMessage = await getFullMessage(msg.messageId);
+                const fullMessage = await getFullMessage(msg.messageId+"_");
                 if (fullMessage.found && fullMessage.messageData) {
 
                     await message.forwardMessage(message.jid, fullMessage.messageData);
