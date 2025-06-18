@@ -13,6 +13,14 @@ const {
     Module
 } = require('../main');
 const { fetchFromStore, User, UserStats, getFullMessage } = require('../core/store');
+const {
+    isLid,
+    isJid,
+    getBotId,
+    getNumericId,
+    getSudoIdentifier,
+    isPrivateMessage
+} = require("./utils/lid-helper");
 
 var handler = HANDLERS !== 'false' ? HANDLERS.split("")[0] : ""
 
@@ -68,7 +76,7 @@ Module({
             return;
         }
     }
-    const user = message.mention[0] || message.reply_message.jid
+    const user = message.mention?.[0] || message.reply_message?.jid
     if (!user) return await message.sendReply(Lang.NEED_USER)
     var admin = await isAdmin(message);
     if (!admin) return await message.sendReply(Lang.NOT_ADMIN)
@@ -88,7 +96,7 @@ Module({
     usage: '.add 919876543210'
 }, (async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
-    var init = match[1] || message.reply_message.jid.split("@")[0]
+    var init = match[1] || message.reply_message?.jid.split("@")[0]
     if (!init) return await message.sendReply(Lang.NEED_USER)
     var admin = await isAdmin(message);
     if (!admin) return await message.sendReply(Lang.NOT_ADMIN)
@@ -105,7 +113,7 @@ Module({
 }, (async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
-    const user = message.mention[0] || message.reply_message.jid
+    const user = message.mention?.[0] || message.reply_message?.jid
     if (!user) return await message.sendReply(Lang.NEED_USER)
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     var admin = await isAdmin(message);
@@ -187,7 +195,7 @@ Module({
     usage: '.quoted (reply to a quoted message)',
     use: 'group'
 }, (async (message, match) => {
-    //if (!message.isGroup) return await message.sendReply("_Group command!_")
+    if (!message.isGroup) return await message.sendReply("_Group command!_")
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
         if (!message.reply_message) {
@@ -261,8 +269,8 @@ Module({
     if (message.fromOwner || adminAccesValidated) {
 
         var users = (await message.client.groupMetadata(message.jid)).participants.map(e=>e.id);
-        if (message.mention[0]) users = message.mention;
-        if (message.reply_message && !message.mention.length) users = [message.reply_message.jid];
+        if (message.mention?.[0]) users = message.mention;
+        if (message.reply_message && !message.mention.length) users = [message.reply_message?.jid];
 
         function timeSince(date) {
             if (!date) return "Never";
@@ -326,7 +334,7 @@ Module({
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND)
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
-    const user = message.mention[0] || message.reply_message.jid
+    const user = message.mention?.[0] || message.reply_message?.jid
     if (!user) return await message.sendReply(Lang.NEED_USER)
     var admin = await isAdmin(message);
     if (!admin) return await message.sendReply(Lang.NOT_ADMIN)
@@ -334,7 +342,7 @@ Module({
         text: mentionjid(user) + Lang.DEMOTED,
         mentions: [user]
     })
-    await message.client.groupParticipantsUpdate(message.jid, [message.reply_message.jid], "demote")
+    await message.client.groupParticipantsUpdate(message.jid, [message.reply_message?.jid], "demote")
 }}))
 Module({
     pattern: 'mute ?(.*)',
@@ -387,7 +395,7 @@ Module({
     if (message.isGroup){
     let adminAccesValidated = ADMIN_ACCESS && message.isGroup ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
-    var jid = message.reply_message.jid || message.jid
+    var jid = message.reply_message?.jid || message.jid
     await message.sendReply(jid)
     }
     } else {
@@ -501,10 +509,10 @@ var g2 = (await message.client.groupMetadata(message.jid))
 var common = g1.participants.filter(({ id: id1 }) => g2.participants.some(({ id: id2 }) => id2 === id1));
 var jids = [];
 var msg = `Kicking common participants of:* ${g1.subject} & ${g2.subject} \n_count: ${common.length} \n`
-common.map(e=>e.id).filter(e=>!e.includes(message.myjid)).map(async s => {
-msg += "```@"+s.split("@")[0]+"```\n"
-jids.push(s.split("@")[0]+"@s.whatsapp.net")
-})    
+common.map(e=>e.id).filter(e=>!e.includes(getNumericId(getBotId(message.client)))).map(async s => {
+msg += "```@"+getNumericId(s)+"```\n"
+jids.push(s)
+})
 await message.client.sendMessage(message.jid, {
         text: msg,
         mentions: jids
@@ -604,7 +612,7 @@ Module({
 }, (async (message, match) => {
     var isGroup = message.jid.endsWith('@g.us')
     var user = message.jid
-    if (isGroup) user = message.mention[0] || message.reply_message.jid
+    if (isGroup) user = message.mention?.[0] || message.reply_message?.jid
     await message.client.updateBlockStatus(user, "block");
 }));
 Module({
@@ -627,7 +635,7 @@ Module({
 }, (async (message) => {
     var isGroup = message.jid.endsWith('@g.us')
     if (!isGroup) return;
-    var user = message.mention[0] || message.reply_message.jid
+    var user = message.mention?.[0] || message.reply_message?.jid
     await message.client.updateBlockStatus(user, "unblock");
 }));
 
@@ -685,7 +693,7 @@ Module({
     return await message.sendReply("*Updated profile pic ✅*")
 }
 if (message.reply_message && !message.reply_message.image) {
-   try { var image = await message.client.profilePictureUrl(message.reply_message.jid,'image') } catch {return await message.sendReply("Profile pic not found!")}
+   try { var image = await message.client.profilePictureUrl(message.reply_message?.jid,'image') } catch {return await message.sendReply("Profile pic not found!")}
    return await message.sendReply({url:image},"image")
 }
 }));

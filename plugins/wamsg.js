@@ -7,7 +7,7 @@ Module({
     use: 'whatsapp'
 }, (async (m, t) => {
     let msg = {
-        remoteJid: m.reply_message.jid,
+        remoteJid: m.reply_message?.jid,
         id: m.reply_message.id
     }
     const reactionMessage = {

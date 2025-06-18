@@ -33,7 +33,7 @@ const { malayalamToManglish, manglishToMalayalam } = language;
 
 const {gis, pinSearch} = require('./gis');
 
-const uploadImage = require("./imgbb");
+const uploadImage = require('./imgbb');
 
 module.exports = {
     // Database Operations

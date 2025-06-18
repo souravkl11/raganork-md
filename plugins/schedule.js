@@ -3,9 +3,17 @@ const { scheduledMessages } = require('./utils/db/schedulers'); // Note: This no
 const moment = require('moment');
 let config = require('../config');
 let a = config.MODE == 'public' ? false : true;
+const {
+    isLid,
+    isJid,
+    getBotId,
+    getNumericId,
+    getSudoIdentifier,
+    isPrivateMessage
+} = require("./utils/lid-helper");
 
 function isValidJID(text) {
-    return text.endsWith('@g.us') || text.endsWith('@s.whatsapp.net');
+    return text.endsWith('@g.us') || text.endsWith('@s.whatsapp.net') || text.endsWith('@lid');
 }
 
 function parseTime(timeStr) {
@@ -120,7 +128,7 @@ Module({
     }
 
     if (!match[1]) {
-        return await m.sendReply('_Please provide JID and time_\n\n*Example:*\n• schedule 919876543210@s.whatsapp.net 2h\n• schedule 30m 919876543210@s.whatsapp.net');
+        return await m.sendReply('_Please provide JID and time_\n\n*Example:*\n• schedule 919876543210@s.whatsapp.net 2h\n• schedule 919876543210@lid 2h\n• schedule 30m 919876543210@s.whatsapp.net');
     }
 
     const args = match[1].trim().split(/\s+/);
@@ -143,7 +151,7 @@ Module({
             jid = jidArg;
             timeStr = args.filter(arg => arg !== jidArg).join(' ');
         } else {
-            return await m.sendReply('_Invalid JID format. JID should end with @g.us or @s.whatsapp.net_');
+            return await m.sendReply('_Invalid JID format. JID should end with @g.us, @s.whatsapp.net, or @lid_');
         }
     }
 

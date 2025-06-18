@@ -26,7 +26,7 @@ if (typeof commandPrefix === 'string') {
 }
 
 function Module(info, func) {
-    const validEventTypes = ['photo', 'image', 'text', 'button', 'group-update', 'message'];
+    const validEventTypes = ['photo', 'image', 'text', 'button', 'group-update', 'message', 'start'];
     
     const commandInfo = {
         fromMe: info.fromMe ?? true,  // Default to true if not specified
