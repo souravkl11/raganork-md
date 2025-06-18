@@ -197,7 +197,7 @@ try {
   if (success) {
     console.log(`Successfully processed selection ${text} for ${jid}`);
   }
-} catch {
+} catch(error){
     if (error.message.includes("cookie")) return await message.sendReply("_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_");
 }
 });
