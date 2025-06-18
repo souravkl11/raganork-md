@@ -187,7 +187,7 @@ Module({
     usage: '.quoted (reply to a quoted message)',
     use: 'group'
 }, (async (message, match) => {
-    if (!message.isGroup) return await message.sendReply("_Group command!_")
+    //if (!message.isGroup) return await message.sendReply("_Group command!_")
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
     if (message.fromOwner || adminAccesValidated) {
         if (!message.reply_message) {
