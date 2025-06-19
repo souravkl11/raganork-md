@@ -62,6 +62,36 @@ const antiWordDB = config.sequelize.define('antiword', {
     allowNull: false
 }});
 
+const WelcomeDB = config.sequelize.define('welcome', {
+    jid: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    message: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    enabled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    }
+});
+
+const GoodbyeDB = config.sequelize.define('goodbye', {
+    jid: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    message: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    enabled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    }
+});
+
 module.exports = {
     warnDB,
     FakeDB,
@@ -71,5 +101,7 @@ module.exports = {
     antiDemote,
     antiPromote,
     antiBotDB,
-    antiWordDB
+    antiWordDB,
+    WelcomeDB,
+    GoodbyeDB
 };

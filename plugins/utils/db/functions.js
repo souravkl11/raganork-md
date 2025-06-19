@@ -7,7 +7,9 @@ const {
     antiDemote,
     antiPromote,
     antiBotDB,
-    antiWordDB
+    antiWordDB,
+    WelcomeDB,
+    GoodbyeDB
 } = require('./models');
 
 // Warning functions
@@ -175,6 +177,66 @@ async function resetAntiWord() {
     return await antiWordDB.destroy({ where: {}, truncate: true });
 }
 
+// Welcome functions
+async function getWelcome(jid = null) {
+    if (jid) {
+        return await WelcomeDB.findOne({ where: { jid } });
+    }
+    return await WelcomeDB.findAll();
+}
+
+async function setWelcome(jid, message) {
+    const existing = await WelcomeDB.findOne({ where: { jid } });
+    if (existing) {
+        await existing.update({ message, enabled: true });
+        return existing;
+    }
+    return await WelcomeDB.create({ jid, message, enabled: true });
+}
+
+async function delWelcome(jid = null) {
+    return await WelcomeDB.destroy({ where: { jid } });
+}
+
+async function toggleWelcome(jid, enabled) {
+    const existing = await WelcomeDB.findOne({ where: { jid } });
+    if (existing) {
+        await existing.update({ enabled });
+        return existing;
+    }
+    return false;
+}
+
+// Goodbye functions
+async function getGoodbye(jid = null) {
+    if (jid) {
+        return await GoodbyeDB.findOne({ where: { jid } });
+    }
+    return await GoodbyeDB.findAll();
+}
+
+async function setGoodbye(jid, message) {
+    const existing = await GoodbyeDB.findOne({ where: { jid } });
+    if (existing) {
+        await existing.update({ message, enabled: true });
+        return existing;
+    }
+    return await GoodbyeDB.create({ jid, message, enabled: true });
+}
+
+async function delGoodbye(jid = null) {
+    return await GoodbyeDB.destroy({ where: { jid } });
+}
+
+async function toggleGoodbye(jid, enabled) {
+    const existing = await GoodbyeDB.findOne({ where: { jid } });
+    if (existing) {
+        await existing.update({ enabled });
+        return existing;
+    }
+    return false;
+}
+
 // Grouped exports
 const antilink = { set: setAntilink, get: getAntilink, delete: delAntilink, reset: resetAntilink };
 const antiword = { set: setAntiWord, get: getAntiWord, delete: delAntiWord, reset: resetAntiWord };
@@ -184,10 +246,12 @@ const antidemote = { set: setAntiDemote, get: getAntiDemote, delete: delAntiDemo
 const antispam = { set: setAntiSpam, get: getAntiSpam, delete: delAntiSpam, reset: resetAntiSpam };
 const antibot = { set: setAntiBot, get: getAntiBot, delete: delAntiBot, reset: resetAntiBot };
 const pdm = { set: setPdm, get: getPdm, delete: delPdm, reset: resetPdm };
+const welcome = { set: setWelcome, get: getWelcome, delete: delWelcome, toggle: toggleWelcome };
+const goodbye = { set: setGoodbye, get: getGoodbye, delete: delGoodbye, toggle: toggleGoodbye };
 
 module.exports = {
     getWarn, setWarn, resetWarn,
     antilink, antiword, antifake, 
     antipromote, antidemote, antispam,
-    antibot, pdm
+    antibot, pdm, welcome, goodbye
 };
