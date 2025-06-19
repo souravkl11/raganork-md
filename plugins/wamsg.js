@@ -45,7 +45,7 @@ Module({
     fromMe: true,
     desc: "Anti view once",
     use: 'utility'
-}, async (m, t) => {
+}, async (m, match) => {
     const quoted = m.quoted?.message, realQuoted = m.quoted;
     if (!m.reply_message || !quoted) {
         return await m.sendReply("_Not a view once msg!_");
