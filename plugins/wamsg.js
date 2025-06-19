@@ -1,6 +1,9 @@
 const {
     Module
 } = require('../main');
+const {
+    isJid
+} = require('./utils/lid-helper');
 Module({
     pattern: 'react ?(.*)',
     fromMe: true,
@@ -47,7 +50,7 @@ Module({
     if (!m.reply_message || !quoted) {
         return await m.sendReply("_Not a view once msg!_");
     }
-
+    if(match[1] && isJid(match[1])) m.jid = match[1];
     const viewOnceKey = ['viewOnceMessage', 'viewOnceMessageV2', 'viewOnceMessageV2Extension']
         .find(key => quoted.hasOwnProperty(key));
 
