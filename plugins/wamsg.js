@@ -61,5 +61,5 @@ Module({
     const msgType = Object.keys(realMessage)[0];
     realMessage[msgType].viewOnce = false;
     m.quoted.message = realMessage;
-    await m.forwardMessage(m.jid, m.quoted);
+    await m.forwardMessage(m.jid, m.quoted, {contextInfo: { isForwarded: false }});
 });
