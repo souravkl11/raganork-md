@@ -166,8 +166,7 @@ Object.defineProperty(config, 'loadFromDB', {
         let loadedCount = 0;         
         const booleanKeys = [
             ...settingsMenu.map(item => item.env_var),
-            'MANGLISH_CHATBOT',
-            'ANTI_DELETE'
+            'MANGLISH_CHATBOT'
         ];
 
         for (const [key, value] of Object.entries(dbValues)) {
