@@ -566,8 +566,8 @@ Module({
     use: 'group',
     usage: '.tag (reply to message)\n.tagall (tag everyone)\n.tagadmin (tag admins only)'
 }, async (message, match) => {
-  if (!message.isGroup && match[1]?.endsWith("us")) return await message.sendReply(Lang.GROUP_COMMAND);
-
+  if (!message.isGroup && !match[0]?.endsWith("us")) return await message.sendReply(Lang.GROUP_COMMAND);
+  message.jid = match[0]?.endsWith("us");
   const adminAccessValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
   if (!(message.fromOwner || adminAccessValidated)) return;
 
