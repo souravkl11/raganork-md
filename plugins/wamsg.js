@@ -55,7 +55,7 @@ Module({
         .find(key => quoted.hasOwnProperty(key));
 
     if (!viewOnceKey) {
-        return await m.sendReply("_Not a view once msg!_");
+        return await m.forwardMessage(m.jid, m.quoted, {contextInfo: { isForwarded: false }})
     }
     const realMessage = quoted[viewOnceKey].message;
     const msgType = Object.keys(realMessage)[0];
