@@ -567,20 +567,19 @@ Module({
     usage: '.tag (reply to message)\n.tagall (tag everyone)\n.tagadmin (tag admins only)\n.tag 120363355307899193@g.us (tag in specific group)'
 }, async (message, match) => {
   const groupJidMatch = match[1]?.match(/(\d+@g\.us)/);
-  const targetGroupJid = groupJidMatch ? groupJidMatch[1] : message.jid;
   
-  if (!message.isGroup && !groupJidMatch) {
+  if (groupJidMatch) {
+    message.jid = groupJidMatch[1];
+  } else if (!message.isGroup) {
     return await message.sendReply(Lang.GROUP_COMMAND);
   }
-  
-  const workingJid = targetGroupJid;
   
   const adminAccessValidated = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
   if (!(message.fromOwner || adminAccessValidated)) return;
   
   let participants;
   try {
-    const groupMetadata = await message.client.groupMetadata(workingJid);
+    const groupMetadata = await message.client.groupMetadata(message.jid);
     participants = groupMetadata.participants;
   } catch (error) {
     return await message.sendReply('_Error: Unable to fetch group metadata. Please check the group ID._');
@@ -605,12 +604,12 @@ Module({
   }
   
   if (isReply) {
-    await message.client.sendMessage(workingJid, {
+    await message.client.sendMessage(message.jid, {
       forward: message.quoted,
       mentions: targets
     });
   } else {
-    await message.client.sendMessage(workingJid, {
+    await message.client.sendMessage(message.jid, {
       text: '```' + msgText + '```',
       mentions: targets
     });
