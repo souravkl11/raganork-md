@@ -36,7 +36,8 @@ Module({
     try {
     return await message.sendReply(await downloadVideo(url), "video")
     } catch (e){
-      await m.sendReply(e.message)
+      if (e.message.includes("403")) await message.sendReply("_Your server IP has no search access to YouTube._");
+      return await message.sendReply("_No matching results found!_")
     }
   }
   setClientInstance(message.client);
@@ -186,7 +187,7 @@ try {
 
   let success = await handleSongSelection(jid, text, repliedId, message.client, message.quoted);
 
-  if (!success && /^[1-5]$/.test(text)) {
+  if (!success && /^[1-8]$/.test(text)) {
     success = await handleQualitySelection(jid, text, repliedId, message.client, message.quoted);
   }
 
