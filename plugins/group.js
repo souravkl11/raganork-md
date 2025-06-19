@@ -560,13 +560,13 @@ return await message.sendReply(msg)
 }}));
 
 Module({
-    pattern: 'tag(?:all|admin)?',
+    pattern: 'tag(all|admin)? ?(.*)?',
     fromMe: false,
     desc: Lang.TAGALL_DESC,
     use: 'group',
     usage: '.tag (reply to message)\n.tagall (tag everyone)\n.tagadmin (tag admins only)\n.tag 120363355307899193@g.us (tag in specific group)'
 }, async (message, match) => {
-  const groupJidMatch = match[1]?.match(/(\d+@g\.us)/);
+  const groupJidMatch = match[2]?.match(/(\d+@g\.us)/);
   
   if (groupJidMatch) {
     message.jid = groupJidMatch[1];
@@ -585,8 +585,8 @@ Module({
     return await message.sendReply('_Error: Unable to fetch group metadata. Please check the group ID._');
   }
   
-  const isTagAdmin = match[0]?.includes('admin');
-  const isTagAll = match[0]?.includes('all');
+  const isTagAdmin = match[1]?.includes('admin');
+  const isTagAll = match[1]?.includes('all');
   const isReply = !!message.reply_message;
   
   if (!isReply && !isTagAdmin && !isTagAll) {
