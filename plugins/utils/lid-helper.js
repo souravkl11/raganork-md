@@ -20,12 +20,12 @@ function getBotLid(client) {
     return null;
 }
 
-function getBotId(client, contextJid = null, isLidParticipant = false) {
+function getBotId(client, contextJid = null, sender = "@s.whatsapp.net") {
 
     if (contextJid && isPrivateMessage(contextJid)) {
         return getBotJid(client);
     }
-    if (isLidParticipant) {
+    if (isLid(sender)) {
         return getBotLid(client) || getBotJid(client);
     }
 
