@@ -161,13 +161,22 @@ const config = new Proxy(baseConfig, {
 });
 
 Object.defineProperty(config, 'loadFromDB', {
-    value: function (dbValues = {}) {
+    value: function (dbValues = {}) {        
         console.log('Loading config values from database...');
-        let loadedCount = 0;
+        let loadedCount = 0;         
+        const booleanKeys = [
+            ...settingsMenu.map(item => item.env_var),
+            'MANGLISH_CHATBOT',
+            'ANTI_DELETE'
+        ];
 
         for (const [key, value] of Object.entries(dbValues)) {
             if (value !== undefined && value !== null) {
-                this[key] = value;
+                if (booleanKeys.includes(key)) {
+                    this[key] = convertToBool(value);
+                } else {
+                    this[key] = value;
+                }
                 loadedCount++;
             }
         }
