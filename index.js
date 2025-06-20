@@ -2,6 +2,19 @@ const fs = require('fs');
 if (fs.existsSync('./config.env')) {
     require('dotenv').config({ path: './config.env' });
 }
+try {
+    const path = require('path');
+    ['session_record.js', 'session_builder.js', 'session_cipher.js'].forEach(file => {
+        const filePath = path.join(__dirname, 'node_modules', 'libsignal', 'src', file);
+        if (fs.existsSync(filePath)) {
+            let content = fs.readFileSync(filePath, 'utf8');
+            const modified = content.replace(/^(\s*console\..+;)$/gm, '// $1');
+            if (content !== modified) fs.writeFileSync(filePath, modified, 'utf8');
+        }
+    });
+    console.log('Libsignal logging suppressed.');
+} catch {}
+
 const { initializeDatabase } = require('./core/database');
 const { BotManager } = require('./core/manager');
 const config = require('./config');
@@ -15,7 +28,7 @@ async function main() {
         logger.info('Created temporary directory at ./temp');
     }
     console.log(`Raganork v${require('./package.json').version}`);
-    console.log(`Configured sessions: ${SESSION.join(', ')}`);
+    console.log(`- Configured sessions: ${SESSION.join(', ')}`);
     logger.info(`Configured sessions: ${SESSION.join(', ')}`);
     if (SESSION.length === 0) {
         const warnMsg = '⚠️ No sessions configured. Please set SESSION environment variable.';
@@ -25,8 +38,8 @@ async function main() {
     }
 
     try {
-        console.log('🔄 Initializing database...');
         await initializeDatabase(); 
+        console.log('- Database initialized');
         logger.info('Database initialized successfully.');
 
     } catch (dbError) {
@@ -47,7 +60,6 @@ async function main() {
     process.on('SIGINT', () => shutdownHandler('SIGINT')); 
     process.on('SIGTERM', () => shutdownHandler('SIGTERM')); 
 
-    console.log('🚀 Starting bot initialization...');
     await botManager.initializeBots();
     console.log('- Bot initialization complete.');
     logger.info('Bot initialization complete');
@@ -65,7 +77,6 @@ async function main() {
     });
 
     server.listen(PORT, () => {
-        console.log(`Web server listening on port ${PORT}`);
         logger.info(`Web server listening on port ${PORT}`);
     });
     }

@@ -19,8 +19,43 @@ const DATABASE_URL = process.env.DATABASE_URL === undefined ? './bot.db' : proce
 const DEBUG = process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBUG);
 
 const sequelize = DATABASE_URL === './bot.db'
-    ? new Sequelize({ dialect: "sqlite", storage: DATABASE_URL, logging: DEBUG })
-    : new Sequelize(DATABASE_URL, { dialectOptions: { ssl: { require: true, rejectUnauthorized: false } }, logging: DEBUG });
+    ? new Sequelize({ 
+        dialect: "sqlite", 
+        storage: DATABASE_URL, 
+        logging: DEBUG,
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
+        },
+        retry: {
+            match: [
+                /SQLITE_BUSY/,
+                /database is locked/,
+                /EBUSY/
+            ],
+            max: 3
+        },
+        dialectOptions: {
+            busy_timeout: 30000,
+            journal_mode: 'WAL',
+            synchronous: 'NORMAL',
+            cache_size: -2000,
+            temp_store: 'memory',
+            mmap_size: 268435456
+        }
+    })
+    : new Sequelize(DATABASE_URL, { 
+        dialectOptions: { ssl: { require: true, rejectUnauthorized: false } }, 
+        logging: DEBUG,
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
+        }
+    });
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID
 
@@ -162,13 +197,11 @@ const config = new Proxy(baseConfig, {
 
 Object.defineProperty(config, 'loadFromDB', {
     value: function (dbValues = {}) {        
-        console.log('Loading config values from database...');
-        let loadedCount = 0;         
+        let loadedCount = 0;        
         const booleanKeys = [
             ...settingsMenu.map(item => item.env_var),
             'MANGLISH_CHATBOT'
         ];
-
         for (const [key, value] of Object.entries(dbValues)) {
             if (value !== undefined && value !== null) {
                 if (booleanKeys.includes(key)) {
@@ -180,7 +213,7 @@ Object.defineProperty(config, 'loadFromDB', {
             }
         }
 
-        console.log(`Loaded ${loadedCount} dynamic config values from database`);
+        console.log(`- Loaded ${loadedCount} vars`);
         return this;
     },
     writable: false,
