@@ -19,43 +19,8 @@ const DATABASE_URL = process.env.DATABASE_URL === undefined ? './bot.db' : proce
 const DEBUG = process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBUG);
 
 const sequelize = DATABASE_URL === './bot.db'
-    ? new Sequelize({ 
-        dialect: "sqlite", 
-        storage: DATABASE_URL, 
-        logging: DEBUG,
-        pool: {
-            max: 5,
-            min: 0,
-            acquire: 30000,
-            idle: 10000
-        },
-        retry: {
-            match: [
-                /SQLITE_BUSY/,
-                /database is locked/,
-                /EBUSY/
-            ],
-            max: 3
-        },
-        dialectOptions: {
-            busy_timeout: 30000,
-            journal_mode: 'WAL',
-            synchronous: 'NORMAL',
-            cache_size: -2000,
-            temp_store: 'memory',
-            mmap_size: 268435456
-        }
-    })
-    : new Sequelize(DATABASE_URL, { 
-        dialectOptions: { ssl: { require: true, rejectUnauthorized: false } }, 
-        logging: DEBUG,
-        pool: {
-            max: 5,
-            min: 0,
-            acquire: 30000,
-            idle: 10000
-        }
-    });
+    ? new Sequelize({ dialect: "sqlite", storage: DATABASE_URL, logging: DEBUG, retry: {match: [/SQLITE_BUSY/,/database is locked/,/EBUSY/], max: 3 }, })
+    : new Sequelize(DATABASE_URL, { dialectOptions: { ssl: { require: true, rejectUnauthorized: false } }, logging: DEBUG });
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID
 
