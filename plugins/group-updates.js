@@ -77,20 +77,20 @@ Module({
     use: 'utility'
 }, async (message, match) => {
     if (message.reply_message && message.reply_message.sticker) {
-        let deleted = await stickcmd.delete(await extractData(message), 'command'); 
+        let deleted = await stickcmd.delete(await extractData(message), 'file'); 
         if (deleted) return await message.client.sendMessage(message.jid, {
             text: `_Removed sticker from commands!_`
         }, {
             quoted: message.quoted
         })
         if (!deleted && match[1]) {
-            var delete_again = await stickcmd.delete(match[1], 'file') 
+            var delete_again = await stickcmd.delete(match[1], 'command') 
             if (delete_again) return await message.sendReply(`_Removed ${match[1]} from sticked commands!_`)
             if (!delete_again) return await message.sendReply("_No such sticker/command found!_")
         }
         if (!deleted && !match[1]) return await message.send("_No such sticker found!_");
     } else if (match[1] && !message.reply_message) {
-        let deleted = await stickcmd.delete(match[1], 'file') 
+        let deleted = await stickcmd.delete(match[1], 'command'); 
         if (deleted) return await message.sendReply(`_Successfully removed ${match[1]} from sticked commands!_`)
         if (!deleted) return await message.sendReply("_No such command was found!_")
     } else return await message.sendReply("_Need command or reply to a sticker!_\n_Ex: *.unstick kick*_")
@@ -103,7 +103,7 @@ Module({
     use: 'utility'
 }, async (message, match) => {
     var all = await stickcmd.get(); 
-    var commands = all.map(element => element.dataValues.file)
+    var commands = all.map(element => element.dataValues.command);
     var msg = commands.join("_\n_");
     message.sendReply("_*Stickified commands:*_\n\n_" + msg + "_")
 });
