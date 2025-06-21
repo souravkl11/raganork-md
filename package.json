@@ -1,6 +1,6 @@
 {
   "name": "raganork-md",
-  "version": "6.1.13",
+  "version": "6.1.14",
   "description": "A multi functional wa bot.",
   "main": "index.js",
   "type": "commonjs",
@@ -29,7 +29,7 @@
     "image-to-pdf": "^3.0.2",
     "jimp": "0.16.0",
     "node-cache": "^5.1.2",
-    "node-cron": "^4.1.0",
+    "node-cron": "^4.1.1",
     "node-webpmux": "^3.2.1",
     "pg": "^8.16.0",
     "pm2": "^6.0.8",

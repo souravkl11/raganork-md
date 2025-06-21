@@ -2596,9 +2596,9 @@ node-cache@^5.1.2:
     clone "2.x"
 
 node-cron@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/node-cron/-/node-cron-4.1.0.tgz#375e5057c59a6c65218f5eb1a3d11de02858a764"
-  integrity sha512-OS+3ORu+h03/haS6Di8Qr7CrVs4YaKZZOynZwQpyPZDnR3tqRbwJmuP2gVR16JfhLgyNlloAV1VTrrWlRogCFA==
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/node-cron/-/node-cron-4.1.1.tgz#1b9a27138cd08fea46f23fc024c7761c5801658c"
+  integrity sha512-oJj9CYV7teeCVs+y2Efi5IQ4FGmAYbsXQOehc1AGLlwteec8pC7DjBCUzSyRQ0LYa+CRCgmD+vtlWQcnPpXowA==
 
 node-fetch@^2.6.0, node-fetch@^2.6.7:
   version "2.7.0"
