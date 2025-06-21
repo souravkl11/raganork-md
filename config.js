@@ -59,10 +59,11 @@ const sequelize = DATABASE_URL === './bot.db'
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID
 
-const SESSION = SESSION_STRING ? SESSION_STRING.split(',').map(s => s.split("~")[1].trim()) : ['qr-session'];
+const SESSION = SESSION_STRING ? SESSION_STRING.split(',').map(s => s.split("~")[1].trim()) : [];
 
 const settingsMenu = [
     { title: "PM antispam block", env_var: "PM_ANTISPAM" },
+    { title: "Command auto reaction", env_var: "CMD_REACTION" },
     { title: "Auto read all messages", env_var: "READ_MESSAGES" },
     { title: "Auto read command messages", env_var: "READ_COMMAND" },
     { title: "Auto read status updates", env_var: "AUTO_READ_STATUS" },
@@ -114,6 +115,7 @@ const baseConfig = {
     BOT_NAME: process.env.BOT_NAME || 'Raganork',
     AUDIO_DATA: process.env.AUDIO_DATA === undefined || process.env.AUDIO_DATA === "private" ? 'ꪶ͢٭𝑺𝜣𝑼𝑹𝛢𝑽𝑲𝑳¹¹ꫂ;Raganork MD bot;https://i.imgur.com/P7ziVhr.jpeg' : process.env.AUDIO_DATA,
     TAKE_KEY: process.env.TAKE_KEY || '',
+    CMD_REACTION: convertToBool(process.env.CMD_REACTION) || false,
     MODE: process.env.MODE || 'private',
     WARN: process.env.WARN || '4',
     ANTILINK_WARN: process.env.ANTILINK_WARN || '',
