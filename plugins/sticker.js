@@ -11,7 +11,8 @@ const {
   const {
     avMix,  
     circle,
-    rotate 
+    rotate,
+    trim
   } = require('./utils');
 const acrcloud = require("acrcloud");
 const acr = new acrcloud({
