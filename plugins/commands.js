@@ -188,7 +188,7 @@ Module({
     const botOwner = BOT_INFO.split(";")[1] || 'N/A';
     const botName = BOT_INFO.split(";")[0] || 'My Bot';
     const botVersion = VERSION; 
-    const botImageLink = BOT_INFO.split(";")[3] || `https://i.ibb.co/QFrkS7Lj/Eykly4J.jpg`
+    const botImageLink = BOT_INFO.split(";")[3] || `https://i.ibb.co/B598wrtG/raganork-bot.png`
 
     const menu = `╭═══〘 ${botName} 〙═══⊷❍
 ┃${star}╭──────────────
@@ -223,6 +223,30 @@ ${cmdmenu}`;
         });
     }
 }));
+Module({
+    pattern: "games ?(.*)",
+    fromMe: isPrivateMode,
+    desc: "Lists all available games"
+}, async (message, args) => {
+    const gameCommands = commands.filter(cmd => cmd.use === 'game' && cmd.pattern);
+    if (!gameCommands.length) {
+        return await message.sendReply("_No games are installed._");
+    }
+    const handlerPrefix = HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || '.';
+    let response = `*───「 Available Games 」───*\n\n`;
+    gameCommands.forEach(cmd => {
+        const name = extractCommandName(cmd.pattern);
+        if (name) {
+            response += `• *Command:* \`${handlerPrefix}${name}\`\n`;
+            response += `• *Description:* ${cmd.desc || 'N/A'}\n`;
+            if (cmd.use) response += `• *Type:* ${cmd.use}\n`;
+            if (cmd.usage) response += `• *Usage:* ${cmd.usage}\n`;
+            if (cmd.warn) response += `• *Warning:* ${cmd.warn}\n`;
+            response += '\n';
+        }
+    });
+    await message.sendReply(response);
+});
 
 module.exports = {
     getAvailableCommands: () => commands.filter(x => x.pattern).map(cmd => extractCommandName(cmd.pattern))

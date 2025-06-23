@@ -10,7 +10,9 @@ const {
   handleAudioQualitySelection,
   convertToNetscape,
   createSongSearchPrompt,
-  handleSongSelection
+  handleSongSelection,
+  downloadSong,
+  downloadVideo
 } = require('./utils/yt');
 const { setVar } = require('./manage');
 const fs = require('fs');
@@ -27,14 +29,18 @@ Module({
   type: 'downloader'
 }, async (message, match) => {
 
-  setClientInstance(message.client);
-
   const url = match[1]?.trim();
 
   if (!url || !url.startsWith('http')) {
-    return await message.sendReply('❌ _Provide a valid YouTube URL!_\n\nExample: `.ytv <url>`');
+    await message.sendReply('_Downloading video matching "'+url+'"_');
+    try {
+    return await message.sendReply(await downloadVideo(url), "video")
+    } catch (e){
+      if (e.message.includes("403")) await message.sendReply("_Your server IP has no search access to YouTube._");
+      return await message.sendReply("_No matching results found!_")
+    }
   }
-
+  setClientInstance(message.client);
   const videoIdOnly = extractVideoId(url);
   if (!videoIdOnly) {
     return await message.sendReply('❌ _Invalid YouTube URL or video ID not found._');
@@ -98,12 +104,37 @@ Module({
   const query = match[1]?.trim();
 
   if (!query) {
-    return await message.sendReply('❌ _Provide a search query!_\n\nExample: `.song shape of you`');
+    return await message.sendReply('❌ _Provide a search query!_\n\nExample: `.song Timeless`');
   }
 
   try {
 
     await createSongSearchPrompt(query, message.client, message.jid, message.data);
+
+  } catch (error) {
+    console.error('Error creating song search prompt:', error);
+    return await message.sendReply(`❌ _${error.message}_`);
+  }
+});
+
+Module({
+  pattern: 'play ?(.*)',
+  fromMe: isFromMe,
+  desc: 'Directly plays songs from YouTube',
+  type: 'downloader'
+}, async (message, match) => {
+
+  setClientInstance(message.client);
+
+  const query = match[1]?.trim();
+
+  if (!query) {
+    return await message.sendReply('❌ _Provide a search query!_\n\nExample: `.play Timeless`');
+  }
+
+  try {
+    await message.sendReply(`_Playing song matching "${query}"_`);
+    await message.sendReply(await downloadSong(query), "audio")
 
   } catch (error) {
     console.error('Error creating song search prompt:', error);
@@ -156,7 +187,7 @@ try {
 
   let success = await handleSongSelection(jid, text, repliedId, message.client, message.quoted);
 
-  if (!success && /^[1-5]$/.test(text)) {
+  if (!success && /^[1-8]$/.test(text)) {
     success = await handleQualitySelection(jid, text, repliedId, message.client, message.quoted);
   }
 
@@ -167,7 +198,7 @@ try {
   if (success) {
     console.log(`Successfully processed selection ${text} for ${jid}`);
   }
-} catch {
+} catch(error){
     if (error.message.includes("cookie")) return await message.sendReply("_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_");
 }
 });

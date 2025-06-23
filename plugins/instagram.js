@@ -37,7 +37,7 @@ Module({
     if (/\bhttps?:\/\/\S+/gi.test(mediaLink)) {
         mediaLink = mediaLink.match(/\bhttps?:\/\/\S+/gi)[0];
     }
-    if (mediaLink && (mediaLink.includes('gist') || mediaLink.includes('youtu'))) return;
+    if (mediaLink && (mediaLink.includes('gist') || mediaLink.includes('youtu') || mediaLink.startsWith("ll"))) return;
     if (!mediaLink) return await message.sendReply("*Need Instagram link*");
     mediaLink = await checkRedirect(mediaLink);
     if (mediaLink.includes("stories")) return await message.sendReply("*_Use .story command!_*");
@@ -62,6 +62,13 @@ Module({
 
         const quotedMessage = message.reply_message ? message.quoted : message.data;
         for (const mediaUrl of downloadResult) {
+            if (mediaLink.includes("reel")){
+            return await message.client.sendMessage(message.jid, {
+                ['video']: {url: mediaUrl}
+            }, {
+                quoted: quotedMessage
+            });                
+            }
             const mediaBuffer = await getBuffer(mediaUrl);
             const {
                 mime

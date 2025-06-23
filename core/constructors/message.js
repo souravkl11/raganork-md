@@ -3,6 +3,19 @@ const Base = require('./base');
 let config = require('../../config');
 const ReplyMessage = require('./reply-message'); 
 const fs = require("fs"); 
+const {
+    isLid,
+    isJid,
+    getBotId,
+    getBotJid,
+    getBotLid,
+    getBotNumericId,
+    getNumericId,
+    isSudo,
+    isFromOwner,
+    isPrivateMessage,
+    isLidParticipant
+} = require("../../plugins/utils/lid-helper");
 
 async function genThumb(url){
     try { 
@@ -16,7 +29,6 @@ async function genThumb(url){
             }
         }
         var {w,h} = getPossibleRatio(jimp.bitmap.width,jimp.bitmap.height)
-        console.log("Engine: Generating thumbnail...")
         return await jimp.resize(w,h).getBufferAsync('image/jpeg')
     } catch (error) {
         console.error("Error generating thumbnail:", error);
@@ -28,46 +40,44 @@ class Message extends Base {
     constructor(client, data) {
         super(client);
         if (data) this._patch(data);
-    }
-
-    _patch(data) {
+    }    _patch(data) {
         this.id = data.key.id === undefined ? undefined : data.key.id;
         this.jid = data.key.remoteJid;
         this.isGroup = data.key.remoteJid.endsWith('@g.us');
         this.fromMe = data.key.fromMe;
-        this.sender = data.key.participant;
-        this.fromOwner = data.key.fromMe || config.SUDO?.split(",").includes((data.key.participant)?.split("@")[0]);
+        this.isLid = this.isGroup && isLid(data.key.participant);
+        this.sender = this.isGroup ? data.key.participant : data.key.remoteJid;
+        this.fromOwner = isFromOwner(data, this.client, config.SUDO);
         this.senderName = data.pushName;
-        this.pushName = data.pushName;
-        this.myjid = this.client.user.id.split(":")[0];
-        this.message = data.message.extendedTextMessage === null ? data.message.conversation : data.message.extendedTextMessage.text;
+        this.myjid = getBotNumericId(data, this.client);
+        this.message = data.message?.extendedTextMessage === null ? data.message?.conversation : data.message?.extendedTextMessage.text;
         this.timestamp = data.messageTimestamp;
         this.data = data;
 
         this.reply_message = false; 
+        this.reply = false; 
         this.quoted = false; 
 
-        const contextInfo = data.message.extendedTextMessage?.contextInfo || data.message.stickerMessage?.contextInfo;
+        const contextInfo = data.message?.extendedTextMessage?.contextInfo || data.message?.stickerMessage?.contextInfo;
 
         if (contextInfo?.quotedMessage) {
+            this.reply = data.message.extendedTextMessage || data.message.stickerMessage;
             contextInfo.remoteJid = contextInfo.remoteJid ?? this.jid;
-            this.reply_message = new ReplyMessage(this.client, contextInfo);
-            this.quoted = {
+            this.reply_message = new ReplyMessage(this.client, contextInfo);            this.quoted = {
                 key: {
                     remoteJid: contextInfo.remoteJid,
-                    fromMe: contextInfo.participant === this.myjid + "@s.whatsapp.net",
+                    fromMe: contextInfo.participant === getBotJid(this.client) || contextInfo.participant === getBotLid(this.client),
                     id: this.reply_message.id,
                     participant: contextInfo.participant
                 },
                 message: this.reply_message.data.message
             };
-        }
-
-        if (data.message.hasOwnProperty('interactiveResponseMessage')) { 
+        }        if (data.message.hasOwnProperty('interactiveResponseMessage')) { 
             this.list = JSON.parse(data.message.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson).id;
-            this.isOwnResponse = data.message.interactiveResponseMessage?.contextInfo?.participant?.split("@")?.[0] == this.myjid;   
+            this.isOwnResponse = data.message.interactiveResponseMessage?.contextInfo?.participant && 
+                                 (getNumericId(data.message.interactiveResponseMessage.contextInfo.participant) === this.myjid);   
         } else {
-            this.list = null; 
+            this.list = null;
         }
         if (data.message.hasOwnProperty('templateButtonReplyMessage')) { 
             this.button = data.message.templateButtonReplyMessage.selectedId;
@@ -154,22 +164,14 @@ class Message extends Base {
             return await this.client.sendMessage(this.jid, {sticker: content}, {quoted: this.data})
 		}
 	}
-	async reply(content, type = 'text',options={}) {
+	async reply(content, type = 'text') {
 		if (type == 'text') {
             return await this.client.sendMessage(this.jid, {text: content}, {quoted: this.data})
 		}
 		if (type == 'image') {
-            if (options?.thumbnail){
-                const thumbBuffer = await genThumb(options.thumbnail);
-                return await this.client.sendMessage(this.jid, {image: content, jpegThumbnail: thumbBuffer}, {quoted:this.data,...options});    
-            }
             return await this.client.sendMessage(this.jid, {image: content}, {quoted: this.data})
 		}
 		if (type == 'video') {
-            if (options?.thumbnail){
-                const thumbBuffer = await genThumb(options.thumbnail);
-                return await this.client.sendMessage(this.jid, {video: content, jpegThumbnail: thumbBuffer}, {quoted:this.data,...options});    
-            }
             return await this.client.sendMessage(this.jid, {video: content}, {quoted: this.data})
 		}
 		if (type == 'audio') {

@@ -4,42 +4,41 @@ const Commands = [];
 let commandPrefix;
 let handlerPrefix;
 
+// Initialize command prefix based on HANDLERS config
 if (config.HANDLERS === 'false') {
-    commandPrefix = '^';  
+    commandPrefix = '^';  // Default prefix if handlers are disabled
 } else {
     commandPrefix = config.HANDLERS;
 }
 
+// Initialize handler prefix based on commandPrefix
 if (typeof commandPrefix === 'string') {
     if (commandPrefix.length > 1 && commandPrefix[0] === commandPrefix[1]) {
-
+        // If prefix has repeated first character (like '##')
         handlerPrefix = commandPrefix;
     } else if (/[-!$%^&*()_+|~=`{}\[\]:";'<>?,./]/.test(commandPrefix) && commandPrefix !== '^') {
-
-        handlerPrefix = `^[${commandPrefix}]`;  
+        // If prefix contains special characters (but not just '^')
+        handlerPrefix = `^[${commandPrefix}]`;  // Create regex character class
     } else {
-
+        // Default case
         handlerPrefix = commandPrefix;
     }
 }
 
 function Module(info, func) {
-    const validEventTypes = ['photo', 'image', 'text', 'button', 'group_update', 'message'];
-
+    const validEventTypes = ['photo', 'image', 'text', 'button', 'group-update', 'message', 'start'];
+    
     const commandInfo = {
-        fromMe: info.fromMe ?? true,  
-        onlyGroup: info.onlyGroup ?? false,
-        onlyPinned: info.onlyPinned ?? false,
-        onlyPm: info.onlyPm ?? false,
-        deleteCommand: info.deleteCommand ?? true,
+        fromMe: info.fromMe ?? true,  // Default to true if not specified
         desc: info.desc ?? '',
         usage: info.usage ?? '',
-        dontAddCommandList: info.dontAddCommandList ?? false,
+        excludeFromCommands: info.excludeFromCommands ?? false,
         warn: info.warn ?? '',
         use: info.use ?? '',
         function: func
     };
 
+    // Handle event type and pattern matching
     if (info.on === undefined && info.pattern === undefined) {
         commandInfo.on = 'message';
         commandInfo.fromMe = false;

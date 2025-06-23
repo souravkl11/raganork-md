@@ -19,27 +19,26 @@ const DATABASE_URL = process.env.DATABASE_URL === undefined ? './bot.db' : proce
 const DEBUG = process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBUG);
 
 const sequelize = DATABASE_URL === './bot.db'
-    ? new Sequelize({ dialect: "sqlite", storage: DATABASE_URL, logging: DEBUG })
+    ? new Sequelize({ dialect: "sqlite", storage: DATABASE_URL, logging: DEBUG, retry: {match: [/SQLITE_BUSY/,/database is locked/,/EBUSY/], max: 3 }, })
     : new Sequelize(DATABASE_URL, { dialectOptions: { ssl: { require: true, rejectUnauthorized: false } }, logging: DEBUG });
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID
-if (!(SESSION_STRING)) {
-    throw new Error("No session found, add session before starting bot");
-}
 
-const SESSION = SESSION_STRING ? SESSION_STRING.split(',').map(s => s.split("~")[1].trim()) : ['test-session'];
+const SESSION = SESSION_STRING ? SESSION_STRING.split(',').map(s => s.split("~")[1].trim()) : [];
 
 const settingsMenu = [
     { title: "PM antispam block", env_var: "PM_ANTISPAM" },
+    { title: "Command auto reaction", env_var: "CMD_REACTION" },
     { title: "Auto read all messages", env_var: "READ_MESSAGES" },
     { title: "Auto read command messages", env_var: "READ_COMMAND" },
     { title: "Auto read status updates", env_var: "AUTO_READ_STATUS" },
-    { title: "Admin sudo acces mode (group commands only)", env_var: "ADMIN_ACCESS" },
+    { title: "Admin sudo (group commands)", env_var: "ADMIN_ACCESS" },
     { title: "With & without handler mode", env_var: "MULTI_HANDLERS" },
     { title: "Auto reject calls", env_var: "REJECT_CALLS" },
     { title: "Always online", env_var: "ALWAYS_ONLINE" },
     { title: "PM Auto blocker", env_var: "PMB_VAR" },
-    { title: "Disable bot in PM", env_var: "DIS_PM" }
+    { title: "Disable bot in PM", env_var: "DIS_PM" },
+    { title: "Disable bot startup message", env_var: "DISABLE_START_MESSAGE" }
 ];
 
 const baseConfig = {
@@ -69,10 +68,9 @@ const baseConfig = {
     REJECT_CALLS: convertToBool(process.env.REJECT_CALLS) || false,
     PMB: process.env.PMB || '_Personal messages not allowed, BLOCKED!_',
     READ_COMMAND: convertToBool(process.env.READ_COMMAND) || true,
-    SESSION: (process.env.SESSION || process.env.SESSION_ID || '').trim() || '',
     IMGBB_KEY: ["76a050f031972d9f27e329d767dd988f", "deb80cd12ababea1c9b9a8ad6ce3fab2", "78c84c62b32a88e86daf87dd509a657a"],
     RG: process.env.RG || '919074309534-1632403322@g.us,120363116963909366@g.us',
-    BOT_INFO: process.env.BOT_INFO || 'Raganork;Skl11;0;https://i.ibb.co/QFrkS7Lj/Eykly4J.jpg;https://chat.whatsapp.com/Dt3C4wrQmt0GG6io1IBIHb',
+    BOT_INFO: process.env.BOT_INFO || 'Raganork;Skl11;0;https://i.ibb.co/B598wrtG/raganork-bot.png;https://chat.whatsapp.com/Dt3C4wrQmt0GG6io1IBIHb',
     RBG_KEY: process.env.RBG_KEY || '',
     ALLOWED: process.env.ALLOWED || '91,94,2',
     NOT_ALLOWED: process.env.NOT_ALLOWED || '852',
@@ -82,9 +80,11 @@ const baseConfig = {
     BOT_NAME: process.env.BOT_NAME || 'Raganork',
     AUDIO_DATA: process.env.AUDIO_DATA === undefined || process.env.AUDIO_DATA === "private" ? 'ꪶ͢٭𝑺𝜣𝑼𝑹𝛢𝑽𝑲𝑳¹¹ꫂ;Raganork MD bot;https://i.imgur.com/P7ziVhr.jpeg' : process.env.AUDIO_DATA,
     TAKE_KEY: process.env.TAKE_KEY || '',
+    CMD_REACTION: convertToBool(process.env.CMD_REACTION) || false,
     MODE: process.env.MODE || 'private',
     WARN: process.env.WARN || '4',
     ANTILINK_WARN: process.env.ANTILINK_WARN || '',
+    ANTI_DELETE: convertToBool(process.env.ANTI_DELETE) || false,
     SUDO: process.env.SUDO || "",
     LANGUAGE: process.env.LANGUAGE || 'english',
     ACR_A: "ff489a0160188cf5f0750eaf486eee74",
@@ -163,18 +163,24 @@ const config = new Proxy(baseConfig, {
 });
 
 Object.defineProperty(config, 'loadFromDB', {
-    value: function (dbValues = {}) {
-        console.log('Loading config values from database...');
-        let loadedCount = 0;
-
+    value: function (dbValues = {}) {        
+        let loadedCount = 0;        
+        const booleanKeys = [
+            ...settingsMenu.map(item => item.env_var),
+            'MANGLISH_CHATBOT'
+        ];
         for (const [key, value] of Object.entries(dbValues)) {
             if (value !== undefined && value !== null) {
-                this[key] = value;
+                if (booleanKeys.includes(key)) {
+                    this[key] = convertToBool(value);
+                } else {
+                    this[key] = value;
+                }
                 loadedCount++;
             }
         }
 
-        console.log(`Loaded ${loadedCount} dynamic config values from database`);
+        console.log(`- Loaded ${loadedCount} vars`);
         return this;
     },
     writable: false,

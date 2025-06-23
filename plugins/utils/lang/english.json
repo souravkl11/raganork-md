@@ -7,8 +7,12 @@
         "MP3_NEED_REPLY:":"_Reply to an audio or video!_",
         "BASS_DESC:":"Bass boosts audio. .bass 20",
         "BASS_NEED_REPLY:":"_Reply to an audio!_",
+        "TTS_DESC": "Converts text to speech using google tts.",
+        "TTS_NEED_REPLY": "Need text!",
+        "TTS_ERROR": "Failed to convert to speech. Please check your requested params!",
         "PHOTO_DESC":"Converts non animated stickers to photo",
         "PHOTO_NEED_REPLY":"_Reply to a non animated sticker!_"
+        
         },
         "external_plugin": {
             "INSTALL_DESC": "Installs external plugins.",
@@ -159,9 +163,6 @@
             "TRANSLATE_USAGE": ".trt en ml (From English to Malayalam)",
             "NEED_REPLY": "Please reply to any message!",
             "TRANSLATE_ERROR": "❌ An error occured while translating!",
-            "TTS_DESC": "Converts text to speech using google tts.",
-            "TTS_NEED_REPLY": "Need text!",
-            "TTS_ERROR": "Failed to convert to speech. Please check your requested params!",
             "SONG_DESC": "Downloads songs from youtube (list).",
             "NEED_TEXT_SONG": "Which song? \neg: .song Arabic Kuthu",
             "NO_RESULT": "Not found",
