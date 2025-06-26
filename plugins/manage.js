@@ -224,7 +224,7 @@ Module({
             text: '_Added @' + newSudo + ' as sudo_',
             mentions: [newSudo + "@s.whatsapp.net"]
         });
-        await setVar("SUDO", setSudo, m);
+        await setVar("SUDO", setSudo);
     } else return await m.sendReply("_User is already a sudo_");
 });
 
@@ -263,6 +263,7 @@ Module({
     usage: '.toggle img',
     use: 'group'
 }, async (message, match) => {
+    if (match[0]).includes("filter")) return;
     match = match[1];
     if (match) {
         const commands = getAvailableCommands();
