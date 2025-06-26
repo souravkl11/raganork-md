@@ -263,7 +263,7 @@ Module({
     usage: '.toggle img',
     use: 'group'
 }, async (message, match) => {
-    if (match[0]).includes("filter")) return;
+    if (match[0].includes("filter")) return;
     match = match[1];
     if (match) {
         const commands = getAvailableCommands();
