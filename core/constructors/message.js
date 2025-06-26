@@ -49,19 +49,17 @@ class Message extends Base {
         this.sender = this.isGroup ? data.key.participant : data.key.remoteJid;
         this.fromOwner = isFromOwner(data, this.client, config.SUDO);
         this.senderName = data.pushName;
-        this.myjid = getBotNumericId(data, this.client);
-        this.message = data.message?.extendedTextMessage === null ? data.message?.conversation : data.message?.extendedTextMessage.text;
+        this.myjid = getBotNumericId( data, this.client);
+        this.message = (data.message?.extendedTextMessage === null ? data.message?.conversation : data.message?.extendedTextMessage.text) || '';
         this.timestamp = data.messageTimestamp;
         this.data = data;
 
         this.reply_message = false; 
-        this.reply = false; 
         this.quoted = false; 
 
         const contextInfo = data.message?.extendedTextMessage?.contextInfo || data.message?.stickerMessage?.contextInfo;
 
         if (contextInfo?.quotedMessage) {
-            this.reply = data.message.extendedTextMessage || data.message.stickerMessage;
             contextInfo.remoteJid = contextInfo.remoteJid ?? this.jid;
             this.reply_message = new ReplyMessage(this.client, contextInfo);            this.quoted = {
                 key: {

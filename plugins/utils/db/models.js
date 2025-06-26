@@ -92,6 +92,41 @@ const GoodbyeDB = config.sequelize.define('goodbye', {
     }
 });
 
+const FilterDB = config.sequelize.define('filter', {
+    trigger: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    response: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    jid: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    scope: {
+        type: DataTypes.ENUM('chat', 'global', 'dm', 'group'),
+        defaultValue: 'chat'
+    },
+    enabled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
+    caseSensitive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    exactMatch: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    createdBy: {
+        type: DataTypes.STRING,
+        allowNull: false
+    }
+});
+
 module.exports = {
     warnDB,
     FakeDB,
@@ -103,5 +138,6 @@ module.exports = {
     antiBotDB,
     antiWordDB,
     WelcomeDB,
-    GoodbyeDB
+    GoodbyeDB,
+    FilterDB
 };

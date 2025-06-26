@@ -9,7 +9,7 @@ const {
     getWarn, setWarn, resetWarn,
     antilink, antiword, antifake,
     antipromote, antidemote, antispam,
-    antibot, pdm, welcome, goodbye
+    antibot, pdm, welcome, goodbye, filter
 } = dbOperations;
 
 // Media processing functions
@@ -40,7 +40,7 @@ module.exports = {
     getWarn, setWarn, resetWarn,
     antilink, antiword, antifake,
     antipromote, antidemote, antispam,
-    antibot, pdm, welcome, goodbye,
+    antibot, pdm, welcome, goodbye, filter,
     
     // Media Processing
     addExif, bass, circle, blur, attp,

@@ -63,10 +63,10 @@ class ReplyMessage extends Base {
                 this.video = true;
             } else if (quotedMsg.conversation) {
                 this.message = quotedMsg.conversation;
-                this.text = quotedMsg.conversation;
+                this.text = quotedMsg.conversation || '';
             } else if (quotedMsg.extendedTextMessage) {
                 this.message = quotedMsg.extendedTextMessage.text;
-                this.text = quotedMsg.extendedTextMessage.text;
+                this.text = quotedMsg.extendedTextMessage.text || '';
             }
         }
 
