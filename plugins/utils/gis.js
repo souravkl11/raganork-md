@@ -19,7 +19,7 @@ async function gis(searchTerm,limit, options = {}) {
       userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
     } = options,
       body = await fetch(`http://www.google.com/search?${new URLSearchParams({ ...query, udm: "2", tbm: "isch", q: searchTerm })}`, { headers: { "User-Agent": userAgent } }).then(res => res.text()),
-      content = body.slice(body.lastIndexOf("ds:1"), body.lastIndexOf("sideChannel"));  
+      content = body//.slice(body.lastIndexOf("ds:1"), body.lastIndexOf("sideChannel"));  
     let result;
     let urls = [];
     let i = 0
