@@ -6,7 +6,7 @@ const language = require('./manglish');
 
 // Grouped database operations
 const {
-    getWarn, setWarn, resetWarn,
+    getWarn, setWarn, resetWarn, decrementWarn, getWarnCount, getAllWarns,
     antilink, antiword, antifake,
     antipromote, antidemote, antispam,
     antibot, pdm, welcome, goodbye, filter
@@ -37,15 +37,15 @@ const uploadImage = require('./imgbb');
 
 module.exports = {
     // Database Operations
-    getWarn, setWarn, resetWarn,
+    getWarn, setWarn, resetWarn, decrementWarn, getWarnCount, getAllWarns,
     antilink, antiword, antifake,
     antipromote, antidemote, antispam,
     antibot, pdm, welcome, goodbye, filter,
-    
+
     // Media Processing
     addExif, bass, circle, blur, attp,
     aadhar, sticker, rotate, avMix, webp2mp4,
-    
+
     // Utilities
     parseUptime, isNumeric, isAdmin,
     mentionjid, getJson, bytesToSize,
@@ -53,7 +53,7 @@ module.exports = {
     processOnwa, findMusic, searchYT,
     downloadGram, pin, fb, igStalk,
     tiktok, story, getThumb, gtts, getBuffer,
-    
+
     // Language
     malayalamToManglish, manglishToMalayalam,
 

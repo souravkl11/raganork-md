@@ -1,16 +1,29 @@
-const { DataTypes } = require('sequelize');
+ const { DataTypes } = require('sequelize');
 const config = require('../../../config');
 
 config.sequelize.sync();
 
 const warnDB = config.sequelize.define('warn', {
     chat: {
-      type: DataTypes.STRING,
-      allowNull: false
+        type: DataTypes.STRING,
+        allowNull: false
     },
     user: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING,
         allowNull: false
+    },
+    reason: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        defaultValue: 'No reason provided'
+    },
+    warnedBy: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    timestamp: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     }
 });
 
