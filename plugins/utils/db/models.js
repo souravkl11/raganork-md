@@ -3,7 +3,7 @@ const config = require('../../../config');
 
 config.sequelize.sync();
 
-const warnDB = config.sequelize.define('warn', {
+const warnDB = config.sequelize.define('_warn', {
     chat: {
         type: DataTypes.STRING,
         allowNull: false
