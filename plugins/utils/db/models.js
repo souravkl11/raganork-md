@@ -1,7 +1,7 @@
  const { DataTypes } = require('sequelize');
 const config = require('../../../config');
 
-config.sequelize.sync({alter: true, force: false});
+config.sequelize.sync();
 
 const warnDB = config.sequelize.define('warn', {
     chat: {

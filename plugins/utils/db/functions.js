@@ -16,7 +16,11 @@ const {
 async function getWarn(jid = null, user = null, cnt) {
     if (!jid || !user) return null;
 
+    const tableInfo = await warnDB.sequelize.getQueryInterface().describeTable('warns');
+    const attributes = Object.keys(warnDB.getAttributes()).filter(attr => tableInfo[attr]);
+
     const warnings = await warnDB.findAll({ 
+        attributes,
         where: { chat: jid, user: user },
         order: [['timestamp', 'DESC']]
     });
@@ -41,13 +45,19 @@ async function getWarn(jid = null, user = null, cnt) {
 async function setWarn(jid = null, user = null, reason = 'No reason provided', warnedBy = null) {
     if (!jid || !user || !warnedBy) return false;
 
-    await warnDB.create({ 
+    const tableInfo = await warnDB.sequelize.getQueryInterface().describeTable('warns');
+    const warnData = { 
         chat: jid, 
         user: user, 
-        reason: reason,
         warnedBy: warnedBy,
         timestamp: new Date()
-    });
+    };
+
+    if (tableInfo.reason) {
+        warnData.reason = reason;
+    }
+
+    await warnDB.create(warnData);
 
     return await getWarn(jid, user);
 }
@@ -91,8 +101,12 @@ async function decrementWarn(jid = null, user = null) {
 async function getAllWarns(jid = null) {
     if (!jid) return [];
 
+    const tableInfo = await warnDB.sequelize.getQueryInterface().describeTable('warns');
+    const attributes = Object.keys(warnDB.getAttributes()).filter(attr => tableInfo[attr]);
+
     const { Op } = require('sequelize');
     const warnings = await warnDB.findAll({
+        attributes,
         where: { chat: jid },
         order: [['timestamp', 'DESC']]
     });
