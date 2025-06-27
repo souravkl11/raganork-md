@@ -14,7 +14,7 @@ Module({
     usage: '.warn @user reason\n.warn reply reason',
     use: 'group'
 }, async (message, match) => {
-    if (!match[0].toLowerCase().endsWith('warn')) return;
+    if (!match[0].split(" ")[0]?.toLowerCase().endsWith('warn')) return;
     if (!message.isGroup) return await message.sendReply('_This is a group-only command!_');
 
     let adminAccess = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
