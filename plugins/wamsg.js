@@ -66,6 +66,7 @@ Module({
     }
 
     const directType = quoted.imageMessage ? 'imageMessage' :
+                        quoted.audioMessage ? 'audioMessage' :
                         quoted.videoMessage ? 'videoMessage' : null;
 
     if (directType && quoted[directType]?.viewOnce) {
