@@ -44,7 +44,7 @@ Module({
         return await m.sendReply('_No valid JID found in the query, use `send jid1 jid2 ...`_');
     }
     for (const jid of jidMap) {
-        await m.forwardMessage(jid, m.reply_message, { contextInfo: { isForwarded: false } });
+        await m.forwardMessage(jid, m.quoted, { contextInfo: { isForwarded: false } });
     }
 }));
 Module({
@@ -60,7 +60,7 @@ Module({
         return await m.sendReply('_No valid JID found in the query, use `forward jid1 jid2 ...`_');
     }
     for (const jid of jidMap) {
-        await m.forwardMessage(jid, m.reply_message, { contextInfo: { isForwarded: true, forwardingScore: 2 } });
+        await m.forwardMessage(jid, m.quoted, { contextInfo: { isForwarded: true, forwardingScore: 2 } });
     }
 }));
 Module({
