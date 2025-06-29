@@ -144,7 +144,7 @@ Module({
         });
 }));
 Module({
-    pattern: 'speed ?(.*)',
+    pattern: 'sped ?(.*)',
     fromMe: w,
     use: 'edit',
     desc: "Speeds up music & increases pitch. For making sped-up+reverb audios"

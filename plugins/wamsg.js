@@ -32,6 +32,38 @@ Module({
 }
 }));
 Module({
+    pattern: 'send ?(.*)',
+    fromMe: true,
+    desc: 'Forwards replied message to the given jid',
+    use: 'whatsapp'
+}, (async (m, t) => {
+    if (!m.reply_message) return await m.sendReply('_Reply to a message_');
+    const query = t[1] || m.jid;
+    const jidMap = query.split(" ").filter(x => isJid(x));
+    if (!jidMap.length) {
+        return await m.sendReply('_No valid JID found in the query, use `send jid1 jid2 ...`_');
+    }
+    for (const jid of jidMap) {
+        await m.forwardMessage(jid, m.reply_message, { contextInfo: { isForwarded: false } });
+    }
+}));
+Module({
+    pattern: 'forward ?(.*)',
+    fromMe: true,
+    desc: 'Forwards replied message to the given jid',
+    use: 'whatsapp'
+}, (async (m, t) => {
+    if (!m.reply_message) return await m.sendReply('_Reply to a message_');
+    const query = t[1] || m.jid;
+    const jidMap = query.split(" ").filter(x => isJid(x));
+    if (!jidMap.length) {
+        return await m.sendReply('_No valid JID found in the query, use `forward jid1 jid2 ...`_');
+    }
+    for (const jid of jidMap) {
+        await m.forwardMessage(jid, m.reply_message, { contextInfo: { isForwarded: true, forwardingScore: 2 } });
+    }
+}));
+Module({
     pattern: 'retry ?(.*)',
     fromMe: false,
     desc: 'Retries replied command to run the command again',

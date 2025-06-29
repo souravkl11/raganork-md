@@ -54,7 +54,7 @@ Module({
 });
 
 Module({
-    pattern: "list ?(.*)",
+    pattern: 'list ?(.*)',
     fromMe: isPrivateMode,
     excludeFromCommands: true
 }, async (message, args) => {
@@ -86,7 +86,7 @@ Module({
         categorizedCommands[category].forEach(cmd => {
             responseMessage += `• \`${handlerPrefix}${cmd.name}\`\n`;
             if (cmd.desc) responseMessage += `  _Description:_ ${cmd.desc}\n`;
-            if (cmd.usage) responseMessage += `  _Usage:_ ${handlerPrefix}${cmd.name} ${cmd.usage}\n`;
+            if (cmd.usage) responseMessage += `  _Usage:_ ${cmd.usage}\n`;
             if (cmd.warn) responseMessage += `  _Warning:_ ${cmd.warn}\n`;
             responseMessage += '\n';
         });
