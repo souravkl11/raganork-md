@@ -1,19 +1,14 @@
+
+const path = require('path');
 const fs = require('fs');
 if (fs.existsSync('./config.env')) {
     require('dotenv').config({ path: './config.env' });
 }
-try {
-    const path = require('path');
-    ['session_record.js', 'session_builder.js', 'session_cipher.js'].forEach(file => {
-        const filePath = path.join(__dirname, 'node_modules', 'libsignal', 'src', file);
-        if (fs.existsSync(filePath)) {
-            let content = fs.readFileSync(filePath, 'utf8');
-            const modified = content.replace(/^(\s*console\..+;)$/gm, '// $1');
-            if (content !== modified) fs.writeFileSync(filePath, modified, 'utf8');
-        }
-    });
-    console.log('Libsignal logging suppressed.');
-} catch {}
+
+const { suppressLibsignalLogs, addYtdlp60fpsSupport } = require('./core/helpers');
+
+suppressLibsignalLogs();
+addYtdlp60fpsSupport();
 
 const { initializeDatabase } = require('./core/database');
 const { BotManager } = require('./core/manager');
@@ -80,6 +75,10 @@ async function main() {
         logger.info(`Web server listening on port ${PORT}`);
     });
     }
+
+/**
+ * Validates critical configuration values after loading from database
+ */
 
 if (require.main === module) {
     main().catch((error) => {
