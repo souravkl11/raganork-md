@@ -652,7 +652,17 @@ Module({
         try {
             let return_val = await eval(`(async () => { ${message.message.replace(">","")} })()`);
             if (return_val && typeof return_val !== 'string') return_val = util.inspect(return_val);
-            await message.send(return_val || "no return value");
+            if (return_val) {
+                await message.send(return_val)
+            } else {
+                const reactionMessage = {
+                        react: {
+                            text: "✅",
+                            key: m.data.key;
+                        }
+                    }
+                await m.client.sendMessage(m.jid, reactionMessage);
+            }
         } catch (e) {
             if (e) await message.send(util.format(e));
         }
