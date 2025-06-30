@@ -67,6 +67,15 @@ async function setVar(key, value, message = false) {
     }
 
 }
+
+async function delVar(key, message = false) {
+    await BotVariable.destroy({ where: { key: key.trim() } });
+    delete config[key.trim()];
+    if (message) {
+        await message.sendReply(`_${key.trim()} deleted successfully!_`);
+    }
+    return true;
+}
 Module({
     pattern: 'setvar ?(.*)',
     fromMe: true,
@@ -651,5 +660,6 @@ Module({
 });
 module.exports = {
     containsDisallowedWords,
-    setVar
+    setVar,
+    delVar
 };
