@@ -248,9 +248,8 @@ Module({
                 if (mentionData.url) {
                     await message.client.sendMessage(message.jid, {
                         image: { url: mentionData.url },
-                        caption: mentionData.caption || '',
-                        quoted: message.data
-                    });
+                        caption: mentionData.caption || ''
+                    }, { quoted: message.data });
                 }
                 break;
 
@@ -258,9 +257,8 @@ Module({
                 if (mentionData.url) {
                     await message.client.sendMessage(message.jid, {
                         video: { url: mentionData.url },
-                        caption: mentionData.caption || '',
-                        quoted: message.data
-                    });
+                        caption: mentionData.caption || ''
+                    }, { quoted: message.data });
                 }
                 break;
 
@@ -268,17 +266,16 @@ Module({
                 if (mentionData.url) {
                     await message.client.sendMessage(message.jid, {
                         audio: { url: mentionData.url },
-                        quoted: message.data
-                    });
+                        ptt: true
+                    }, { quoted: message.data });
                 }
                 break;
 
             case 'sticker':
                 if (mentionData.url) {
                     await message.client.sendMessage(message.jid, {
-                        sticker: { url: mentionData.url },
-                        quoted: message.data
-                    });
+                        sticker: { url: mentionData.url }
+                    }, { quoted: message.data });
                 }
                 break;
 
@@ -286,9 +283,8 @@ Module({
                 if (mentionData.url) {
                     await message.client.sendMessage(message.jid, {
                         document: { url: mentionData.url },
-                        caption: mentionData.caption || '',
-                        quoted: message.data
-                    });
+                        caption: mentionData.caption || ''
+                    }, { quoted: message.data });
                 }
                 break;
         }
