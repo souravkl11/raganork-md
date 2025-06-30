@@ -260,12 +260,7 @@ Module({
         try {
             const ttsResult = await aiTTS(ttsMessage.trim(), VOICE, SPEED.toFixed(2));
             if (ttsResult && ttsResult.url) {
-                const {
-                    data
-                } = await axios.get(ttsResult.url, {
-                    responseType: 'arraybuffer'
-                });
-                audio = Buffer.from(data);
+                audio = { url: ttsResult.url };
             } else {
                 throw new Error(ttsResult && ttsResult.error ? ttsResult.error : 'AI TTS failed');
             }
@@ -282,10 +277,7 @@ Module({
     await message.client.sendMessage(message.jid, {
         audio,
         mimetype: 'audio/mpeg',
-        ptt: true,
-        waveform: Array.from({
-            length: 40
-        }, () => Math.floor(Math.random() * 99))
+        ptt: true
     }, {
         quoted: message.data
     });
