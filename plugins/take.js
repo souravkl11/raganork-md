@@ -1,5 +1,5 @@
 const {
-    addExif, webp2mp4, addID3, uploadImage, getBuffer
+    addExif, webp2mp4, addID3, getBuffer, uploadToImgbb, uploadToCatbox
 } = require('./utils');
 const {
     Module
@@ -86,9 +86,14 @@ Module({
     desc: 'Uploads image to imgbb and sends a url',
     use: 'edit'
 }, (async (m, match) => {
+    let result;
     if (m.reply_message?.image || m.reply_message?.sticker) {
-        var q = await m.reply_message.download();
-        var result = await uploadImage(q);
+        let q = await m.reply_message.download();
+        result = await uploadToImgbb(q);
         return await m.sendReply(result.url);
-    } else return await m.sendMessage('_Reply to an image or a sticker_');
+    } else if (m.reply_message?.video || m.reply_message?.document || m.reply_message?.audio) {
+        let q = await m.reply_message.download();
+        result = await uploadToCatbox(q);
+        return await m.sendReply(result.url);
+    }
 }));

@@ -31,9 +31,11 @@ const {
 // Language functions
 const { malayalamToManglish, manglishToMalayalam } = language;
 
+const aiTTS = require('./ai-tts');
+
 const {gis, pinSearch} = require('./gis');
 
-const uploadImage = require('./imgbb');
+const { uploadToImgbb, uploadToCatbox } = require('./upload');
 
 module.exports = {
     // Database Operations
@@ -49,7 +51,7 @@ module.exports = {
     // Utilities
     parseUptime, isNumeric, isAdmin,
     mentionjid, getJson, bytesToSize,
-    isFake,
+    isFake, aiTTS,
     processOnwa, findMusic, searchYT,
     downloadGram, pin, fb, igStalk,
     tiktok, story, getThumb, gtts, getBuffer,
@@ -60,6 +62,6 @@ module.exports = {
     // GIS
     gis, pinSearch,
 
-    // Image Upload
-    uploadImage
+    // File Upload
+    uploadToImgbb, uploadToCatbox
 };

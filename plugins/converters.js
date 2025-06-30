@@ -9,9 +9,9 @@ const {
     addExif,
     attp,
     gtts,
-    gis
+    gis,
+    aiTTS
 } = require('./utils');
-const aiTTS = require('./utils/aiTTS');
 const config = require('../config');
 const axios = require('axios');
 const fileType = require('file-type');

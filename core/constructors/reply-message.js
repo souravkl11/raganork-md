@@ -52,6 +52,16 @@ class ReplyMessage extends Base {
                 this.mediaKey = quotedMsg.audioMessage.mediaKey; 
                 this.url = quotedMsg.audioMessage.url; 
                 this.audio = true;
+            } else if (quotedMsg.documentMessage) {
+                this.message = quotedMsg.documentMessage.caption || ''; 
+                this.caption = quotedMsg.documentMessage.caption || '';
+                this.url = quotedMsg.documentMessage.url;
+                this.mimetype = quotedMsg.documentMessage.mimetype || '';
+                this.fileName = quotedMsg.documentMessage.fileName || '';
+                this.height = quotedMsg.documentMessage.height;
+                this.width = quotedMsg.documentMessage.width;
+                this.mediaKey = quotedMsg.documentMessage.mediaKey;
+                this.document = true;
             } else if (quotedMsg.videoMessage) {
                 this.message = quotedMsg.videoMessage.caption || ''; 
                 this.caption = quotedMsg.videoMessage.caption || '';
