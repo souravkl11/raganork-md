@@ -65,7 +65,7 @@ async function setVar(key, value, message = false) {
     if (message) {
         await message.sendReply(`_${key.trim()} set to '${value}' successfully!_`);
     }
-
+    return true
 }
 
 async function delVar(key, message = false) {

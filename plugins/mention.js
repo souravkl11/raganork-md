@@ -152,8 +152,7 @@ Module({
                 const success = await setMentionReply(mentionData);
                 if (success) {
                     return await message.sendReply(`✅ *Mention reply set successfully!*\n\n*Content:* ${mentionData.content}`);
-                } else (e) {
-                    console.error('Error setting mention reply:', e);
+                } else {
                     return await message.sendReply("❌ *Failed to set mention reply!*");
                 }
             }
