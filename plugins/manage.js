@@ -658,7 +658,7 @@ Module({
                 const reactionMessage = {
                         react: {
                             text: "✅",
-                            key: m.data.key;
+                            key: m.data.key
                         }
                     }
                 await m.client.sendMessage(m.jid, reactionMessage);
