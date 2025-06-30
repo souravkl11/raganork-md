@@ -55,7 +55,7 @@ Module({
     const input = args?.slice(1).join(' ');
 
     if (!subcommand) {
-        return await message.sendReply(`❌ *Please specify a subcommand!*\n\n*Available commands:*\n• \`${handler}mention set\` - Set mention reply (reply to message or add text)\n• \`${handler}mention get\` - View current mention reply\n• \`${handler}mention del\` - Delete mention reply\n• \`${handler}mention help\` - Show detailed help`);
+        return await message.sendReply(`Please specify a subcommand!\n\n*Available commands:*\n• \`${handler}mention set\` - Set mention reply (reply to message or add text)\n• \`${handler}mention get\` - View current mention reply\n• \`${handler}mention del\` - Delete mention reply\n• \`${handler}mention help\` - Show detailed help`);
     }
 
     switch (subcommand) {
@@ -63,27 +63,27 @@ Module({
         case 'delete':
             const success = await deleteMentionReply();
             if (success) {
-                return await message.sendReply("✅ *Mention reply deleted successfully!*");
+                return await message.sendReply("Mention reply deleted successfully!");
             } else {
-                return await message.sendReply("❌ *Failed to delete mention reply!*");
+                return await message.sendReply("Failed to delete mention reply!");
             }
 
         case 'get':
         case 'show':
             const mentionData = getMentionReply();
             if (!mentionData) {
-                return await message.sendReply("❌ *No mention reply set!*\n\n*Usage:*\n• Reply to any message and type `.mention set`\n• Or use `.mention set <text>` for text message");
+                return await message.sendReply("No mention reply set!\n\n*Usage:*\n• Reply to any message and type \`.mention set\`\n• Or use \`.mention set <text>\` for text message");
             }
 
-            let responseText = "📋 *Current Mention Reply:*\n\n";
-            responseText += `*Type:* ${mentionData.type.toUpperCase()}\n`;
+            let responseText = "*Current Mention Reply:*\n\n";
+            responseText += `*Type:* \`${mentionData.type.toUpperCase()}\`\n`;
             if (mentionData.caption) {
-                responseText += `*Caption:* ${mentionData.caption}\n`;
+                responseText += `*Caption:* _${mentionData.caption}_\n`;
             }
             if (mentionData.url) {
-                responseText += `*Media URL:* ${mentionData.url}\n`;
+                responseText += `*Media URL:* \`${mentionData.url}\`\n`;
             }
-            responseText += `*Set on:* ${new Date(mentionData.timestamp).toLocaleString()}`;
+            responseText += `*Set on:* _${new Date(mentionData.timestamp).toLocaleString()}_`;
 
             return await message.sendReply(responseText);
 
@@ -118,25 +118,25 @@ Module({
                             mentionData.url = uploadResult.url;
                             mentionData.caption = replyMsg.text || '';
                         } else {
-                            return await message.sendReply("❌ *Failed to upload media! Please try again.*");
+                            return await message.sendReply("Failed to upload media! Please try again.");
                         }
                     } else if (replyMsg.text) {
                         mentionData.type = 'text';
                         mentionData.content = replyMsg.text;
                     } else {
-                        return await message.sendReply("❌ *Unsupported message type for mention reply!*");
+                        return await message.sendReply("Unsupported message type for mention reply!");
                     }
 
                     const success = await setMentionReply(mentionData);
                     if (success) {
-                        return await message.sendReply(`✅ *Mention reply set successfully!*\n\n*Type:* ${mentionData.type.toUpperCase()}\n*Content:* ${mentionData.content || mentionData.caption || 'Media file'}`);
+                        return await message.sendReply(`Mention reply set successfully!\n\n*Type:* \`${mentionData.type.toUpperCase()}\`\n*Content:* _${mentionData.content || mentionData.caption || 'Media file'}_`);
                     } else {
-                        return await message.sendReply("❌ *Failed to set mention reply!*");
+                        return await message.sendReply("Failed to set mention reply!");
                     }
 
                 } catch (error) {
                     console.error('Error setting mention reply:', error);
-                    return await message.sendReply("❌ *Error setting mention reply! Please try again.*");
+                    return await message.sendReply("Error setting mention reply! Please try again.");
                 }
             }
 
@@ -151,33 +151,33 @@ Module({
 
                 const success = await setMentionReply(mentionData);
                 if (success) {
-                    return await message.sendReply(`✅ *Mention reply set successfully!*\n\n*Content:* ${mentionData.content}`);
+                    return await message.sendReply(`Mention reply set successfully!\n\n*Content:* _${mentionData.content}_`);
                 } else {
-                    return await message.sendReply("❌ *Failed to set mention reply!*");
+                    return await message.sendReply("Failed to set mention reply!");
                 }
             }
 
-            return await message.sendReply(`❌ *Please provide input for set command!*\n\n*Usage:*\n• Reply to any message and type \`${handler}mention set\`\n• Or use \`${handler}mention set <text>\` for text message`);
+            return await message.sendReply(`Please provide input for set command!\n\n*Usage:*\n• Reply to any message and type \`${handler}mention set\`\n• Or use \`${handler}mention set <text>\` for text message`);
 
         case 'help':
-            const helpText = `📋 *Auto Mention Reply Help*
+            const helpText = `*Auto Mention Reply Help*
 
 *What is it?*
 When someone mentions the bot or sudo users, the bot automatically sends a saved reply message.
 
-*Commands:* (Owner only)
+*Commands:* _(Owner only)_
 • \`${handler}mention set\` - Reply to any message to set it as mention reply
 • \`${handler}mention set <text>\` - Set text as mention reply
 • \`${handler}mention get\` - View current mention reply
 • \`${handler}mention del\` - Delete mention reply
 
 *Supported Types:*
-✅ Text messages
-✅ Images (with captions)
-✅ Videos (with captions)
-✅ Audio files
-✅ Stickers
-✅ Documents
+• Text messages
+• Images _(with captions)_
+• Videos _(with captions)_
+• Audio files
+• Stickers
+• Documents
 
 *How it works:*
 1. Set a mention reply using the commands above
@@ -186,16 +186,16 @@ When someone mentions the bot or sudo users, the bot automatically sends a saved
 
 *Examples:*
 • Reply to an image and type \`${handler}mention set\`
-• \`${handler}mention set Hello! I'm a bot 🤖\`
+• \`${handler}mention set Hello! I'm a bot\`
 • \`${handler}mention get\` - to see current reply
 • \`${handler}mention del\` - to remove reply
 
-*Note:* Media files are uploaded to cloud storage for reliability.`;
+_Note: Media files are uploaded to cloud storage for reliability._`;
 
             return await message.sendReply(helpText);
 
         default:
-            return await message.sendReply(`❌ *Unknown subcommand: '${subcommand}'*\n\n*Available commands:*\n• \`${handler}mention set\` - Set mention reply\n• \`${handler}mention get\` - View current mention reply\n• \`${handler}mention del\` - Delete mention reply\n• \`${handler}mention help\` - Show help`);
+            return await message.sendReply(`Unknown subcommand: \`${subcommand}\`\n\n*Available commands:*\n• \`${handler}mention set\` - Set mention reply\n• \`${handler}mention get\` - View current mention reply\n• \`${handler}mention del\` - Delete mention reply\n• \`${handler}mention help\` - Show help`);
     }
 });
 
@@ -266,7 +266,8 @@ Module({
                 if (mentionData.url) {
                     await message.client.sendMessage(message.jid, {
                         audio: { url: mentionData.url },
-                        ptt: true
+                        ptt: true,
+                        mimetype: 'audio/mp4'
                     }, { quoted: message.data });
                 }
                 break;
