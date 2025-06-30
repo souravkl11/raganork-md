@@ -236,7 +236,7 @@ Module({
     let LANG = lng,
         ttsMessage = query,
         SPEED = 1.0,
-        VOICE = 'coral';
+        VOICE = 'nova';
     if (langMatch = query.match("\\{([a-z]{2})\\}")) {
         LANG = langMatch[1]
         ttsMessage = ttsMessage.replace(langMatch[0], "")
