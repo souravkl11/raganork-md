@@ -5,11 +5,15 @@ const {
 const {
     MODE,
     HANDLERS,
-    ALIVE, 
-    BOT_INFO,
+    ALIVE,
     VERSION
 } = require("../config");
+const config = require("../config");
 const os = require('os'); 
+const path = require('path');
+const fs = require('fs');
+const { uploadToImgbb } = require('./utils/upload');
+const { setVar } = require('./manage');
 
 const isPrivateMode = MODE === 'private';
 
@@ -169,7 +173,6 @@ Module({
         if (cmd_name) cmd_obj[type_det].push(cmd_name);
     }
 
-
     let final = '';
     let i = 0;
     const handlerPrefix = HANDLERS !== 'false' ? HANDLERS.split("")[0] : ""
@@ -177,28 +180,30 @@ Module({
         for (const x of cmd_obj[n]) {
             i = i + 1;
             const newn = n.charAt(0).toUpperCase() + n.slice(1); 
-            final += `${final.includes(newn)?'':'\n\n╭════〘 *_'+newn+"_* 〙════⊷❍"}\n┃${star}│ _${i}. ${handlerPrefix}${x.trim()}_${cmd_obj[n]?.indexOf(x)===(cmd_obj[n]?.length-1) ?`\n┃${star}╰─────────────────❍\n╰══════════════════⊷❍`:''}`
+            final += `${final.includes(newn)?'':'\n\n╭════〘 *_\`'+newn+"\`_* 〙════⊷❍"}\n┃${star}│ _\`${i}.\` ${handlerPrefix}${x.trim()}_${cmd_obj[n]?.indexOf(x)===(cmd_obj[n]?.length-1) ?`\n┃${star}╰─────────────────❍\n╰══════════════════⊷❍`:''}`
         }
     }
 
-    let cmdmenu = final.trim();
-
-    const used = bytesToSize(os.freemem());
+    let cmdmenu = final.trim();    const used = bytesToSize(os.freemem());
     const total = bytesToSize(os.totalmem());
-    const botOwner = BOT_INFO.split(";")[1] || 'N/A';
-    const botName = BOT_INFO.split(";")[0] || 'My Bot';
-    const botVersion = VERSION; 
-    const botImageLink = BOT_INFO.split(";")[3] || `https://i.ibb.co/B598wrtG/raganork-bot.png`
+    const infoParts = config.BOT_INFO.split(";");
+    const botName = infoParts[0] || 'My Bot';
+    const botOwner = infoParts[1] || 'N/A';
+    const botVersion = VERSION;
+    let botImageLink = infoParts[2] || '';
+    if (botImageLink === 'default') {
+        botImageLink = path.join(__dirname, 'utils', 'images', 'default.png');
+    }
 
-    const menu = `╭═══〘 ${botName} 〙═══⊷❍
+    const menu = `╭═══〘 \`${botName}\` 〙═══⊷❍
 ┃${star}╭──────────────
 ┃${star}│
-┃${star}│ _*Owner*_ : ${botOwner}
-┃${star}│ _*User*_ : ${message.senderName.replace(/[\r\n]+/gm, "")}
-┃${star}│ _*Mode*_ : ${MODE}
-┃${star}│ _*Server*_ : ${os.platform() === 'linux' ? "Linux" : "Unknown OS"}
-┃${star}│ _*Available RAM*_ : ${used} of ${total}
-┃${star}│ _*Version*_ : ${botVersion}
+┃${star}│ _*\`Owner\`*_ : ${botOwner}
+┃${star}│ _*\`User\`*_ : ${message.senderName.replace(/[\r\n]+/gm, "")}
+┃${star}│ _*\`Mode\`*_ : ${MODE}
+┃${star}│ _*\`Server\`*_ : ${os.platform() === 'linux' ? "Linux" : "Unknown OS"}
+┃${star}│ _*\`Available RAM\`*_ : ${used} of ${total}
+┃${star}│ _*\`Version\`*_ : ${botVersion}
 ┃${star}│
 ┃${star}│
 ┃${star}│  ▎▍▌▌▉▏▎▌▉▐▏▌▎
@@ -208,14 +213,18 @@ Module({
 ┃${star}╰───────────────
 ╰═════════════════⊷
 
-${cmdmenu}`;
-
-    try {
-
-        await message.client.sendMessage(message.jid, {
-            image: {url: botImageLink},
-            caption: menu
-        });
+${cmdmenu}`;    try {
+        if (botImageLink === path.join(__dirname, 'utils', 'images', 'default.png')) {
+            await message.client.sendMessage(message.jid, {
+                image: fs.readFileSync(botImageLink),
+                caption: menu
+            });
+        } else {
+            await message.client.sendMessage(message.jid, {
+                image: { url: botImageLink },
+                caption: menu
+            });
+        }
     } catch (error) {
         console.error("Error sending menu:", error);
         await message.client.sendMessage(message.jid, {
@@ -244,10 +253,108 @@ Module({
             if (cmd.warn) response += `• *Warning:* ${cmd.warn}\n`;
             response += '\n';
         }
-    });
-    await message.sendReply(response);
+    });    await message.sendReply(response);
 });
 
-module.exports = {
-    getAvailableCommands: () => commands.filter(x => x.pattern).map(cmd => extractCommandName(cmd.pattern))
-};
+Module({
+    pattern: 'setinfo ?(.*)',
+    fromMe: true,
+    desc: 'Shows info about bot configuration commands.',
+    use: 'settings'
+}, async (message, match) => {
+    const infoText = `*───「 Bot Info Configuration 」───*
+
+_Instead of using \`.setinfo\`, use these individual commands:_
+
+*Bot Name:*
+- Command: \`.setname <name>\`
+- Example: \`.setname Raganork\`
+- Description: _Sets the bot's display name_
+
+*Bot Owner:*
+- Command: \`.setowner <owner>\`
+- Example: \`.setowner John\`
+- Description: _Sets the bot owner name_
+
+*Bot Image:*
+- Command: \`.setimage\`
+- Usage: _Reply to an image with \`.setimage\`_
+- Description: _Sets the bot's profile image_
+
+*Current Format:*
+_Bot info is stored as: \`name;owner;imagelink\`_
+
+*Tips:*
+- _Use \`default\` as image to use local default image_
+- _Changes are saved automatically_
+- _Use \`.menu\` to see the updated info_`;
+    
+    return await message.sendReply(infoText);
+});
+
+Module({
+    pattern: 'setname ?(.*)',
+    fromMe: true,
+    desc: 'Sets the bot name',
+    use: 'settings'
+}, async (message, match) => {
+    const name = match[1]?.trim();
+    if (!name) return await message.sendReply("_Provide a name: .setname Raganork_");
+    const parts = config.BOT_INFO.split(';');
+    parts[0] = name;
+    await setVar('BOT_INFO', parts.join(';'));
+    return await message.sendReply(`_Bot name updated successfully!_\n\n*New Name:* ${name}`);
+});
+
+Module({
+    pattern: 'setowner ?(.*)',
+    fromMe: true,
+    desc: 'Sets the bot owner',
+    use: 'settings'
+}, async (message, match) => {
+    const owner = match[1]?.trim();
+    if (!owner) return await message.sendReply("_Provide owner: .setowner OwnerName_");
+    const parts = config.BOT_INFO.split(';');
+    parts[1] = owner;
+    await setVar('BOT_INFO', parts.join(';'));
+    return await message.sendReply(`_Bot owner updated successfully!_\n\n*New Owner:* ${owner}`);
+});
+
+Module({
+    pattern: 'setimage',
+    fromMe: true,
+    desc: 'Sets the bot image (reply to image)',
+    use: 'settings'
+}, async (message, match) => {
+    if (!message.reply_message || !message.reply_message.image) {
+        return await message.sendReply("_Reply to an image with .setimage_");
+    }
+    
+    try {
+        
+        const downloadedFile = await message.reply_message.download();
+        
+        
+        const uploadRes = await uploadToImgbb(downloadedFile);
+        
+        
+        try {
+            fs.unlinkSync(downloadedFile);
+        } catch (e) {
+            console.log('Failed to delete temp file:', downloadedFile);
+        }
+        
+        const url = uploadRes.url || uploadRes.display_url;
+        if (!url) {
+            return await message.sendReply("_Image upload failed._");
+        }
+          
+        const parts = config.BOT_INFO.split(';');
+        parts[2] = url;
+        await setVar('BOT_INFO', parts.join(';'));
+        return await message.sendReply(`_Bot image updated successfully!_\n\n*New Image URL:* ${url}`);
+    } catch (error) {
+        console.error("Error setting image:", error);
+        return await message.sendReply("_Failed to set image. Please try again._");
+    }
+});

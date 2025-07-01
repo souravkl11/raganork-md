@@ -70,7 +70,7 @@ const baseConfig = {
     READ_COMMAND: convertToBool(process.env.READ_COMMAND) || true,
     IMGBB_KEY: ["76a050f031972d9f27e329d767dd988f", "deb80cd12ababea1c9b9a8ad6ce3fab2", "78c84c62b32a88e86daf87dd509a657a"],
     RG: process.env.RG || '919074309534-1632403322@g.us,120363116963909366@g.us',
-    BOT_INFO: process.env.BOT_INFO || 'Raganork;Skl11;0;https://i.ibb.co/B598wrtG/raganork-bot.png;https://chat.whatsapp.com/Dt3C4wrQmt0GG6io1IBIHb',
+    BOT_INFO: process.env.BOT_INFO || '𝖱𝖺𝗀𝖺𝗇𝗈𝗋𝗄;𝖱𝗒𝗓𝖾𝗇;default',
     RBG_KEY: process.env.RBG_KEY || '',
     ALLOWED: process.env.ALLOWED || '91,94,2',
     NOT_ALLOWED: process.env.NOT_ALLOWED || '852',

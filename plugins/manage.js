@@ -44,9 +44,6 @@ const {
 } = require('./utils');
 const config = require('../config');
 const {
-    getAvailableCommands
-} = require('./commands');
-const {
     settingsMenu,
     ADMIN_ACCESS
 } = config;
@@ -272,12 +269,16 @@ Module({
     usage: '.toggle img',
     use: 'group'
 }, async (message, match) => {
-    if (match[0].includes("filter")) return;
-    match = match[1];
+    if (match[0].includes("filter")) return;    match = match[1];
     if (match) {
-        const commands = getAvailableCommands();
+        const { commands } = require('../main');
+        const extractCommandName = (pattern) => {
+            const match = pattern?.toString().match(/(\W*)([A-Za-z1234567890 ]*)/);
+            return match && match[2] ? match[2].trim() : '';
+        };
+        const availableCommands = commands.filter(x => x.pattern).map(cmd => extractCommandName(cmd.pattern));
         let disabled = typeof config.DISABLED_COMMANDS === 'string' ? config.DISABLED_COMMANDS.split(",") : [];
-        if (!commands.includes(match.trim())) return await message.sendReply(`_${handler}${match.trim()} is not a valid command!_`);
+        if (!availableCommands.includes(match.trim())) return await message.sendReply(`_${handler}${match.trim()} is not a valid command!_`);
         if (match == 'toggle' || match == 'setvar' || match == 'getvar') return await message.sendReply(`_You can't disable ${handler}${match.trim()} command!_`);
         if (!disabled.includes(match)) {
             disabled.push(match.trim());
