@@ -33,7 +33,7 @@ function getBotId(client, contextJid = null, sender = "@s.whatsapp.net") {
 }
 
 function getBotNumericId(message, client) {
-    let isPvt = isPrivateMessage(message.key.remoteJid);
+    let isPvt = isPrivateMessage(message.jid);
     let isLidChat = isPvt ? false : isLid(message.key.participant);    
     return isLidChat ? client.user.lid.split(":")[0] : client.user.id.split(":")[0];
 }
