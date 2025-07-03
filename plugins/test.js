@@ -39,8 +39,9 @@ Module({
   use: 'utility',
   desc: 'Measures ping'
 }, (async (message, match) => {
-  const start = new Date().getTime()
+  const start = process.hrtime();
   let sent_msg = await message.sendReply('*❮ ᴛᴇsᴛɪɴɢ ᴘɪɴɢ ❯*')
-  const end = new Date().getTime()
-  await message.edit('*ʟᴀᴛᴇɴᴄʏ: ' + (end - start) + ' _ᴍs_*',message.jid,sent_msg.key)
+  const diff = process.hrtime(start);
+  const ms = (diff[0] * 1e3 + diff[1] / 1e6).toFixed(2);
+  await message.edit('*ʟᴀᴛᴇɴᴄʏ: ' + ms + ' _ᴍs_*',message.jid,sent_msg.key)
 }));
