@@ -52,7 +52,7 @@ Module({
     pattern: "stickcmd ?(.*)",
     fromMe: true,
     desc: "Sticks commands on stickers. And if that sticker is sent, it will work as a command!",
-    usage: ".stickcmd kick",
+    usage: ".stickcmd .kick",
     warn: "Only works on stickers",
     use: 'utility'
 }, async (message, match) => {

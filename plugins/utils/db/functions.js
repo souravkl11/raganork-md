@@ -1,459 +1,516 @@
 const {
-    warnDB,
-    FakeDB,
-    antilinkDB,
-    antiSpamDB,
-    PDMDB,
-    antiDemote,
-    antiPromote,
-    antiBotDB,
-    antiWordDB,
-    WelcomeDB,
-    GoodbyeDB,
-    FilterDB
-} = require('./models');
+  warnDB,
+  FakeDB,
+  antilinkDB,
+  antiSpamDB,
+  PDMDB,
+  antiDemote,
+  antiPromote,
+  antiBotDB,
+  antiWordDB,
+  WelcomeDB,
+  GoodbyeDB,
+  FilterDB,
+} = require("./models");
 
 async function getWarn(jid = null, user = null, cnt) {
-    if (!jid || !user) return null;
+  if (!jid || !user) return null;
 
-    const tableInfo = await warnDB.sequelize.getQueryInterface().describeTable('warns');
-    const attributes = Object.keys(warnDB.getAttributes()).filter(attr => tableInfo[attr]);
+  const warnings = await warnDB.findAll({
+    where: { chat: jid, user: user },
+    order: [["timestamp", "DESC"]],
+  });
 
-    const warnings = await warnDB.findAll({ 
-        attributes,
-        where: { chat: jid, user: user },
-        order: [['timestamp', 'DESC']]
-    });
+  if (!cnt) {
+    return warnings;
+  }
 
-    if (!cnt) {
-        return warnings; 
-    }
+  const count = parseInt(cnt);
+  const currentWarns = warnings.length;
+  const remaining = count - currentWarns;
 
-    const count = parseInt(cnt);
-    const currentWarns = warnings.length;
-    const remaining = count - currentWarns;
-
-    return {
-        current: currentWarns,
-        limit: count,
-        remaining: remaining > 0 ? remaining : 0,
-        exceeded: remaining <= 0,
-        warnings: warnings
-    };
+  return {
+    current: currentWarns,
+    limit: count,
+    remaining: remaining > 0 ? remaining : 0,
+    exceeded: remaining <= 0,
+    warnings: warnings,
+  };
 }
 
-async function setWarn(jid = null, user = null, reason = 'No reason provided', warnedBy = null) {
-    if (!jid || !user || !warnedBy) return false;
+async function setWarn(
+  jid = null,
+  user = null,
+  reason = "No reason provided",
+  warnedBy = null
+) {
+  if (!jid || !user || !warnedBy) return false;
 
-    const tableInfo = await warnDB.sequelize.getQueryInterface().describeTable('warns');
-    const warnData = { 
-        chat: jid, 
-        user: user, 
-        warnedBy: warnedBy,
-        timestamp: new Date()
-    };
+  const warnData = {
+    chat: jid,
+    user: user,
+    reason: reason,
+    warnedBy: warnedBy,
+    timestamp: new Date(),
+  };
 
-    if (tableInfo.reason) {
-        warnData.reason = reason;
-    }
+  await warnDB.create(warnData);
 
-    await warnDB.create(warnData);
-
-    return await getWarn(jid, user);
+  return await getWarn(jid, user);
 }
 
 async function resetWarn(jid = null, user) {
-    if (!jid || !user) return false;
+  if (!jid || !user) return false;
 
-    const deleted = await warnDB.destroy({ 
-        where: { chat: jid, user: user } 
-    });
+  const deleted = await warnDB.destroy({
+    where: { chat: jid, user: user },
+  });
 
-    return deleted > 0;
+  return deleted > 0;
 }
 
 async function getWarnCount(jid = null, user = null) {
-    if (!jid || !user) return 0;
+  if (!jid || !user) return 0;
 
-    return await warnDB.count({ 
-        where: { chat: jid, user: user } 
-    });
+  return await warnDB.count({
+    where: { chat: jid, user: user },
+  });
 }
 
 async function decrementWarn(jid = null, user = null) {
-    if (!jid || !user) return false;
+  if (!jid || !user) return false;
 
-    const warnings = await warnDB.findAll({ 
-        where: { chat: jid, user: user },
-        order: [['timestamp', 'DESC']],
-        limit: 1
-    });
+  const warnings = await warnDB.findAll({
+    where: { chat: jid, user: user },
+    order: [["timestamp", "DESC"]],
+    limit: 1,
+  });
 
-    if (warnings.length === 0) return false;
+  if (warnings.length === 0) return false;
 
-    const deleted = await warnDB.destroy({ 
-        where: { id: warnings[0].id } 
-    });
+  const deleted = await warnDB.destroy({
+    where: { id: warnings[0].id },
+  });
 
-    return deleted > 0;
+  return deleted > 0;
 }
 
 async function getAllWarns(jid = null) {
-    if (!jid) return [];
+  if (!jid) return [];
 
-    const tableInfo = await warnDB.sequelize.getQueryInterface().describeTable('warns');
-    const attributes = Object.keys(warnDB.getAttributes()).filter(attr => tableInfo[attr]);
+  const { Op } = require("sequelize");
+  const warnings = await warnDB.findAll({
+    where: { chat: jid },
+    order: [["timestamp", "DESC"]],
+  });
 
-    const { Op } = require('sequelize');
-    const warnings = await warnDB.findAll({
-        attributes,
-        where: { chat: jid },
-        order: [['timestamp', 'DESC']]
-    });
+  const groupedWarnings = {};
+  warnings.forEach((warn) => {
+    if (!groupedWarnings[warn.user]) {
+      groupedWarnings[warn.user] = [];
+    }
+    groupedWarnings[warn.user].push(warn);
+  });
 
-    const groupedWarnings = {};
-    warnings.forEach(warn => {
-        if (!groupedWarnings[warn.user]) {
-            groupedWarnings[warn.user] = [];
-        }
-        groupedWarnings[warn.user].push(warn);
-    });
-
-    return groupedWarnings;
+  return groupedWarnings;
 }
 
 async function getAntifake() {
-    return await FakeDB.findAll();
+  return await FakeDB.findAll();
 }
 
 async function setAntifake(jid) {
-    return await FakeDB.create({ jid });
+  return await FakeDB.create({ jid });
 }
 
 async function delAntifake(jid = null) {
-    return await FakeDB.destroy({ where: { jid } });
+  return await FakeDB.destroy({ where: { jid } });
 }
 
 async function resetAntifake() {
-    return await FakeDB.destroy({ where: {}, truncate: true });
+  return await FakeDB.destroy({ where: {}, truncate: true });
 }
 
 async function getAntilink() {
-    return await antilinkDB.findAll();
+  return await antilinkDB.findAll();
 }
 
 async function setAntilink(jid) {
-    return await antilinkDB.create({ jid });
+  return await antilinkDB.create({ jid });
 }
 
 async function delAntilink(jid = null) {
-    return await antilinkDB.destroy({ where: { jid } });
+  return await antilinkDB.destroy({ where: { jid } });
 }
 
 async function resetAntilink() {
-    return await antilinkDB.destroy({ where: {}, truncate: true });
+  return await antilinkDB.destroy({ where: {}, truncate: true });
 }
 
 async function getAntiSpam() {
-    return await antiSpamDB.findAll();
+  return await antiSpamDB.findAll();
 }
 
 async function setAntiSpam(jid) {
-    return await antiSpamDB.create({ jid });
+  return await antiSpamDB.create({ jid });
 }
 
 async function delAntiSpam(jid = null) {
-    return await antiSpamDB.destroy({ where: { jid } });
+  return await antiSpamDB.destroy({ where: { jid } });
 }
 
 async function resetAntiSpam() {
-    return await antiSpamDB.destroy({ where: {}, truncate: true });
+  return await antiSpamDB.destroy({ where: {}, truncate: true });
 }
 
 async function getPdm() {
-    return await PDMDB.findAll();
+  return await PDMDB.findAll();
 }
 
 async function setPdm(jid) {
-    return await PDMDB.create({ jid });
+  return await PDMDB.create({ jid });
 }
 
 async function delPdm(jid = null) {
-    return await PDMDB.destroy({ where: { jid } });
+  return await PDMDB.destroy({ where: { jid } });
 }
 
 async function resetPdm() {
-    return await PDMDB.destroy({ where: {}, truncate: true });
+  return await PDMDB.destroy({ where: {}, truncate: true });
 }
 
 async function getAntiDemote() {
-    return await antiDemote.findAll();
+  return await antiDemote.findAll();
 }
 
 async function setAntiDemote(jid) {
-    return await antiDemote.create({ jid });
+  return await antiDemote.create({ jid });
 }
 
 async function delAntiDemote(jid = null) {
-    return await antiDemote.destroy({ where: { jid } });
+  return await antiDemote.destroy({ where: { jid } });
 }
 
 async function resetAntiDemote() {
-    return await antiDemote.destroy({ where: {}, truncate: true });
+  return await antiDemote.destroy({ where: {}, truncate: true });
 }
 
 async function getAntiPromote() {
-    return await antiPromote.findAll();
+  return await antiPromote.findAll();
 }
 
 async function setAntiPromote(jid) {
-    return await antiPromote.create({ jid });
+  return await antiPromote.create({ jid });
 }
 
 async function delAntiPromote(jid = null) {
-    return await antiPromote.destroy({ where: { jid } });
+  return await antiPromote.destroy({ where: { jid } });
 }
 
 async function resetAntiPromote() {
-    return await antiPromote.destroy({ where: {}, truncate: true });
+  return await antiPromote.destroy({ where: {}, truncate: true });
 }
 
 async function getAntiBot() {
-    return await antiBotDB.findAll();
+  return await antiBotDB.findAll();
 }
 
 async function setAntiBot(jid) {
-    return await antiBotDB.create({ jid });
+  return await antiBotDB.create({ jid });
 }
 
 async function delAntiBot(jid = null) {
-    return await antiBotDB.destroy({ where: { jid } });
+  return await antiBotDB.destroy({ where: { jid } });
 }
 
 async function resetAntiBot() {
-    return await antiBotDB.destroy({ where: {}, truncate: true });
+  return await antiBotDB.destroy({ where: {}, truncate: true });
 }
 
 async function getAntiWord() {
-    return await antiWordDB.findAll();
+  return await antiWordDB.findAll();
 }
 
 async function setAntiWord(jid) {
-    return await antiWordDB.create({ jid });
+  return await antiWordDB.create({ jid });
 }
 
 async function delAntiWord(jid = null) {
-    return await antiWordDB.destroy({ where: { jid } });
+  return await antiWordDB.destroy({ where: { jid } });
 }
 
 async function resetAntiWord() {
-    return await antiWordDB.destroy({ where: {}, truncate: true });
+  return await antiWordDB.destroy({ where: {}, truncate: true });
 }
 
 async function getWelcome(jid = null) {
-    if (jid) {
-        return await WelcomeDB.findOne({ where: { jid } });
-    }
-    return await WelcomeDB.findAll();
+  if (jid) {
+    return await WelcomeDB.findOne({ where: { jid } });
+  }
+  return await WelcomeDB.findAll();
 }
 
 async function setWelcome(jid, message) {
-    const existing = await WelcomeDB.findOne({ where: { jid } });
-    if (existing) {
-        await existing.update({ message, enabled: true });
-        return existing;
-    }
-    return await WelcomeDB.create({ jid, message, enabled: true });
+  const existing = await WelcomeDB.findOne({ where: { jid } });
+  if (existing) {
+    await existing.update({ message, enabled: true });
+    return existing;
+  }
+  return await WelcomeDB.create({ jid, message, enabled: true });
 }
 
 async function delWelcome(jid = null) {
-    return await WelcomeDB.destroy({ where: { jid } });
+  return await WelcomeDB.destroy({ where: { jid } });
 }
 
 async function toggleWelcome(jid, enabled) {
-    const existing = await WelcomeDB.findOne({ where: { jid } });
-    if (existing) {
-        await existing.update({ enabled });
-        return existing;
-    }
-    return false;
+  const existing = await WelcomeDB.findOne({ where: { jid } });
+  if (existing) {
+    await existing.update({ enabled });
+    return existing;
+  }
+  return false;
 }
 
 async function getGoodbye(jid = null) {
-    if (jid) {
-        return await GoodbyeDB.findOne({ where: { jid } });
-    }
-    return await GoodbyeDB.findAll();
+  if (jid) {
+    return await GoodbyeDB.findOne({ where: { jid } });
+  }
+  return await GoodbyeDB.findAll();
 }
 
 async function setGoodbye(jid, message) {
-    const existing = await GoodbyeDB.findOne({ where: { jid } });
-    if (existing) {
-        await existing.update({ message, enabled: true });
-        return existing;
-    }
-    return await GoodbyeDB.create({ jid, message, enabled: true });
+  const existing = await GoodbyeDB.findOne({ where: { jid } });
+  if (existing) {
+    await existing.update({ message, enabled: true });
+    return existing;
+  }
+  return await GoodbyeDB.create({ jid, message, enabled: true });
 }
 
 async function delGoodbye(jid = null) {
-    return await GoodbyeDB.destroy({ where: { jid } });
+  return await GoodbyeDB.destroy({ where: { jid } });
 }
 
 async function toggleGoodbye(jid, enabled) {
-    const existing = await GoodbyeDB.findOne({ where: { jid } });
-    if (existing) {
-        await existing.update({ enabled });
-        return existing;
-    }
-    return false;
+  const existing = await GoodbyeDB.findOne({ where: { jid } });
+  if (existing) {
+    await existing.update({ enabled });
+    return existing;
+  }
+  return false;
 }
 
 async function getFilter(jid = null, trigger = null) {
-    const { Op } = require('sequelize');
+  const { Op } = require("sequelize");
 
-    if (trigger && jid) {
-
-        return await FilterDB.findOne({ 
-            where: { 
-                trigger: trigger,
-                [Op.or]: [
-                    { jid: jid, scope: 'chat' },
-                    { jid: null, scope: 'global' },
-                    { jid: null, scope: jid.includes('@g.us') ? 'group' : 'dm' }
-                ],
-                enabled: true 
-            }
-        });
-    } else if (jid) {
-
-        return await FilterDB.findAll({
-            where: {
-                [Op.or]: [
-                    { jid: jid, scope: 'chat' },
-                    { jid: null, scope: 'global' },
-                    { jid: null, scope: jid.includes('@g.us') ? 'group' : 'dm' }
-                ],
-                enabled: true
-            }
-        });
-    } else {
-
-        return await FilterDB.findAll();
-    }
-}
-
-async function setFilter(trigger, response, jid = null, scope = 'chat', createdBy, options = {}) {
-    const filterData = {
-        trigger,
-        response,
-        jid: scope === 'chat' ? jid : null,
-        scope,
+  if (trigger && jid) {
+    return await FilterDB.findOne({
+      where: {
+        trigger: trigger,
+        [Op.or]: [
+          { jid: jid, scope: "chat" },
+          { jid: null, scope: "global" },
+          { jid: null, scope: jid.includes("@g.us") ? "group" : "dm" },
+        ],
         enabled: true,
-        caseSensitive: options.caseSensitive || false,
-        exactMatch: options.exactMatch || false,
-        createdBy
-    };
-
-    const existing = await FilterDB.findOne({
-        where: {
-            trigger,
-            jid: filterData.jid,
-            scope
-        }
+      },
     });
-
-    if (existing) {
-        await existing.update(filterData);
-        return existing;
-    }
-
-    return await FilterDB.create(filterData);
+  } else if (jid) {
+    return await FilterDB.findAll({
+      where: {
+        [Op.or]: [
+          { jid: jid, scope: "chat" },
+          { jid: null, scope: "global" },
+          { jid: null, scope: jid.includes("@g.us") ? "group" : "dm" },
+        ],
+        enabled: true,
+      },
+    });
+  } else {
+    return await FilterDB.findAll();
+  }
 }
 
-async function delFilter(trigger, jid = null, scope = 'chat') {
-    return await FilterDB.destroy({
-        where: {
-            trigger,
-            jid: scope === 'chat' ? jid : null,
-            scope
-        }
-    });
+async function setFilter(
+  trigger,
+  response,
+  jid = null,
+  scope = "chat",
+  createdBy,
+  options = {}
+) {
+  const filterData = {
+    trigger,
+    response,
+    jid: scope === "chat" ? jid : null,
+    scope,
+    enabled: true,
+    caseSensitive: options.caseSensitive || false,
+    exactMatch: options.exactMatch || false,
+    createdBy,
+  };
+
+  const existing = await FilterDB.findOne({
+    where: {
+      trigger,
+      jid: filterData.jid,
+      scope,
+    },
+  });
+
+  if (existing) {
+    await existing.update(filterData);
+    return existing;
+  }
+
+  return await FilterDB.create(filterData);
 }
 
-async function toggleFilter(trigger, jid = null, scope = 'chat', enabled) {
-    const filter = await FilterDB.findOne({
-        where: {
-            trigger,
-            jid: scope === 'chat' ? jid : null,
-            scope
-        }
-    });
+async function delFilter(trigger, jid = null, scope = "chat") {
+  return await FilterDB.destroy({
+    where: {
+      trigger,
+      jid: scope === "chat" ? jid : null,
+      scope,
+    },
+  });
+}
 
-    if (filter) {
-        await filter.update({ enabled });
-        return filter;
-    }
-    return false;
+async function toggleFilter(trigger, jid = null, scope = "chat", enabled) {
+  const filter = await FilterDB.findOne({
+    where: {
+      trigger,
+      jid: scope === "chat" ? jid : null,
+      scope,
+    },
+  });
+
+  if (filter) {
+    await filter.update({ enabled });
+    return filter;
+  }
+  return false;
 }
 
 async function getFiltersByScope(scope, jid = null) {
-    const whereCondition = { scope, enabled: true };
-    if (scope === 'chat' && jid) {
-        whereCondition.jid = jid;
-    } else if (scope !== 'chat') {
-        whereCondition.jid = null;
-    }
+  const whereCondition = { scope, enabled: true };
+  if (scope === "chat" && jid) {
+    whereCondition.jid = jid;
+  } else if (scope !== "chat") {
+    whereCondition.jid = null;
+  }
 
-    return await FilterDB.findAll({ where: whereCondition });
+  return await FilterDB.findAll({ where: whereCondition });
 }
 
 async function checkFilterMatch(text, jid) {
-    if (!text) return null;
+  if (!text) return null;
 
-    const filters = await getFilter(jid);
+  const filters = await getFilter(jid);
 
-    for (const filter of filters) {
-        const trigger = filter.caseSensitive ? filter.trigger : filter.trigger.toLowerCase();
-        const textToCheck = filter.caseSensitive ? text : text.toLowerCase();
+  for (const filter of filters) {
+    const trigger = filter.caseSensitive
+      ? filter.trigger
+      : filter.trigger.toLowerCase();
+    const textToCheck = filter.caseSensitive ? text : text.toLowerCase();
 
-        let isMatch = false;
+    let isMatch = false;
 
-        if (filter.exactMatch) {
-            isMatch = textToCheck === trigger;
-        } else {
-            isMatch = textToCheck.includes(trigger);
-        }
-
-        if (isMatch) {
-            return filter;
-        }
+    if (filter.exactMatch) {
+      isMatch = textToCheck === trigger;
+    } else {
+      isMatch = textToCheck.includes(trigger);
     }
 
-    return null;
+    if (isMatch) {
+      return filter;
+    }
+  }
+
+  return null;
 }
 
-const antilink = { set: setAntilink, get: getAntilink, delete: delAntilink, reset: resetAntilink };
-const antiword = { set: setAntiWord, get: getAntiWord, delete: delAntiWord, reset: resetAntiWord };
-const antifake = { set: setAntifake, get: getAntifake, delete: delAntifake, reset: resetAntifake };
-const antipromote = { set: setAntiPromote, get: getAntiPromote, delete: delAntiPromote, reset: resetAntiPromote };
-const antidemote = { set: setAntiDemote, get: getAntiDemote, delete: delAntiDemote, reset: resetAntiDemote };
-const antispam = { set: setAntiSpam, get: getAntiSpam, delete: delAntiSpam, reset: resetAntiSpam };
-const antibot = { set: setAntiBot, get: getAntiBot, delete: delAntiBot, reset: resetAntiBot };
+const antilink = {
+  set: setAntilink,
+  get: getAntilink,
+  delete: delAntilink,
+  reset: resetAntilink,
+};
+const antiword = {
+  set: setAntiWord,
+  get: getAntiWord,
+  delete: delAntiWord,
+  reset: resetAntiWord,
+};
+const antifake = {
+  set: setAntifake,
+  get: getAntifake,
+  delete: delAntifake,
+  reset: resetAntifake,
+};
+const antipromote = {
+  set: setAntiPromote,
+  get: getAntiPromote,
+  delete: delAntiPromote,
+  reset: resetAntiPromote,
+};
+const antidemote = {
+  set: setAntiDemote,
+  get: getAntiDemote,
+  delete: delAntiDemote,
+  reset: resetAntiDemote,
+};
+const antispam = {
+  set: setAntiSpam,
+  get: getAntiSpam,
+  delete: delAntiSpam,
+  reset: resetAntiSpam,
+};
+const antibot = {
+  set: setAntiBot,
+  get: getAntiBot,
+  delete: delAntiBot,
+  reset: resetAntiBot,
+};
 const pdm = { set: setPdm, get: getPdm, delete: delPdm, reset: resetPdm };
-const welcome = { set: setWelcome, get: getWelcome, delete: delWelcome, toggle: toggleWelcome };
-const goodbye = { set: setGoodbye, get: getGoodbye, delete: delGoodbye, toggle: toggleGoodbye };
-const filter = { 
-    set: setFilter, 
-    get: getFilter, 
-    delete: delFilter, 
-    toggle: toggleFilter, 
-    getByScope: getFiltersByScope,
-    checkMatch: checkFilterMatch 
+const welcome = {
+  set: setWelcome,
+  get: getWelcome,
+  delete: delWelcome,
+  toggle: toggleWelcome,
+};
+const goodbye = {
+  set: setGoodbye,
+  get: getGoodbye,
+  delete: delGoodbye,
+  toggle: toggleGoodbye,
+};
+const filter = {
+  set: setFilter,
+  get: getFilter,
+  delete: delFilter,
+  toggle: toggleFilter,
+  getByScope: getFiltersByScope,
+  checkMatch: checkFilterMatch,
 };
 
 module.exports = {
-    getWarn, setWarn, resetWarn, getWarnCount, decrementWarn, getAllWarns,
-    antilink, antiword, antifake, 
-    antipromote, antidemote, antispam,
-    antibot, pdm, welcome, goodbye, filter
+  getWarn,
+  setWarn,
+  resetWarn,
+  getWarnCount,
+  decrementWarn,
+  getAllWarns,
+  antilink,
+  antiword,
+  antifake,
+  antipromote,
+  antidemote,
+  antispam,
+  antibot,
+  pdm,
+  welcome,
+  goodbye,
+  filter,
 };
