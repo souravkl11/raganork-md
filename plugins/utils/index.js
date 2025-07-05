@@ -72,11 +72,14 @@ const { gis, pinSearch } = require("./gis");
 const { uploadToImgbb, uploadToCatbox } = require("./upload");
 
 const linkDetector = require("./link-detector");
+ 
+const fancy = require("./fancy");
 
 module.exports = {
   // Database Operations
   getWarn,
   setWarn,
+  fancy,
   resetWarn,
   decrementWarn,
   getWarnCount,
