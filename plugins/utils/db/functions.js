@@ -1,7 +1,7 @@
 const {
   warnDB,
   FakeDB,
-  antilinkDB,
+  AntilinkConfigDB,
   antiSpamDB,
   PDMDB,
   antiDemote,
@@ -131,20 +131,134 @@ async function resetAntifake() {
   return await FakeDB.destroy({ where: {}, truncate: true });
 }
 
-async function getAntilink() {
-  return await antilinkDB.findAll();
+// New advanced antilink functions
+async function getAntilinkConfig(jid = null) {
+  if (!jid) {
+    return await AntilinkConfigDB.findAll();
+  }
+  return await AntilinkConfigDB.findOne({ where: { jid } });
 }
 
-async function setAntilink(jid) {
-  return await antilinkDB.create({ jid });
+async function setAntilinkConfig(jid, config = {}) {
+  if (!jid) return false;
+
+  const defaultConfig = {
+    mode: "delete",
+    allowedLinks: "gist,instagram,youtu",
+    blockedLinks: null,
+    isWhitelist: true,
+    enabled: true,
+    customMessage: null,
+    updatedBy: null,
+    updatedAt: new Date(),
+  };
+
+  const finalConfig = { ...defaultConfig, ...config, jid };
+
+  const [antilinkConfig, created] = await AntilinkConfigDB.upsert(finalConfig);
+  return antilinkConfig;
 }
 
-async function delAntilink(jid = null) {
-  return await antilinkDB.destroy({ where: { jid } });
+async function updateAntilinkConfig(jid, updates = {}) {
+  if (!jid) return false;
+
+  updates.updatedAt = new Date();
+
+  const [updateCount] = await AntilinkConfigDB.update(updates, {
+    where: { jid },
+  });
+
+  if (updateCount > 0) {
+    return await getAntilinkConfig(jid);
+  }
+
+  return false;
 }
 
-async function resetAntilink() {
-  return await antilinkDB.destroy({ where: {}, truncate: true });
+async function deleteAntilinkConfig(jid = null) {
+  if (!jid) return false;
+  return await AntilinkConfigDB.destroy({ where: { jid } });
+}
+
+async function resetAntilinkConfig() {
+  return await AntilinkConfigDB.destroy({ where: {}, truncate: true });
+}
+
+function parseAntilinkPattern(pattern) {
+  if (!pattern || typeof pattern !== "string") return null;
+
+  // Handle negation pattern !(domain1,domain2)
+  const negationMatch = pattern.match(/^!\(([^)]+)\)$/);
+  if (negationMatch) {
+    return {
+      isWhitelist: false,
+      domains: negationMatch[1]
+        .split(",")
+        .map((d) => d.trim())
+        .filter((d) => d),
+    };
+  }
+
+  // Handle regular pattern (domain1,domain2)
+  return {
+    isWhitelist: true,
+    domains: pattern
+      .split(",")
+      .map((d) => d.trim())
+      .filter((d) => d),
+  };
+}
+
+function checkLinkAllowed(url, config) {
+  if (!config || !config.enabled) return true;
+
+  // Normalize the URL for checking
+  let normalizedUrl = url.toLowerCase();
+
+  // Remove protocol if present to standardize checking
+  normalizedUrl = normalizedUrl.replace(/^https?:\/\//, "");
+  normalizedUrl = normalizedUrl.replace(/^www\./, "");
+
+  const allowedDomains = config.allowedLinks
+    ? config.allowedLinks
+        .split(",")
+        .map((d) => d.trim().toLowerCase())
+        .filter((d) => d)
+    : [];
+  const blockedDomains = config.blockedLinks
+    ? config.blockedLinks
+        .split(",")
+        .map((d) => d.trim().toLowerCase())
+        .filter((d) => d)
+    : [];
+
+  // Check if URL contains any blocked domains
+  if (blockedDomains.length > 0) {
+    for (const domain of blockedDomains) {
+      const normalizedDomain = domain
+        .replace(/^https?:\/\//, "")
+        .replace(/^www\./, "");
+      if (normalizedUrl.includes(normalizedDomain)) {
+        return false;
+      }
+    }
+  }
+
+  // If whitelist mode and allowed domains exist
+  if (config.isWhitelist && allowedDomains.length > 0) {
+    for (const domain of allowedDomains) {
+      const normalizedDomain = domain
+        .replace(/^https?:\/\//, "")
+        .replace(/^www\./, "");
+      if (normalizedUrl.includes(normalizedDomain)) {
+        return true;
+      }
+    }
+    return false; // Not in whitelist
+  }
+
+  // If blacklist mode, allow unless explicitly blocked
+  return true;
 }
 
 async function getAntiSpam() {
@@ -431,11 +545,15 @@ async function checkFilterMatch(text, jid) {
   return null;
 }
 
-const antilink = {
-  set: setAntilink,
-  get: getAntilink,
-  delete: delAntilink,
-  reset: resetAntilink,
+// New antilink system
+const antilinkConfig = {
+  get: getAntilinkConfig,
+  set: setAntilinkConfig,
+  update: updateAntilinkConfig,
+  delete: deleteAntilinkConfig,
+  reset: resetAntilinkConfig,
+  parsePattern: parseAntilinkPattern,
+  checkAllowed: checkLinkAllowed,
 };
 const antiword = {
   set: setAntiWord,
@@ -502,7 +620,7 @@ module.exports = {
   getWarnCount,
   decrementWarn,
   getAllWarns,
-  antilink,
+  antilinkConfig,
   antiword,
   antifake,
   antipromote,

@@ -32,7 +32,7 @@ function checkLinks(links, allowedWords) {
 const { Module } = require("../main");
 const {
   isAdmin,
-  antilink,
+  antilinkConfig,
   antiword,
   antibot,
   antispam,
@@ -41,6 +41,7 @@ const {
   pdm,
   setWarn,
   getWarn,
+  linkDetector,
 } = require("./utils");
 const config = require("../config");
 const { settingsMenu, ADMIN_ACCESS } = config;
@@ -443,7 +444,6 @@ Module(
     let adminAccesValidated = ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
-    console.log(message.fromOwner);
     if (message.fromOwner || adminAccesValidated) {
       match[1] = match[1] ? match[1].toLowerCase() : "";
       var db = await antispam.get();
@@ -595,118 +595,273 @@ Module(
   {
     pattern: "antilink ?(.*)",
     fromMe: false,
-    desc: "Activates antilink with warn or kick action",
+    desc: "Advanced antilink system with warn/kick/delete modes and flexible link filtering",
     use: "group",
   },
   async (message, match) => {
     let adminAccesValidated = ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
-    if (message.fromOwner || adminAccesValidated) {
-      match[1] = match[1] ? match[1].toLowerCase() : "";
-      var db = await antilink.get();
-      const jids = [];
-      db.map((data) => {
-        jids.push(data.jid);
-      });
 
-      var antilinkWarn = config.ANTILINK_WARN?.split(",") || [];
-      var antilinkKick = config.ANTILINK_KICK?.split(",") || [];
+    if (!(message.fromOwner || adminAccesValidated)) {
+      return await message.sendReply(
+        "_You need admin privileges to use this command!_"
+      );
+    }
 
-      if (match[1] === "warn") {
-        if (!(await isAdmin(message)))
-          return await message.sendReply("_I'm not an admin!_");
+    const input = match[1] ? match[1].toLowerCase().trim() : "";
+    const args = input.split(" ");
+    const command = args[0];
+    const value = args.slice(1).join(" ");
 
-        if (antilinkKick.includes(message.jid)) {
-          antilinkKick = antilinkKick.filter((x) => x !== message.jid);
-          await setVar(
-            "ANTILINK_KICK",
-            antilinkKick.join(",") || "null",
-            false
-          );
-        }
+    let config = await antilinkConfig.get(message.jid);
 
-        if (!antilinkWarn.includes(message.jid)) {
-          antilinkWarn.push(message.jid);
-          await setVar("ANTILINK_WARN", antilinkWarn.join(","), false);
-        }
-
-        await antilink.set(message.jid);
-        return await message.sendReply(
-          `_Antilink activated in WARN mode!_\n\n_Users will be warned when they send links._`
-        );
-      }
-
-      if (match[1] === "kick") {
-        if (!(await isAdmin(message)))
-          return await message.sendReply("_I'm not an admin!_");
-
-        if (antilinkWarn.includes(message.jid)) {
-          antilinkWarn = antilinkWarn.filter((x) => x !== message.jid);
-          await setVar(
-            "ANTILINK_WARN",
-            antilinkWarn.join(",") || "null",
-            false
-          );
-        }
-
-        if (!antilinkKick.includes(message.jid)) {
-          antilinkKick.push(message.jid);
-          await setVar("ANTILINK_KICK", antilinkKick.join(","), false);
-        }
-
-        await antilink.set(message.jid);
-        return await message.sendReply(
-          `_Antilink activated in KICK mode!_\n\n_Users will be kicked when they send links._`
-        );
-      }
-
-      if (match[1] === "off") {
-        await antilink.delete(message.jid);
-
-        if (antilinkWarn.includes(message.jid)) {
-          antilinkWarn = antilinkWarn.filter((x) => x !== message.jid);
-          await setVar(
-            "ANTILINK_WARN",
-            antilinkWarn.join(",") || "null",
-            false
-          );
-        }
-        if (antilinkKick.includes(message.jid)) {
-          antilinkKick = antilinkKick.filter((x) => x !== message.jid);
-          await setVar(
-            "ANTILINK_KICK",
-            antilinkKick.join(",") || "null",
-            false
-          );
-        }
-
-        return await message.sendReply("_Antilink deactivated!_");
-      }
-
-      if (!["warn", "kick", "off"].includes(match[1])) {
-        let currentMode = "off";
-        if (jids.includes(message.jid)) {
-          if (antilinkWarn.includes(message.jid)) {
-            currentMode = "warn";
-          } else if (antilinkKick.includes(message.jid)) {
-            currentMode = "kick";
-          } else {
-            currentMode = "kick";
+    try {
+      switch (command) {
+        case "on":
+        case "enable":
+          if (!(await isAdmin(message))) {
+            return await message.sendReply("_I'm not an admin!_");
           }
-        }
 
-        var { subject } = await message.client.groupMetadata(message.jid);
-        return await message.sendReply(
-          `_Antilink menu of ${subject}_\n\n` +
-            `_Current mode: *${currentMode.toUpperCase()}*_\n\n` +
-            `*Available modes:*\n` +
-            `• \`${handler}antilink warn\` - Warn users for links\n` +
-            `• \`${handler}antilink kick\` - Kick users for links\n` +
-            `• \`${handler}antilink off\` - Disable antilink\n\n` +
-            `_Use \`setvar ALLOWED_LINKS:fb.com,google.com\` to allow specific links_`
-        );
+          if (!config) {
+            config = await antilinkConfig.set(message.jid, {
+              mode: "delete",
+              enabled: true,
+              updatedBy: message.sender,
+            });
+          } else {
+            config = await antilinkConfig.update(message.jid, {
+              enabled: true,
+              updatedBy: message.sender,
+            });
+          }
+
+          return await message.sendReply(
+            `✅ *Antilink Enabled!*\n\n` +
+              `• Mode: *${config.mode.toUpperCase()}*\n` +
+              `• Type: *${config.isWhitelist ? "WHITELIST" : "BLACKLIST"}*\n` +
+              `• Use \`${handler}antilink help\` for more options`
+          );
+
+        case "off":
+        case "disable":
+          if (config) {
+            await antilinkConfig.update(message.jid, {
+              enabled: false,
+              updatedBy: message.sender,
+            });
+          }
+
+          return await message.sendReply("❌ *Antilink Disabled!*");
+
+        case "mode":
+          if (!value || !["warn", "kick", "delete"].includes(value)) {
+            return await message.sendReply(
+              `_Invalid mode! Available modes:_\n\n` +
+                `• \`warn\` - Warn users for links\n` +
+                `• \`kick\` - Kick users for links\n` +
+                `• \`delete\` - Only delete the message\n\n` +
+                `_Usage:_ \`${handler}antilink mode delete\``
+            );
+          }
+
+          if (!(await isAdmin(message))) {
+            return await message.sendReply("_I'm not an admin!_");
+          }
+
+          if (!config) {
+            config = await antilinkConfig.set(message.jid, {
+              mode: value,
+              enabled: true,
+              updatedBy: message.sender,
+            });
+          } else {
+            config = await antilinkConfig.update(message.jid, {
+              mode: value,
+              updatedBy: message.sender,
+            });
+          }
+
+          return await message.sendReply(
+            `✅ *Antilink mode set to ${value.toUpperCase()}!*\n\n` +
+              `${
+                value === "warn"
+                  ? "⚠️ Users will be warned for sending links"
+                  : value === "kick"
+                  ? "👢 Users will be kicked for sending links"
+                  : "🗑️ Links will be deleted without action"
+              }`
+          );
+
+        case "allow":
+        case "whitelist":
+          if (!value) {
+            return await message.sendReply(
+              `_Add domains to whitelist:_\n\n` +
+                `_Usage:_ \`${handler}antilink allow google.com,youtube.com\`\n` +
+                `_Current:_ ${config?.allowedLinks || "gist,instagram,youtu"}`
+            );
+          }
+
+          const allowedDomains = value
+            .split(",")
+            .map((d) => d.trim())
+            .filter((d) => d);
+
+          if (!config) {
+            config = await antilinkConfig.set(message.jid, {
+              allowedLinks: allowedDomains.join(","),
+              isWhitelist: true,
+              enabled: true,
+              updatedBy: message.sender,
+            });
+          } else {
+            config = await antilinkConfig.update(message.jid, {
+              allowedLinks: allowedDomains.join(","),
+              isWhitelist: true,
+              updatedBy: message.sender,
+            });
+          }
+
+          return await message.sendReply(
+            `✅ *Allowed links updated!*\n\n` +
+              `*Whitelist mode:* Only these domains are allowed\n` +
+              `*Domains:* ${allowedDomains.join(", ")}`
+          );
+
+        case "block":
+        case "blacklist":
+          if (!value) {
+            return await message.sendReply(
+              `_Add domains to blacklist:_\n\n` +
+                `_Usage:_ \`${handler}antilink block facebook.com,twitter.com\`\n` +
+                `_Current:_ ${config?.blockedLinks || "None"}`
+            );
+          }
+
+          const blockedDomains = value
+            .split(",")
+            .map((d) => d.trim())
+            .filter((d) => d);
+
+          if (!config) {
+            config = await antilinkConfig.set(message.jid, {
+              blockedLinks: blockedDomains.join(","),
+              isWhitelist: false,
+              enabled: true,
+              updatedBy: message.sender,
+            });
+          } else {
+            config = await antilinkConfig.update(message.jid, {
+              blockedLinks: blockedDomains.join(","),
+              isWhitelist: false,
+              updatedBy: message.sender,
+            });
+          }
+
+          return await message.sendReply(
+            `✅ *Blocked links updated!*\n\n` +
+              `*Blacklist mode:* These domains are blocked\n` +
+              `*Domains:* ${blockedDomains.join(", ")}`
+          );
+
+        case "message":
+        case "msg":
+          if (!value) {
+            return await message.sendReply(
+              `_Set custom warning message:_\n\n` +
+                `_Usage:_ \`${handler}antilink message Links not allowed!\`\n` +
+                `_Current:_ ${config?.customMessage || "Default message"}`
+            );
+          }
+
+          if (!config) {
+            config = await antilinkConfig.set(message.jid, {
+              customMessage: value,
+              enabled: true,
+              updatedBy: message.sender,
+            });
+          } else {
+            config = await antilinkConfig.update(message.jid, {
+              customMessage: value,
+              updatedBy: message.sender,
+            });
+          }
+
+          return await message.sendReply(
+            `✅ *Custom message set!*\n\n` + `*Message:* ${value}`
+          );
+
+        case "reset":
+          if (config) {
+            await antilinkConfig.delete(message.jid);
+          }
+          return await message.sendReply(
+            "🔄 *Antilink settings reset to default!*"
+          );
+
+        case "help":
+          return await message.sendReply(
+            `🛡️ *Antilink System Help*\n\n` +
+              `*Basic Commands:*\n` +
+              `• \`${handler}antilink on/off\` - Enable/disable\n` +
+              `• \`${handler}antilink mode warn/kick/delete\` - Set action\n\n` +
+              `*Link Control:*\n` +
+              `• \`${handler}antilink allow domain1,domain2\` - Whitelist mode\n` +
+              `• \`${handler}antilink block domain1,domain2\` - Blacklist mode\n\n` +
+              `*Customization:*\n` +
+              `• \`${handler}antilink message Your text\` - Custom warning\n` +
+              `• \`${handler}antilink reset\` - Reset to default\n` +
+              `• \`${handler}antilink status\` - View current settings\n\n` +
+              `*Detection:*\n` +
+              `• Catches \`https://example.com\`\n` +
+              `• Catches \`www.example.com\`\n` +
+              `• Catches \`example.com\`\n` +
+              `• Catches \`example.com/path\`\n\n` +
+              `*Modes:*\n` +
+              `• *WARN* - Issues warnings, kicks after limit\n` +
+              `• *KICK* - Immediately kicks users\n` +
+              `• *DELETE* - Only deletes the message`
+          );
+
+        case "status":
+        default:
+          if (!config) {
+            config = {
+              enabled: false,
+              mode: "delete",
+              allowedLinks: "gist,instagram,youtu",
+              blockedLinks: null,
+              isWhitelist: true,
+              customMessage: null,
+            };
+          }
+
+          const { subject } = await message.client.groupMetadata(message.jid);
+
+          return await message.sendReply(
+            `🛡️ *Antilink Status - ${subject}*\n\n` +
+              `*Status:* ${config.enabled ? "✅ ENABLED" : "❌ DISABLED"}\n` +
+              `*Mode:* ${config.mode?.toUpperCase() || "DELETE"}\n` +
+              `*Type:* ${
+                config.isWhitelist ? "⚪ WHITELIST" : "⚫ BLACKLIST"
+              }\n\n` +
+              `*${config.isWhitelist ? "Allowed" : "Blocked"} Domains:*\n` +
+              `${
+                config.isWhitelist
+                  ? config.allowedLinks || "gist,instagram,youtu"
+                  : config.blockedLinks || "None"
+              }\n\n` +
+              `*Custom Message:* ${config.customMessage || "Default"}\n\n` +
+              `_Use \`${handler}antilink help\` for all commands_`
+          );
       }
+    } catch (error) {
+      console.error("Antilink error:", error);
+      return await message.sendReply(
+        "_An error occurred while updating antilink settings._"
+      );
     }
   }
 );
@@ -822,11 +977,6 @@ Module(
       }
     }
 
-    var db = await antilink.get();
-    const jids = [];
-    db.map((data) => {
-      jids.push(data.jid);
-    });
     var antiworddb = await antiword.get();
     const antiwordjids = [];
     antiworddb.map((data) => {
@@ -853,100 +1003,116 @@ Module(
         });
       }
     }
-    if (/\bhttps?:\/\/\S+/gi.test(message.message)) {
-      if (jids.includes(message.jid)) {
-        var antilinkWarn = config.ANTILINK_WARN?.split(",") || [];
-        var antilinkKick = config.ANTILINK_KICK?.split(",") || [];
 
-        let allowed = (config.ALLOWED_LINKS || "gist,instagram,youtu").split(
-          ","
-        );
-        let linksInMsg = message.message.match(/\bhttps?:\/\/\S+/gi);
+    const foundLinks = linkDetector.detectLinks(message.message);
 
-        if (checkLinks(linksInMsg, allowed)) {
-          if (!(await isAdmin(message, message.sender))) {
-            var usr = message.sender.includes(":")
-              ? message.sender.split(":")[0] + "@s.whatsapp.net"
-              : message.sender;
+    if (foundLinks.length > 0) {
+      const antilinkConf = await antilinkConfig.get(message.jid);
 
+      if (antilinkConf && antilinkConf.enabled) {
+        let linkBlocked = false;
+
+        for (const link of foundLinks) {
+          if (!antilinkConfig.checkAllowed(link, antilinkConf)) {
+            linkBlocked = true;
+            break;
+          }
+        }
+
+        if (linkBlocked && !(await isAdmin(message, message.sender))) {
+          const usr = message.sender.includes(":")
+            ? message.sender.split(":")[0] + "@s.whatsapp.net"
+            : message.sender;
+
+          await message.client.sendMessage(message.jid, {
+            delete: message.data.key,
+          });
+          const customMessage =
+            antilinkConf.customMessage ||
+            `⚠️ *Link Detected!*\n\n_Links are not allowed in this group._`;
+
+          if (antilinkConf.mode === "delete") {
             await message.client.sendMessage(message.jid, {
-              delete: message.data.key,
+              text: customMessage,
+              mentions: [usr],
             });
+          } else if (antilinkConf.mode === "warn") {
+            const { WARN } = require("../config");
+            const warnLimit = parseInt(WARN || 4);
+            const targetNumericId = getNumericId(usr);
 
-            if (antilinkWarn.includes(message.jid)) {
-              const { WARN } = require("../config");
+            try {
+              await setWarn(
+                message.jid,
+                usr,
+                "Sending unauthorized link",
+                message.client.user.id
+              );
 
-              const warnLimit = parseInt(WARN || 4);
-              const targetNumericId = getNumericId(usr);
+              const warnData = await getWarn(message.jid, usr, warnLimit);
+              const currentWarns = warnData.current;
+              const remaining = warnData.remaining;
 
-              try {
-                await setWarn(
-                  message.jid,
-                  usr,
-                  "Sending unauthorized link",
-                  message.client.user.id
-                );
-
-                const warnData = await getWarn(message.jid, usr, warnLimit);
-                console.log("Antilink warn data:", warnData);
-                const currentWarns = warnData.current;
-                const remaining = warnData.remaining;
-
-                if (warnData.exceeded) {
-                  try {
-                    await message.client.groupParticipantsUpdate(
-                      message.jid,
-                      [usr],
-                      "remove"
-                    );
-                    await message.client.sendMessage(message.jid, {
-                      text:
-                        `⚠ *User Kicked for Link Violation!*\n\n` +
-                        `- User: \`@${targetNumericId}\`\n` +
-                        `- Reason: \`Sending unauthorized link\`\n` +
-                        `- Warnings: \`${currentWarns}/${warnLimit} (LIMIT EXCEEDED)\`\n` +
-                        `- Action: \`Removed from group\``,
-                      mentions: [usr],
-                    });
-                  } catch (kickError) {
-                    await message.client.sendMessage(message.jid, {
-                      text:
-                        `⚠ *Warning Limit Exceeded!*\n\n` +
-                        `- User: \`@${targetNumericId}\`\n` +
-                        `- Warnings: \`${currentWarns}/${warnLimit}\`\n` +
-                        `- Error: \`Failed to kick user\``,
-                      mentions: [usr],
-                    });
-                  }
-                } else {
+              if (warnData.exceeded) {
+                try {
+                  await message.client.groupParticipantsUpdate(
+                    message.jid,
+                    [usr],
+                    "remove"
+                  );
                   await message.client.sendMessage(message.jid, {
                     text:
-                      `⚠ *Link Warning!*\n\n` +
-                      `- User: \`@${targetNumericId}\`\n` +
-                      `- Reason: \`Unauthorized link detected\`\n` +
-                      `- Warnings: \`${currentWarns}/${warnLimit}\`\n` +
-                      `- Remaining: \`${remaining}\`\n\n` +
-                      `${
-                        remaining === 1
-                          ? "_Next violation will result in a kick!_"
-                          : `_${remaining} more warnings before kick._`
-                      }`,
+                      `${customMessage}\n\n` +
+                      `*Action:* User kicked for exceeding warning limit\n` +
+                      `*Warnings:* ${currentWarns}/${warnLimit}`,
+                    mentions: [usr],
+                  });
+                } catch (kickError) {
+                  await message.client.sendMessage(message.jid, {
+                    text:
+                      `${customMessage}\n\n` +
+                      `*Warnings:* ${currentWarns}/${warnLimit}\n` +
+                      `*Error:* Failed to kick user`,
                     mentions: [usr],
                   });
                 }
-              } catch (error) {
-                console.error("Antilink warn error:", error);
-                await message.sendReply(
-                  "_Link not allowed! Warning system failed._"
-                );
+              } else {
+                await message.client.sendMessage(message.jid, {
+                  text:
+                    `${customMessage}\n\n` +
+                    `*Warnings:* ${currentWarns}/${warnLimit}\n` +
+                    `*Remaining:* ${remaining}\n\n` +
+                    `${
+                      remaining === 1
+                        ? "_Next violation will result in a kick!_"
+                        : `_${remaining} more warnings before kick._`
+                    }`,
+                  mentions: [usr],
+                });
               }
-            } else {
-              await message.sendReply("_Link not allowed!_");
+            } catch (error) {
+              console.error("Antilink warn error:", error);
+              await message.client.sendMessage(message.jid, {
+                text: customMessage,
+                mentions: [usr],
+              });
+            }
+          } else if (antilinkConf.mode === "kick") {
+            try {
               await message.client.groupParticipantsUpdate(
                 message.jid,
                 [usr],
                 "remove"
               );
+              await message.client.sendMessage(message.jid, {
+                text: `${customMessage}\n\n*Action:* User kicked for sending unauthorized link`,
+                mentions: [usr],
+              });
+            } catch (kickError) {
+              await message.client.sendMessage(message.jid, {
+                text: `${customMessage}\n\n*Error:* Failed to kick user`,
+                mentions: [usr],
+              });
             }
           }
         }
@@ -1013,6 +1179,42 @@ Module(
         if (e) await message.send(util.format(e));
       }
     }
+  }
+);
+Module(
+  {
+    pattern: "testlink ?(.*)",
+    fromMe: true,
+    desc: "Test link detection for debugging",
+    use: "utility",
+  },
+  async (message, match) => {
+    const testText =
+      match[1] || message.reply_message?.text || "No text provided";
+
+    const foundLinks = linkDetector.detectLinks(testText);
+
+    const result =
+      `🔍 *Link Detection Test*\n\n` +
+      `*Text:* ${testText}\n\n` +
+      `*Detected Links:* ${foundLinks.length}\n` +
+      `${
+        foundLinks.length > 0
+          ? foundLinks.map((link, i) => `${i + 1}. \`${link}\``).join("\n")
+          : "_No links detected_"
+      }\n\n` +
+      `*Examples that SHOULD be detected:*\n` +
+      linkDetector.testExamples.shouldDetect
+        .slice(0, 5)
+        .map((link) => `✅ ${link}`)
+        .join("\n") +
+      `\n\n*Examples that should NOT be detected:*\n` +
+      linkDetector.testExamples.shouldNotDetect
+        .slice(0, 5)
+        .map((link) => `❌ ${link}`)
+        .join("\n");
+
+    await message.sendReply(result);
   }
 );
 module.exports = {
