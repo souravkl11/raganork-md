@@ -1,4 +1,4 @@
-# Raganork-MD
+# Raganork
 
 <p align="center">
   <a href="https://raganork.site">
