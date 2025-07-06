@@ -44,6 +44,14 @@ class BotManager {
     async shutdown() {
         logger.info('Shutting down all bots...');
 
+        try {
+            logger.info('Saving all session data before shutdown...');
+            await CustomAuthState.saveAllSessions();
+            logger.info('All session data saved successfully');
+        } catch (error) {
+            logger.error({ err: error }, 'Error saving sessions during shutdown');
+        }
+
         for (const [sessionId, bot] of this.bots.entries()) {
             try {
                 await bot.disconnect(false); 
@@ -53,6 +61,21 @@ class BotManager {
             }
         }
         this.bots.clear(); 
+
+        try {
+            CustomAuthState.stopPeriodicSave();
+            logger.info('Auth periodic save timer stopped');
+        } catch (error) {
+            logger.error({ err: error }, 'Error stopping periodic save timer');
+        }
+
+        try {
+            const Schedule = require('./schedulers');
+            await Schedule.cleanup();
+            logger.info('Scheduled tasks cleaned up');
+        } catch (error) {
+            logger.error({ err: error }, 'Error cleaning up scheduled tasks');
+        }
 
         if (sequelize) {
             try {
