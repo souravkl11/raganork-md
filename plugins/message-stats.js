@@ -94,7 +94,7 @@ Module(
       }
 
       usersWithMessages.sort(
-        (a, b) => a.stat.totalMessages - b.stat.totalMessages
+        (a, b) => b.stat.totalMessages - a.stat.totalMessages
       );
 
       if (usersWithMessages.length === 0) {
@@ -103,7 +103,7 @@ Module(
         );
       }
 
-      let final_msg = `_Messages sent by ${usersWithMessages.length} members_\n_Sorted by message count (lowest to highest)_\n\n`;
+      let final_msg = `_Messages sent by ${usersWithMessages.length} members_\n_Sorted by message count (highest to lowest)_\n\n`;
 
       for (let userObj of usersWithMessages) {
         let user = userObj.jid;
