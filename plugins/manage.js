@@ -603,11 +603,7 @@ Module(
       ? await isAdmin(message, message.sender)
       : false;
 
-    if (!(message.fromOwner || adminAccesValidated)) {
-      return await message.sendReply(
-        "_You need admin privileges to use this command!_"
-      );
-    }
+    if (!(message.fromOwner || adminAccesValidated)) return;
 
     const input = match[1] ? match[1].toLowerCase().trim() : "";
     const args = input.split(" ");

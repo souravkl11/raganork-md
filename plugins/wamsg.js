@@ -5,7 +5,8 @@ const {
     isJid
 } = require('./utils/lid-helper');
 const { isAdmin } = require('./utils');
-const { ADMIN_ACCESS } = require('../config');
+const { ADMIN_ACCESS, MODE } = require('../config');
+const isPrivateMode = MODE !== 'public';
 Module({
     pattern: 'react ?(.*)',
     fromMe: true,
@@ -67,7 +68,7 @@ Module({
 }));
 Module({
     pattern: 'retry ?(.*)',
-    fromMe: false,
+    fromMe: isPrivateMode,
     desc: 'Retries replied command to run the command again',
     use: 'misc'
 }, (async (m, t) => {
@@ -112,7 +113,7 @@ Module({
 });
 Module({
     pattern: 'del',
-    fromMe: false,
+    fromMe: true,
     desc: 'Deletes message for everyone. Supports admin deletion'
 }, (async (m, t) => {
     let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(m,m.sender) : false;

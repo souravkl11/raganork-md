@@ -8,7 +8,7 @@ const {
     isNumeric,
     mentionjid
 } = require('./utils');
-const { ADMIN_ACCESS, HANDLERS } = require('../config');
+const { ADMIN_ACCESS, HANDLERS, MODE } = require('../config');
 const {
     Module
 } = require('../main');
@@ -324,6 +324,7 @@ Module({
     await message.sendReply(jid)
     }
     } else {
+        if (MODE !== 'public' && !message.fromOwner) return;
         await message.sendReply(message.jid)
     }
 }))

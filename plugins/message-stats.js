@@ -59,7 +59,7 @@ function parseDuration(duration) {
 Module(
   {
     pattern: "msgs ?(.*)",
-    fromMe: false,
+    fromMe: true,
     desc: "Shows number of messages sent by each member with at least one message, sorted by count",
     usage:
       ".msgs (all members with messages)\n.msgs @mention (specific member)",
@@ -137,7 +137,7 @@ Module(
 Module(
   {
     pattern: "inactive ?(.*)",
-    fromMe: false,
+    fromMe: true,
     desc: "Shows inactive members based on last message time. Can also kick them.",
     usage:
       ".inactive 30d (members inactive for 30+ days)\n.inactive 10d kick (kick members inactive for 10+ days)\n\nSupported units: d (days), w (weeks), m (months), y (years)",
@@ -320,7 +320,7 @@ Module(
 Module(
   {
     pattern: "users ?(.*)",
-    fromMe: false,
+    fromMe: true,
     desc: "Shows top users by message count. In DM shows global stats by default, in groups shows chat-specific stats.",
     usage:
       ".users (shows top 10 users - global in DM, chat-specific in groups)\n.users global (shows global top users)\n.users 20 (shows top 20 users)\n.users global 15 (shows top 15 global users)",

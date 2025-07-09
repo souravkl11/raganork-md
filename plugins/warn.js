@@ -18,9 +18,7 @@ Module({
     if (!message.isGroup) return await message.sendReply('_This is a group-only command!_');
 
     let adminAccess = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
-    if (!message.fromOwner && !adminAccess) {
-        return await message.sendReply('_You need admin privileges to use this command!_');
-    }
+    if (!message.fromOwner && !adminAccess) return;
 
     const botIsAdmin = await isAdmin(message);
     if (!botIsAdmin) {
@@ -115,9 +113,7 @@ Module({
     if (!message.isGroup) return await message.sendReply('_This is a group-only command!_');
 
     let adminAccess = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
-    if (!message.fromOwner && !adminAccess) {
-        return await message.sendReply('_You need admin privileges to view warnings!_');
-    }
+    if (!message.fromOwner && !adminAccess) return
 
     const targetUser = message.mention?.[0] || message.reply_message?.jid || message.sender;
     const targetNumericId = getNumericId(targetUser);
@@ -180,9 +176,7 @@ Module({
     if (!message.isGroup) return await message.sendReply('_This is a group-only command!_');
 
     let adminAccess = ADMIN_ACCESS ? await isAdmin(message, message.sender) : false;
-    if (!message.fromOwner && !adminAccess) {
-        return await message.sendReply('_You need admin privileges to remove warnings!_');
-    }
+    if (!message.fromOwner && !adminAccess) return;
 
     const targetUser = message.mention?.[0] || message.reply_message?.jid;
     if (!targetUser) {
