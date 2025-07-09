@@ -248,60 +248,7 @@ Module({
         }
     }
 }))
-Module({
-    pattern: 'msgs ?(.*)',
-    fromMe: false,
-    desc:"Shows number of messages sent by each member. (Only from when bot was set up)",
-    usage: '.msgs (all members)\n.msgs @mention (specific member)',
-    use: 'group'
-}, (async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(message,message.sender) : false;
-    if (message.fromOwner || adminAccesValidated) {
-        var users = (await message.client.groupMetadata(message.jid)).participants.map(e=>e.id);
-        if (message.mention?.[0]) users = message.mention;
-        if (message.reply_message && !message.mention.length) users = [message.reply_message?.jid];
-        function timeSince(date) {
-            if (!date) return "Never";
-            var seconds = Math.floor((new Date() - new Date(date)) / 1000);
-            var interval = seconds / 31536000;
-            if (interval > 1) { return Math.floor(interval) + " years ago" }
-            interval = seconds / 2592000;
-            if (interval > 1) { return Math.floor(interval) + " months ago" }
-            interval = seconds / 86400;
-            if (interval > 1) { return Math.floor(interval) + " days ago" }
-            interval = seconds / 3600;
-            if (interval > 1) { return Math.floor(interval) + " hours ago" }
-            interval = seconds / 60;
-            if (interval > 1) { return Math.floor(interval) + " minutes ago" }
-            return Math.floor(seconds) + " seconds ago";
-        }
-        const flc = (x) => {
-            if (x === "undefined") x = "others"
-            try { return x.charAt(0).toUpperCase() + x.slice(1) } catch { return x }
-        }
-        let userStats = await fetchFromStore(message.jid);
-        let final_msg = "_Messages sent by each users_\n\n";
-        for (let user of users) {
-            let userStat = userStats.find(stat => stat.userJid === user);
-            if (userStat) {
-                let count = userStat.totalMessages;
-                let name = userStat.User?.name?.replace(/[\r\n]+/gm, "") || "Unknown";
-                let lastMsg = timeSince(userStat.lastMessageAt);
-                let types_msg = "\n";
-                if (userStat.textMessages > 0) types_msg += `_Text: *${userStat.textMessages}*_\n`;
-                if (userStat.imageMessages > 0) types_msg += `_Image: *${userStat.imageMessages}*_\n`;
-                if (userStat.videoMessages > 0) types_msg += `_Video: *${userStat.videoMessages}*_\n`;
-                if (userStat.audioMessages > 0) types_msg += `_Audio: *${userStat.audioMessages}*_\n`;
-                if (userStat.stickerMessages > 0) types_msg += `_Sticker: *${userStat.stickerMessages}*_\n`;
-                if (userStat.otherMessages > 0) types_msg += `_Others: *${userStat.otherMessages}*_\n`;
-                final_msg += `_Participant: *+${user.split("@")[0]}*_\n_Name: *${name}*_\n_Total msgs: *${count}*_\n_Last msg: *${lastMsg}*_${types_msg}\n\n`;
-            } else {
-                final_msg += `_Participant: *+${user.split("@")[0]}*_\n_Name: *Unknown*_\n_Total msgs: *0*_\n_Last msg: *Never*_\n\n`;
-            }
-        }
-        return await message.sendReply(final_msg);
-    }
-}))
+
 Module({
     pattern: 'demote ?(.*)',
     fromMe: false,

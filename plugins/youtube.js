@@ -129,18 +129,18 @@ Module({
   const query = match[1]?.trim();
 
   if (!query) {
-    throw '_*Provide a search query!*_\n\nExample: `.play Timeless`';
+    return await message.sendReply('_*Provide a search query!*_\n\nExample: `.play Timeless`');
   }
 
   try {
     await message.sendReply(`_Playing song matching "${query}"_`);
     let stream = await downloadSong(query);
-    if (!stream) throw '_Sorry, there was a trouble processing your request._';
+    if (!stream) return await message.sendReply('_Sorry, there was a trouble processing your request._');
     await message.client.sendMessage(message.jid, {audio: {stream}, mimetype: 'audio/mp4'}, { quoted: message.data });
 
   } catch (error) {
     console.error('Error creating song search prompt:', error);
-    throw `❌ _${error.message}_`;
+    return await message.sendReply(`❌ _${error.message}_`);
   }
 });
 
