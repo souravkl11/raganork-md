@@ -21,7 +21,6 @@ if (typeof commandPrefix === 'string') {
 
         handlerPrefix = commandPrefix;
     }
-    if (config.MULTI_HANDLERS) handlerPrefix = '?' + handlerPrefix;
 }
 
 function Module(info, func) {
