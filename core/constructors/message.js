@@ -51,6 +51,7 @@ class Message extends Base {
         this.senderName = data.pushName;
         this.myjid = getBotNumericId( data, this.client);
         this.message = (data.message?.extendedTextMessage === null ? data.message?.conversation : data.message?.extendedTextMessage.text) || '';
+        this.text = this.message;
         this.timestamp = data.messageTimestamp;
         this.data = data;
 
