@@ -124,6 +124,33 @@ Module(
 
 Module(
   {
+    pattern: "delvar ?(.*)",
+    fromMe: true,
+    desc: "Delete bot variable",
+    usage: ".delvar MY_VAR",
+  },
+  async (message, args) => {
+    const key = args[1]?.trim();
+    if (!key) {
+      return await message.sendReply(
+        "_Please provide a variable name. Use: .delvar MY_VAR_"
+      );
+    }
+ try {
+      if (config[key] === undefined) {
+        return await message.sendReply(`_Variable '${key}' not found._`);
+      }
+      await delVar(key.trim(), message);
+    } catch (error) {
+      await message.sendReply(
+        `_Failed to delete variable '${key.trim()}'. Error: ${error.message}_`
+      );
+    }
+  }
+);
+
+Module(
+  {
     pattern: "allvar",
     fromMe: true,
     desc: "Get all bot variables",
