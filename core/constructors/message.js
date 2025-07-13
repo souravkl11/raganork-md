@@ -151,71 +151,71 @@ class Message extends Base {
   }
 
   async sendMessage(content, type = "text", options = {}) {
+    // Extract real options (ephemeralExpiration, quoted)
+    const { ephemeralExpiration, quoted, ...messageOptions } = options;
 
-    if (this.ephemeral && !options.ephemeralExpiration) {
-      options.ephemeralExpiration = this.ephemeral.expiration;
+    const realOptions = {};
+    if (this.ephemeral && !ephemeralExpiration) {
+      realOptions.ephemeralExpiration = this.ephemeral.expiration;
+    } else if (ephemeralExpiration) {
+      realOptions.ephemeralExpiration = ephemeralExpiration;
+    }
+    if (quoted) {
+      realOptions.quoted = quoted;
     }
 
     if (type == "text") {
-      const textMessage = { text: content };
-
-      if (options.mentions) {
-        textMessage.mentions = options.mentions;
-      }
-
-      return await this.client.sendMessage(this.jid, textMessage, options);
+      const textMessage = { text: content, ...messageOptions };
+      return await this.client.sendMessage(this.jid, textMessage, realOptions);
     }
     if (type == "image") {
-      const imageMessage = { image: content };
+      const { thumbnail, ...otherOptions } = messageOptions;
+      const imageMessage = { image: content, ...otherOptions };
 
-      if (options.caption) {
-        imageMessage.caption = options.caption;
-      }
-
-      if (options?.thumbnail) {
-        const thumbBuffer = await genThumb(options.thumbnail);
+      if (thumbnail) {
+        const thumbBuffer = await genThumb(thumbnail);
         imageMessage.jpegThumbnail = thumbBuffer;
       }
 
-      return await this.client.sendMessage(this.jid, imageMessage, options);
+      return await this.client.sendMessage(this.jid, imageMessage, realOptions);
     }
     if (type == "video") {
-      let msgContent = { video: content };
-      if (options?.thumbnail) {
-        const thumbBuffer = await genThumb(options.thumbnail);
+      const { thumbnail, ...otherOptions } = messageOptions;
+      let msgContent = { video: content, ...otherOptions };
+      if (thumbnail) {
+        const thumbBuffer = await genThumb(thumbnail);
         msgContent.jpegThumbnail = thumbBuffer;
       }
-      if (options?.caption) {
-        msgContent.caption = options.caption;
-      }
-      return await this.client.sendMessage(this.jid, msgContent, options);
+      return await this.client.sendMessage(this.jid, msgContent, realOptions);
     }
     if (type == "audio") {
       return await this.client.sendMessage(
         this.jid,
-        { audio: content, mimetype: "audio/mp4" },
-        options
+        { audio: content, mimetype: "audio/mp4", ...messageOptions },
+        realOptions
       );
     }
     if (type == "sticker") {
       return await this.client.sendMessage(
         this.jid,
-        { sticker: content },
-        options
+        { sticker: content, ...messageOptions },
+        realOptions
       );
     }
     if (type == "document") {
+      const { fileName, mimetype, ...otherOptions } = messageOptions;
       const documentMessage = {
         document: content,
-        fileName: options.fileName || "document",
-        mimetype: options.mimetype || "application/octet-stream",
+        fileName: fileName || "document",
+        mimetype: mimetype || "application/octet-stream",
+        ...otherOptions,
       };
 
-      if (options.caption) {
-        documentMessage.caption = options.caption;
-      }
-
-      return await this.client.sendMessage(this.jid, documentMessage, options);
+      return await this.client.sendMessage(
+        this.jid,
+        documentMessage,
+        realOptions
+      );
     }
   }
   async send(content, type = "text", options = {}) {
@@ -239,67 +239,65 @@ class Message extends Base {
   }
 
   async sendReply(content, type = "text", options = {}) {
+    // Extract real options (ephemeralExpiration, quoted)
+    const { ephemeralExpiration, quoted, ...messageOptions } = options;
 
-    if (this.ephemeral && !options.ephemeralExpiration) {
-      options.ephemeralExpiration = this.ephemeral.expiration;
+    const realOptions = { quoted: quoted || this.data };
+    if (this.ephemeral && !ephemeralExpiration) {
+      realOptions.ephemeralExpiration = this.ephemeral.expiration;
+    } else if (ephemeralExpiration) {
+      realOptions.ephemeralExpiration = ephemeralExpiration;
     }
-
-    options = { quoted: this.data, ...options };
 
     if (type == "text") {
       return await this.client.sendMessage(
         this.jid,
-        { text: content },
-        options
+        { text: content, ...messageOptions },
+        realOptions
       );
     }
     if (type == "image") {
-      if (options?.thumbnail) {
-        const thumbBuffer = await genThumb(options.thumbnail);
-        return await this.client.sendMessage(
-          this.jid,
-          { image: content, jpegThumbnail: thumbBuffer },
-          options
-        );
+      const { thumbnail, ...otherOptions } = messageOptions;
+      const imageMessage = { image: content, ...otherOptions };
+
+      if (thumbnail) {
+        const thumbBuffer = await genThumb(thumbnail);
+        imageMessage.jpegThumbnail = thumbBuffer;
       }
-      return await this.client.sendMessage(
-        this.jid,
-        { image: content },
-        options
-      );
+
+      return await this.client.sendMessage(this.jid, imageMessage, realOptions);
     }
     if (type == "video") {
-      const messageContent = { video: content };
-      if (options?.caption) {
-        messageContent.caption = options.caption;
-      }
-      if (options?.thumbnail) {
-        const thumbBuffer = await genThumb(options.thumbnail);
+      const { thumbnail, ...otherOptions } = messageOptions;
+      const messageContent = { video: content, ...otherOptions };
+
+      if (thumbnail) {
+        const thumbBuffer = await genThumb(thumbnail);
         messageContent.jpegThumbnail = thumbBuffer;
       }
-        return await this.client.sendMessage(
-          this.jid,
-          messageContent,
-          options
-        );
+
+      return await this.client.sendMessage(
+        this.jid,
+        messageContent,
+        realOptions
+      );
     }
     if (type == "audio") {
       return await this.client.sendMessage(
         this.jid,
-        { audio: content, mimetype: "audio/mp4" },
-        options
+        { audio: content, mimetype: "audio/mp4", ...messageOptions },
+        realOptions
       );
     }
     if (type == "sticker") {
       return await this.client.sendMessage(
         this.jid,
-        { sticker: content },
-        options
+        { sticker: content, ...messageOptions },
+        realOptions
       );
     }
   }
   async reply(content, type = "text") {
-
     const options = this.ephemeral
       ? { quoted: this.data, ephemeralExpiration: this.ephemeral.expiration }
       : { quoted: this.data };
@@ -328,7 +326,7 @@ class Message extends Base {
     if (type == "audio") {
       return await this.client.sendMessage(
         this.jid,
-        { audio: content, mimetype: "audio/mp4" },
+        { audio: content, mimetype: "audio/mp4", ...options },
         options
       );
     }
