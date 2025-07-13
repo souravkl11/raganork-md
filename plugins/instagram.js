@@ -118,7 +118,7 @@ Module(
 
     const facebookDownloadResult = await fb(videoLink);
     const sentMessage = await message.sendReply(
-      "_*Downloading...*_"
+      "_*Hold on, downloading will take some time..*_"
     );
 
     await message.sendReply(

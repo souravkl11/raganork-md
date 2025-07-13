@@ -43,7 +43,7 @@ const settingsMenu = [
 
 const baseConfig = {
     VERSION,
-    ALIVE: process.env.ALIVE || "I am alive!",
+    ALIVE: process.env.ALIVE || "_I am alive! (use .setalive help for custom alive msg)_",
     BLOCK_CHAT: process.env.BLOCK_CHAT || '',
     PM_ANTISPAM: convertToBool(process.env.PM_ANTISPAM) || '',
     ALWAYS_ONLINE: convertToBool(process.env.ALWAYS_ONLINE) || false,
