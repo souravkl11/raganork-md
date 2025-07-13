@@ -31,11 +31,7 @@ Module(
     let i = 0;
     while (successCount < count && i < results.length) {
       try {
-        await message.client.sendMessage(message.jid, {
-          image: {
-            url: results[i],
-          },
-        });
+        await message.sendMessage({ url: results[i] }, "image");
         successCount++;
       } catch (e) {
         console.log(`Failed to send image ${i + 1}:`, e);
@@ -67,7 +63,6 @@ Module(
     desc: Lang.STICKER_DESC,
   },
   async (message, match) => {
-
     if (match[1] && match[1].trim() !== "") {
       var result = await attp(match[1].trim());
       var exif = {
@@ -94,28 +89,16 @@ Module(
       ios: "https://github.com/souravkl11/Raganork-md/",
     };
     if (message.reply_message.image === true) {
-      return await message.client.sendMessage(
-        message.jid,
-        {
-          sticker: fs.readFileSync(
-            await addExif(await sticker(savedFile), exif)
-          ),
-        },
-        {
-          quoted: message.quoted,
-        }
+      return await message.sendMessage(
+        fs.readFileSync(await addExif(await sticker(savedFile), exif)),
+        "sticker",
+        { quoted: message.quoted }
       );
     } else {
-      return await message.client.sendMessage(
-        message.jid,
-        {
-          sticker: fs.readFileSync(
-            await addExif(await sticker(savedFile, "video"), exif)
-          ),
-        },
-        {
-          quoted: message.quoted,
-        }
+      return await message.sendMessage(
+        fs.readFileSync(await addExif(await sticker(savedFile, "video"), exif)),
+        "sticker",
+        { quoted: message.quoted }
       );
     }
   }
@@ -143,16 +126,10 @@ Module(
     ffmpeg(savedFile)
       .save("./temp/tomp3.mp3")
       .on("end", async () => {
-        await message.client.sendMessage(
-          message.jid,
-          {
-            audio: fs.readFileSync("./temp/tomp3.mp3"),
-            mimetype: "audio/mp4",
-            ptt: false,
-          },
-          {
-            quoted: message.quoted,
-          }
+        await message.sendMessage(
+          fs.readFileSync("./temp/tomp3.mp3"),
+          "audio",
+          { quoted: message.quoted }
         );
       });
   }
@@ -179,17 +156,9 @@ Module(
       .outputOptions(["-y", "-af", "asetrate=44100*0.9"])
       .save("./temp/slow.mp3")
       .on("end", async () => {
-        await message.client.sendMessage(
-          message.jid,
-          {
-            audio: fs.readFileSync("./temp/slow.mp3"),
-            mimetype: "audio/mp4",
-            ptt: false,
-          },
-          {
-            quoted: message.quoted,
-          }
-        );
+        await message.sendMessage(fs.readFileSync("./temp/slow.mp3"), "audio", {
+          quoted: message.quoted,
+        });
       });
   }
 );
@@ -215,17 +184,9 @@ Module(
       .outputOptions(["-y", "-af", "asetrate=44100*1.2"])
       .save("./temp/sped.mp3")
       .on("end", async () => {
-        await message.client.sendMessage(
-          message.jid,
-          {
-            audio: fs.readFileSync("./temp/sped.mp3"),
-            mimetype: "audio/mp4",
-            ptt: false,
-          },
-          {
-            quoted: message.quoted,
-          }
-        );
+        await message.sendMessage(fs.readFileSync("./temp/sped.mp3"), "audio", {
+          quoted: message.quoted,
+        });
       });
   }
 );
@@ -241,17 +202,7 @@ Module(
       return await message.sendReply(Lang.BASS_NEED_REPLY);
     var savedFile = await message.reply_message.download();
     bass(savedFile, match[1], async function (audio) {
-      await message.client.sendMessage(
-        message.jid,
-        {
-          audio: audio,
-          mimetype: "audio/mp4",
-          ptt: false,
-        },
-        {
-          quoted: message.data,
-        }
-      );
+      await message.sendMessage(audio, "audio", { quoted: message.data });
     });
   }
 );
@@ -365,17 +316,11 @@ Module(
       }
     }
 
-    await message.client.sendMessage(
-      message.jid,
-      {
-        audio,
-        mimetype: "audio/mpeg",
-        ptt: true,
-      },
-      {
-        quoted: message.data,
-      }
-    );
+    await message.sendMessage(audio, "audio", {
+      quoted: message.data,
+      mimetype: "audio/mpeg",
+      ptt: true,
+    });
   }
 );
 Module(
@@ -431,18 +376,12 @@ Module(
           fileName += `.${ext}`;
         }
       }
-      await message.client.sendMessage(
-        message.jid,
-        {
-          document: { stream: stream },
-          fileName: fileName,
-          mimetype: mimetype,
-          caption: match[1] ? "" : "_Converted to document_",
-        },
-        {
-          quoted: message.quoted,
-        }
-      );
+      await message.sendMessage({ stream: stream }, "document", {
+        quoted: message.quoted,
+        fileName: fileName,
+        mimetype: mimetype,
+        caption: match[1] ? "" : "_Converted to document_",
+      });
 
       try {
         fs.unlinkSync(filePath);
@@ -450,9 +389,11 @@ Module(
         console.log("Failed to delete temp file:", filePath);
       }
 
-      await message.client.sendMessage(message.jid, {
-        delete: processingMsg.key,
-      });
+      await message.edit(
+        "_Document conversion complete!_",
+        message.jid,
+        processingMsg.key
+      );
     } catch (error) {
       console.error("Doc conversion error:", error);
       if (error.message.includes("download")) {
@@ -527,18 +468,12 @@ Module(
           fileName += `.${ext}`;
         }
       }
-      await message.client.sendMessage(
-        message.jid,
-        {
-          document: { stream: response.data },
-          fileName: fileName,
-          mimetype: mimetype,
-          caption: `_Downloaded from: ${url}_`,
-        },
-        {
-          quoted: message.quoted,
-        }
-      );
+      await message.sendMessage({ stream: response.data }, "document", {
+        quoted: message.quoted,
+        fileName: fileName,
+        mimetype: mimetype,
+        caption: `_Downloaded from: ${url}_`,
+      });
     } catch (error) {
       console.error("Upload error:", error);
       if (error.code === "ECONNABORTED") {
@@ -609,23 +544,15 @@ Module(
         .on("end", async () => {
           try {
             if (isVideo) {
-              await message.client.sendMessage(
-                message.jid,
-                {
-                  video: fs.readFileSync(outputPath),
-                  caption: "_Cropped to square format_",
-                },
-                { quoted: message.quoted }
-              );
+              await message.sendMessage(fs.readFileSync(outputPath), "video", {
+                quoted: message.quoted,
+                caption: "_Cropped to square format_",
+              });
             } else {
-              await message.client.sendMessage(
-                message.jid,
-                {
-                  image: fs.readFileSync(outputPath),
-                  caption: "_Cropped to square format_",
-                },
-                { quoted: message.quoted }
-              );
+              await message.sendMessage(fs.readFileSync(outputPath), "image", {
+                quoted: message.quoted,
+                caption: "_Cropped to square format_",
+              });
             }
 
             fs.unlinkSync(savedFile);
@@ -716,11 +643,9 @@ Module(
       let targetWidth, targetHeight;
 
       if (widthRatio >= heightRatio) {
-
         targetWidth = 1280;
         targetHeight = Math.round((targetWidth * heightRatio) / widthRatio);
       } else {
-
         targetHeight = 1280;
         targetWidth = Math.round((targetHeight * widthRatio) / heightRatio);
       }
@@ -750,23 +675,15 @@ Module(
         .on("end", async () => {
           try {
             if (isVideo) {
-              await message.client.sendMessage(
-                message.jid,
-                {
-                  video: fs.readFileSync(outputPath),
-                  caption: `_Resized to ${input} aspect ratio (${targetWidth}x${targetHeight})_`,
-                },
-                { quoted: message.quoted }
-              );
+              await message.sendMessage(fs.readFileSync(outputPath), "video", {
+                quoted: message.quoted,
+                caption: `_Resized to ${input} aspect ratio (${targetWidth}x${targetHeight})_`,
+              });
             } else {
-              await message.client.sendMessage(
-                message.jid,
-                {
-                  image: fs.readFileSync(outputPath),
-                  caption: `_Resized to ${input} aspect ratio (${targetWidth}x${targetHeight})_`,
-                },
-                { quoted: message.quoted }
-              );
+              await message.sendMessage(fs.readFileSync(outputPath), "image", {
+                quoted: message.quoted,
+                caption: `_Resized to ${input} aspect ratio (${targetWidth}x${targetHeight})_`,
+              });
             }
 
             fs.unlinkSync(savedFile);
@@ -847,7 +764,6 @@ Module(
       const command = ffmpeg(savedFile).outputOptions(["-y"]);
 
       if (isVideo) {
-
         const crf = Math.round(
           18 + ((compressionPercent - 10) * (45 - 18)) / (95 - 10)
         );
@@ -867,7 +783,6 @@ Module(
           ])
           .format("mp4");
       } else {
-
         const quality = Math.round(
           2 + ((compressionPercent - 10) * (28 - 2)) / (95 - 10)
         );
@@ -879,7 +794,6 @@ Module(
         .save(outputPath)
         .on("end", async () => {
           try {
-
             const originalSize = fs.statSync(savedFile).size;
             const compressedSize = fs.statSync(outputPath).size;
             const actualReduction = Math.round(
@@ -894,27 +808,19 @@ Module(
             };
 
             if (isVideo) {
-              await message.client.sendMessage(
-                message.jid,
-                {
-                  video: fs.readFileSync(outputPath),
-                  caption: `_Compressed by ${actualReduction}%_\n_${formatSize(
-                    originalSize
-                  )} → ${formatSize(compressedSize)}_`,
-                },
-                { quoted: message.quoted }
-              );
+              await message.sendMessage(fs.readFileSync(outputPath), "video", {
+                quoted: message.quoted,
+                caption: `_Compressed by ${actualReduction}%_\n_${formatSize(
+                  originalSize
+                )} → ${formatSize(compressedSize)}_`,
+              });
             } else {
-              await message.client.sendMessage(
-                message.jid,
-                {
-                  image: fs.readFileSync(outputPath),
-                  caption: `_Compressed by ${actualReduction}%_\n_${formatSize(
-                    originalSize
-                  )} → ${formatSize(compressedSize)}_`,
-                },
-                { quoted: message.quoted }
-              );
+              await message.sendMessage(fs.readFileSync(outputPath), "image", {
+                quoted: message.quoted,
+                caption: `_Compressed by ${actualReduction}%_\n_${formatSize(
+                  originalSize
+                )} → ${formatSize(compressedSize)}_`,
+              });
             }
 
             fs.unlinkSync(savedFile);

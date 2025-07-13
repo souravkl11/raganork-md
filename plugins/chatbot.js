@@ -28,7 +28,6 @@ async function initChatbotData() {
         chatbotStates.set(jid.trim(), true);
         modelStates.set(jid.trim(), 0);
       });
-      console.log(`Chatbot: Loaded ${enabledChats.length} enabled chats`);
     }
 
     const systemPrompt = config.CHATBOT_SYSTEM_PROMPT;
@@ -36,7 +35,6 @@ async function initChatbotData() {
       globalSystemPrompt = systemPrompt;
     }
 
-    console.log("Chatbot: Initialized successfully");
   } catch (error) {
     console.error("Error initializing chatbot data:", error);
   }
@@ -208,14 +206,12 @@ async function clearAllContexts(target) {
         clearContext(jid);
       }
     }
-    console.log("Cleared contexts for all groups.");
   } else if (target === "dms") {
     for (const [jid] of chatbotStates.entries()) {
       if (!jid.includes("@g.us")) {
         clearContext(jid);
       }
     }
-    console.log("Cleared contexts for all DMs.");
   }
 }
 

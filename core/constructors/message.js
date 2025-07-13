@@ -150,72 +150,72 @@ class Message extends Base {
     return null;
   }
 
-  _getEphemeralOptions(options = {}) {
-
-    if (this.ephemeral && !options.ephemeralExpiration) {
-      const ephemeralOptions = {
-        ...options,
-        ephemeralExpiration: this.ephemeral.expiration,
-      };
-      return ephemeralOptions;
-    }
-    return options;
-  }
-
   async sendMessage(content, type = "text", options = {}) {
 
-    const ephemeralOptions = this._getEphemeralOptions(options);
+    if (this.ephemeral && !options.ephemeralExpiration) {
+      options.ephemeralExpiration = this.ephemeral.expiration;
+    }
 
     if (type == "text") {
-      return await this.client.sendMessage(
-        this.jid,
-        { text: content },
-        ephemeralOptions
-      );
+      const textMessage = { text: content };
+
+      if (options.mentions) {
+        textMessage.mentions = options.mentions;
+      }
+
+      return await this.client.sendMessage(this.jid, textMessage, options);
     }
     if (type == "image") {
+      const imageMessage = { image: content };
+
+      if (options.caption) {
+        imageMessage.caption = options.caption;
+      }
+
       if (options?.thumbnail) {
         const thumbBuffer = await genThumb(options.thumbnail);
-        return await this.client.sendMessage(
-          this.jid,
-          { image: content, jpegThumbnail: thumbBuffer },
-          ephemeralOptions
-        );
+        imageMessage.jpegThumbnail = thumbBuffer;
       }
-      return await this.client.sendMessage(
-        this.jid,
-        { image: content },
-        ephemeralOptions
-      );
+
+      return await this.client.sendMessage(this.jid, imageMessage, options);
     }
     if (type == "video") {
+      let msgContent = { video: content };
       if (options?.thumbnail) {
         const thumbBuffer = await genThumb(options.thumbnail);
-        return await this.client.sendMessage(
-          this.jid,
-          { video: content, jpegThumbnail: thumbBuffer },
-          ephemeralOptions
-        );
+        msgContent.jpegThumbnail = thumbBuffer;
       }
-      return await this.client.sendMessage(
-        this.jid,
-        { video: content },
-        ephemeralOptions
-      );
+      if (options?.caption) {
+        msgContent.caption = options.caption;
+      }
+      return await this.client.sendMessage(this.jid, msgContent, options);
     }
     if (type == "audio") {
       return await this.client.sendMessage(
         this.jid,
         { audio: content, mimetype: "audio/mp4" },
-        ephemeralOptions
+        options
       );
     }
     if (type == "sticker") {
       return await this.client.sendMessage(
         this.jid,
         { sticker: content },
-        ephemeralOptions
+        options
       );
+    }
+    if (type == "document") {
+      const documentMessage = {
+        document: content,
+        fileName: options.fileName || "document",
+        mimetype: options.mimetype || "application/octet-stream",
+      };
+
+      if (options.caption) {
+        documentMessage.caption = options.caption;
+      }
+
+      return await this.client.sendMessage(this.jid, documentMessage, options);
     }
   }
   async send(content, type = "text", options = {}) {
@@ -240,16 +240,17 @@ class Message extends Base {
 
   async sendReply(content, type = "text", options = {}) {
 
-    const ephemeralOptions = this._getEphemeralOptions({
-      quoted: this.data,
-      ...options,
-    });
+    if (this.ephemeral && !options.ephemeralExpiration) {
+      options.ephemeralExpiration = this.ephemeral.expiration;
+    }
+
+    options = { quoted: this.data, ...options };
 
     if (type == "text") {
       return await this.client.sendMessage(
         this.jid,
         { text: content },
-        ephemeralOptions
+        options
       );
     }
     if (type == "image") {
@@ -258,82 +259,84 @@ class Message extends Base {
         return await this.client.sendMessage(
           this.jid,
           { image: content, jpegThumbnail: thumbBuffer },
-          ephemeralOptions
+          options
         );
       }
       return await this.client.sendMessage(
         this.jid,
         { image: content },
-        ephemeralOptions
+        options
       );
     }
     if (type == "video") {
+      const messageContent = { video: content };
+      if (options?.caption) {
+        messageContent.caption = options.caption;
+      }
       if (options?.thumbnail) {
         const thumbBuffer = await genThumb(options.thumbnail);
+        messageContent.jpegThumbnail = thumbBuffer;
+      }
         return await this.client.sendMessage(
           this.jid,
-          { video: content, jpegThumbnail: thumbBuffer },
-          ephemeralOptions
+          messageContent,
+          options
         );
-      }
-      return await this.client.sendMessage(
-        this.jid,
-        { video: content },
-        ephemeralOptions
-      );
     }
     if (type == "audio") {
       return await this.client.sendMessage(
         this.jid,
         { audio: content, mimetype: "audio/mp4" },
-        ephemeralOptions
+        options
       );
     }
     if (type == "sticker") {
       return await this.client.sendMessage(
         this.jid,
         { sticker: content },
-        ephemeralOptions
+        options
       );
     }
   }
   async reply(content, type = "text") {
 
-    const ephemeralOptions = this._getEphemeralOptions({ quoted: this.data });
+    const options = this.ephemeral
+      ? { quoted: this.data, ephemeralExpiration: this.ephemeral.expiration }
+      : { quoted: this.data };
 
     if (type == "text") {
       return await this.client.sendMessage(
         this.jid,
         { text: content },
-        ephemeralOptions
+        options
       );
     }
     if (type == "image") {
       return await this.client.sendMessage(
         this.jid,
         { image: content },
-        ephemeralOptions
+        options
       );
     }
     if (type == "video") {
       return await this.client.sendMessage(
         this.jid,
         { video: content },
-        ephemeralOptions
+        options
       );
     }
     if (type == "audio") {
       return await this.client.sendMessage(
         this.jid,
         { audio: content, mimetype: "audio/mp4" },
-        ephemeralOptions
+        options
       );
     }
     if (type == "sticker") {
       return await this.client.sendMessage(
         this.jid,
         { sticker: content },
-        ephemeralOptions
+        options
       );
     }
   }

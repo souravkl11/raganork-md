@@ -19,9 +19,7 @@ async function initAFKCache() {
         messageCount: userData.messageCount || 0,
       });
     }
-    console.log(
-      `AFK: Loaded ${Object.keys(afkUsers).length} AFK users to cache`
-    );
+    
   } catch (error) {
     console.error("Error initializing AFK cache:", error);
 
@@ -138,7 +136,6 @@ async function setAFK(userJid, reason = "I am currently away from keyboard") {
 }
 
 async function removeAFK(userJid) {
-
   const afkData = afkCache.get(userJid);
   afkCache.delete(userJid);
 
@@ -206,15 +203,13 @@ Module(
         count++;
       }
 
-      return await message.client.sendMessage(message.jid, {
-        text: afkList,
+      return await message.sendMessage(afkList, "text", {
         mentions: Array.from(afkCache.keys()),
       });
     }
 
     if (isAFK(userJid)) {
       if (!input) {
-
         const afkData = getAFKData(userJid);
         const timeAFK = formatDuration(
           Date.now() - new Date(afkData.setAt).getTime()
@@ -230,7 +225,6 @@ Module(
             `_Type any message to go back online._`
         );
       } else {
-
         await setAFK(userJid, input);
         return await message.sendReply(
           `*_🌙 AFK reason updated_*\n\n` +
@@ -239,7 +233,6 @@ Module(
         );
       }
     } else {
-
       const reason = input || "I am currently away from keyboard";
       await setAFK(userJid, reason);
 
@@ -289,7 +282,7 @@ Module(
           repliedText.includes("is currently afk") ||
           repliedText.includes("🌙")
         ) {
-          return; 
+          return;
         }
       }
 
@@ -311,20 +304,15 @@ Module(
               `👁️ _Last seen:_ \`${lastSeen}\`\n` +
               `💬 _Messages received:_ \`${afkData.messageCount + 1}\``;
 
-            await message.client.sendMessage(
-              chatJid,
-              {
-                text: afkReply,
-                mentions: [mentionedJid],
-              },
-              { quoted: message.data }
-            );
+            await message.sendMessage(afkReply, "text", {
+              quoted: message.data,
+              mentions: [mentionedJid],
+            });
           }
         }
       }
 
       if (isDM) {
-
         const botOwnerJid = message.client.user?.id;
         if (botOwnerJid && isAFK(botOwnerJid)) {
           const afkData = getAFKData(botOwnerJid);
@@ -365,14 +353,10 @@ Module(
             `👁️ _Last seen:_ \`${lastSeen}\`\n` +
             `💬 _Messages received:_ \`${afkData.messageCount + 1}\``;
 
-          await message.client.sendMessage(
-            chatJid,
-            {
-              text: afkReply,
-              mentions: [repliedToJid],
-            },
-            { quoted: message.data }
-          );
+          await message.sendMessage(afkReply, "text", {
+            quoted: message.data,
+            mentions: [repliedToJid],
+          });
         }
       }
     } catch (error) {
@@ -452,8 +436,7 @@ Module(
           count++;
         }
 
-        return await message.client.sendMessage(message.jid, {
-          text: afkList,
+        return await message.sendMessage(afkList, "text", {
           mentions: Array.from(afkCache.keys()),
         });
 
@@ -478,12 +461,12 @@ Module(
           );
         }
 
-        return await message.client.sendMessage(message.jid, {
-          text:
-            `*_🔧 Removed ${removedUsers.length} user(s) from AFK_*\n\n` +
+        return await message.sendMessage(
+          `*_🔧 Removed ${removedUsers.length} user(s) from AFK_*\n\n` +
             removedUsers.map((jid) => `- @${jid.split("@")[0]}`).join("\n"),
-          mentions: removedUsers,
-        });
+          "text",
+          { mentions: removedUsers }
+        );
 
       case "clear":
         const totalCount = afkCache.size;
@@ -527,8 +510,7 @@ Module(
             totalMessages / afkCache.size
           )}\``;
 
-        return await message.client.sendMessage(message.jid, {
-          text: statsText,
+        return await message.sendMessage(statsText, "text", {
           mentions: [longestAFKUser],
         });
 
