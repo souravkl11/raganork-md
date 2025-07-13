@@ -12,22 +12,21 @@ const models = [
   "gemma-3-12b-it",
 ];
 
-const chatbotStates = new Map(); 
-const chatContexts = new Map(); 
-const modelStates = new Map(); 
+const chatbotStates = new Map();
+const chatContexts = new Map();
+const modelStates = new Map();
 
-let globalSystemPrompt = "You are a helpful AI assistant named Raganork. Be concise, friendly, and informative.";
+let globalSystemPrompt =
+  "You are a helpful AI assistant named Raganork. Be concise, friendly, and informative.";
 
 async function initChatbotData() {
   try {
-
     const chatbotData = config.CHATBOT || "";
     if (chatbotData) {
       const enabledChats = chatbotData.split(",").filter((jid) => jid.trim());
       enabledChats.forEach((jid) => {
         chatbotStates.set(jid.trim(), true);
-        modelStates.set(jid.trim(), 0); 
-
+        modelStates.set(jid.trim(), 0);
       });
       console.log(`Chatbot: Loaded ${enabledChats.length} enabled chats`);
     }
@@ -167,7 +166,6 @@ async function getAIResponse(message, chatJid) {
 }
 
 function isChatbotEnabled(jid) {
-
   if (chatbotStates.get(jid) === true) {
     return true;
   }
@@ -187,8 +185,7 @@ function isChatbotEnabled(jid) {
 async function enableChatbot(jid) {
   chatbotStates.set(jid, true);
   if (!modelStates.has(jid)) {
-    modelStates.set(jid, 0); 
-
+    modelStates.set(jid, 0);
   }
   await saveChatbotData();
 }
@@ -202,6 +199,24 @@ async function disableChatbot(jid) {
 
 function clearContext(jid) {
   chatContexts.delete(jid);
+}
+
+async function clearAllContexts(target) {
+  if (target === "groups") {
+    for (const [jid] of chatbotStates.entries()) {
+      if (jid.includes("@g.us")) {
+        clearContext(jid);
+      }
+    }
+    console.log("Cleared contexts for all groups.");
+  } else if (target === "dms") {
+    for (const [jid] of chatbotStates.entries()) {
+      if (!jid.includes("@g.us")) {
+        clearContext(jid);
+      }
+    }
+    console.log("Cleared contexts for all DMs.");
+  }
 }
 
 initChatbotData();
@@ -219,7 +234,6 @@ Module(
     const chatJid = message.jid;
 
     if (!input) {
-
       const isEnabled = isChatbotEnabled(chatJid);
       const globalGroups = config.CHATBOT_ALL_GROUPS === "true";
       const globalDMs = config.CHATBOT_ALL_DMS === "true";
@@ -276,7 +290,6 @@ Module(
 
     switch (command) {
       case "on":
-
         if (!config.GEMINI_API_KEY) {
           return await message.sendReply(
             `*_❌ GEMINI_API_KEY Not Configured_*\n\n` +
@@ -293,7 +306,6 @@ Module(
         }
 
         if (target === "groups") {
-
           await setVar("CHATBOT_ALL_GROUPS", "true");
           return await message.sendReply(
             `*_🤖 Chatbot Enabled for All Groups_*\n\n` +
@@ -303,7 +315,6 @@ Module(
               `_Use \`.chatbot off groups\` to disable._`
           );
         } else if (target === "dms") {
-
           await setVar("CHATBOT_ALL_DMS", "true");
           return await message.sendReply(
             `*_🤖 Chatbot Enabled for All DMs_*\n\n` +
@@ -313,7 +324,6 @@ Module(
               `_Use \`.chatbot off dms\` to disable._`
           );
         } else {
-
           await enableChatbot(chatJid);
           return await message.sendReply(
             `*_🤖 Chatbot Enabled_*\n\n` +
@@ -326,7 +336,6 @@ Module(
 
       case "off":
         if (target === "groups") {
-
           await setVar("CHATBOT_ALL_GROUPS", "false");
           return await message.sendReply(
             `*_🤖 Chatbot Disabled for All Groups_*\n\n` +
@@ -335,7 +344,6 @@ Module(
               `_Use \`.chatbot on groups\` to re-enable._`
           );
         } else if (target === "dms") {
-
           await setVar("CHATBOT_ALL_DMS", "false");
           return await message.sendReply(
             `*_🤖 Chatbot Disabled for All DMs_*\n\n` +
@@ -344,7 +352,6 @@ Module(
               `_Use \`.chatbot on dms\` to re-enable._`
           );
         } else {
-
           await disableChatbot(chatJid);
           return await message.sendReply(
             `*_🤖 Chatbot Disabled_*\n\n` +
@@ -371,12 +378,25 @@ Module(
         );
 
       case "clear":
-        clearContext(chatJid);
-        return await message.sendReply(
-          `*_💭 Context Cleared_*\n\n` +
-            `_Conversation history has been reset._\n` +
-            `_Next message will start a fresh conversation._`
-        );
+        if (target === "groups" || target === "dms") {
+          await clearAllContexts(target);
+          return await message.sendReply(
+            `*_💭 Contexts Cleared for All ${
+              target === "groups" ? "Groups" : "DMs"
+            }_*\n\n` +
+              `_Conversation histories have been reset for all ${
+                target === "groups" ? "groups" : "DMs"
+              }._\n` +
+              `_Next messages will start fresh conversations._`
+          );
+        } else {
+          clearContext(chatJid);
+          return await message.sendReply(
+            `*_💭 Context Cleared_*\n\n` +
+              `_Conversation history has been reset._\n` +
+              `_Next message will start a fresh conversation._`
+          );
+        }
 
       case "status":
         const isEnabled = isChatbotEnabled(chatJid);
@@ -464,10 +484,8 @@ Module(
       const messageText = message.text;
 
       if (isDM) {
-
         shouldRespond = true;
       } else if (isGroup) {
-
         const botJid = message.client.user?.id;
 
         if (message.mention && message.mention.length > 0) {
@@ -496,13 +514,10 @@ Module(
 
       let commandPrefixes = [];
       if (config.HANDLERS === "false") {
-
         commandPrefixes = [];
       } else {
-
         const handlers = config.HANDLERS || ".,";
         if (typeof handlers === "string") {
-
           commandPrefixes = handlers.split("").filter((char) => char.trim());
         }
       }
@@ -520,16 +535,7 @@ Module(
         await message.sendReply(aiResponse);
       }
     } catch (error) {
-      console.error("Error in chatbot auto-reply:", error);
+      console.error("Error in message handler:", error);
     }
   }
 );
-
-module.exports = {
-  isChatbotEnabled,
-  enableChatbot,
-  disableChatbot,
-  getAIResponse,
-  clearContext,
-  saveSystemPrompt,
-};
