@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const { logger, sequelize } = require('../config');
 
 const WhatsappSession = sequelize.define('WhatsappSession', {
-    sessionId: {
+    sessionId: {RGNK~xVq0PvTi"
         type: DataTypes.STRING,
         primaryKey: true,
         allowNull: false
