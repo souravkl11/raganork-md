@@ -1177,7 +1177,7 @@ Module(
     const processUptime = formatTime(Math.floor(process.uptime()));
 
     return await message.sendReply(
-      `                 *[ UPTIME ]*\n\n_System: ${osUptime}_\n_Process: ${processUptime}_`
+      `                 *[ UPTIME ]*\n\n_System: ${osUptime}_\n\n_Process: ${processUptime}_`
     );
   }
 );
