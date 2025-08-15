@@ -151,6 +151,62 @@ Module(
 
 Module(
   {
+    pattern: "setenv ?(.*)",
+    fromMe: true,
+    desc: "Set environment variables in config.env",
+    usage: ".setenv MY_VAR=some_value",
+  },
+  async (message, args) => {
+    const input = args[1];
+    if (!input || !input.includes("=")) {
+      return await message.sendReply(
+        "_Invalid format. Use: .setenv KEY=VALUE_"
+      );
+    }
+
+    const [key, ...valueParts] = input.split("=");
+    const value = valueParts.join("=").trim();
+    const trimmedKey = key.trim();
+
+    try {
+
+      if (!fs.existsSync("./config.env")) {
+        return await message.sendReply(
+          "_Setting env variables unsupported on containers. Use setvar or set from platform settings._"
+        );
+      }
+
+      let envContent = fs.readFileSync("./config.env", "utf8");
+      const lines = envContent.split("\n");
+
+      let found = false;
+      const updatedLines = lines.map((line) => {
+        if (line.trim().startsWith(`${trimmedKey}=`)) {
+          found = true;
+          return `${trimmedKey}=${value}`;
+        }
+        return line;
+      });
+
+      if (!found) {
+        updatedLines.push(`${trimmedKey}=${value}`);
+      }
+
+      fs.writeFileSync("./config.env", updatedLines.join("\n"));
+
+      await message.sendReply(
+        `_Environment variable '${trimmedKey}' set to '${value}' in config.env_\n\n_Note: Restart required for changes to take effect._`
+      );
+    } catch (error) {
+      await message.sendReply(
+        `_Failed to set environment variable '${trimmedKey}'. Error: ${error.message}_`
+      );
+    }
+  }
+);
+
+Module(
+  {
     pattern: "allvar",
     fromMe: true,
     desc: "Get all bot variables",
@@ -1020,12 +1076,11 @@ Module(
 
       case "allow":
         if (!rest) {
-          // If used in DM, allow the current chat number
+
           if (!message.jid.includes("@g.us")) {
             const chatNumber = message.jid.split("@")[0];
             const myNumber = message.client.user.id.split(":")[0];
 
-            // Don't allow own number
             if (chatNumber === myNumber) {
               return await message.sendReply(
                 "*❌ You cannot whitelist your own number*"
@@ -1084,7 +1139,7 @@ Module(
 
       case "remove":
         if (!rest) {
-          // If used in DM, remove the current chat number
+
           if (!message.jid.includes("@g.us")) {
             const chatNumber = message.jid.split("@")[0];
             let allowedNumbers = config.ALLOWED_CALLS
