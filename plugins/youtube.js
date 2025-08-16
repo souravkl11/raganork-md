@@ -8,7 +8,6 @@ const {
   handleQualitySelection,
   createAudioQualityPrompt,
   handleAudioQualitySelection,
-  convertToNetscape,
   createSongSearchPrompt,
   handleSongSelection,
   downloadSong,
@@ -20,7 +19,6 @@ const path = require("path");
 const botConfig = require("../config");
 const isFromMe = botConfig.MODE === "public" ? false : true;
 initializeYouTubeUtils();
-const cookiesPath = path.join(__dirname, "../cookies.txt");
 
 // Helper function to extract the first URL from a string
 function extractFirstUrl(text) {
@@ -71,10 +69,6 @@ Module(
       const title = await getYoutubeTitle(url);
       await createQualityPrompt(url, title, message, message.data);
     } catch (error) {
-      if (error.message.includes("cookie"))
-        return await message.sendReply(
-          "_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_"
-        );
       console.error("Error creating quality prompt:", error);
       return await message.sendReply(`❌ _${error.message}_`);
     }
@@ -109,10 +103,6 @@ Module(
       const title = await getYoutubeTitle(url);
       await createAudioQualityPrompt(url, title, message, message.data);
     } catch (error) {
-      if (error.message.includes("cookie"))
-        return await message.sendReply(
-          "_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_"
-        );
       console.error("Error creating audio quality prompt:", error);
       return await message.sendReply(`❌ _${error.message}_`);
     }
@@ -184,36 +174,6 @@ Module(
 
 Module(
   {
-    pattern: "setytcookies ?(.*)",
-    fromMe: true,
-    desc: "Set YouTube cookies for video downloads",
-    type: "owner",
-  },
-  async (message, match) => {
-    const cookies = message.reply_message?.text;
-    if (!cookies) {
-      return await message.sendReply(
-        "_Please reply to a message containing the cookies!_"
-      );
-    }
-    try {
-      const netscapeCookies = convertToNetscape(cookies);
-      await setVar("YT_COOKIES", netscapeCookies);
-      fs.writeFileSync(cookiesPath, netscapeCookies);
-      return await message.sendReply(
-        "✅ _YouTube cookies have been set successfully!_"
-      );
-    } catch (error) {
-      console.error("Error setting YouTube cookies:", error);
-      return await message.sendReply(
-        `❌ _Failed to set YouTube cookies: ${error.message}_`
-      );
-    }
-  }
-);
-
-Module(
-  {
     on: "text",
     fromMe: isFromMe,
   },
@@ -261,10 +221,7 @@ Module(
         );
       }
     } catch (error) {
-      if (error.message.includes("cookie"))
-        return await message.sendReply(
-          "_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_"
-        );
+      console.error("Error handling selection:", error);
     }
   }
 );
@@ -304,11 +261,6 @@ Module(
         quoted: message.data,
       });
     } catch (error) {
-      if (error.message && error.message.includes("cookie")) {
-        return await message.sendReply(
-          "_YouTube cookies not set, please read the tutorial on telegram chat (t.me/raganork_in)_"
-        );
-      }
       console.error("Error in .video command:", error);
       return await message.sendReply(`❌ _${error.message || error}_`);
     }

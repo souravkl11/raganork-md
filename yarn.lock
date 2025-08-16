@@ -4217,8 +4217,3 @@ youtube-sr@^4.3.11:
   version "4.3.11"
   resolved "https://registry.yarnpkg.com/youtube-sr/-/youtube-sr-4.3.11.tgz#626663ba03c9a81edf82bd03541234ca59073a6c"
   integrity sha512-3oHiS2x7PpMiDRW7Cq8nz1bkAIBOJHoOwkPl/oncM/+A9/3xxMDgMLGW2dsBEP1DHFyRXYTVABgfbdwHF8sXXQ==
-
-ytdlp-nodejs@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/ytdlp-nodejs/-/ytdlp-nodejs-2.3.0.tgz#052b22c12aa47dc2c875bd33a6dfbadf399d6f9f"
-  integrity sha512-gnhxwwr1nS+G0w3H5NHTZWUg5Mr26KXMjZnWAYlOWiteT5o/YrQovenaYP95AT88uI0mGaPMd2i2OEYSelC7+A==
