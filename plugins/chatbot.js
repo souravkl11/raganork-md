@@ -5,13 +5,13 @@ const axios = require("axios");
 
 const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 const models = [
-  "gemini-2.5-flash-lite-preview-06-17",
+  "gemini-2.5-flash-lite",
   "gemini-2.5-flash",
-  "gemini-2.0-flash-latest",
-  "gemini-1.5-flash-latest",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash",
   "gemma-3-12b-it",
 ];
-
 const chatbotStates = new Map();
 const chatContexts = new Map();
 const modelStates = new Map();
@@ -34,7 +34,6 @@ async function initChatbotData() {
     if (systemPrompt) {
       globalSystemPrompt = systemPrompt;
     }
-
   } catch (error) {
     console.error("Error initializing chatbot data:", error);
   }
@@ -63,7 +62,24 @@ async function saveSystemPrompt(prompt) {
   }
 }
 
-async function getAIResponse(message, chatJid) {
+async function imageToGenerativePart(imageBuffer) {
+  try {
+
+    const data = imageBuffer.toString("base64");
+
+    return {
+      inlineData: {
+        mimeType: "image/jpeg",
+        data: data,
+      },
+    };
+  } catch (error) {
+    console.error("Error processing image:", error.message);
+    return null;
+  }
+}
+
+async function getAIResponse(message, chatJid, imageBuffer = null) {
   const apiKey = config.GEMINI_API_KEY;
   if (!apiKey) {
     return "_❌ GEMINI_API_KEY not configured. Please set it using `.setvar GEMINI_API_KEY your_api_key`_";
@@ -92,9 +108,18 @@ async function getAIResponse(message, chatJid) {
       });
     });
 
+    const parts = [{ text: message }];
+
+    if (imageBuffer) {
+      const imagePart = await imageToGenerativePart(imageBuffer);
+      if (imagePart) {
+        parts.push(imagePart);
+      }
+    }
+
     contents.push({
       role: "user",
-      parts: [{ text: message }],
+      parts: parts,
     });
 
     const payload = {
@@ -126,7 +151,10 @@ async function getAIResponse(message, chatJid) {
         chatContexts.set(chatJid, []);
       }
       const contextArray = chatContexts.get(chatJid);
-      contextArray.push({ role: "user", text: message });
+      const contextMessage = imageBuffer
+        ? `${message} [Image included]`
+        : message;
+      contextArray.push({ role: "user", text: contextMessage });
       contextArray.push({ role: "model", text: aiResponse });
 
       if (contextArray.length > 20) {
@@ -221,9 +249,9 @@ Module(
   {
     pattern: "chatbot ?(.*)",
     fromMe: true,
-    desc: "AI Chatbot management with Gemini API",
+    desc: "AI Chatbot management with Gemini API - supports text and image analysis",
     usage:
-      '.chatbot - _Show help menu_\n.chatbot on/off - _Enable/disable in current chat_\n.chatbot on/off groups - _Enable/disable in all groups_\n.chatbot on/off dms - _Enable/disable in all DMs_\n.chatbot set "prompt" - _Set system prompt_\n.chatbot clear - _Clear conversation context_',
+      '.chatbot - _Show help menu_\n.chatbot on/off - _Enable/disable in current chat_\n.chatbot on/off groups - _Enable/disable in all groups_\n.chatbot on/off dms - _Enable/disable in all DMs_\n.chatbot set "prompt" - _Set system prompt_\n.chatbot clear - _Clear conversation context_\n_Reply to images for AI image analysis_',
   },
   async (message, match) => {
     const input = match[1]?.trim();
@@ -265,6 +293,7 @@ Module(
             `- _Direct messages to bot trigger AI response_\n` +
             `- _Mentions (@bot) trigger AI response_\n` +
             `- _Replies to bot messages trigger AI response_\n` +
+            `- _Reply to images for AI image analysis_\n` +
             `- _Maintains conversation context automatically_\n` +
             `- _Auto-switches models on rate limits_`
           : `*_⚠️ Setup Required:_*\n` +
@@ -504,7 +533,23 @@ Module(
         return;
       }
 
-      if (messageText.length < 2) {
+      let imageBuffer = null;
+      let responseText = messageText;
+
+      if (message.reply_message && message.reply_message.image) {
+        try {
+          imageBuffer = await message.reply_message.download("buffer");
+
+          if (!messageText || messageText.length < 2) {
+            responseText = "What do you see in this image?";
+          }
+        } catch (error) {
+          console.error("Error downloading image:", error);
+          return await message.sendReply(
+            "_❌ Failed to download image. Please try again._"
+          );
+        }
+      } else if (messageText.length < 2) {
         return;
       }
 
@@ -520,12 +565,16 @@ Module(
 
       if (
         commandPrefixes.length > 0 &&
-        commandPrefixes.some((prefix) => messageText.startsWith(prefix))
+        commandPrefixes.some((prefix) => responseText.startsWith(prefix))
       ) {
         return;
       }
 
-      const aiResponse = await getAIResponse(messageText, chatJid);
+      const aiResponse = await getAIResponse(
+        responseText,
+        chatJid,
+        imageBuffer
+      );
 
       if (aiResponse) {
         await message.sendReply(aiResponse);
