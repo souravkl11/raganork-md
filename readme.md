@@ -84,7 +84,7 @@ SESSION=RGNK~d7a5s66,RGNK~7ad8cW
 
 ```
 # Bot Configuration
-BOT_NAME=Your Bot Name
+BOT_NAME=SIR GEY 
 HANDLERS=.,!
 SUDO=919876543210
 
