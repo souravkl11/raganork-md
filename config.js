@@ -62,6 +62,29 @@ const settingsMenu = [
   { title: "Disable bot startup message", env_var: "DISABLE_START_MESSAGE" },
 ];
 
+settings: {
+                AUDIO_CHATBOT: process.env.AUDIO_CHATBOT || 'no',
+                AUTO_BIO: process.env.AUTO_BIO || 'yes',
+                AUTO_DOWNLOAD_STATUS: process.env.AUTO_DOWNLOAD_STATUS || 'no',
+                AUTO_REACT: process.env.AUTO_REACT || 'no',
+                AUTO_REACT_STATUS: process.env.AUTO_REACT_STATUS || 'yes',
+                AUTO_READ: process.env.AUTO_READ || 'yes',
+                AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || 'yes',
+                CHATBOT: process.env.CHATBOT || 'no',
+                PUBLIC_MODE: process.env.PUBLIC_MODE || 'yes',
+                STARTING_BOT_MESSAGE: process.env.STARTING_BOT_MESSAGE || 'yes',
+                PRESENCE: process.env.PRESENCE || '',
+                ANTIDELETE_RECOVER_CONVENTION: process.env.ANTIDELETE_RECOVER_CONVENTION || 'no',
+                ANTIDELETE_SENT_INBOX: process.env.ANTIDELETE_SENT_INBOX || 'yes',
+                GOODBYE_MESSAGE: process.env.GOODBYE_MESSAGE || 'no',
+                AUTO_REJECT_CALL: process.env.AUTO_REJECT_CALL || 'no',
+                WELCOME_MESSAGE: process.env.WELCOME_MESSAGE || 'no',
+                GROUPANTILINK: process.env.GROUPANTILINK || 'no',
+                AUTO_REPLY_STATUS: process.env.AUTO_REPLY_STATUS || 'no'
+            }
+        };
+                  
+
 const baseConfig = {
   VERSION,
   ALIVE:
@@ -114,6 +137,35 @@ const baseConfig = {
     "deb80cd12ababea1c9b9a8ad6ce3fab2",
     "78c84c62b32a88e86daf87dd509a657a",
   ],
+
+    get AUTO_READ_STATUS() { return hybridConfig.getSetting('AUTO_READ_STATUS', 'yes'); },
+    get AUTO_DOWNLOAD_STATUS() { return hybridConfig.getSetting('AUTO_DOWNLOAD_STATUS', 'no'); },
+    get AUTO_REPLY_STATUS() { return hybridConfig.getSetting('AUTO_REPLY_STATUS', 'no'); },
+    get MODE() { return hybridConfig.getSetting('PUBLIC_MODE', 'yes'); },
+    get PM_PERMIT() { return process.env.PM_PERMIT || 'yes'; },
+    get ETAT() { return hybridConfig.getSetting('PRESENCE', ''); },
+    get CHATBOT() { return hybridConfig.getSetting('CHATBOT', 'no'); },
+    get CHATBOT1() { return hybridConfig.getSetting('AUDIO_CHATBOT', 'no'); },
+    get DP() { return hybridConfig.getSetting('STARTING_BOT_MESSAGE', 'yes'); },
+    get ANTIDELETE1() { return hybridConfig.getSetting('ANTIDELETE_RECOVER_CONVENTION', 'no'); },
+    get ANTIDELETE2() { return hybridConfig.getSetting('ANTIDELETE_SENT_INBOX', 'yes'); },
+    get GOODBYE_MESSAGE() { return hybridConfig.getSetting('GOODBYE_MESSAGE', 'no'); },
+    get ANTICALL() { return hybridConfig.getSetting('AUTO_REJECT_CALL', 'no'); },
+    get WELCOME_MESSAGE() { return hybridConfig.getSetting('WELCOME_MESSAGE', 'no'); },
+    get GROUP_ANTILINK2() { return process.env.GROUPANTILINK_DELETE_ONLY || 'yes'; },
+    get GROUP_ANTILINK() { return hybridConfig.getSetting('GROUPANTILINK', 'no'); },
+    get STATUS_REACT_EMOJIS() { return process.env.STATUS_REACT_EMOJIS || ""; },
+    get REPLY_STATUS_TEXT() { return process.env.REPLY_STATUS_TEXT || ""; },
+    get AUTO_REACT() { return hybridConfig.getSetting('AUTO_REACT', 'no'); },
+    get AUTO_REACT_STATUS() { return hybridConfig.getSetting('AUTO_REACT_STATUS', 'yes'); },
+    get AUTO_REPLY() { return process.env.AUTO_REPLY || 'yes'; },
+    get AUTO_READ() { return hybridConfig.getSetting('AUTO_READ', 'yes'); },
+    get AUTO_SAVE_CONTACTS() { return process.env.AUTO_SAVE_CONTACTS || 'yes'; },
+    get AUTO_REJECT_CALL() { return hybridConfig.getSetting('AUTO_REJECT_CALL', 'yes'); },
+    get AUTO_BIO() { return hybridConfig.getSetting('AUTO_BIO', 'yes'); },
+    get AUDIO_REPLY() { return process.env.AUDIO_REPLY || 'yes'; },
+
+  
   RG: process.env.RG || "919074309534-1632403322@g.us,120363116963909366@g.us",
   BOT_INFO: process.env.BOT_INFO || "𝖱𝖺𝗀𝖺𝗇𝗈𝗋𝗄;𝖱𝗒𝗓𝖾𝗇;default",
   RBG_KEY: process.env.RBG_KEY || "",
@@ -282,3 +334,4 @@ Object.defineProperty(config, "debug", {
 });
 
 module.exports = config;
+
