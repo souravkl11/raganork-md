@@ -37,6 +37,7 @@ const {
   rotate,
   avMix,
   webp2mp4,
+  addID3
 } = mediaProcessing;
 
 // Utility functions
@@ -107,6 +108,7 @@ module.exports = {
   rotate,
   avMix,
   webp2mp4,
+  addID3,
 
   // Utilities
   parseUptime,
