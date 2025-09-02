@@ -90,3 +90,18 @@ if (require.main === module) {
     process.exit(1);
   });
 }
+
+
+//auto ping..
+
+const https = require("https");
+
+const URL = process.env.APP_URL || "https://my-application-a2zr.onrender.com";
+
+setInterval(() => {
+  https.get(URL + "/health", (res) => {
+    console.log(`Keep-alive ping → ${URL}/health | Status: ${res.statusCode}`);
+  }).on("error", (err) => {
+    console.error("Ping error: " + err.message);
+  });
+}, 8 * 60 * 1000); // 8mins
