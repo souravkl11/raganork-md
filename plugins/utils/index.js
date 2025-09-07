@@ -61,6 +61,7 @@ const {
   getThumb,
   gtts,
   getBuffer,
+  lyrics
 } = utils;
 
 // Language functions
@@ -146,4 +147,5 @@ module.exports = {
 
   // Link Detection
   linkDetector,
+  lyrics,
 };

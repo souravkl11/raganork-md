@@ -125,7 +125,7 @@ const baseConfig = {
   BOT_NAME: process.env.BOT_NAME || "Raganork",
   AUDIO_DATA:
     process.env.AUDIO_DATA === undefined || process.env.AUDIO_DATA === "private"
-      ? "Ryzn- Audio title here;Raganork - Artist;https://i.imgur.com/P7ziVhr.jpeg"
+      ? "default"
       : process.env.AUDIO_DATA,
   TAKE_KEY: process.env.TAKE_KEY || "",
   CMD_REACTION: convertToBool(process.env.CMD_REACTION) || false,

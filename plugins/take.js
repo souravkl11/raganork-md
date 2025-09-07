@@ -38,10 +38,13 @@ Module({
         return await m.client.sendMessage(m.jid,{sticker: fs.readFileSync(await addExif(q,exif))},{quoted:m.quoted})
     }
     if (!stickermsg && audiomsg) {
-                let inf = match[1] !== '' ? match[1] : config.AUDIO_DATA
-                var spl = inf.split(';')
-                var image = spl[2] ? await getBuffer(spl[2]): await getBuffer(config.BOT_INFO.split(";")[3])
-                var res = await addID3(q,spl[0],spl[1]?spl[1]:config.AUDIO_DATA.split(";")[1], 'Raganork Engine', image)
+                let inf = match[1] !== '' ? match[1] : config.AUDIO_DATA === "default" ? "Ryzn- Audio title here;Raganork - Artist;https://i.ibb.co/s98DyMMq/NL-1.png" : config.AUDIO_DATA;
+                if (config.AUDIO_DATA == "default") {
+                    await m.sendReply(`_Using default audio metadata, use .setvar AUDIO_INFO=title;artist;imageurl to change_`)
+                }
+                let spl = inf.split(';'),
+                image = spl[2] ? await getBuffer(spl[2]): await getBuffer(config.BOT_INFO.split(";")?.[3] === "default" ? "https://i.ibb.co/s98DyMMq/NL-1.png" : config.BOT_INFO.split(";")[3]),
+                res = await addID3(q,spl[0],spl[1]?spl[1]:config.AUDIO_DATA.split(";")[1], 'Raganork Engine', image)
                 await m.client.sendMessage(m.jid, {
                     audio: res,
                     mimetype: 'audio/mp4',
