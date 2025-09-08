@@ -5,6 +5,26 @@ const { bass, sticker, addExif, attp, gtts, gis, aiTTS } = require("./utils");
 const config = require("../config");
 const axios = require("axios");
 const fileType = require("file-type");
+
+// compatibility wrapper for old and new file-type versions
+// can be removed when all users update to newer modules
+const getFileType = async (buffer) => {
+  try {
+    // try newer api first (v17+)
+    if (fileType.fileTypeFromBuffer) {
+      return await fileType.fileTypeFromBuffer(buffer);
+    }
+    // fallback to older api (v16 and below)
+    if (fileType.fromBuffer) {
+      return await fileType.fromBuffer(buffer);
+    }
+    // last resort for really old versions
+    return await fileType(buffer);
+  } catch (error) {
+    console.log("file-type detection failed:", error);
+    return null;
+  }
+};
 let MODE = config.MODE,
   STICKER_DATA = config.STICKER_DATA;
 const { getString } = require("./utils/lang");

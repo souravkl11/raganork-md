@@ -8,7 +8,27 @@ const {
   igStalk,
   fb,
 } = require("./utils");
-const { fromBuffer } = require("file-type");
+const fileType = require("file-type");
+
+// compatibility wrapper for old and new file-type versions
+// can be removed when all users update to newer modules
+const getFileType = async (buffer) => {
+  try {
+    // try newer api first (v17+)
+    if (fileType.fileTypeFromBuffer) {
+      return await fileType.fileTypeFromBuffer(buffer);
+    }
+    // fallback to older api (v16 and below)
+    if (fileType.fromBuffer) {
+      return await fileType.fromBuffer(buffer);
+    }
+    // last resort for really old versions
+    return await fileType(buffer);
+  } catch (error) {
+    console.log("file-type detection failed:", error);
+    return null;
+  }
+};
 const botConfig = require("../config");
 const axios = require("axios");
 const isFromMe = botConfig.MODE === "public" ? false : true;
@@ -84,7 +104,8 @@ Module(
           });
         }
         const mediaBuffer = await getBuffer(mediaUrl);
-        const { mime } = await fromBuffer(mediaBuffer);
+        const fileTypeResult = await getFileType(mediaBuffer);
+        const { mime } = fileTypeResult || { mime: "application/octet-stream" };
         await message.sendMessage(
           mediaBuffer,
           mime.includes("video") ? "video" : "image",
@@ -210,7 +231,8 @@ Module(
 
     for (const storyMediaUrl of storyData) {
       const mediaBuffer = await getBuffer(storyMediaUrl);
-      const { mime } = await fromBuffer(mediaBuffer);
+      const fileTypeResult = await getFileType(mediaBuffer);
+      const { mime } = fileTypeResult || { mime: "application/octet-stream" };
       await message.sendReply(
         mediaBuffer,
         mime.includes("video") ? "video" : "image"
