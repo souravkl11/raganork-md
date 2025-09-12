@@ -1,21 +1,31 @@
 let downloadMediaMessage;
 
-try {
-  const baileys = require("baileys");
-  ({ downloadMediaMessage } = baileys);
-} catch (err) {
+async function loadBaileys() {
   try {
-    const { createRequire } = require("module");
-    const require_ = createRequire(__filename);
-    const baileys = require_("baileys");
-    ({ downloadMediaMessage } = baileys);
-  } catch (createRequireErr) {
-    console.error(
-      "Failed to load baileys with both require methods. Please ensure baileys is properly installed."
-    );
-    throw new Error(`Baileys import failed: ${err.message}`);
+
+    const baileys = await import("baileys");
+    return baileys;
+  } catch (err) {
+    try {
+
+      const baileys = require("baileys");
+      return baileys;
+    } catch (requireErr) {
+      throw new Error(
+        `Failed to load baileys: ${err.message}. Fallback error: ${requireErr.message}`
+      );
+    }
   }
 }
+
+const baileysPromise = loadBaileys()
+  .then((baileys) => {
+    ({ downloadMediaMessage } = baileys);
+  })
+  .catch((err) => {
+    console.error("Failed to load baileys:", err.message);
+    process.exit(1);
+  });
 const fs = require("fs");
 const Base = require("./base");
 
