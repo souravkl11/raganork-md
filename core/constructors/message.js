@@ -1,11 +1,40 @@
-const {
-  generateWAMessageFromContent,
+let generateWAMessageFromContent,
   proto,
   prepareWAMessageMedia,
   generateForwardMessageContent,
   getContentType,
-  downloadMediaMessage,
-} = require("baileys");
+  downloadMediaMessage;
+
+try {
+  const baileys = require("baileys");
+  ({
+    generateWAMessageFromContent,
+    proto,
+    prepareWAMessageMedia,
+    generateForwardMessageContent,
+    getContentType,
+    downloadMediaMessage,
+  } = baileys);
+} catch (err) {
+  try {
+    const { createRequire } = require("module");
+    const require_ = createRequire(__filename);
+    const baileys = require_("baileys");
+    ({
+      generateWAMessageFromContent,
+      proto,
+      prepareWAMessageMedia,
+      generateForwardMessageContent,
+      getContentType,
+      downloadMediaMessage,
+    } = baileys);
+  } catch (createRequireErr) {
+    console.error(
+      "Failed to load baileys with both require methods. Please ensure baileys is properly installed."
+    );
+    throw new Error(`Baileys import failed: ${err.message}`);
+  }
+}
 const Base = require("./base");
 let config = require("../../config");
 const ReplyMessage = require("./reply-message");

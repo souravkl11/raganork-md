@@ -1,6 +1,24 @@
 const { getString } = require("./utils/lang");
 const Lang = getString("group");
-const { delay } = require("baileys");
+
+let delay;
+
+try {
+  const baileys = require("baileys");
+  ({ delay } = baileys);
+} catch (err) {
+  try {
+    const { createRequire } = require("module");
+    const require_ = createRequire(__filename);
+    const baileys = require_("baileys");
+    ({ delay } = baileys);
+  } catch (createRequireErr) {
+    console.error(
+      "Failed to load baileys with both require methods. Please ensure baileys is properly installed."
+    );
+    throw new Error(`Baileys import failed: ${err.message}`);
+  }
+}
 const { isAdmin, isNumeric, mentionjid } = require("./utils");
 const { ADMIN_ACCESS, HANDLERS, MODE } = require("../config");
 const { Module } = require("../main");
