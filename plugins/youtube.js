@@ -187,22 +187,22 @@ Module(
       ) {
         return;
       }
-
       const jid = message.jid;
       const text = message.message.trim();
 
       if (!/^(?:[1-9]|10)$/.test(text)) {
         return;
       }
+      let success;
       const repliedId = message.reply_message.id;
-
-      let success = await handleSongSelection(
-        message,
-        text,
+      if (!message.reply_message.photo) {
+        success = await handleSongSelection(
+          message,
+          text,
         repliedId,
         message.quoted
       );
-
+    }
       if (!success && /^[1-8]$/.test(text)) {
         success = await handleQualitySelection(
           message,

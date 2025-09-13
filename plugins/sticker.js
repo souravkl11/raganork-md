@@ -97,20 +97,18 @@ Module(
       await new Promise((resolve, reject) => {
         ffmpeg()
           .input(audioFile)
-          .input("color=c=black:s=1280x720:r=30")
+          .input("color=c=black:s=320x240:r=30")
           .inputFormat("lavfi")
           .outputOptions([
             "-shortest",
             "-c:v",
             "libx264",
             "-preset",
-            "fast",
+            "ultrafast",
             "-crf",
-            "23",
+            "51",
             "-c:a",
-            "aac",
-            "-b:a",
-            "128k",
+            "copy",
             "-pix_fmt",
             "yuv420p",
           ])

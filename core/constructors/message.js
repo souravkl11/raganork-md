@@ -91,7 +91,7 @@ class Message extends Base {
       data.message?.stickerMessage?.contextInfo;
 
     if (contextInfo?.quotedMessage) {
-      contextInfo.remoteJid = contextInfo.remoteJid ?? this.jid;
+      contextInfo.remoteJid = contextInfo.remoteJid || this.jid;
       this.reply_message = new ReplyMessage(this.client, contextInfo);
       this.quoted = {
         key: {

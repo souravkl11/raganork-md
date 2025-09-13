@@ -22,6 +22,9 @@ if (typeof commandPrefix === "string") {
     handlerPrefix = commandPrefix;
   }
 }
+if (config.MULTI_HANDLERS && handlerPrefix.includes("^[")) {
+  handlerPrefix = handlerPrefix + "?";
+}
 
 function Module(info, func) {
   const validEventTypes = [
@@ -51,18 +54,12 @@ function Module(info, func) {
     commandInfo.on = info.on;
     if (info.pattern !== undefined) {
       const prefix = info.handler ?? true ? handlerPrefix : "";
-      const patternStr =
-        config.MULTI_HANDLERS && (info.handler ?? true)
-          ? `(?:${prefix})?${info.pattern}`
-          : `${prefix}${info.pattern}`;
+      const patternStr = `${prefix}${info.pattern}`;
       commandInfo.pattern = new RegExp(patternStr, "s");
     }
   } else if (info.pattern !== undefined) {
     const prefix = info.handler ?? true ? handlerPrefix : "";
-    const patternStr =
-      config.MULTI_HANDLERS && (info.handler ?? true)
-        ? `(?:${prefix})?${info.pattern}`
-        : `${prefix}${info.pattern}`;
+    const patternStr = `${prefix}${info.pattern}`;
     commandInfo.pattern = new RegExp(patternStr, "s");
   }
 
