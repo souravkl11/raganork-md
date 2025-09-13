@@ -96,9 +96,9 @@ Module(
 
       await new Promise((resolve, reject) => {
         ffmpeg()
-          .input("color=c=black:s=1280x720:d=1:r=30")
-          .inputFormat("lavfi")
           .input(audioFile)
+          .input("color=c=black:s=1280x720:r=30")
+          .inputFormat("lavfi")
           .outputOptions([
             "-shortest",
             "-c:v",
@@ -122,7 +122,11 @@ Module(
 
       const videoBuffer = fs.readFileSync(outputPath);
       await message.send(videoBuffer, "video");
-      await message.edit("_Black video created successfully!_",message.jid, processingMsg.key);
+      await message.edit(
+        "_Black video created successfully!_",
+        message.jid,
+        processingMsg.key
+      );
       if (fs.existsSync(audioFile)) fs.unlinkSync(audioFile);
       if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
     } catch (error) {
