@@ -4,25 +4,7 @@ let generateWAMessageFromContent,
   generateForwardMessageContent,
   getContentType,
   downloadMediaMessage;
-
-async function loadBaileys() {
-  try {
-
-    const baileys = await import("baileys");
-    return baileys;
-  } catch (err) {
-    try {
-
-      const baileys = require("baileys");
-      return baileys;
-    } catch (requireErr) {
-      throw new Error(
-        `Failed to load baileys: ${err.message}. Fallback error: ${requireErr.message}`
-      );
-    }
-  }
-}
-
+const { loadBaileys } = require("../helpers");
 const baileysPromise = loadBaileys()
   .then((baileys) => {
     ({
@@ -183,7 +165,6 @@ class Message extends Base {
   }
 
   async sendMessage(content, type = "text", options = {}) {
-
     const { ephemeralExpiration, quoted, ...messageOptions } = options;
 
     const realOptions = {};
@@ -271,7 +252,6 @@ class Message extends Base {
   }
 
   async sendReply(content, type = "text", options = {}) {
-
     const { ephemeralExpiration, quoted, ...messageOptions } = options;
 
     const realOptions = { quoted: quoted || this.data };

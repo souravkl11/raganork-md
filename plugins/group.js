@@ -1,26 +1,6 @@
 const { getString } = require("./utils/lang");
 const Lang = getString("group");
-
-let delay;
-
-async function loadBaileys() {
-  try {
-
-    const baileys = await import("baileys");
-    return baileys;
-  } catch (err) {
-    try {
-
-      const baileys = require("baileys");
-      return baileys;
-    } catch (requireErr) {
-      throw new Error(
-        `Failed to load baileys: ${err.message}. Fallback error: ${requireErr.message}`
-      );
-    }
-  }
-}
-
+const { loadBaileys } = require("../core/helpers");
 const baileysPromise = loadBaileys()
   .then((baileys) => {
     ({ delay } = baileys);
