@@ -1,6 +1,6 @@
 {
   "name": "raganork-md",
-  "version": "6.2.3",
+  "version": "6.2.4",
   "description": "A multi functional wa bot.",
   "main": "index.js",
   "type": "commonjs",

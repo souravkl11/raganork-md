@@ -38,25 +38,7 @@ const {
   isLidParticipant,
 } = require("../../plugins/utils/lid-helper");
 
-async function genThumb(url) {
-  try {
-    let size = 301;
-    const jimp = await require("jimp").read(url);
-    function getPossibleRatio(a, b) {
-      for (var i = 0; size + 2 > size + 1; i++) {
-        a = a > size || b > size ? a / 1.001 : a;
-        b = a > size || b > size ? b / 1.001 : b;
-        if (parseInt(a) < size && parseInt(b) < size)
-          return { w: parseInt(a), h: parseInt(b) };
-      }
-    }
-    var { w, h } = getPossibleRatio(jimp.bitmap.width, jimp.bitmap.height);
-    return await jimp.resize(w, h).getBufferAsync("image/jpeg");
-  } catch (error) {
-    console.error("Error generating thumbnail:", error);
-    return null;
-  }
-}
+const { genThumb } = require("../helpers");
 
 class Message extends Base {
   constructor(client, data) {
@@ -202,9 +184,57 @@ class Message extends Base {
       return await this.client.sendMessage(this.jid, msgContent, realOptions);
     }
     if (type == "audio") {
+      if (messageOptions.ptt) {
+        try {
+          const { toBuffer, convertToOgg } = require("../helpers");
+          const inputBuffer = await toBuffer(content);
+          let oggBuffer = null;
+          if (inputBuffer) {
+            try {
+              oggBuffer = await convertToOgg(inputBuffer);
+            } catch (e) {
+              console.error(
+                "PTT conversion failed, falling back to original content:",
+                e
+              );
+            }
+          }
+
+          if (oggBuffer && Buffer.isBuffer(oggBuffer)) {
+            return await this.client.sendMessage(
+              this.jid,
+              {
+                audio: oggBuffer,
+                mimetype: "audio/ogg; codecs=opus",
+                ptt: true,
+                ...messageOptions,
+              },
+              realOptions
+            );
+          }
+          return await this.client.sendMessage(
+            this.jid,
+            {
+              audio: content,
+              mimetype: "audio/ogg",
+              ptt: true,
+              ...messageOptions,
+            },
+            realOptions
+          );
+        } catch (err) {
+          console.error("Error preparing ptt audio:", err);
+          return await this.client.sendMessage(
+            this.jid,
+            { audio: content, mimetype: "audio/ogg", ...messageOptions },
+            realOptions
+          );
+        }
+      }
+
       return await this.client.sendMessage(
         this.jid,
-        { audio: content, mimetype: "audio/mp4", ...messageOptions },
+        { audio: content, mimetype: "audio/ogg", ...messageOptions },
         realOptions
       );
     }
