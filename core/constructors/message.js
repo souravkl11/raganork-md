@@ -32,6 +32,8 @@ const {
   getBotLid,
   getBotNumericId,
   getNumericId,
+  toLid,
+  toJid,
   isSudo,
   isFromOwner,
   isPrivateMessage,
@@ -47,12 +49,22 @@ class Message extends Base {
   }
   _patch(data) {
     this.id = data.key.id === undefined ? undefined : data.key.id;
-    this.jid = data.key.remoteJid;
-    this.isGroup = data.key.remoteJid.endsWith("@g.us");
+  this.jid = data.key.remoteJid; // chat jid (group or private)
+  this.isGroup = data.key.remoteJid.endsWith("@g.us");
     this.fromMe = data.key.fromMe;
-    this.isLid = this.isGroup && isLid(data.key.participant);
-    this.sender = this.isGroup ? data.key.participant : data.key.remoteJid;
-    this.fromOwner = isFromOwner(data, this.client, config.SUDO);
+    // Primary sender identifier (LID when possible). Keep jid for sending operations.
+    if (this.isGroup) {
+      this.isLid = isLid(data.key.participant);
+      this.lid = data.key.participant ? toLid(data.key.participant) : null;
+      this.sender = this.lid; // primary identifier
+      this.senderJid = data.key.participant || data.key.remoteJid; // preserve raw jid for mentions/ops
+    } else {
+      this.isLid = isLid(data.key.remoteJid);
+      this.lid = toLid(data.key.remoteJid);
+      this.sender = this.lid;
+      this.senderJid = toJid(this.lid);
+    }
+  this.fromOwner = isFromOwner(data, this.client, config.SUDO);
     this.senderName = data.pushName;
     this.myjid = getBotNumericId(data, this.client);
     this.message =
@@ -75,12 +87,12 @@ class Message extends Base {
     if (contextInfo?.quotedMessage) {
       contextInfo.remoteJid = contextInfo.remoteJid || this.jid;
       this.reply_message = new ReplyMessage(this.client, contextInfo);
+      // For quoted message, keep the original keys but normalize participant to LID for consistency
       this.quoted = {
         key: {
           remoteJid: contextInfo.remoteJid,
           fromMe:
-            contextInfo.participant === getBotJid(this.client) ||
-            contextInfo.participant === getBotLid(this.client),
+            getNumericId(contextInfo.participant) === getBotNumericId(data, this.client),
           id: this.reply_message.id,
           participant: contextInfo.participant,
         },

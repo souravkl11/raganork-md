@@ -227,7 +227,8 @@ Module(
       }
 
       if (shouldKick) {
-        const botId = message.client.user.id.split(":")[0] + "@s.whatsapp.net";
+        const { getBotLid } = require('./utils/lid-helper');
+        const botId = getBotLid(message.client) || (message.client.user.id.split(":")[0] + "@s.whatsapp.net");
         inactiveMembers = inactiveMembers.filter((member) => {
           const participant = groupMetadata.participants.find(
             (p) => p.id === member.jid

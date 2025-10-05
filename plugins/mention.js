@@ -209,15 +209,15 @@ Module({
             return;
         }
 
-        const botJid = getBotId(message.client);
-        const botNumericId = getNumericId(botJid);
+    const botId = getBotId(message.client);
+    const botNumericId = getNumericId(botId);
 
         let isMentioned = false;
 
         for (const mentionedJid of message.mention) {
             const mentionedNumericId = getNumericId(mentionedJid);
 
-            if (mentionedNumericId === botNumericId || mentionedJid === botJid) {
+            if (mentionedNumericId === botNumericId || mentionedJid === botId) {
                 isMentioned = true;
                 break;
             }

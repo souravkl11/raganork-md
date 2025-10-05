@@ -47,7 +47,7 @@ const config = require("../config");
 const { settingsMenu, ADMIN_ACCESS } = config;
 const fs = require("fs");
 const { BotVariable } = require("../core/database");
-const { getNumericId } = require("./utils/lid-helper");
+const { getNumericId, toJid, toLid } = require("./utils/lid-helper");
 var handler = config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
 
 async function setVar(key, value, message = false) {
@@ -371,8 +371,25 @@ Module(
         })
         .filter((x) => x)
         .join(",");
-      await m.sendMessage("_Added @" + newSudo + " as sudo_", "text", {
-        mentions: [newSudo + "@s.whatsapp.net"],
+      // Build robust mention list: prefer exact participant id from group metadata
+      const mentionCandidates = new Set();
+      try {
+        if (m.isGroup) {
+          const meta = await m.client.groupMetadata(m.jid).catch(() => null);
+          if (meta && Array.isArray(meta.participants)) {
+            const found = meta.participants.find((p) => getNumericId(p.id) === newSudo);
+            if (found && found.id) mentionCandidates.add(found.id);
+          }
+        }
+      } catch (e) {
+        // ignore metadata errors
+      }
+      // Always include both forms as fallback (JID and LID)
+      mentionCandidates.add(toJid(newSudo));
+      mentionCandidates.add(toLid(newSudo));
+
+      await m.sendMessage(`_Added @${newSudo} as sudo_`, "text", {
+        mentions: Array.from(mentionCandidates),
       });
       await setVar("SUDO", setSudo);
     } else return await m.sendReply("_User is already a sudo_");
@@ -408,8 +425,24 @@ Module(
       setSudo = setSudo
         .filter((x) => x !== newSudo.replace(/[^0-9]/g, ""))
         .join(",");
-      await m.sendMessage("_Removed @" + newSudo + " from sudo!_", "text", {
-        mentions: [newSudo + "@s.whatsapp.net"],
+      // Build robust mention list similar to setsudo
+      const mentionCandidates = new Set();
+      try {
+        if (m.isGroup) {
+          const meta = await m.client.groupMetadata(m.jid).catch(() => null);
+          if (meta && Array.isArray(meta.participants)) {
+            const found = meta.participants.find((p) => getNumericId(p.id) === newSudo);
+            if (found && found.id) mentionCandidates.add(found.id);
+          }
+        }
+      } catch (e) {
+        // ignore metadata errors
+      }
+      mentionCandidates.add(toJid(newSudo));
+      mentionCandidates.add(toLid(newSudo));
+
+      await m.sendMessage(`_Removed @${newSudo} from sudo!_`, "text", {
+        mentions: Array.from(mentionCandidates),
       });
       await setVar("SUDO", setSudo, m);
     } else return await m.sendReply("_User is already not a sudo_");
@@ -1329,7 +1362,7 @@ Module(
         );
         await message.client.groupParticipantsUpdate(
           message.jid,
-          [message.sender],
+          [message.senderJid],
           "remove"
         );
         return await message.client.sendMessage(message.jid, {
@@ -1354,9 +1387,7 @@ Module(
         }
 
         if (linkBlocked && !(await isAdmin(message, message.sender))) {
-          const usr = message.sender.includes(":")
-            ? message.sender.split(":")[0] + "@s.whatsapp.net"
-            : message.sender;
+          const usr = toJid(message.sender);
 
           await message.client.sendMessage(message.jid, {
             delete: message.data.key,

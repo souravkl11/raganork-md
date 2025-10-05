@@ -687,7 +687,7 @@ Module(
       var jids = [];
       common.map(async (s) => {
         msg += "```@" + s.id.split("@")[0] + "```\n";
-        jids.push(s.id.split("@")[0] + "@s.whatsapp.net");
+  jids.push(toLid(s.id));
       });
       await message.client.sendMessage(message.jid, {
         text: msg,
@@ -978,8 +978,9 @@ Module(
   async (message, match) => {
     if (message.reply_message && message.reply_message.image) {
       var image = await message.reply_message.download();
+      const { getBotJid } = require('./utils/lid-helper');
       await message.client.setProfilePicture(
-        message.client.user.id.split(":")[0] + "@s.whatsapp.net",
+        getBotJid(message.client),
         { url: image }
       );
       return await message.sendReply("_*Updated profile pic ✅*_");

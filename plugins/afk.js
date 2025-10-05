@@ -313,8 +313,9 @@ Module(
       }
 
       if (isDM) {
-        const botOwnerJid = message.client.user?.id;
-        if (botOwnerJid && isAFK(botOwnerJid)) {
+  const { getBotLid } = require('./utils/lid-helper');
+  const botOwnerJid = getBotLid(message.client);
+  if (botOwnerJid && isAFK(botOwnerJid)) {
           const afkData = getAFKData(botOwnerJid);
           const timeAFK = formatDuration(
             Date.now() - new Date(afkData.setAt).getTime()

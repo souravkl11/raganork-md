@@ -7,14 +7,14 @@ function isJid(identifier) {
 }
 
 function getBotJid(client) {
-    if (client.user.id) {
+    if (client.user && client.user.id) {
         return client.user.id.split(":")[0] + "@s.whatsapp.net";
     }
     return null;
 }
 
 function getBotLid(client) {
-    if (client.user.lid) {
+    if (client.user && client.user.lid) {
         return client.user.lid.split(":")[0] + "@lid";
     }
     return null;
@@ -22,20 +22,15 @@ function getBotLid(client) {
 
 function getBotId(client, contextJid = null, sender = "@s.whatsapp.net") {
 
-    if (contextJid && isPrivateMessage(contextJid)) {
-        return getBotJid(client);
-    }
-    if (isLid(sender)) {
-        return getBotLid(client) || getBotJid(client);
-    }
-
-    return getBotJid(client);
+    return getBotLid(client) || getBotJid(client);
 }
 
 function getBotNumericId(message, client) {
     let isPvt = isPrivateMessage(message.jid);
-    let isLidChat = isPvt ? false : isLid(message.key.participant);    
-    return isLidChat ? client.user.lid.split(":")[0] : client.user.id.split(":")[0];
+    let isLidChat = isPvt ? false : isLid(message.key?.participant);
+    if (isLidChat && client.user && client.user.lid) return client.user.lid.split(":")[0];
+    if (client.user && client.user.id) return client.user.id.split(":")[0];
+    return null;
 }
 
 function getNumericId(identifier) {
@@ -45,7 +40,7 @@ function getNumericId(identifier) {
         return identifier.split('@')[0];
     }
 
-    return identifier; 
+    return identifier;
 }
 
 function isSudo(identifier, sudoConfig) {
@@ -77,8 +72,26 @@ function getSudoJid(sudoConfig, client = null) {
     if (!firstSudo) {
         return client ? getBotJid(client) : null;
     }
+    return toJid(firstSudo);
+}
 
-    return firstSudo + "@s.whatsapp.net";
+function parseSudoList(sudoConfig) {
+    if (!sudoConfig) return [];
+    return sudoConfig
+        .split(',')
+        .map(s => (s || '').trim())
+        .filter(s => s)
+        .map(s => getNumericId(s));
+}
+
+
+
+function getSudoIdentifier(sudoConfig, asLid = true) {
+
+    if (!sudoConfig) return null;
+    const firstSudo = sudoConfig.split(",")[0].trim();
+    if (!firstSudo) return null;
+    return asLid ? firstSudo + "@lid" : firstSudo + "@s.whatsapp.net";
 }
 
 function getParticipantId(msg, client) {
@@ -86,30 +99,34 @@ function getParticipantId(msg, client) {
     const { remoteJid, fromMe } = key;
 
     if (!isPrivateMessage(remoteJid)) {
-
         return key.participant;
     }
 
     if (fromMe) {
-
-        return getBotJid(client);
+        return getBotLid(client) || getBotJid(client);
     } else {
 
-        return remoteJid;
+        return toLid(remoteJid);
     }
 }
 
-function normalizeId(identifier) {
+
+
+function toLid(identifier) {
     if (!identifier) return null;
+    if (isLid(identifier)) return identifier;
+    if (identifier.endsWith('@g.us')) return identifier; 
+    if (isJid(identifier)) return identifier.split('@')[0] + '@lid';
+    if (/^\d+$/.test(identifier)) return identifier + '@lid';
+    return identifier;
+}
 
-    if (isLid(identifier) || isJid(identifier)) {
-        return identifier;
-    }
-
-    if (/^\d+$/.test(identifier)) {
-        return identifier + "@s.whatsapp.net";
-    }
-
+function toJid(identifier) {
+    if (!identifier) return null;
+    if (isJid(identifier)) return identifier;
+    if (identifier.endsWith('@g.us')) return identifier;
+    if (isLid(identifier)) return identifier.split('@')[0] + '@s.whatsapp.net';
+    if (/^\d+$/.test(identifier)) return identifier + '@s.whatsapp.net';
     return identifier;
 }
 
@@ -135,11 +152,14 @@ module.exports = {
     getBotLid,
     getBotNumericId,
     getNumericId,
-    normalizeId,
     isLidParticipant,
     isSudo,
     isFromOwner,
     getSudoJid,
     isPrivateMessage,
-    getParticipantId
+    getParticipantId,
+    toLid,
+    toJid,
+    getSudoIdentifier,
+    parseSudoList
 };
