@@ -246,7 +246,7 @@ class Message extends Base {
 
       return await this.client.sendMessage(
         this.jid,
-        { audio: content, mimetype: "audio/ogg", ...messageOptions },
+        { audio: content, mimetype: "audio/mp4", ...messageOptions },
         realOptions
       );
     }
