@@ -131,7 +131,6 @@ async function parseAlive(message, aliveMessage) {
     return await message.sendReply(defaultAliveMessage);
   }
 
-  // Check if message contains placeholders
   if (aliveMessage.includes("$")) {
     const parsedMessage = await parseAliveMessage(aliveMessage, message);
     if (parsedMessage) {

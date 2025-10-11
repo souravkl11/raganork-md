@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require("axios");
 
 async function deployLatestCommit(serviceId, apiKey) {
   if (!serviceId) {
@@ -16,28 +16,35 @@ async function deployLatestCommit(serviceId, apiKey) {
   try {
     const disableRes = await axios.delete(autoScalingUrl, {
       headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      }
+        Accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
     });
     console.log("Autoscaling disabled:", disableRes.data || "No content");
   } catch (err) {
-    console.error("Error disabling autoscaling:", err.response?.data || err.message);
+    console.error(
+      "Error disabling autoscaling:",
+      err.response?.data || err.message
+    );
     return;
   }
 
   const deployUrl = `https://api.render.com/v1/services/${serviceId}/deploys`;
 
   try {
-    const response = await axios.post(deployUrl, {
-      clearCache: "clear"
-    }, {
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+    const response = await axios.post(
+      deployUrl,
+      {
+        clearCache: "clear",
+      },
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
       }
-    });
+    );
 
     const deployInfo = response.data;
 
@@ -49,9 +56,14 @@ async function deployLatestCommit(serviceId, apiKey) {
       console.log(`Commit SHA: ${deployInfo.commit.id}`);
       console.log(`Commit Message: ${deployInfo.commit.message}`);
     }
-    console.log(`Render Dashboard Link: https://dashboard.render.com/web/${serviceId}/deploys/${deployInfo.id}`);
+    console.log(
+      `Render Dashboard Link: https://dashboard.render.com/web/${serviceId}/deploys/${deployInfo.id}`
+    );
   } catch (err) {
-    console.error("Error during deployment:", err.response?.data || err.message);
+    console.error(
+      "Error during deployment:",
+      err.response?.data || err.message
+    );
   }
 }
 

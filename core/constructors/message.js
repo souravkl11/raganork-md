@@ -24,22 +24,6 @@ const Base = require("./base");
 let config = require("../../config");
 const ReplyMessage = require("./reply-message");
 const fs = require("fs");
-const {
-  isLid,
-  isJid,
-  getBotId,
-  getBotJid,
-  getBotLid,
-  getBotNumericId,
-  getNumericId,
-  toLid,
-  toJid,
-  isSudo,
-  isFromOwner,
-  isPrivateMessage,
-  isLidParticipant,
-} = require("../../plugins/utils/lid-helper");
-
 const { genThumb } = require("../helpers");
 
 class Message extends Base {
@@ -49,24 +33,26 @@ class Message extends Base {
   }
   _patch(data) {
     this.id = data.key.id === undefined ? undefined : data.key.id;
-  this.jid = data.key.remoteJid; // chat jid (group or private)
-  this.isGroup = data.key.remoteJid.endsWith("@g.us");
+    this.jid = data.key.remoteJid;
+    this.isGroup = data.key.remoteJid.endsWith("@g.us");
     this.fromMe = data.key.fromMe;
-    // Primary sender identifier (LID when possible). Keep jid for sending operations.
+
     if (this.isGroup) {
-      this.isLid = isLid(data.key.participant);
-      this.lid = data.key.participant ? toLid(data.key.participant) : null;
-      this.sender = this.lid; // primary identifier
-      this.senderJid = data.key.participant || data.key.remoteJid; // preserve raw jid for mentions/ops
+      this.sender = data.key.participant || data.key.participantAlt;
     } else {
-      this.isLid = isLid(data.key.remoteJid);
-      this.lid = toLid(data.key.remoteJid);
-      this.sender = this.lid;
-      this.senderJid = toJid(this.lid);
+      this.sender = data.key.remoteJid;
     }
-  this.fromOwner = isFromOwner(data, this.client, config.SUDO);
+
+    const botNumeric = this.client.user?.lid?.split(":")[0];
+    const senderNumeric = this.sender?.split("@")[0];
+
+    const isSudo = config.SUDO?.split(",")
+      .map((s) => s.trim())
+      .includes(senderNumeric);
+    this.fromOwner = data.key.fromMe || senderNumeric === botNumeric || isSudo;
+
     this.senderName = data.pushName;
-    this.myjid = getBotNumericId(data, this.client);
+    this.myjid = botNumeric;
     this.message =
       (data.message?.extendedTextMessage === null
         ? data.message?.conversation
@@ -87,14 +73,16 @@ class Message extends Base {
     if (contextInfo?.quotedMessage) {
       contextInfo.remoteJid = contextInfo.remoteJid || this.jid;
       this.reply_message = new ReplyMessage(this.client, contextInfo);
-      // For quoted message, keep the original keys but normalize participant to LID for consistency
+
+      const quotedParticipantJid = contextInfo.participant;
       this.quoted = {
         key: {
           remoteJid: contextInfo.remoteJid,
           fromMe:
-            getNumericId(contextInfo.participant) === getBotNumericId(data, this.client),
+            quotedParticipantJid?.split("@")[0] ===
+            this.client.user?.id?.split(":")[0],
           id: this.reply_message.id,
-          participant: contextInfo.participant,
+          participant: quotedParticipantJid,
         },
         message: this.reply_message.data.message,
       };
@@ -106,9 +94,9 @@ class Message extends Base {
       ).id;
       this.isOwnResponse =
         data.message.interactiveResponseMessage?.contextInfo?.participant &&
-        getNumericId(
-          data.message.interactiveResponseMessage.contextInfo.participant
-        ) === this.myjid;
+        data.message.interactiveResponseMessage.contextInfo.participant.split(
+          "@"
+        )[0] === this.myjid;
     } else {
       this.list = null;
     }

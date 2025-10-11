@@ -17,14 +17,6 @@ const {
   getFullMessage,
   fetchRecentChats,
 } = require("../core/store");
-const {
-  isLid,
-  isJid,
-  getBotId,
-  getNumericId,
-  getSudoIdentifier,
-  isPrivateMessage,
-} = require("./utils/lid-helper");
 var handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
 
 Module(
@@ -658,9 +650,9 @@ Module(
         var msg = `_Kicking common participants of:_ *${g1.subject}* & *${g2.subject}*\n_count: ${common.length}_\n`;
         common
           .map((e) => e.id)
-          .filter((e) => !e.includes(getNumericId(getBotId(message.client))))
+          .filter((e) => !e.includes(message.client.user?.id?.split(":")[0]))
           .map(async (s) => {
-            msg += "```@" + getNumericId(s) + "```\n";
+            msg += "```@" + s.split("@")[0] + "```\n";
             jids.push(s);
           });
         await message.client.sendMessage(message.jid, {
@@ -687,7 +679,7 @@ Module(
       var jids = [];
       common.map(async (s) => {
         msg += "```@" + s.id.split("@")[0] + "```\n";
-  jids.push(toLid(s.id));
+        jids.push(s.id);
       });
       await message.client.sendMessage(message.jid, {
         text: msg,
@@ -978,11 +970,10 @@ Module(
   async (message, match) => {
     if (message.reply_message && message.reply_message.image) {
       var image = await message.reply_message.download();
-      const { getBotJid } = require('./utils/lid-helper');
-      await message.client.setProfilePicture(
-        getBotJid(message.client),
-        { url: image }
-      );
+      const botJid = message.client.user?.id?.split(":")[0] + "@s.whatsapp.net";
+      await message.client.setProfilePicture(botJid, {
+        url: image,
+      });
       return await message.sendReply("_*Updated profile pic ✅*_");
     }
     if (message.reply_message && !message.reply_message.image) {

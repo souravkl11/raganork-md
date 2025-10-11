@@ -64,7 +64,6 @@ async function saveSystemPrompt(prompt) {
 
 async function imageToGenerativePart(imageBuffer) {
   try {
-
     const data = imageBuffer.toString("base64");
 
     return {

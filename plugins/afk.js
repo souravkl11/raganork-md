@@ -19,7 +19,6 @@ async function initAFKCache() {
         messageCount: userData.messageCount || 0,
       });
     }
-    
   } catch (error) {
     console.error("Error initializing AFK cache:", error);
 
@@ -313,9 +312,8 @@ Module(
       }
 
       if (isDM) {
-  const { getBotLid } = require('./utils/lid-helper');
-  const botOwnerJid = getBotLid(message.client);
-  if (botOwnerJid && isAFK(botOwnerJid)) {
+        const botOwnerJid = message.client.user?.lid?.split(":")[0] + "@lid";
+        if (botOwnerJid && isAFK(botOwnerJid)) {
           const afkData = getAFKData(botOwnerJid);
           const timeAFK = formatDuration(
             Date.now() - new Date(afkData.setAt).getTime()
@@ -380,145 +378,6 @@ Module(
       }
     } catch (error) {
       console.error("Error updating AFK last seen:", error);
-    }
-  }
-);
-
-Module(
-  {
-    pattern: "afkadmin ?(.*)",
-    fromMe: true,
-    desc: "Admin AFK management commands",
-    usage:
-      ".afkadmin list - _Show all AFK users_\n.afkadmin remove @user - _Remove user from AFK_\n.afkadmin clear - _Clear all AFK users_",
-  },
-  async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (!message.fromOwner && !adminAccesValidated) {
-      return await message.sendReply(
-        "_This command requires admin privileges._"
-      );
-    }
-
-    const input = match[1]?.trim();
-    if (!input) {
-      return await message.sendReply(
-        "*_🔧 AFK Admin Commands_*\n\n" +
-          "- `.afkadmin list` - _Show all AFK users_\n" +
-          "- `.afkadmin remove @user` - _Remove user from AFK_\n" +
-          "- `.afkadmin clear` - _Clear all AFK users_\n" +
-          "- `.afkadmin stats` - _Show AFK statistics_"
-      );
-    }
-
-    const args = input.split(" ");
-    const command = args[0].toLowerCase();
-
-    switch (command) {
-      case "list":
-        if (afkCache.size === 0) {
-          return await message.sendReply("_No users are currently AFK._");
-        }
-
-        let afkList = `*_🔧 AFK Admin List (${afkCache.size})_*\n\n`;
-        let count = 1;
-
-        for (const [jid, data] of afkCache.entries()) {
-          const timeAFK = formatDuration(
-            Date.now() - new Date(data.setAt).getTime()
-          );
-          afkList += `${count}. @${jid.split("@")[0]}\n`;
-          afkList += `   📝 \`${data.reason.substring(0, 50)}${
-            data.reason.length > 50 ? "..." : ""
-          }\`\n`;
-          afkList += `   ⏰ \`${timeAFK}\` | 💬 \`${data.messageCount}\`\n\n`;
-          count++;
-        }
-
-        return await message.sendMessage(afkList, "text", {
-          mentions: Array.from(afkCache.keys()),
-        });
-
-      case "remove":
-        if (!message.mention || message.mention.length === 0) {
-          return await message.sendReply(
-            "_Please mention a user to remove from AFK._"
-          );
-        }
-
-        let removedUsers = [];
-        for (const userJid of message.mention) {
-          if (isAFK(userJid)) {
-            await removeAFK(userJid);
-            removedUsers.push(userJid);
-          }
-        }
-
-        if (removedUsers.length === 0) {
-          return await message.sendReply(
-            "_None of the mentioned users are AFK._"
-          );
-        }
-
-        return await message.sendMessage(
-          `*_🔧 Removed ${removedUsers.length} user(s) from AFK_*\n\n` +
-            removedUsers.map((jid) => `- @${jid.split("@")[0]}`).join("\n"),
-          "text",
-          { mentions: removedUsers }
-        );
-
-      case "clear":
-        const totalCount = afkCache.size;
-        if (totalCount === 0) {
-          return await message.sendReply("_No users are currently AFK._");
-        }
-
-        afkCache.clear();
-        await setVar("AFK_DATA", "{}");
-
-        return await message.sendReply(
-          `*_🔧 Cleared all AFK users_*\n\n_Removed \`${totalCount}\` user(s) from AFK status._`
-        );
-
-      case "stats":
-        if (afkCache.size === 0) {
-          return await message.sendReply("_No AFK statistics available._");
-        }
-
-        let totalMessages = 0;
-        let longestAFK = 0;
-        let longestAFKUser = "";
-
-        for (const [jid, data] of afkCache.entries()) {
-          totalMessages += data.messageCount;
-          const afkDuration = Date.now() - new Date(data.setAt).getTime();
-          if (afkDuration > longestAFK) {
-            longestAFK = afkDuration;
-            longestAFKUser = jid;
-          }
-        }
-
-        const statsText =
-          `*_📊 AFK Statistics_*\n\n` +
-          `👥 _Total AFK users:_ \`${afkCache.size}\`\n` +
-          `💬 _Total messages received:_ \`${totalMessages}\`\n` +
-          `⏰ _Longest AFK:_ @${
-            longestAFKUser.split("@")[0]
-          } (\`${formatDuration(longestAFK)}\`)\n` +
-          `📈 _Average messages per user:_ \`${Math.round(
-            totalMessages / afkCache.size
-          )}\``;
-
-        return await message.sendMessage(statsText, "text", {
-          mentions: [longestAFKUser],
-        });
-
-      default:
-        return await message.sendReply(
-          "_Unknown admin command. Use `.afkadmin` to see available options._"
-        );
     }
   }
 );

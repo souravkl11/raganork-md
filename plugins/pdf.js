@@ -1,24 +1,21 @@
 const { Module } = require("../main");
-const { convert: imageToPdf, sizes } = require("image-to-pdf"); // Corrected import
+const { convert: imageToPdf, sizes } = require("image-to-pdf");
 const fileSystem = require("node:fs/promises");
 const fileType = require("file-type");
 const { MODE } = require("../config");
 const path = require("path");
 const fs = require("fs");
 
-// compatibility wrapper for old and new file-type versions
-// can be removed when all users update to newer modules
 const getFileType = async (buffer) => {
   try {
-    // try newer api first (v17+)
     if (fileType.fileTypeFromBuffer) {
       return await fileType.fileTypeFromBuffer(buffer);
     }
-    // fallback to older api (v16 and below)
+
     if (fileType.fromBuffer) {
       return await fileType.fromBuffer(buffer);
     }
-    // last resort for really old versions
+
     return await fileType(buffer);
   } catch (error) {
     console.log("file-type detection failed:", error);
@@ -60,9 +57,7 @@ Module(
 
       try {
         await fileSystem.unlink(finalPdfOutputPath);
-      } catch (error) {
-        // Ignore error if file does not exist
-      }
+      } catch (error) {}
       await message.sendReply(`_Successfully cleared all files!_`);
     } else if (subCommand === "get") {
       const allStoredFiles = await fileSystem.readdir(imageInputDirectory);
@@ -74,7 +69,7 @@ Module(
         return await message.sendReply("_No files inputted_");
       }
 
-      const pdfGenerationStream = imageToPdf(imageFilePaths, sizes.A4); // Used 'sizes.A4' directly
+      const pdfGenerationStream = imageToPdf(imageFilePaths, sizes.A4);
       const pdfWriteStream = fs.createWriteStream(finalPdfOutputPath);
 
       pdfGenerationStream.pipe(pdfWriteStream);

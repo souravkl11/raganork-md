@@ -10,7 +10,7 @@ const VOICES = Object.freeze([
   "fable",
   "onyx",
   "sage",
-  "shimmer"
+  "shimmer",
 ]);
 
 function getVoice(voice) {

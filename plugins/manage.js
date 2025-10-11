@@ -47,7 +47,7 @@ const config = require("../config");
 const { settingsMenu, ADMIN_ACCESS } = config;
 const fs = require("fs");
 const { BotVariable } = require("../core/database");
-const { getNumericId, toJid, toLid } = require("./utils/lid-helper");
+
 var handler = config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
 
 async function setVar(key, value, message = false) {
@@ -169,7 +169,6 @@ Module(
     const trimmedKey = key.trim();
 
     try {
-
       if (!fs.existsSync("./config.env")) {
         return await message.sendReply(
           "_Setting env variables unsupported on containers. Use setvar or set from platform settings._"
@@ -371,22 +370,21 @@ Module(
         })
         .filter((x) => x)
         .join(",");
-      // Build robust mention list: prefer exact participant id from group metadata
+
       const mentionCandidates = new Set();
       try {
         if (m.isGroup) {
           const meta = await m.client.groupMetadata(m.jid).catch(() => null);
           if (meta && Array.isArray(meta.participants)) {
-            const found = meta.participants.find((p) => getNumericId(p.id) === newSudo);
+            const found = meta.participants.find(
+              (p) => p.id?.split("@")[0] === newSudo
+            );
             if (found && found.id) mentionCandidates.add(found.id);
           }
         }
-      } catch (e) {
-        // ignore metadata errors
-      }
-      // Always include both forms as fallback (JID and LID)
-      mentionCandidates.add(toJid(newSudo));
-      mentionCandidates.add(toLid(newSudo));
+      } catch (e) {}
+
+      mentionCandidates.add(newSudo + "@lid");
 
       await m.sendMessage(`_Added @${newSudo} as sudo_`, "text", {
         mentions: Array.from(mentionCandidates),
@@ -425,21 +423,21 @@ Module(
       setSudo = setSudo
         .filter((x) => x !== newSudo.replace(/[^0-9]/g, ""))
         .join(",");
-      // Build robust mention list similar to setsudo
+
       const mentionCandidates = new Set();
       try {
         if (m.isGroup) {
           const meta = await m.client.groupMetadata(m.jid).catch(() => null);
           if (meta && Array.isArray(meta.participants)) {
-            const found = meta.participants.find((p) => getNumericId(p.id) === newSudo);
+            const found = meta.participants.find(
+              (p) => p.id?.split("@")[0] === newSudo
+            );
             if (found && found.id) mentionCandidates.add(found.id);
           }
         }
-      } catch (e) {
-        // ignore metadata errors
-      }
-      mentionCandidates.add(toJid(newSudo));
-      mentionCandidates.add(toLid(newSudo));
+      } catch (e) {}
+      mentionCandidates.add(newSudo + "@s.whatsapp.net");
+      mentionCandidates.add(newSudo + "@lid");
 
       await m.sendMessage(`_Removed @${newSudo} from sudo!_`, "text", {
         mentions: Array.from(mentionCandidates),
@@ -1109,7 +1107,6 @@ Module(
 
       case "allow":
         if (!rest) {
-
           if (!message.jid.includes("@g.us")) {
             const chatNumber = message.jid.split("@")[0];
             const myNumber = message.client.user.id.split(":")[0];
@@ -1172,7 +1169,6 @@ Module(
 
       case "remove":
         if (!rest) {
-
           if (!message.jid.includes("@g.us")) {
             const chatNumber = message.jid.split("@")[0];
             let allowedNumbers = config.ALLOWED_CALLS
@@ -1387,7 +1383,7 @@ Module(
         }
 
         if (linkBlocked && !(await isAdmin(message, message.sender))) {
-          const usr = toJid(message.sender);
+          const usr = message.sender;
 
           await message.client.sendMessage(message.jid, {
             delete: message.data.key,
@@ -1403,7 +1399,7 @@ Module(
           } else if (antilinkConf.mode === "warn") {
             const { WARN } = require("../config");
             const warnLimit = parseInt(WARN || 4);
-            const targetNumericId = getNumericId(usr);
+            const targetNumericId = usr?.split("@")[0];
 
             try {
               await setWarn(

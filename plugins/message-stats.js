@@ -185,7 +185,6 @@ Module(
       const participants = groupMetadata.participants.map((e) => e.id);
       const userStats = await fetchFromStore(message.jid);
 
-      // Get the oldest message timestamp in the database to check data availability
       let oldestMessageDate = null;
       if (userStats.length > 0) {
         const oldestStat = userStats.reduce((oldest, current) => {
@@ -227,8 +226,9 @@ Module(
       }
 
       if (shouldKick) {
-        const { getBotLid } = require('./utils/lid-helper');
-        const botId = getBotLid(message.client) || (message.client.user.id.split(":")[0] + "@s.whatsapp.net");
+        const botId =
+          message.client.user?.lid?.split(":")[0] + "@lid" ||
+          message.client.user.id.split(":")[0] + "@s.whatsapp.net";
         inactiveMembers = inactiveMembers.filter((member) => {
           const participant = groupMetadata.participants.find(
             (p) => p.id === member.jid
@@ -277,7 +277,7 @@ Module(
         let kickCount = 0;
         for (let member of inactiveMembers) {
           try {
-            await new Promise((r) => setTimeout(r, 2000)); // 2 second delay to avoid bans
+            await new Promise((r) => setTimeout(r, 2000));
             await message.client.groupParticipantsUpdate(
               message.jid,
               [member.jid],
@@ -333,17 +333,15 @@ Module(
         ? await isAdmin(message, message.sender)
         : false;
     if (message.fromOwner || adminAccesValidated) {
-      let limit = 10; // Default limit
+      let limit = 10;
       let isGlobal = false;
 
-      // Parse arguments
       if (match[1]) {
         const args = match[1].trim().split(" ");
 
-        // Check if 'global' is specified
         if (args.includes("global")) {
           isGlobal = true;
-          // Remove 'global' from args to parse the limit
+
           const limitArg = args.find(
             (arg) => arg !== "global" && !isNaN(parseInt(arg))
           );
@@ -356,7 +354,6 @@ Module(
             }
           }
         } else {
-          // Just a number, parse as limit
           const parsedLimit = parseInt(args[0]);
           if (parsedLimit && parsedLimit > 0 && parsedLimit <= 50) {
             limit = parsedLimit;
@@ -370,7 +367,6 @@ Module(
         }
       }
 
-      // In DM, default to global unless specifically requesting chat stats
       if (!message.isGroup && !match[1]?.includes("chat")) {
         isGlobal = true;
       }

@@ -40,8 +40,6 @@ function suppressLibsignalLogs() {
   } catch {}
 }
 
-// Exports consolidated at the end of the file
-
 const jimp = require("jimp");
 
 async function genThumb(url) {
@@ -127,8 +125,6 @@ async function toBuffer(input) {
 
   return null;
 }
-
-// consolidated exports below
 
 module.exports = {
   loadBaileys,

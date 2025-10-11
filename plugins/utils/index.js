@@ -37,7 +37,7 @@ const {
   rotate,
   avMix,
   webp2mp4,
-  addID3
+  addID3,
 } = mediaProcessing;
 
 // Utility functions
@@ -61,7 +61,7 @@ const {
   getThumb,
   gtts,
   getBuffer,
-  lyrics
+  lyrics,
 } = utils;
 
 // Language functions
@@ -74,7 +74,7 @@ const { gis, pinSearch } = require("./gis");
 const { uploadToImgbb, uploadToCatbox } = require("./upload");
 
 const linkDetector = require("./link-detector");
- 
+
 const fancy = require("./fancy");
 
 module.exports = {

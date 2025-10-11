@@ -10,19 +10,16 @@ const {
 } = require("./utils");
 const fileType = require("file-type");
 
-// compatibility wrapper for old and new file-type versions
-// can be removed when all users update to newer modules
 const getFileType = async (buffer) => {
   try {
-    // try newer api first (v17+)
     if (fileType.fileTypeFromBuffer) {
       return await fileType.fileTypeFromBuffer(buffer);
     }
-    // fallback to older api (v16 and below)
+
     if (fileType.fromBuffer) {
       return await fileType.fromBuffer(buffer);
     }
-    // last resort for really old versions
+
     return await fileType(buffer);
   } catch (error) {
     console.log("file-type detection failed:", error);
@@ -57,7 +54,6 @@ Module(
     use: "download",
   },
   async (message, match) => {
-    // disableCertificateCheck();
     let mediaLink = match[1] || message.reply_message?.text;
     if (/\bhttps?:\/\/\S+/gi.test(mediaLink)) {
       mediaLink = mediaLink.match(/\bhttps?:\/\/\S+/gi)[0];
@@ -127,7 +123,6 @@ Module(
     use: "download",
   },
   async (message, match) => {
-    // disableCertificateCheck();
     let videoLink = !message.reply_message?.message
       ? match[1]
       : message.reply_message.message;
@@ -166,7 +161,6 @@ Module(
     use: "search",
   },
   async (message, match) => {
-    // disableCertificateCheck();
     if (!match[1]) return await message.sendReply("_Need Instagram username!_");
 
     if (match[1].startsWith("https") && match[1].includes("instagram")) {
@@ -203,7 +197,6 @@ Module(
     use: "download",
   },
   async (message, match) => {
-    // disableCertificateCheck();
     let userIdentifier =
       match[1] !== "" ? match[1] : message.reply_message.text;
 

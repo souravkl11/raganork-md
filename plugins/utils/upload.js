@@ -8,28 +8,30 @@ const IMGBB_LIMIT = 33554432;
 const CATBOX_LIMIT = 209715200;
 
 const uploadToCatbox = async (filePath) => {
-    try {
+  try {
     const fileStats = fs.statSync(filePath);
     if (fileStats.size > CATBOX_LIMIT) {
-      return { url : "_File size exceeds 200MB limit._" };
+      return { url: "_File size exceeds 200MB limit._" };
     }
     const form = new FormData();
-    form.append('reqtype', 'fileupload');
-    form.append('fileToUpload', fs.createReadStream(filePath));
-    const response = await axios.post('https://catbox.moe/user/api.php', form, {
-        headers: form.getHeaders()
+    form.append("reqtype", "fileupload");
+    form.append("fileToUpload", fs.createReadStream(filePath));
+    const response = await axios.post("https://catbox.moe/user/api.php", form, {
+      headers: form.getHeaders(),
     });
     return { url: response.data.trim() };
   } catch (error) {
     console.error("Error uploading file to Catbox:", error.message);
     return { url: "_Error uploading file to Catbox._" };
   }
-}
+};
 
 const fetchAuthToken = async () => {
   try {
     const response = await axios.get(IMGBB_BASE_URL);
-    const authTokenMatch = response.data.match(/PF\.obj\.config\.auth_token="([a-f0-9]{40})"/);
+    const authTokenMatch = response.data.match(
+      /PF\.obj\.config\.auth_token="([a-f0-9]{40})"/
+    );
 
     if (authTokenMatch && authTokenMatch[1]) {
       return authTokenMatch[1];
@@ -39,14 +41,14 @@ const fetchAuthToken = async () => {
     console.error("Error fetching auth token:", error.message);
     throw error;
   }
-}
+};
 
 const uploadToImgbb = async (imagePath) => {
   try {
     const fileStats = fs.statSync(imagePath);
 
     if (fileStats.size > IMGBB_LIMIT) {
-      return { url : "_File size exceeds 32MB limit._" };
+      return { url: "_File size exceeds 32MB limit._" };
     }
 
     const authToken = await fetchAuthToken();
@@ -63,7 +65,7 @@ const uploadToImgbb = async (imagePath) => {
     });
 
     if (response.data) {
-      return  response.data.image;
+      return response.data.image;
     } else {
       return { error: "Upload failed, no response data." };
     }
@@ -71,9 +73,9 @@ const uploadToImgbb = async (imagePath) => {
     console.error("Error uploading file:", error.message);
     return { error: error.message };
   }
-}
+};
 
 module.exports = {
   uploadToImgbb,
-  uploadToCatbox
+  uploadToCatbox,
 };

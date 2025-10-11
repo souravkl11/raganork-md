@@ -199,10 +199,10 @@ Module(
         success = await handleSongSelection(
           message,
           text,
-        repliedId,
-        message.quoted
-      );
-    }
+          repliedId,
+          message.quoted
+        );
+      }
       if (!success && /^[1-8]$/.test(text)) {
         success = await handleQualitySelection(
           message,

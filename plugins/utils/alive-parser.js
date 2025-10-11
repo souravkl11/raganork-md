@@ -13,7 +13,6 @@ async function parseAliveMessage(template, messageObject) {
   if (!template || !messageObject) return null;
 
   try {
-    // Get bot stats
     const used = bytesToSize(os.freemem());
     const total = bytesToSize(os.totalmem());
     const totalUsers = await getTotalUserCount();
@@ -25,7 +24,6 @@ async function parseAliveMessage(template, messageObject) {
     const serverOS = os.platform() === "linux" ? "Linux" : "Unknown OS";
     const uptime = formatUptime(process.uptime());
 
-    // Get sender info
     let senderName = "";
     let senderNumber = "";
     if (messageObject.sender) {
@@ -40,7 +38,6 @@ async function parseAliveMessage(template, messageObject) {
       }
     }
 
-    // Replace placeholders
     let parsedMessage = template
       .replace(/\$botname/g, botName)
       .replace(/\$owner/g, botOwner)
@@ -60,7 +57,6 @@ async function parseAliveMessage(template, messageObject) {
     let customMediaBuffer = null;
     let isVideo = false;
 
-    // Handle profile picture ($pp)
     if (template.includes("$pp") && messageObject.sender) {
       try {
         const ppUrl = await messageObject.client.profilePictureUrl(
@@ -76,14 +72,13 @@ async function parseAliveMessage(template, messageObject) {
       parsedMessage = parsedMessage.replace(/\$pp/g, "").trim();
     }
 
-    // Handle custom media URLs ($media:url)
     const mediaRegex = /\$media:(https?:\/\/[^\s]+)/g;
     const mediaMatch = mediaRegex.exec(template);
     if (mediaMatch) {
       const mediaUrl = mediaMatch[1];
       try {
         customMediaBuffer = await getBuffer(mediaUrl);
-        // Check if it's a video by URL extension
+
         isVideo = /\.(mp4|mov|avi|mkv|webm|gif)$/i.test(mediaUrl);
       } catch (error) {
         console.log("Error fetching custom media:", error);
@@ -113,7 +108,6 @@ async function sendAliveMessage(messageObject, parsedMessage) {
   if (!parsedMessage) return;
 
   try {
-    // Priority: Custom media > Profile pic > Text only
     if (parsedMessage.customMedia) {
       if (parsedMessage.isVideo) {
         await messageObject.client.sendMessage(messageObject.jid, {
@@ -149,7 +143,7 @@ async function sendAliveMessage(messageObject, parsedMessage) {
     }
   } catch (error) {
     console.error("Error sending alive message:", error);
-    // Fallback to text only
+
     if (parsedMessage.text) {
       try {
         await messageObject.sendReply(parsedMessage.text);
