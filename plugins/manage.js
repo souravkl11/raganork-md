@@ -326,9 +326,9 @@ Module(
         }_\n\n_Usage:_\n\n\`\`.antidelete chat\`\` - sends to original chat\n\`\`.antidelete sudo\`\` - sends to first sudo\n\`\`.antidelete <jid>\`\` - sends to custom JID (e.g., 123020340234@g.us)\n\`\`.antidelete off\`\` - disables anti-delete_`
       );
     }
-    
+
     target = target.toLowerCase();
-    
+
     if (target === "off") {
       await setVar("ANTI_DELETE", "off");
       await setVar("ANTI_DELETE_JID", "");
@@ -358,7 +358,7 @@ Module(
       );
     } else {
       return await message.sendReply(
-        `_Invalid option!_\n\n_Usage:_\n\`\`.antidelete chat\`\` - sends to original chat\n\`\`.antidelete sudo\`\` - sends to first sudo\n\`\`.antidelete <jid>\`\` - sends to custom JID (e.g., 123020340234@g.us)\n\`\`.antidelete off\`\` - disables anti-delete_`
+        `_Invalid option!_\n\n_Usage:_\n\`.antidelete chat\` - _sends to original chat_\n\`.antidelete sudo\` - _sends to first sudo_\n\`.antidelete <jid>\` - _sends to custom JID_\n\`.antidelete off\` - _disables anti-delete_`
       );
     }
   }
