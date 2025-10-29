@@ -323,7 +323,7 @@ Module(
       return await message.sendReply(
         `_*Anti delete*_\n\n_Recovers deleted messages and sends automatically_\n\n_Current status: ${
           config.ANTI_DELETE || "off"
-        }_\n\n_Usage:_\n\n\`\`.antidelete chat\`\` - sends to original chat\n\`\`.antidelete sudo\`\` - sends to first sudo\n\`\`.antidelete <jid>\`\` - sends to custom JID (e.g., 123020340234@g.us)\n\`\`.antidelete off\`\` - disables anti-delete_`
+        _\n\n_Usage:_\n\`.antidelete chat\` - _sends to original chat_\n\`.antidelete sudo\` - _sends to first sudo_\n\`.antidelete <jid>\` - _sends to custom JID_\n\`.antidelete off\` - _disables anti-delete_`
       );
     }
 
