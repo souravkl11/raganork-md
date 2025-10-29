@@ -318,22 +318,47 @@ Module(
     use: "settings",
   },
   async (message, match) => {
-    let target = match[1]?.toLowerCase();
-    if (target == "chat" || target == "sudo") {
-      await setVar("ANTI_DELETE", match[1]);
-      return await message.sendReply(
-        `_Anti-delete activated ✅_\n\n_Recovered messages will be sent to the ${
-          target == "chat" ? "original chat" : "first sudo"
-        }_`
-      );
-    } else if (target == "off") {
-      await setVar("ANTI_DELETE", "off");
-      return await message.sendReply(`_Anti-delete deactivated ❌_`);
-    } else {
+    let target = match[1]?.trim();
+    if (!target) {
       return await message.sendReply(
         `_*Anti delete*_\n\n_Recovers deleted messages and sends automatically_\n\n_Current status: ${
           config.ANTI_DELETE || "off"
-        }_\n\n_Use \`.antidelete chat|sudo|off\`_\n\n- "chat" - sends to original chat\n- "sudo" - sends to first sudo\n- "off" - disables anti-delete_`
+        }_\n\n_Usage:_\n\n\`\`.antidelete chat\`\` - sends to original chat\n\`\`.antidelete sudo\`\` - sends to first sudo\n\`\`.antidelete <jid>\`\` - sends to custom JID (e.g., 123020340234@g.us)\n\`\`.antidelete off\`\` - disables anti-delete_`
+      );
+    }
+    
+    target = target.toLowerCase();
+    
+    if (target === "off") {
+      await setVar("ANTI_DELETE", "off");
+      await setVar("ANTI_DELETE_JID", "");
+      return await message.sendReply(`_Anti-delete deactivated ❌_`);
+    } else if (target === "chat") {
+      await setVar("ANTI_DELETE", "chat");
+      await setVar("ANTI_DELETE_JID", "");
+      return await message.sendReply(
+        `_Anti-delete activated ✅_\n\n_Recovered messages will be sent to the original chat_`
+      );
+    } else if (target === "sudo") {
+      await setVar("ANTI_DELETE", "sudo");
+      await setVar("ANTI_DELETE_JID", "");
+      return await message.sendReply(
+        `_Anti-delete activated ✅_\n\n_Recovered messages will be sent to the first sudo_`
+      );
+    } else if (target.includes("@")) {
+      if (!target.match(/^\d+@(s\.whatsapp\.net|g\.us)$/)) {
+        return await message.sendReply(
+          `_Invalid JID format!_\n\n_Accepted formats:_\n- \`123020340234@s.whatsapp.net\` (personal)\n- \`123020340234@g.us\` (group)_`
+        );
+      }
+      await setVar("ANTI_DELETE", "custom");
+      await setVar("ANTI_DELETE_JID", target);
+      return await message.sendReply(
+        `_Anti-delete activated ✅_\n\n_Recovered messages will be sent to: ${target}_`
+      );
+    } else {
+      return await message.sendReply(
+        `_Invalid option!_\n\n_Usage:_\n\`\`.antidelete chat\`\` - sends to original chat\n\`\`.antidelete sudo\`\` - sends to first sudo\n\`\`.antidelete <jid>\`\` - sends to custom JID (e.g., 123020340234@g.us)\n\`\`.antidelete off\`\` - disables anti-delete_`
       );
     }
   }
