@@ -12,6 +12,7 @@ const baileysPromise = loadBaileys()
   });
 const fs = require("fs");
 const Base = require("./base");
+const { getTempPath } = require("../helpers");
 
 class ReplyMessage extends Base {
   constructor(client, data) {
@@ -34,7 +35,7 @@ class ReplyMessage extends Base {
     this.animated = null;
     this.duration = null;
     this.ptt = null;
-
+    this.fromMe = null;
     this.sticker = false;
     this.audio = false;
     this.image = false;
@@ -42,8 +43,9 @@ class ReplyMessage extends Base {
     this.text = null;
 
     if (data.quotedMessage) {
+      if (data.quotedMessage.documentWithCaptionMessage) data.quotedMessage.documentMessage = data.quotedMessage.documentWithCaptionMessage.message.documentMessage;
       const quotedMsg = data.quotedMessage;
-
+      this.fromMe = (data.participant?.includes("lid") && data.participant?.startsWith(this.client.user.lid.split(":")[0])) || (data.participant?.includes("s.whatsapp.net") && data.participant?.startsWith(this.client.user.id.split(":")[0]));
       if (quotedMsg.imageMessage) {
         this.message = quotedMsg.imageMessage.caption || "";
         this.caption = quotedMsg.imageMessage.caption || "";
@@ -90,11 +92,10 @@ class ReplyMessage extends Base {
         this.text = quotedMsg.extendedTextMessage.text || "";
       }
     }
-
     this.data = {
       key: {
         remoteJid: data.remoteJid,
-        fromMe: data.fromMe,
+        fromMe: this.fromMe,
         id: data.stanzaId,
         participant: this.jid,
       },
@@ -113,17 +114,15 @@ class ReplyMessage extends Base {
     const buffer = await downloadMediaMessage(this.data, "buffer");
     if (returnType === "buffer") return buffer;
 
-    let filename = "./temp/temp.";
-
+    let ext = "bin";
     const mediaMessageType = Object.keys(this.data.message)[0];
     if (this.data.message[mediaMessageType]?.mimetype) {
-      filename += this.data.message[mediaMessageType].mimetype.split("/")[1];
+      ext = this.data.message[mediaMessageType].mimetype.split("/")[1];
     } else if (this.mimetype) {
-      filename += this.mimetype.split("/")[1];
-    } else {
-      filename += "bin";
+      ext = this.mimetype.split("/")[1];
     }
 
+    const filename = getTempPath(`temp.${ext}`);
     await fs.writeFileSync(filename, buffer);
     return filename;
   }

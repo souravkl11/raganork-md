@@ -1,6 +1,7 @@
 const { Module } = require("../main");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
+const { getTempPath, getTempSubdir } = require("../core/helpers");
 
 const config = require("../config"),
   MODE = config.MODE;
@@ -45,9 +46,9 @@ Module(
         savedFile,
         match[1].split(",")[0],
         match[1].split(",")[1],
-        "./temp/trim.mp3"
+        getTempPath("trim.mp3")
       );
-      var result = fs.readFileSync("./temp/trim.mp3");
+      var result = fs.readFileSync(getTempPath("trim.mp3"));
       await message.client.sendMessage(
         message.jid,
         {
@@ -68,7 +69,7 @@ Module(
         savedFile,
         match[1].split(",")[0],
         match[1].split(",")[1],
-        "./temp/trim.mp4",
+        getTempPath("trim.mp4"),
         async function (video) {
           return await message.send(video, "video");
         }
@@ -92,7 +93,7 @@ Module(
         "_Processing audio to black video..._"
       );
       const audioFile = await message.reply_message.download();
-      const outputPath = `./temp/black_${Date.now()}.mp4`;
+      const outputPath = getTempPath(`black_${Date.now()}.mp4`);
 
       await new Promise((resolve, reject) => {
         ffmpeg()
@@ -141,10 +142,8 @@ Module(
     use: "edit",
   },
   async (message, match) => {
-    if (!fs.existsSync("./temp/avmix")) {
-      fs.mkdirSync("./temp/avmix");
-    }
-    let files = fs.readdirSync("./temp/avmix/");
+    const avmixDir = getTempSubdir("avmix");
+    let files = fs.readdirSync(avmixDir);
     if (
       (!message.reply_message && files.length < 2) ||
       (message.reply_message &&
@@ -155,7 +154,7 @@ Module(
     if (message.reply_message.audio) {
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
-        "./temp/avmix/audio.mp3",
+        getTempPath("avmix/audio.mp3"),
         fs.readFileSync(savedFile)
       );
       return await message.sendReply(Lang.AVMIX_AUDIO_ADDED);
@@ -163,19 +162,19 @@ Module(
     if (message.reply_message.video) {
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
-        "./temp/avmix/video.mp4",
+        getTempPath("avmix/video.mp4"),
         fs.readFileSync(savedFile)
       );
       return await message.sendReply(Lang.AVMIX_VIDEO_ADDED);
     }
     if (files.length >= 2 || !message.reply_message) {
       let video = await avMix(
-        "./temp/avmix/video.mp4",
-        "./temp/avmix/audio.mp3"
+        getTempPath("avmix/video.mp4"),
+        getTempPath("avmix/audio.mp3")
       );
       await message.sendReply(video, "video");
-      await fs.unlinkSync("./temp/avmix/video.mp4");
-      await fs.unlinkSync("./temp/avmix/audio.mp3");
+      await fs.unlinkSync(getTempPath("avmix/video.mp4"));
+      await fs.unlinkSync(getTempPath("avmix/audio.mp3"));
       await fs.unlinkSync("./merged.mp4");
       return;
     }
@@ -189,10 +188,8 @@ Module(
     use: "edit",
   },
   async (message, match) => {
-    if (!fs.existsSync("./temp/vmix")) {
-      fs.mkdirSync("./temp/vmix");
-    }
-    let files = fs.readdirSync("./temp/vmix/");
+    const vmixDir = getTempSubdir("vmix");
+    let files = fs.readdirSync(vmixDir);
     if (
       (!message.reply_message && files.length < 2) ||
       (message.reply_message && !message.reply_message.video)
@@ -201,7 +198,7 @@ Module(
     if (message.reply_message.video && files.length == 1) {
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
-        "./temp/vmix/video1.mp4",
+        getTempPath("vmix/video1.mp4"),
         fs.readFileSync(savedFile)
       );
       return await message.sendReply(
@@ -211,7 +208,7 @@ Module(
     if (message.reply_message.video && files.length == 0) {
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
-        "./temp/vmix/video2.mp4",
+        getTempPath("vmix/video2.mp4"),
         fs.readFileSync(savedFile)
       );
       return await message.sendReply("*Added video 1*");
@@ -238,14 +235,14 @@ Module(
       await message.sendReply("*Merging videos..*");
       await message.send(
         await merge(
-          ["./temp/vmix/video1.mp4", "./temp/vmix/video2.mp4"],
-          "./temp",
+          [getTempPath("vmix/video1.mp4"), getTempPath("vmix/video2.mp4")],
+          getTempSubdir(""),
           "merged.mp4"
         ),
         "video"
       );
-      await fs.unlinkSync("./temp/vmix/video1.mp4");
-      await fs.unlinkSync("./temp/vmix/video2.mp4");
+      await fs.unlinkSync(getTempPath("vmix/video1.mp4"));
+      await fs.unlinkSync(getTempPath("vmix/video2.mp4"));
       return;
     }
   }
@@ -267,10 +264,10 @@ Module(
       .videoFilters("setpts=4*PTS")
       .noAudio()
       .format("mp4")
-      .save("./temp/slowmo.mp4")
+      .save(getTempPath("slowmo.mp4"))
       .on("end", async () => {
         return await message.send(
-          fs.readFileSync("./temp/slowmo.mp4"),
+          fs.readFileSync(getTempPath("slowmo.mp4")),
           "video"
         );
       });
@@ -301,10 +298,10 @@ Module(
     ffmpeg(savedFile)
       .fps(13)
       .videoBitrate(500)
-      .save("./temp/agif.mp4")
+      .save(getTempPath("agif.mp4"))
       .on("end", async () => {
         return await message.client.sendMessage(message.jid, {
-          video: fs.readFileSync("./temp/agif.mp4"),
+          video: fs.readFileSync(getTempPath("agif.mp4")),
           gifPlayback: true,
         });
       });
@@ -329,10 +326,10 @@ Module(
     ffmpeg(savedFile)
       .videoFilters(`minterpolate=fps=${match[1]}:mi_mode=mci:me_mode=bidir`)
       .format("mp4")
-      .save("./temp/interp.mp4")
+      .save(getTempPath("interp.mp4"))
       .on("end", async () => {
         return await message.send(
-          fs.readFileSync("./temp/interp.mp4"),
+          fs.readFileSync(getTempPath("interp.mp4")),
           "video"
         );
       });

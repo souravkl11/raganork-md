@@ -5,6 +5,7 @@ const fileType = require("file-type");
 const { MODE } = require("../config");
 const path = require("path");
 const fs = require("fs");
+const { getTempSubdir, getTempPath } = require("../core/helpers");
 
 const getFileType = async (buffer) => {
   try {
@@ -23,8 +24,8 @@ const getFileType = async (buffer) => {
   }
 };
 
-const imageInputDirectory = "./temp/pdf";
-const finalPdfOutputPath = "./temp/converted.pdf";
+const imageInputDirectory = getTempSubdir("pdf");
+const finalPdfOutputPath = getTempPath("converted.pdf");
 
 Module(
   {
@@ -35,10 +36,6 @@ Module(
     usage: ".pdf help",
   },
   async (message, commandArguments) => {
-    if (!fs.existsSync(imageInputDirectory)) {
-      fs.mkdirSync(imageInputDirectory, { recursive: true });
-    }
-
     const subCommand = commandArguments[1]?.toLowerCase();
 
     if (subCommand === "help") {

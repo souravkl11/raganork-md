@@ -5,6 +5,7 @@ const { bass, sticker, addExif, attp, gtts, gis, aiTTS } = require("./utils");
 const config = require("../config");
 const axios = require("axios");
 const fileType = require("file-type");
+const { getTempPath, getTempSubdir } = require("../core/helpers");
 
 const getFileType = async (buffer) => {
   try {
@@ -127,24 +128,16 @@ Module(
     use: "edit",
     desc: Lang.MP3_DESC,
   },
-  async (message, match) => {
-    if (
-      !message.reply_message ||
-      (!message.reply_message.video && !message.reply_message.audio)
-    )
-      return await message.sendReply(Lang.MP3_NEED_REPLY);
-    var { seconds } =
-      message.quoted.message[Object.keys(message.quoted.message)[0]];
-    if (seconds > 120)
-      await message.sendReply(
-        `_Alert: Duration more than 2 mins. This process may fail or take much more time!_`
-      );
-    var savedFile = await message.reply_message.download();
+  async (message) => {
+    if (!message.reply_message || (!message.reply_message.video && !message.reply_message.audio && !message.reply_message.document )) return await message.sendReply(Lang.MP3_NEED_REPLY);
+    //let { seconds } = message.quoted?.message?.[Object.keys(message.quoted?.message)?.[0]];
+    //if (seconds > 120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`);
+    let savedFile = await message.reply_message.download();
     ffmpeg(savedFile)
-      .save("./temp/tomp3.mp3")
+      .save(getTempPath("tomp3.mp3"))
       .on("end", async () => {
         await message.sendMessage(
-          fs.readFileSync("./temp/tomp3.mp3"),
+          fs.readFileSync(getTempPath("tomp3.mp3")),
           "audio",
           { quoted: message.quoted }
         );
@@ -171,11 +164,15 @@ Module(
     ffmpeg(savedFile)
       .audioFilter("atempo=0.5")
       .outputOptions(["-y", "-af", "asetrate=44100*0.9"])
-      .save("./temp/slow.mp3")
+      .save(getTempPath("slow.mp3"))
       .on("end", async () => {
-        await message.sendMessage(fs.readFileSync("./temp/slow.mp3"), "audio", {
-          quoted: message.quoted,
-        });
+        await message.sendMessage(
+          fs.readFileSync(getTempPath("slow.mp3")),
+          "audio",
+          {
+            quoted: message.quoted,
+          }
+        );
       });
   }
 );
@@ -199,11 +196,15 @@ Module(
     ffmpeg(savedFile)
       .audioFilter("atempo=0.5")
       .outputOptions(["-y", "-af", "asetrate=44100*1.2"])
-      .save("./temp/sped.mp3")
+      .save(getTempPath("sped.mp3"))
       .on("end", async () => {
-        await message.sendMessage(fs.readFileSync("./temp/sped.mp3"), "audio", {
-          quoted: message.quoted,
-        });
+        await message.sendMessage(
+          fs.readFileSync(getTempPath("sped.mp3")),
+          "audio",
+          {
+            quoted: message.quoted,
+          }
+        );
       });
   }
 );
@@ -275,9 +276,7 @@ Module(
   async (message, match) => {
     var query = match[1] || message.reply_message.text;
     if (!query) return await message.sendReply(Lang.TTS_NEED_REPLY);
-    if (!fs.existsSync("./temp/tts")) {
-      fs.mkdirSync("./temp/tts");
-    }
+    const ttsDir = getTempSubdir("tts");
     query = query.replace("tts", "");
     var lng = "en";
     if (/[\u0D00-\u0D7F]+/.test(query)) lng = "ml";
@@ -535,9 +534,9 @@ Module(
 
       const savedFile = await message.reply_message.download();
       const isVideo = message.reply_message.video;
-      const outputPath = `./temp/square_${Date.now()}.${
-        isVideo ? "mp4" : "jpg"
-      }`;
+      const outputPath = getTempPath(
+        `square_${Date.now()}.${isVideo ? "mp4" : "jpg"}`
+      );
 
       const command = ffmpeg(savedFile)
         .outputOptions(["-y"])
@@ -653,9 +652,9 @@ Module(
 
       const savedFile = await message.reply_message.download();
       const isVideo = message.reply_message.video;
-      const outputPath = `./temp/resized_${Date.now()}.${
-        isVideo ? "mp4" : "jpg"
-      }`;
+      const outputPath = getTempPath(
+        `resized_${Date.now()}.${isVideo ? "mp4" : "jpg"}`
+      );
 
       let targetWidth, targetHeight;
 
@@ -774,9 +773,9 @@ Module(
 
       const savedFile = await message.reply_message.download();
       const isVideo = message.reply_message.video;
-      const outputPath = `./temp/compressed_${Date.now()}.${
-        isVideo ? "mp4" : "jpg"
-      }`;
+      const outputPath = getTempPath(
+        `compressed_${Date.now()}.${isVideo ? "mp4" : "jpg"}`
+      );
 
       const command = ffmpeg(savedFile).outputOptions(["-y"]);
 

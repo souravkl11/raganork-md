@@ -13,13 +13,11 @@ const { BotManager } = require("./core/manager");
 const config = require("./config");
 const { SESSION, logger } = config;
 const http = require("http");
+const { ensureTempDir, TEMP_DIR } = require("./core/helpers");
 
 async function main() {
-  if (!fs.existsSync("./temp")) {
-    fs.mkdirSync("./temp", { recursive: true });
-    console.log("Created temporary directory at ./temp");
-    logger.info("Created temporary directory at ./temp");
-  }
+  ensureTempDir();
+  logger.info(`Created temporary directory at ${TEMP_DIR}`);
   console.log(`Raganork v${require("./package.json").version}`);
   console.log(`- Configured sessions: ${SESSION.join(", ")}`);
   logger.info(`Configured sessions: ${SESSION.join(", ")}`);

@@ -1,5 +1,28 @@
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+
+const TEMP_DIR = path.join(os.tmpdir(), "raganork");
+
+function ensureTempDir() {
+  if (!fs.existsSync(TEMP_DIR)) {
+    fs.mkdirSync(TEMP_DIR, { recursive: true });
+  }
+  return TEMP_DIR;
+}
+
+function getTempPath(filename) {
+  ensureTempDir();
+  return path.join(TEMP_DIR, filename);
+}
+
+function getTempSubdir(subdir) {
+  const subdirPath = path.join(TEMP_DIR, subdir);
+  if (!fs.existsSync(subdirPath)) {
+    fs.mkdirSync(subdirPath, { recursive: true });
+  }
+  return subdirPath;
+}
 
 async function loadBaileys() {
   try {
@@ -132,4 +155,8 @@ module.exports = {
   genThumb,
   convertToOgg,
   toBuffer,
+  TEMP_DIR,
+  ensureTempDir,
+  getTempPath,
+  getTempSubdir,
 };
