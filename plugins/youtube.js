@@ -13,7 +13,7 @@ const config = require("../config");
 const MODE = config.MODE;
 const fromMe = MODE === "public" ? false : true;
 
-const VIDEO_SIZE_LIMIT = 150 * 1024 * 1024; // 150 MB
+const VIDEO_SIZE_LIMIT = 150 * 1024 * 1024;
 
 function formatBytes(bytes) {
   if (bytes === 0) return "0 B";
@@ -32,7 +32,6 @@ function formatViews(views) {
   return views?.toString() || "N/A";
 }
 
-// .song command - Search and download audio
 Module(
   {
     pattern: "song ?(.*)",
@@ -50,7 +49,7 @@ Module(
     }
 
     try {
-      const searchMsg = await message.sendReply("_ Searching YouTube..._");
+      const searchMsg = await message.sendReply("_Searching YouTube..._");
       const results = await searchYoutube(query, 10);
 
       if (!results || results.length === 0) {
@@ -82,7 +81,6 @@ Module(
   }
 );
 
-// .yts command - Search with video info and quality selection
 Module(
   {
     pattern: "yts ?(.*)",
@@ -100,7 +98,7 @@ Module(
     }
 
     try {
-      const searchMsg = await message.sendReply("_ Searching YouTube..._");
+      const searchMsg = await message.sendReply("_Searching YouTube..._");
       const results = await searchYoutube(query, 10);
 
       if (!results || results.length === 0) {
@@ -132,7 +130,6 @@ Module(
   }
 );
 
-// .ytv command - Download video with quality selection
 Module(
   {
     pattern: "ytv ?(.*)",
@@ -150,7 +147,7 @@ Module(
 
     if (!url || (!url.includes("youtube.com") && !url.includes("youtu.be"))) {
       return await message.sendReply(
-        "_Please provide a valid YouTube link!_\n_Example: .ytv https://youtube.com/watch?v=xxxxx_"
+        "_Please provide a valid YouTube link!_\n_Example: .ytv https://youtube.com/watch?v=xxxxx or https://youtube.com/shorts/xxxxx_"
       );
     }
 
@@ -169,8 +166,13 @@ Module(
         ...new Set(videoFormats.map((f) => f.quality)),
       ].slice(0, 5);
 
-      let qualityText = "Select Video Quality\n\n";
-      qualityText += `_*${info.title}*_\n\n`;
+      const videoIdMatch = url.match(
+        /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&\s/?]+)/
+      );
+      const videoId = videoIdMatch ? videoIdMatch[1] : "";
+
+      let qualityText = "_*Select Video Quality*_\n\n";
+      qualityText += `_*${info.title}*_\n\n(${videoId})\n\n`;
 
       uniqueQualities.forEach((quality, index) => {
         const format = videoFormats.find((f) => f.quality === quality);
@@ -182,13 +184,6 @@ Module(
 
       qualityText += "\n_Reply with a number to download_";
 
-      // Extract video ID and sneak it in - much smaller than base64
-      const videoIdMatch = url.match(
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/
-      );
-      const videoId = videoIdMatch ? videoIdMatch[1] : "";
-      qualityText += `\n${videoId}`;
-
       await message.edit(qualityText, message.jid, infoMsg.key);
     } catch (error) {
       console.error("YTV info error:", error);
@@ -199,7 +194,6 @@ Module(
   }
 );
 
-// .video command - Direct download at 360p
 Module(
   {
     pattern: "video ?(.*)",
@@ -229,7 +223,7 @@ Module(
       const result = await downloadVideo(url, "360p");
       videoPath = result.path;
 
-      await message.edit("_ Uploading video..._", message.jid, downloadMsg.key);
+      await message.edit("_Uploading video..._", message.jid, downloadMsg.key);
 
       const stats = fs.statSync(videoPath);
       const fileBuffer = fs.readFileSync(videoPath);
@@ -248,7 +242,7 @@ Module(
         });
       }
 
-      await message.edit("_ Download complete!_", message.jid, downloadMsg.key);
+      await message.edit("_Download complete!_", message.jid, downloadMsg.key);
 
       if (fs.existsSync(videoPath)) {
         fs.unlinkSync(videoPath);
@@ -256,7 +250,7 @@ Module(
     } catch (error) {
       console.error("Video download error:", error);
       if (downloadMsg) {
-        await message.edit("_ Download failed!_", message.jid, downloadMsg.key);
+        await message.edit("_Download failed!_", message.jid, downloadMsg.key);
       } else {
         await message.sendReply("_Download failed. Please try again._");
       }
@@ -268,7 +262,6 @@ Module(
   }
 );
 
-// .play command - Direct play first result
 Module(
   {
     pattern: "play ?(.*)",
@@ -342,7 +335,7 @@ Module(
     } catch (error) {
       console.error("Play error:", error);
       if (downloadMsg) {
-        await message.edit("_ Download failed!_", message.jid, downloadMsg.key);
+        await message.edit("_Download failed!_", message.jid, downloadMsg.key);
       } else {
         await message.sendReply("_Download failed. Please try again._");
       }
@@ -354,7 +347,6 @@ Module(
   }
 );
 
-// Reply handler for interactive commands
 Module(
   {
     on: "text",
@@ -372,22 +364,18 @@ Module(
       return;
     }
     const repliedText = message.reply_message.message;
-
-    // handle .song
     if (
-      repliedText.includes(" YouTube Search Results") &&
-      repliedText.includes("download audio")
+      repliedText.includes("YouTube Search Results") &&
+      repliedText.includes("to download audio")
     ) {
       if (selectedNumber < 1 || selectedNumber > 10) {
         return await message.sendReply("_Please select a number between 1-10_");
       }
 
-      // Extract video info from the replied message
       const lines = repliedText.split("\n");
       let videoTitle = null;
       let videoUrl = null;
 
-      // Parse the search results to get the selected video
       try {
         const queryMatch = repliedText.match(
           /Found \d+ results for:_\s*\*(.+?)\*/
@@ -429,10 +417,8 @@ Module(
           );
 
           const audioBuffer = fs.readFileSync(audioPath);
-          await message.sendReply(audioBuffer, "document", {
-            fileName: `${result.title}.mp3`,
+          await message.sendReply(audioBuffer, "audio", {
             mimetype: "audio/mpeg",
-            caption: `_*${result.title}*_\n\n_Reply with_ \`.mp3\` _to make it playable audio_`,
           });
 
           await message.edit(
@@ -448,7 +434,7 @@ Module(
           console.error("Song download error:", error);
           if (downloadMsg) {
             await message.edit(
-              "_ Download failed!_",
+              "_Download failed!_",
               message.jid,
               downloadMsg.key
             );
@@ -462,11 +448,8 @@ Module(
         console.error("Song selection error:", error);
         await message.sendReply("_Failed to process your selection._");
       }
-    }
-
-    // Handle .yts command replies (first stage - showing video info)
-    else if (
-      repliedText.includes(" YouTube Search Results") &&
+    } else if (
+      repliedText.includes("YouTube Search Results") &&
       repliedText.includes("see video details")
     ) {
       if (selectedNumber < 1 || selectedNumber > 10) {
@@ -488,7 +471,6 @@ Module(
 
         const selectedVideo = results[selectedNumber - 1];
 
-        // Download thumbnail and send with video info
         const axios = require("axios");
         const thumbnailResponse = await axios.get(selectedVideo.thumbnail, {
           responseType: "arraybuffer",
@@ -503,7 +485,7 @@ Module(
         caption += `*URL:* ${selectedVideo.url}\n\n`;
         caption += "_Reply with:_\n";
         caption += "*1.* Audio\n";
-        caption += "*2.* Video (360p)";
+        caption += "*2.* Video";
 
         await message.sendReply(thumbnailBuffer, "image", {
           caption: caption,
@@ -512,13 +494,9 @@ Module(
         console.error("YTS video info error:", error);
         await message.sendReply("_Failed to fetch video info._");
       }
-    }
-
-    // Handle .yts command replies (second stage - download selection)
-    else if (
+    } else if (
       repliedText.includes("Reply with:") &&
-      repliedText.includes("Audio ") &&
-      repliedText.includes("Video ")
+      repliedText.includes("* Audio")
     ) {
       if (selectedNumber !== 1 && selectedNumber !== 2) {
         return await message.sendReply(
@@ -527,8 +505,7 @@ Module(
       }
 
       try {
-        // Extract URL from the caption
-        const urlMatch = repliedText.match(/\* URL:\*\s*(https?:\/\/\S+)/m);
+        const urlMatch = repliedText.match(/\*URL:\*\s*(https?:\/\/\S+)/m);
         if (!urlMatch) return;
 
         const url = urlMatch[1].trim();
@@ -539,7 +516,6 @@ Module(
         let filePath;
 
         if (selectedNumber === 1) {
-          // Download audio
           try {
             downloadMsg = await message.sendReply(`_Downloading audio..._`);
 
@@ -562,14 +538,12 @@ Module(
             );
 
             const audioBuffer = fs.readFileSync(filePath);
-            await message.sendReply(audioBuffer, "document", {
-              fileName: `${result.title}.mp3`,
+            await message.sendReply(audioBuffer, "audio", {
               mimetype: "audio/mpeg",
-              caption: `_*${result.title}*_\n\n_Reply with_ \`.mp3\` _to make it playable audio_`,
             });
 
             await message.edit(
-              "_ Download complete!_",
+              "_Download complete!_",
               message.jid,
               downloadMsg.key
             );
@@ -581,7 +555,7 @@ Module(
             console.error("YTS audio download error:", error);
             if (downloadMsg) {
               await message.edit(
-                "_ Download failed!_",
+                "_Download failed!_",
                 message.jid,
                 downloadMsg.key
               );
@@ -592,7 +566,6 @@ Module(
             }
           }
         } else if (selectedNumber === 2) {
-          // Download video
           try {
             downloadMsg = await message.sendReply(`_Downloading video..._`);
 
@@ -623,7 +596,7 @@ Module(
             }
 
             await message.edit(
-              "_ Download complete!_",
+              "_Download complete!_",
               message.jid,
               downloadMsg.key
             );
@@ -635,7 +608,7 @@ Module(
             console.error("YTS video download error:", error);
             if (downloadMsg) {
               await message.edit(
-                "_ Download failed!_",
+                "_Download failed!_",
                 message.jid,
                 downloadMsg.key
               );
@@ -650,11 +623,8 @@ Module(
         console.error("YTS download selection error:", error);
         await message.sendReply("_Failed to process download._");
       }
-    }
-
-    // Handle .ytv command replies (quality selection)
-    else if (
-      repliedText.includes(" Select Video Quality") &&
+    } else if (
+      repliedText.includes("Select Video Quality") &&
       repliedText.includes("Reply with a number")
     ) {
       if (selectedNumber < 1 || selectedNumber > 5) {
@@ -664,9 +634,24 @@ Module(
       }
 
       try {
-        // Extract embedded video ID from last line
         const lines = repliedText.split("\n");
-        const videoId = lines[lines.length - 1].trim();
+        let videoId = "";
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+
+          if (
+            line.startsWith("(") &&
+            line.endsWith(")") &&
+            line.length >= 13 &&
+            !line.includes("Select") &&
+            !line.includes("Reply") &&
+            !line.match(/^\*\d+\./)
+          ) {
+            videoId = line.replace(/[()]/g, "").trim();
+            if (videoId.length >= 10) break;
+          }
+        }
 
         if (!videoId || videoId.length < 10) {
           return await message.sendReply("_Failed to retrieve video ID._");
@@ -674,7 +659,6 @@ Module(
 
         const url = `https://www.youtube.com/watch?v=${videoId}`;
 
-        // Extract title and qualities from replied message
         const titleMatch = repliedText.match(/_\*([^*]+)\*_/);
         if (!titleMatch) return;
 
@@ -701,7 +685,7 @@ Module(
           videoPath = result.path;
 
           await message.edit(
-            "_ Uploading video..._",
+            "_Uploading video..._",
             message.jid,
             downloadMsg.key
           );
@@ -724,7 +708,7 @@ Module(
           }
 
           await message.edit(
-            "_ Download complete!_",
+            "_Download complete!_",
             message.jid,
             downloadMsg.key
           );
@@ -736,7 +720,7 @@ Module(
           console.error("YTV video download error:", error);
           if (downloadMsg) {
             await message.edit(
-              "_ Download failed!_",
+              "_Download failed!_",
               message.jid,
               downloadMsg.key
             );
