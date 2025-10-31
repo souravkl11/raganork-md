@@ -304,17 +304,22 @@ Module(
 
 Module(
   {
-    pattern: "play ?(.*)",
+    pattern: "yta ?(.*)",
     fromMe: fromMe,
-    desc: "Play audio from YouTube search",
-    usage: ".play <song name>",
+    desc: "Download YouTube audio as document",
+    usage: ".yta <link>",
     use: "download",
   },
   async (message, match) => {
-    const query = match[1];
-    if (!query) {
+    let url = match[1] || message.reply_message?.text;
+
+    if (url && /\bhttps?:\/\/\S+/gi.test(url)) {
+      url = url.match(/\bhttps?:\/\/\S+/gi)[0];
+    }
+
+    if (!url || (!url.includes("youtube.com") && !url.includes("youtu.be"))) {
       return await message.sendReply(
-        "_Please provide a song name!_\n_Example: .play faded alan walker_"
+        "_Please provide a valid YouTube link!_\n_Example: .yta https://youtube.com/watch?v=xxxxx_"
       );
     }
 
@@ -322,29 +327,12 @@ Module(
     let audioPath;
 
     try {
-      downloadMsg = await message.sendReply("_Searching..._");
-      const results = await searchYoutube(query, 1);
-
-      if (!results || results.length === 0) {
-        return await message.edit(
-          "_No results found!_",
-          message.jid,
-          downloadMsg.key
-        );
-      }
-
-      const video = results[0];
-      await message.edit(
-        `_Downloading *${video.title}*..._`,
-        message.jid,
-        downloadMsg.key
-      );
-
-      const result = await downloadAudio(video.url);
+      downloadMsg = await message.sendReply("_Downloading audio..._");
+      const result = await downloadAudio(url);
       audioPath = result.path;
 
       await message.edit(
-        `_Converting to MP3..._`,
+        "_Converting to MP3..._",
         message.jid,
         downloadMsg.key
       );
@@ -352,28 +340,162 @@ Module(
       const mp3Path = await convertM4aToMp3(audioPath);
       audioPath = mp3Path;
 
-      await message.edit(
-        `_Sending *${video.title}*..._`,
-        message.jid,
-        downloadMsg.key
-      );
+      await message.edit("_Uploading audio..._", message.jid, downloadMsg.key);
 
       await message.sendReply(
         { stream: fs.createReadStream(audioPath) },
-        "audio",
+        "document",
         {
+          fileName: `${result.title}.mp3`,
           mimetype: "audio/mpeg",
+          caption: `_*${result.title}*_`,
         }
       );
 
-      await message.edit(
-        `_Downloaded *${video.title}*!_`,
-        message.jid,
-        downloadMsg.key
-      );
+      await message.edit("_Download complete!_", message.jid, downloadMsg.key);
 
       if (fs.existsSync(audioPath)) {
         fs.unlinkSync(audioPath);
+      }
+    } catch (error) {
+      console.error("YTA download error:", error);
+      if (downloadMsg) {
+        await message.edit("_Download failed!_", message.jid, downloadMsg.key);
+      } else {
+        await message.sendReply("_Download failed. Please try again._");
+      }
+
+      if (audioPath && fs.existsSync(audioPath)) {
+        fs.unlinkSync(audioPath);
+      }
+    }
+  }
+);
+
+Module(
+  {
+    pattern: "play ?(.*)",
+    fromMe: fromMe,
+    desc: "Play audio from YouTube search or link",
+    usage: ".play <song name or link>",
+    use: "download",
+  },
+  async (message, match) => {
+    let input = match[1] || message.reply_message?.text;
+    if (!input) {
+      return await message.sendReply(
+        "_Please provide a song name or link!_\n_Example: .play faded alan walker_"
+      );
+    }
+
+    let downloadMsg;
+    let audioPath;
+
+    try {
+      let url = null;
+      if (/\bhttps?:\/\/\S+/gi.test(input)) {
+        const urlMatch = input.match(/\bhttps?:\/\/\S+/gi);
+        if (
+          urlMatch &&
+          (urlMatch[0].includes("youtube.com") ||
+            urlMatch[0].includes("youtu.be"))
+        ) {
+          url = urlMatch[0];
+        }
+      }
+
+      if (url) {
+        downloadMsg = await message.sendReply("_Downloading audio..._");
+        const result = await downloadAudio(url);
+        audioPath = result.path;
+
+        await message.edit(
+          "_Converting to MP3..._",
+          message.jid,
+          downloadMsg.key
+        );
+
+        const mp3Path = await convertM4aToMp3(audioPath);
+        audioPath = mp3Path;
+
+        await message.edit(
+          `_Sending *${result.title}*..._`,
+          message.jid,
+          downloadMsg.key
+        );
+
+        await message.sendReply(
+          { stream: fs.createReadStream(audioPath) },
+          "audio",
+          {
+            mimetype: "audio/mpeg",
+          }
+        );
+
+        await message.edit(
+          `_Downloaded *${result.title}*!_`,
+          message.jid,
+          downloadMsg.key
+        );
+
+        if (fs.existsSync(audioPath)) {
+          fs.unlinkSync(audioPath);
+        }
+      } else {
+        const query = input;
+        downloadMsg = await message.sendReply("_Searching..._");
+        const results = await searchYoutube(query, 1);
+
+        if (!results || results.length === 0) {
+          return await message.edit(
+            "_No results found!_",
+            message.jid,
+            downloadMsg.key
+          );
+        }
+
+        const video = results[0];
+        await message.edit(
+          `_Downloading *${video.title}*..._`,
+          message.jid,
+          downloadMsg.key
+        );
+
+        const result = await downloadAudio(video.url);
+        audioPath = result.path;
+
+        await message.edit(
+          `_Converting to MP3..._`,
+          message.jid,
+          downloadMsg.key
+        );
+
+        const mp3Path = await convertM4aToMp3(audioPath);
+        audioPath = mp3Path;
+
+        await message.edit(
+          `_Sending *${video.title}*..._`,
+          message.jid,
+          downloadMsg.key
+        );
+
+        await message.sendReply(
+          { stream: fs.createReadStream(audioPath) },
+          "audio",
+          {
+            mimetype: "audio/mpeg",
+          }
+        );
+
+        await message.edit(
+          `_Downloaded *${video.title}*!_`,
+          message.jid,
+          downloadMsg.key
+        );
+
+        if (fs.existsSync(audioPath)) {
+          fs.unlinkSync(audioPath);
+        }
       }
     } catch (error) {
       console.error("Play error:", error);
