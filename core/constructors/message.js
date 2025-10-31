@@ -381,22 +381,12 @@ class Message extends Base {
       );
     }
   }
-  async edit(text = "", _jid = false, _key = false) {
-    return await this.client.relayMessage(
-      _jid || this.jid,
-      {
-        protocolMessage: {
-          key: _key,
-          type: 14,
-          editedMessage: {
-            conversation: text,
-          },
-        },
-      },
-      {}
-    );
+  async edit(text = "", _jid = this.jid, _key = false) {
+    return await this.client.sendMessage(_jid, {
+      text,
+      edit: _key,
+    });
   }
-
   async getThumb(url) {
     return await genThumb(url);
   }
