@@ -158,7 +158,10 @@ Module(
       const videoFormats = info.formats
         .filter((f) => f.type === "video" && f.quality)
         .sort((a, b) => {
-          const getRes = (q) => parseInt(q.replace("p", ""));
+          const getRes = (q) => {
+            const match = q.match(/(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+          };
           return getRes(b.quality) - getRes(a.quality);
         });
 
@@ -169,17 +172,47 @@ Module(
       const videoIdMatch = url.match(
         /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&\s/?]+)/
       );
-      const videoId = videoIdMatch ? videoIdMatch[1] : "";
+      const videoId = videoIdMatch ? videoIdMatch[1] : info.videoId || "";
 
       let qualityText = "_*Select Video Quality*_\n\n";
       qualityText += `_*${info.title}*_\n\n(${videoId})\n\n`;
 
+      if (uniqueQualities.length === 0) {
+        return await message.edit(
+          "_No video formats available for this video._",
+          message.jid,
+          infoMsg.key
+        );
+      }
+
       uniqueQualities.forEach((quality, index) => {
         const format = videoFormats.find((f) => f.quality === quality);
-        const sizeInfo = format.filesize
-          ? ` - _${formatBytes(format.filesize)}_`
-          : "";
-        qualityText += `*${index + 1}.* ${quality}${sizeInfo}\n`;
+        const audioFormat = info.formats.find((f) => f.type === "audio");
+
+        let sizeInfo = "";
+        if (format.size && audioFormat?.size) {
+          // Parse sizes and estimate total
+          const parseSize = (sizeStr) => {
+            const match = sizeStr.match(/([\d.]+)\s*(KB|MB|GB)/i);
+            if (!match) return 0;
+            const value = parseFloat(match[1]);
+            const unit = match[2].toUpperCase();
+            if (unit === "KB") return value * 1024;
+            if (unit === "MB") return value * 1024 * 1024;
+            if (unit === "GB") return value * 1024 * 1024 * 1024;
+            return value;
+          };
+
+          const videoSize = parseSize(format.size);
+          const audioSize = parseSize(audioFormat.size);
+          const totalSize = videoSize + audioSize;
+
+          if (totalSize > 0) {
+            sizeInfo = ` ~ _${formatBytes(totalSize)}_`;
+          }
+        }
+
+        qualityText += `*${index + 1}.* _*${quality}*_${sizeInfo}\n`;
       });
 
       qualityText += "\n_Reply with a number to download_";
@@ -226,20 +259,27 @@ Module(
       await message.edit("_Uploading video..._", message.jid, downloadMsg.key);
 
       const stats = fs.statSync(videoPath);
-      const fileBuffer = fs.readFileSync(videoPath);
 
       if (stats.size > VIDEO_SIZE_LIMIT) {
-        await message.sendReply(fileBuffer, "document", {
-          fileName: `${result.title}.mp4`,
-          mimetype: "video/mp4",
-          caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
-            stats.size
-          )}_\n_Quality: 360p_`,
-        });
+        await message.sendReply(
+          { stream: fs.createReadStream(videoPath) },
+          "document",
+          {
+            fileName: `${result.title}.mp4`,
+            mimetype: "video/mp4",
+            caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
+              stats.size
+            )}_\n_Quality: 360p_`,
+          }
+        );
       } else {
-        await message.sendReply(fileBuffer, "video", {
-          caption: `_*${result.title}*_\n\n_Quality: 360p_`,
-        });
+        await message.sendReply(
+          { stream: fs.createReadStream(videoPath) },
+          "video",
+          {
+            caption: `_*${result.title}*_\n\n_Quality: 360p_`,
+          }
+        );
       }
 
       await message.edit("_Download complete!_", message.jid, downloadMsg.key);
@@ -318,10 +358,13 @@ Module(
         downloadMsg.key
       );
 
-      const audioBuffer = fs.readFileSync(audioPath);
-      await message.sendReply(audioBuffer, "audio", {
-        mimetype: "audio/mpeg",
-      });
+      await message.sendReply(
+        { stream: fs.createReadStream(audioPath) },
+        "audio",
+        {
+          mimetype: "audio/mpeg",
+        }
+      );
 
       await message.edit(
         `_Downloaded *${video.title}*!_`,
@@ -416,10 +459,13 @@ Module(
             downloadMsg.key
           );
 
-          const audioBuffer = fs.readFileSync(audioPath);
-          await message.sendReply(audioBuffer, "audio", {
-            mimetype: "audio/mpeg",
-          });
+          await message.sendReply(
+            { stream: fs.createReadStream(audioPath) },
+            "audio",
+            {
+              mimetype: "audio/mpeg",
+            }
+          );
 
           await message.edit(
             "_Download complete!_",
@@ -537,10 +583,13 @@ Module(
               downloadMsg.key
             );
 
-            const audioBuffer = fs.readFileSync(filePath);
-            await message.sendReply(audioBuffer, "audio", {
-              mimetype: "audio/mpeg",
-            });
+            await message.sendReply(
+              { stream: fs.createReadStream(filePath) },
+              "audio",
+              {
+                mimetype: "audio/mpeg",
+              }
+            );
 
             await message.edit(
               "_Download complete!_",
@@ -579,20 +628,27 @@ Module(
             );
 
             const stats = fs.statSync(filePath);
-            const fileBuffer = fs.readFileSync(filePath);
 
             if (stats.size > VIDEO_SIZE_LIMIT) {
-              await message.sendReply(fileBuffer, "document", {
-                fileName: `${result.title}.mp4`,
-                mimetype: "video/mp4",
-                caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
-                  stats.size
-                )}_\n_Quality: 360p_`,
-              });
+              await message.sendReply(
+                { stream: fs.createReadStream(filePath) },
+                "document",
+                {
+                  fileName: `${result.title}.mp4`,
+                  mimetype: "video/mp4",
+                  caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
+                    stats.size
+                  )}_\n_Quality: 360p_`,
+                }
+              );
             } else {
-              await message.sendReply(fileBuffer, "video", {
-                caption: `_*${result.title}*_\n\n_Quality: 360p_`,
-              });
+              await message.sendReply(
+                { stream: fs.createReadStream(filePath) },
+                "video",
+                {
+                  caption: `_*${result.title}*_\n\n_Quality: 360p_`,
+                }
+              );
             }
 
             await message.edit(
@@ -691,20 +747,27 @@ Module(
           );
 
           const stats = fs.statSync(videoPath);
-          const fileBuffer = fs.readFileSync(videoPath);
 
           if (stats.size > VIDEO_SIZE_LIMIT) {
-            await message.sendReply(fileBuffer, "document", {
-              fileName: `${result.title}.mp4`,
-              mimetype: "video/mp4",
-              caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
-                stats.size
-              )}_\n_Quality: ${selectedQuality}_`,
-            });
+            await message.sendReply(
+              { stream: fs.createReadStream(videoPath) },
+              "document",
+              {
+                fileName: `${result.title}.mp4`,
+                mimetype: "video/mp4",
+                caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
+                  stats.size
+                )}_\n_Quality: ${selectedQuality}_`,
+              }
+            );
           } else {
-            await message.sendReply(fileBuffer, "video", {
-              caption: `_*${result.title}*_\n\n_Quality: ${selectedQuality}_`,
-            });
+            await message.sendReply(
+              { stream: fs.createReadStream(videoPath) },
+              "video",
+              {
+                caption: `_*${result.title}*_\n\n_Quality: ${selectedQuality}_`,
+              }
+            );
           }
 
           await message.edit(
