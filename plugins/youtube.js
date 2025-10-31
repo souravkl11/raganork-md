@@ -261,7 +261,7 @@ Module(
       const stats = fs.statSync(videoPath);
 
       if (stats.size > VIDEO_SIZE_LIMIT) {
-        await message.sendReply(
+        await message.sendMessage(
           { stream: fs.createReadStream(videoPath) },
           "document",
           {
@@ -342,7 +342,7 @@ Module(
 
       await message.edit("_Uploading audio..._", message.jid, downloadMsg.key);
 
-      await message.sendReply(
+      await message.sendMessage(
         { stream: fs.createReadStream(audioPath) },
         "document",
         {
@@ -752,7 +752,7 @@ Module(
             const stats = fs.statSync(filePath);
 
             if (stats.size > VIDEO_SIZE_LIMIT) {
-              await message.sendReply(
+              await message.sendMessage(
                 { stream: fs.createReadStream(filePath) },
                 "document",
                 {
@@ -871,7 +871,7 @@ Module(
           const stats = fs.statSync(videoPath);
 
           if (stats.size > VIDEO_SIZE_LIMIT) {
-            await message.sendReply(
+            await message.sendMessage(
               { stream: fs.createReadStream(videoPath) },
               "document",
               {
