@@ -150,7 +150,7 @@ Module(
 );
 Module(
   {
-    pattern: "del",
+    pattern: "delete",
     fromMe: true,
     desc: "Deletes message for everyone. Supports admin deletion",
   },

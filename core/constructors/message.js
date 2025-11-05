@@ -37,6 +37,7 @@ class Message extends Base {
     this.jid = data.key.remoteJid;
     this.isGroup = data.key.remoteJid.endsWith("@g.us");
     this.fromMe = data.key.fromMe;
+    this.fromBot = data.key.id?.startsWith('3EB0');
 
     if (this.isGroup) {
       this.sender = data.key.participant || data.key.participantAlt;
@@ -158,6 +159,13 @@ class Message extends Base {
       };
     }
     return null;
+  }
+
+  async react(emoji, key = this.data.key) {
+    if (!emoji) throw new Error("Emoji is required for reaction.");
+    return await this.client.sendMessage(key.remoteJid, {
+      react: { text: emoji, key },
+    });
   }
 
   async sendMessage(content, type = "text", options = {}) {

@@ -22,7 +22,6 @@ const getFileType = async (buffer) => {
 
     return await fileType(buffer);
   } catch (error) {
-    console.log("file-type detection failed:", error);
     return null;
   }
 };
@@ -32,11 +31,6 @@ const isFromMe = botConfig.MODE === "public" ? false : true;
 const commandHandlerPrefix =
   botConfig.HANDLERS !== "false" ? botConfig.HANDLERS.split("")[0] : "";
 
-function disableCertificateCheck() {
-  if (process.env.NODE_TLS_REJECT_UNAUTHORIZED != 0) {
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
-  }
-}
 async function checkRedirect(url) {
   let split_url = url.split("/");
   if (split_url.includes("share")) {
@@ -88,7 +82,9 @@ Module(
         );
       }
       if (downloadResult === false)
-        return await message.sendReply("*Download failed*");
+        return await message.sendReply(
+          "_Something went wrong, Please try again!_"
+        );
 
       const quotedMessage = message.reply_message
         ? message.quoted
@@ -130,24 +126,16 @@ Module(
     if (/\bhttps?:\/\/\S+/gi.test(videoLink)) {
       videoLink = videoLink.match(/\bhttps?:\/\/\S+/gi)[0];
     }
-    if (!videoLink) return await message.sendReply("*Need Facebook link*");
-
-    const facebookDownloadResult = await fb(videoLink);
-    const sentMessage = await message.sendReply(
-      "_*Hold on, downloading will take some time..*_"
-    );
-
-    await message.sendReply(
-      {
-        url: facebookDownloadResult.url,
-      },
-      "video"
-    );
-    return await message.edit(
-      "*_Download complete!_*",
-      message.jid,
-      sentMessage.key
-    );
+    if (!videoLink) return await message.sendReply("_Need facebook link_");
+    try {
+      const { url } = await fb(videoLink);
+      return await message.sendReply({ url }, "video");
+    } catch (e) {
+      console.error("Facebook download error:", e.message);
+      return await message.sendReply(
+        "_Something went wrong, Please try again!_"
+      );
+    }
   }
 );
 
@@ -287,7 +275,6 @@ Module(
             successfulDownloads++;
           }
         } catch (error) {
-          console.error(`Error downloading Pinterest image: ${error.message}`);
         }
       }
     }
@@ -314,27 +301,21 @@ Module(
   {
     pattern: "tiktok ?(.*)",
     fromMe: isFromMe,
-    desc: "TikTok downloader",
+    desc: "TikTok video downloader",
     usage: ".tiktok reply or link",
     use: "download",
   },
   async (message, match) => {
     let videoLink = match[1] !== "" ? match[1] : message.reply_message.text;
     if (!videoLink) return await message.sendReply("_Need a TikTok URL_");
-
     videoLink = videoLink.match(/\bhttps?:\/\/\S+/gi)[0];
     let downloadResult;
     try {
-      downloadResult = (await tiktok(videoLink)).result;
-      await message.sendReply(
-        {
-          url: downloadResult,
-        },
-        "video"
-      );
+      downloadResult = await tiktok(videoLink);
+      await message.sendReply(downloadResult, "video");
     } catch (error) {
-      await message.sendReply(
-        "```" + `Download failed\n\nResponse: ${downloadResult}` + "```"
+      return await message.sendReply(
+        "_Something went wrong, Please try again!_"
       );
     }
   }
