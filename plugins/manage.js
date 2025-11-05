@@ -88,6 +88,12 @@ Module(
     const [key, ...valueParts] = input.split("=");
     const value = valueParts.join("=").trim();
 
+    if (key.trim().toUpperCase() === "SUDO") {
+      return await message.sendReply(
+        "_Setting SUDO via setvar is deprecated!_\n\n_Use `.setsudo` command instead to properly manage sudo users with LID support._"
+      );
+    }
+
     try {
       await setVar(key.trim(), value, message);
     } catch (error) {
@@ -372,50 +378,56 @@ Module(
   },
   async (message, mm) => {
     var m = message;
-    var newSudo = (
-      m.reply_message ? m.reply_message?.jid : "" || m.mention?.[0] || mm[1]
-    ).split("@")[0];
-    if (!newSudo) return await m.sendReply("_Need reply/mention/number_");
-    const oldSudo = config.SUDO?.split(",");
-    var newSudo = (
-      m.reply_message ? m.reply_message?.jid : "" || m.mention?.[0] || mm[1]
-    ).split("@")[0];
-    if (!newSudo) return await m.sendReply("_Need reply/mention/number_");
-    newSudo = newSudo.replace(/[^0-9]/g, "");
-    if (!oldSudo.includes(newSudo)) {
-      oldSudo.push(newSudo);
-      var setSudo = oldSudo;
-      setSudo = setSudo
-        .map((x) => {
-          if (typeof x === "number") {
-            return x.toString();
-          } else {
-            return x.replace(/[^0-9]/g, "");
-          }
-        })
-        .filter((x) => x)
-        .join(",");
+    let targetLid;
 
-      const mentionCandidates = new Set();
-      try {
-        if (m.isGroup) {
-          const meta = await m.client.groupMetadata(m.jid).catch(() => null);
-          if (meta && Array.isArray(meta.participants)) {
-            const found = meta.participants.find(
-              (p) => p.id?.split("@")[0] === newSudo
-            );
-            if (found && found.id) mentionCandidates.add(found.id);
-          }
+    // determine target based on context
+    if (m.isGroup) {
+      // in groups: check mention first, then reply
+      if (m.mention && m.mention.length > 0) {
+        targetLid = m.mention[0];
+      } else if (m.reply_message) {
+        targetLid = m.reply_message.jid;
+      } else {
+        return await m.sendReply("_Need reply or mention in groups_");
+      }
+    } else {
+      // in DM: use sender
+      targetLid = m.sender;
+    }
+
+    if (!targetLid) return await m.sendReply("_Could not determine target_");
+
+    try {
+      // get current SUDO_MAP
+      let sudoMap = [];
+      if (config.SUDO_MAP) {
+        try {
+          sudoMap = JSON.parse(config.SUDO_MAP);
+          if (!Array.isArray(sudoMap)) sudoMap = [];
+        } catch (e) {
+          sudoMap = [];
         }
-      } catch (e) {}
+      }
 
-      mentionCandidates.add(newSudo + "@lid");
+      // check if already sudo
+      if (sudoMap.includes(targetLid)) {
+        return await m.sendReply("_User is already a sudo_");
+      }
 
-      await m.sendMessage(`_Added @${newSudo} as sudo_`, "text", {
-        mentions: Array.from(mentionCandidates),
+      // add to sudo map
+      sudoMap.push(targetLid);
+      await setVar("SUDO_MAP", JSON.stringify(sudoMap));
+
+      // format for display
+      const displayId = targetLid.split("@")[0];
+
+      await m.sendMessage(`_Added @${displayId} as sudo_`, "text", {
+        mentions: [targetLid],
       });
-      await setVar("SUDO", setSudo);
-    } else return await m.sendReply("_User is already a sudo_");
+    } catch (error) {
+      console.error("setsudo error:", error);
+      await m.sendReply(`_Error setting sudo: ${error.message}_`);
+    }
   }
 );
 
@@ -426,7 +438,30 @@ Module(
     use: "owner",
   },
   async (message, match) => {
-    return await message.sendReply(config.SUDO);
+    let sudoMap = [];
+    if (config.SUDO_MAP) {
+      try {
+        sudoMap = JSON.parse(config.SUDO_MAP);
+        if (!Array.isArray(sudoMap)) sudoMap = [];
+      } catch (e) {
+        sudoMap = [];
+      }
+    }
+
+    if (sudoMap.length === 0) {
+      return await message.sendReply("_No sudo users configured_");
+    }
+
+    const sudoList = sudoMap
+      .map((lid, index) => {
+        const displayId = lid.split("@")[0];
+        return `${index + 1}. @${displayId}`;
+      })
+      .join("\n");
+
+    await message.sendMessage(`*Sudo Users:*\n\n${sudoList}`, "text", {
+      mentions: sudoMap,
+    });
   }
 );
 
@@ -437,38 +472,56 @@ Module(
     desc: "Deletes sudo",
   },
   async (m, mm) => {
-    const oldSudo = config.SUDO?.split(",");
-    var newSudo = (
-      m.reply_message ? m.reply_message?.jid : "" || m.mention?.[0] || mm[1]
-    ).split("@")[0];
-    if (!newSudo) return await m.sendReply("*Need reply/mention/number*");
-    if (oldSudo.includes(newSudo)) {
-      oldSudo.push(newSudo);
-      var setSudo = oldSudo;
-      setSudo = setSudo
-        .filter((x) => x !== newSudo.replace(/[^0-9]/g, ""))
-        .join(",");
+    let targetLid;
 
-      const mentionCandidates = new Set();
-      try {
-        if (m.isGroup) {
-          const meta = await m.client.groupMetadata(m.jid).catch(() => null);
-          if (meta && Array.isArray(meta.participants)) {
-            const found = meta.participants.find(
-              (p) => p.id?.split("@")[0] === newSudo
-            );
-            if (found && found.id) mentionCandidates.add(found.id);
-          }
+    // determine target based on context
+    if (m.isGroup) {
+      // in groups: check mention first, then reply
+      if (m.mention && m.mention.length > 0) {
+        targetLid = m.mention[0];
+      } else if (m.reply_message) {
+        targetLid = m.reply_message.jid;
+      } else {
+        return await m.sendReply("_Need reply or mention in groups_");
+      }
+    } else {
+      // in DM: use sender
+      targetLid = m.sender;
+    }
+
+    if (!targetLid) return await m.sendReply("_Could not determine target_");
+
+    try {
+      // get current SUDO_MAP
+      let sudoMap = [];
+      if (config.SUDO_MAP) {
+        try {
+          sudoMap = JSON.parse(config.SUDO_MAP);
+          if (!Array.isArray(sudoMap)) sudoMap = [];
+        } catch (e) {
+          sudoMap = [];
         }
-      } catch (e) {}
-      mentionCandidates.add(newSudo + "@s.whatsapp.net");
-      mentionCandidates.add(newSudo + "@lid");
+      }
 
-      await m.sendMessage(`_Removed @${newSudo} from sudo!_`, "text", {
-        mentions: Array.from(mentionCandidates),
+      // check if user is sudo
+      if (!sudoMap.includes(targetLid)) {
+        return await m.sendReply("_User is not a sudo_");
+      }
+
+      // remove from sudo map
+      sudoMap = sudoMap.filter((lid) => lid !== targetLid);
+      await setVar("SUDO_MAP", JSON.stringify(sudoMap));
+
+      // format for display
+      const displayId = targetLid.split("@")[0];
+
+      await m.sendMessage(`_Removed @${displayId} from sudo!_`, "text", {
+        mentions: [targetLid],
       });
-      await setVar("SUDO", setSudo, m);
-    } else return await m.sendReply("_User is already not a sudo_");
+    } catch (error) {
+      console.error("delsudo error:", error);
+      await m.sendReply(`_Error removing sudo: ${error.message}_`);
+    }
   }
 );
 
@@ -1383,7 +1436,7 @@ Module(
         );
         await message.client.groupParticipantsUpdate(
           message.jid,
-          [message.senderJid],
+          [message.sender],
           "remove"
         );
         return await message.client.sendMessage(message.jid, {

@@ -41,16 +41,29 @@ class Message extends Base {
     if (this.isGroup) {
       this.sender = data.key.participant || data.key.participantAlt;
     } else {
-      this.sender = data.key.remoteJid;
+      this.sender = data.key.remoteJid.endsWith("lid")
+        ? data.key.remoteJid
+        : data.key.remoteJidAlt;
     }
 
-    const botNumeric = this.client.user?.lid?.split(":")[0];
+    const botNumeric = this.client.user?.lid?.split(":")[0] + "@lid";
     const senderNumeric = this.sender?.split("@")[0];
 
-    const isSudo = config.SUDO?.split(",")
-      .map((s) => s.trim())
-      .includes(senderNumeric);
-    this.fromOwner = data.key.fromMe || senderNumeric === botNumeric || isSudo;
+    // check if sender is sudo using SUDO_MAP
+    let isSudoUser = false;
+    if (config.SUDO_MAP) {
+      try {
+        const sudoMap = JSON.parse(config.SUDO_MAP);
+        if (Array.isArray(sudoMap)) {
+          isSudoUser = sudoMap.includes(this.sender);
+        }
+      } catch (e) {
+        isSudoUser = false;
+      }
+    }
+
+    this.fromOwner =
+      data.key.fromMe || senderNumeric === botNumeric || isSudoUser;
 
     this.senderName = data.pushName;
     this.myjid = botNumeric;

@@ -65,9 +65,51 @@ async function initializeDatabase() {
     }
 }
 
+async function migrateSudoToLID(client) {
+    const config = require('../config');
+    
+    if (config.SUDO && config.SUDO.trim() && !config.SUDO_MAP) {
+        try {
+            const phoneNumbers = config.SUDO.split(',').map(n => n.trim()).filter(n => n);
+            const lids = [];
+            
+            logger.info(`Migrating ${phoneNumbers.length} SUDO phone numbers to LIDs...`);
+            
+            for (const phone of phoneNumbers) {
+                try {
+                    const jid = phone.includes('@') ? phone : `${phone}@s.whatsapp.net`;
+                    const lid = await client.signalRepository.lidMapping.getLIDForPN(jid);
+                    
+                    if (lid) {
+                        lids.push(lid);
+                        logger.info(`Migrated ${phone} -> ${lid}`);
+                    } else {
+                        logger.warn(`Could not get LID for ${phone}, skipping`);
+                    }
+                } catch (e) {
+                    logger.error(`Error migrating ${phone}:`, e.message);
+                }
+            }
+            
+            if (lids.length > 0) {
+                await BotVariable.upsert({
+                    key: 'SUDO_MAP',
+                    value: JSON.stringify(lids)
+                });
+
+                config.SUDO_MAP = JSON.stringify(lids);
+                logger.info(`Successfully migrated ${lids.length} SUDO entries to SUDO_MAP`);
+            }
+        } catch (error) {
+            logger.error('SUDO migration error:', error);
+        }
+    }
+}
+
 module.exports = {
     sequelize,
     WhatsappSession,
     BotVariable,
-    initializeDatabase
+    initializeDatabase,
+    migrateSudoToLID
 };

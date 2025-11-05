@@ -38,10 +38,19 @@ async function deleteMentionReply() {
 }
 
 function isSudoUser(jid) {
-  if (!SUDO) return false;
-  const sudoList = SUDO.split(",").map((s) => s.trim());
-  const numericId = jid?.split("@")[0];
-  return sudoList.some((sudo) => sudo === numericId || jid.includes(sudo));
+  if (!jid) return false;
+  
+  let sudoMap = [];
+  if (config.SUDO_MAP) {
+    try {
+      sudoMap = JSON.parse(config.SUDO_MAP);
+      if (!Array.isArray(sudoMap)) sudoMap = [];
+    } catch (e) {
+      sudoMap = [];
+    }
+  }
+  
+  return sudoMap.includes(jid);
 }
 
 Module(
