@@ -12,7 +12,6 @@ const { getTempPath } = require("../core/helpers");
 const fileType = require("file-type");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
-const { PassThrough } = require("stream");
 
 const getFileType = async (buffer) => {
   try {
@@ -259,39 +258,9 @@ Module(
           "_No downloadable media found for this link_"
         );
 
-      const mediaUrl = pinterestResult.result;
-      const quotedMessage = message.reply_message
-        ? message.quoted
-        : message.data;
-
-      const isVideo =
-        /\.(mp4|webm|mkv|mov|cmfv)(\?|$)/i.test(mediaUrl) ||
-        /videos/i.test(mediaUrl);
-      if (isVideo) {
-        const videoBuffer = await getBuffer(mediaUrl);
-        if (!videoBuffer) return await message.sendReply("_Failed to download video_");
-        const inputStream = new PassThrough();
-        inputStream.end(videoBuffer);
-        const chunks = [];
-        await new Promise((resolve, reject) => {
-          ffmpeg(inputStream)
-            .outputFormat('mp4')
-            .outputOptions('-c:v libx264', '-c:a aac', '-preset fast', '-movflags +faststart')
-            .on('end', () => resolve())
-            .on('error', (err) => reject(err))
-            .pipe()
-            .on('data', (chunk) => chunks.push(chunk))
-            .on('end', () => resolve());
-        });
-        const mp4Buffer = Buffer.concat(chunks);
-        await message.sendMessage(mp4Buffer, "video", {
-          quoted: quotedMessage,
-        });
-      } else {
-        await message.sendMessage({ url: mediaUrl }, "image", {
-          quoted: quotedMessage,
-        });
-      }
+      const url = pinterestResult.result;
+      const quotedMessage = message.reply_message ? message.quoted : message.data;
+      await message.sendMessage({url}, "video", { quoted: quotedMessage });
     } else {
       let desiredCount = parseInt(userQuery.split(",")[1]) || 5;
       let searchQuery = userQuery.split(",")[0] || userQuery;
@@ -315,22 +284,12 @@ Module(
       );
 
       let successfulDownloads = 0;
-      for (
-        let i = 0;
-        i < searchResults.length && successfulDownloads < toDownload;
-        i++
-      ) {
+      for (let i = 0;i < searchResults.length && successfulDownloads < toDownload; i++) {
         try {
           const url = searchResults[i];
-          const mediaBuffer = await getBuffer(url);
-          if (!mediaBuffer) continue;
-          const fileTypeResult = await getFileType(mediaBuffer);
-          const { mime } = fileTypeResult || {
-            mime: "application/octet-stream",
-          };
           await message.sendMessage(
-            mediaBuffer,
-            mime && mime.includes("video") ? "video" : "image"
+            {url},
+            "image"
           );
           successfulDownloads++;
         } catch (error) {
