@@ -3,7 +3,7 @@ const {
   pinterestSearch,
   getBuffer,
   downloadGram,
-  pinterestDownload,
+  pinterestDl,
   tiktok,
   igStalk,
   fb,
@@ -242,9 +242,9 @@ Module(
       userQuery = userQuery.match(/\bhttps?:\/\/\S+/gi)[0];
       let pinterestResult;
       try {
-        pinterestResult = await pinterestDownload(userQuery);
+        pinterestResult = await pinterestDl(userQuery);
       } catch (err) {
-        console.error("pinterestDownload error:", err?.message || err);
+        console.error("pinterestDl error:", err?.message || err);
         return await message.sendReply("_Server error_");
       }
 
@@ -330,22 +330,6 @@ Module(
         }
       }
     }
-  }
-);
-
-Module(
-  {
-    pattern: "pinterestDl ?(.*)",
-    fromMe: isFromMe,
-    use: "download",
-  },
-  async (message, match) => {
-    let userQuery = match[1] !== "" ? match[1] : message.reply_message.text;
-    if (!userQuery || userQuery === "g" || userQuery.startsWith("terest"))
-      return;
-    await message.sendReply(
-      "_Use .pinterest command for downloading content from this query!_"
-    );
   }
 );
 
