@@ -38,7 +38,11 @@ async function gis(searchTerm, limit, options = {}) {
   }
   return urls;
 }
-async function pinSearch(searchTerm, limit, options = {}) {
+
+/**
+ * @deprecated since 6.2.11
+ */
+async function pinterestSearch(searchTerm, limit, options = {}) {
   searchTerm = "pinterest " + searchTerm;
   if (!searchTerm || typeof searchTerm !== "string") return [];
   if (typeof options !== "object") return [];
@@ -73,4 +77,4 @@ async function pinSearch(searchTerm, limit, options = {}) {
   }
   return urls;
 }
-module.exports = { gis, pinSearch };
+module.exports = { gis, pinterestSearch };
