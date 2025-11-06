@@ -3,7 +3,7 @@ const {
   pinterestSearch,
   getBuffer,
   downloadGram,
-  pinterestDownload,
+  pinterestDl,
   tiktok,
   igStalk,
   fb,
@@ -244,9 +244,9 @@ Module(
       userQuery = userQuery.match(/\bhttps?:\/\/\S+/gi)[0];
       let pinterestResult;
       try {
-        pinterestResult = await pinterestDownload(userQuery);
+        pinterestResult = await pinterestDl(userQuery);
       } catch (err) {
-        console.error("pinterestDownload error:", err?.message || err);
+        console.error("pinterestDl error:", err?.message || err);
         return await message.sendReply("_Server error_");
       }
 
