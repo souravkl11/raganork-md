@@ -14,7 +14,7 @@ const URL_PATTERNS = {
   tiktok:
     /^https?:\/\/(?:www\.)?(?:tiktok\.com\/@?[A-Za-z0-9_.-]+\/video\/\d+|vm\.tiktok\.com\/[A-Za-z0-9_-]+\/?|vt\.tiktok\.com\/[A-Za-z0-9_-]+\/?|v\.tiktok\.com\/[A-Za-z0-9_-]+\/?)(?:\?.*)?$/i,
   pinterest:
-    /^https?:\/\/(?:www\.)?pinterest\.com\/(?:pin\/\d+\/?[A-Za-z0-9_-]*)\/?(?:\?.*)?$/i,
+    /^https?:\/\/(?:www\.)?(?:pinterest\.com\/(?:pin\/\d+\/?[A-Za-z0-9_-]*)\/?|pin\.it\/[A-Za-z0-9_-]+\/?)(?:\?.*)?$/i,
   twitter:
     /^https?:\/\/(?:www\.)?(?:twitter\.com|x\.com|mobile\.twitter\.com)\/[A-Za-z0-9_]{1,15}\/status\/\d+(?:\?.*)?$/i,
   facebook:
@@ -78,7 +78,7 @@ Module({ on: "text", fromMe }, async (message) => {
       cmd = lower.includes("audio") || lower.includes("mp3") ? "play" : "ytv";
     } else if (platform === "instagram") cmd = "insta";
     else if (platform === "tiktok") cmd = "tiktok";
-    else if (platform === "pinterest") cmd = "pin";
+    else if (platform === "pinterest") cmd = "pinterest";
     else if (platform === "twitter") cmd = "twitter";
     else if (platform === "facebook") cmd = "fb";
     else return;

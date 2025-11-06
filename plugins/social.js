@@ -3,7 +3,7 @@ const {
   pinterestSearch,
   getBuffer,
   downloadGram,
-  pinterestDl,
+  pinterestDownload,
   tiktok,
   igStalk,
   fb,
@@ -11,6 +11,8 @@ const {
 const { getTempPath } = require("../core/helpers");
 const fileType = require("file-type");
 const fs = require("fs");
+const ffmpeg = require("fluent-ffmpeg");
+const { PassThrough } = require("stream");
 
 const getFileType = async (buffer) => {
   try {
@@ -242,9 +244,9 @@ Module(
       userQuery = userQuery.match(/\bhttps?:\/\/\S+/gi)[0];
       let pinterestResult;
       try {
-        pinterestResult = await pinterestDl(userQuery);
+        pinterestResult = await pinterestDownload(userQuery);
       } catch (err) {
-        console.error("pinterestDl error:", err?.message || err);
+        console.error("pinterestDownload error:", err?.message || err);
         return await message.sendReply("_Server error_");
       }
 
@@ -267,13 +269,22 @@ Module(
         /videos/i.test(mediaUrl);
       if (isVideo) {
         const videoBuffer = await getBuffer(mediaUrl);
-        if (!videoBuffer)
-          return await message.sendReply("_Failed to download video_");
-        const tempPath = getTempPath(`pinterest_${Date.now()}.mp4`);
-        fs.writeFileSync(tempPath, videoBuffer);
-        const renamedBuffer = fs.readFileSync(tempPath);
-        fs.unlinkSync(tempPath); // cleanup
-        await message.sendMessage(renamedBuffer, "video", {
+        if (!videoBuffer) return await message.sendReply("_Failed to download video_");
+        const inputStream = new PassThrough();
+        inputStream.end(videoBuffer);
+        const chunks = [];
+        await new Promise((resolve, reject) => {
+          ffmpeg(inputStream)
+            .outputFormat('mp4')
+            .outputOptions('-c:v libx264', '-c:a aac', '-preset fast', '-movflags +faststart')
+            .on('end', () => resolve())
+            .on('error', (err) => reject(err))
+            .pipe()
+            .on('data', (chunk) => chunks.push(chunk))
+            .on('end', () => resolve());
+        });
+        const mp4Buffer = Buffer.concat(chunks);
+        await message.sendMessage(mp4Buffer, "video", {
           quoted: quotedMessage,
         });
       } else {
