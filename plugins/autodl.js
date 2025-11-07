@@ -39,7 +39,7 @@ function isAlreadyCommand(text) {
   text = text?.toLowerCase()?.trim();
   if (!text) return false;
   const regex =
-    /(insta\s|instah|tiktok\s|tiktokh|pinterest\s|pinteresth|twitter\s|twitterh|fb\s|fbh|play\s|playh|ytv\s|ytvh)/;
+    /(insta\s|instah|story\s|storyh|tiktok\s|tiktokh|pinterest\s|pinteresth|twitter\s|twitterh|fb\s|fbh|play\s|playh|ytv\s|ytvh)/;
   return regex.test(text);
 }
 Module({ on: "text", fromMe }, async (message) => {
