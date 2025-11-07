@@ -1,7 +1,16 @@
 const { Module } = require("../main");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
-const { bass, sticker, addExif, attp, gtts, gis, aiTTS } = require("./utils");
+const {
+  bass,
+  sticker,
+  addExif,
+  attp,
+  gtts,
+  gis,
+  aiTTS,
+  getBuffer,
+} = require("./utils");
 const config = require("../config");
 const axios = require("axios");
 const fileType = require("file-type");
@@ -45,14 +54,18 @@ Module(
     const buffer = Math.ceil(count * 0.5);
     let results = await gis(splitInput[0], count + buffer);
     if (results.length < 1) return await message.send("*_No results found!_*");
+
     let successCount = 0;
     let i = 0;
+    const imagesToSend = [];
+
     while (successCount < count && i < results.length) {
       try {
-        await message.sendMessage({ url: results[i] }, "image");
+        const imageBuffer = await getBuffer(results[i]);
+        imagesToSend.push({ image: imageBuffer });
         successCount++;
       } catch (e) {
-        console.log(`Failed to send image ${i + 1}:`, e);
+        console.log(`Failed to buffer image ${i + 1}:`, e.message);
         if (i === results.length - 1 && successCount < count) {
           let moreResults = await gis(splitInput[0], buffer, {
             page: Math.floor(i / 10) + 1,
@@ -65,9 +78,30 @@ Module(
       i++;
     }
 
+    if (imagesToSend.length === 0) {
+      return await message.send("*_Failed to download any images_*");
+    }
+
+    try {
+      await message.client.albumMessage(
+        message.jid,
+        imagesToSend,
+        message.data
+      );
+    } catch (e) {
+      console.log("Album send failed:", e.message);
+      for (const img of imagesToSend) {
+        try {
+          await message.sendMessage(img, "image", { quoted: message.data });
+        } catch (sendErr) {
+          console.log("Failed to send individual image:", sendErr.message);
+        }
+      }
+    }
+
     if (successCount < count) {
       await message.send(
-        `*_Only able to send ${successCount}/${count} images. Some images failed to load._*`
+        `*_Only able to download ${successCount}/${count} images. Some URLs had access issues._*`
       );
     }
   }
@@ -129,7 +163,13 @@ Module(
     desc: Lang.MP3_DESC,
   },
   async (message) => {
-    if (!message.reply_message || (!message.reply_message.video && !message.reply_message.audio && !message.reply_message.document )) return await message.sendReply(Lang.MP3_NEED_REPLY);
+    if (
+      !message.reply_message ||
+      (!message.reply_message.video &&
+        !message.reply_message.audio &&
+        !message.reply_message.document)
+    )
+      return await message.sendReply(Lang.MP3_NEED_REPLY);
     //let { seconds } = message.quoted?.message?.[Object.keys(message.quoted?.message)?.[0]];
     //if (seconds > 120) await message.sendReply(`_Alert: Duration more than 2 mins. This process may fail or take much more time!_`);
     let savedFile = await message.reply_message.download();

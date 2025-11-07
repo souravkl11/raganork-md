@@ -62,21 +62,22 @@ Module(
         mediaLink.startsWith("ll"))
     )
       return;
-    if (!mediaLink) return await message.sendReply("*Need Instagram link*");
+    if (!mediaLink) return await message.sendReply("_*Need Instagram link*_");
     mediaLink = await checkRedirect(mediaLink);
     if (mediaLink.includes("stories"))
       return await message.sendReply("*_Use .story command!_*");
     if (mediaLink && !mediaLink.includes("instagram.com")) {
-      return await message.sendMessage("*_Need Instagram link!_*", "text", {
-        quoted: message.data,
-      });
+      return await message.sendReply("_Need valid Instagram link_");
     }
 
     const instagramRegex =
-      /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com(?:\/.+?)?\/(p|s|reel|tv)\/)([\w-]+)(?:\/)?(\?.*)?$/;
+      /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com(?:\/.+?)?\/(p|s|reel|tv)\/)([\w-]+)(?:\/)?(?:\?.*)?$/;
     const urlMatch = instagramRegex.exec(mediaLink);
-
     if (urlMatch) {
+      const mediaId = urlMatch[2];
+      if (mediaId && mediaId.length > 20) {
+        return await message.sendReply("_This account appears to be private!_");
+      }
       try {
         var downloadResult = await downloadGram(urlMatch[0]);
       } catch {
@@ -92,23 +93,26 @@ Module(
       const quotedMessage = message.reply_message
         ? message.quoted
         : message.data;
-      for (const mediaUrl of downloadResult) {
-        if (mediaLink.includes("reel")) {
-          return await message.sendMessage({ url: mediaUrl }, "video", {
-            quoted: quotedMessage,
-          });
-        }
-        const mediaBuffer = await getBuffer(mediaUrl);
-        const fileTypeResult = await getFileType(mediaBuffer);
-        const { mime } = fileTypeResult || { mime: "application/octet-stream" };
-        await message.sendMessage(
-          mediaBuffer,
-          mime.includes("video") ? "video" : "image",
+      if (downloadResult.length === 1) {
+        return await message.sendMessage(
+          { url: downloadResult[0] },
+          downloadResult[0].includes(".jpg") ? "image" : "video",
           {
             quoted: quotedMessage,
           }
         );
       }
+      let albumObject = downloadResult.map((mediaUrl) => {
+        return mediaUrl.includes(".jpg")
+          ? { image: mediaUrl }
+          : { video: mediaUrl };
+      });
+      albumObject[0].caption = `_Download complete!_`;
+      return await message.client.albumMessage(
+        message.jid,
+        albumObject,
+        message.data
+      );
     }
   }
 );
@@ -210,18 +214,26 @@ Module(
     } catch {
       return await message.sendReply("*_Sorry, server error_*");
     }
-
     if (!storyData) return await message.sendReply("*_User has no stories!_*");
-
-    for (const storyMediaUrl of storyData) {
-      const mediaBuffer = await getBuffer(storyMediaUrl);
-      const fileTypeResult = await getFileType(mediaBuffer);
-      const { mime } = fileTypeResult || { mime: "application/octet-stream" };
-      await message.sendReply(
-        mediaBuffer,
-        mime.includes("video") ? "video" : "image"
+    if (storyData.length === 1)
+      return await message.sendReply(
+        { url: storyData[0] },
+        storyData[0].includes(".jpg") ? "image" : "video"
       );
-    }
+    userIdentifier = userIdentifier
+      .replace("https://instagram.com/stories/", "")
+      .split("/")[0];
+    let albumObject = storyData.map((storyMediaUrl) => {
+      return storyMediaUrl.includes(".jpg")
+        ? { image: storyMediaUrl }
+        : { video: storyMediaUrl };
+    });
+    albumObject[0].caption = `_Stories from ${userIdentifier}_`;
+    return await message.client.albumMessage(
+      message.jid,
+      albumObject,
+      message.data
+    );
   }
 );
 
@@ -259,8 +271,10 @@ Module(
         );
 
       const url = pinterestResult.result;
-      const quotedMessage = message.reply_message ? message.quoted : message.data;
-      await message.sendMessage({url}, "video", { quoted: quotedMessage });
+      const quotedMessage = message.reply_message
+        ? message.quoted
+        : message.data;
+      await message.sendMessage({ url }, "video", { quoted: quotedMessage });
     } else {
       let desiredCount = parseInt(userQuery.split(",")[1]) || 5;
       let searchQuery = userQuery.split(",")[0] || userQuery;
@@ -283,20 +297,30 @@ Module(
         `_Downloading ${toDownload} results for ${searchQuery} from Pinterest_`
       );
 
-      let successfulDownloads = 0;
-      for (let i = 0;i < searchResults.length && successfulDownloads < toDownload; i++) {
-        try {
-          const url = searchResults[i];
-          await message.sendMessage(
-            {url},
-            "image"
-          );
-          successfulDownloads++;
-        } catch (error) {
-          console.error(
-            "Error downloading pinterest item:",
-            error?.message || error
-          );
+      const imagesToSend = searchResults
+        .slice(0, toDownload)
+        .map((url) => ({ image: url }));
+      imagesToSend[0].caption = `_Pinterest results for ${searchQuery}_`;
+      try {
+        await message.client.albumMessage(
+          message.jid,
+          imagesToSend,
+          message.data
+        );
+      } catch (error) {
+        console.log(
+          "Album send failed, falling back to individual sends:",
+          error
+        );
+        for (const url of searchResults) {
+          try {
+            await message.sendMessage({ url }, "image");
+          } catch (error) {
+            console.error(
+              "Error downloading pinterest item:",
+              error?.message || error
+            );
+          }
         }
       }
     }

@@ -76,8 +76,9 @@ Module({ on: "text", fromMe }, async (message) => {
     if (platform === "youtube") {
       const lower = text.toLowerCase();
       cmd = lower.includes("audio") || lower.includes("mp3") ? "play" : "ytv";
-    } else if (platform === "instagram") cmd = "insta";
-    else if (platform === "tiktok") cmd = "tiktok";
+    } else if (platform === "instagram") {
+      cmd = url.includes("/stories/") ? "story" : "insta";
+    } else if (platform === "tiktok") cmd = "tiktok";
     else if (platform === "pinterest") cmd = "pinterest";
     else if (platform === "twitter") cmd = "twitter";
     else if (platform === "facebook") cmd = "fb";
@@ -149,7 +150,9 @@ Module(
         `*_⬇️ AutoDownload Manager_*\n\n` +
           `- _Current chat:_ ${chatJid.includes("@g.us") ? "Group" : "DM"}\n` +
           `- _Status:_ ${enabled ? "Enabled ✅" : "Disabled ❌"}\n` +
-          `- _Global Groups:_ ${globalGroups ? "Enabled ✅" : "Disabled ❌"}\n` +
+          `- _Global Groups:_ ${
+            globalGroups ? "Enabled ✅" : "Disabled ❌"
+          }\n` +
           `- _Global DMs:_ ${globalDMs ? "Enabled ✅" : "Disabled ❌"}\n\n` +
           `_Commands:_\n` +
           `- \`${HANDLER_PREFIX}autodl on/off\` - Sets in current chat\n` +
