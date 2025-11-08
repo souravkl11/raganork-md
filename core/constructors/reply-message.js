@@ -41,11 +41,18 @@ class ReplyMessage extends Base {
     this.image = false;
     this.video = false;
     this.text = null;
+    this.album = false;
 
     if (data.quotedMessage) {
-      if (data.quotedMessage.documentWithCaptionMessage) data.quotedMessage.documentMessage = data.quotedMessage.documentWithCaptionMessage.message.documentMessage;
+      if (data.quotedMessage.documentWithCaptionMessage)
+        data.quotedMessage.documentMessage =
+          data.quotedMessage.documentWithCaptionMessage.message.documentMessage;
       const quotedMsg = data.quotedMessage;
-      this.fromMe = (data.participant?.includes("lid") && data.participant?.startsWith(this.client.user.lid.split(":")[0])) || (data.participant?.includes("s.whatsapp.net") && data.participant?.startsWith(this.client.user.id.split(":")[0]));
+      this.fromMe =
+        (data.participant?.includes("lid") &&
+          data.participant?.startsWith(this.client.user.lid.split(":")[0])) ||
+        (data.participant?.includes("s.whatsapp.net") &&
+          data.participant?.startsWith(this.client.user.id.split(":")[0]));
       if (quotedMsg.imageMessage) {
         this.message = quotedMsg.imageMessage.caption || "";
         this.caption = quotedMsg.imageMessage.caption || "";
@@ -84,6 +91,8 @@ class ReplyMessage extends Base {
         this.width = quotedMsg.videoMessage.width;
         this.mediaKey = quotedMsg.videoMessage.mediaKey;
         this.video = true;
+      } else if (quotedMsg.albumMessage) {
+        this.album = true;
       } else if (quotedMsg.conversation) {
         this.message = quotedMsg.conversation;
         this.text = quotedMsg.conversation || "";
@@ -105,14 +114,76 @@ class ReplyMessage extends Base {
   }
 
   async download(returnType = "file") {
+    if (this.album) {
+      const albumData = await this.client.getAlbumMessages(this.id);
+      const result = {
+        images: [],
+        videos: [],
+        complete: albumData.complete,
+      };
+
+      for (const imgMsg of albumData.images) {
+        const msgData = {
+          key: imgMsg.key,
+          message: imgMsg.message,
+        };
+        try {
+          if (returnType === "stream") {
+            const stream = await downloadMediaMessage(msgData, "stream");
+            result.images.push(stream);
+          } else {
+            const ext =
+              imgMsg.message.imageMessage?.mimetype?.split("/")[1] || "jpg";
+            const filename = getTempPath(`album_img_${imgMsg.key.id}.${ext}`);
+            const stream = await downloadMediaMessage(msgData, "stream");
+            const writeStream = fs.createWriteStream(filename);
+            stream.pipe(writeStream);
+            await new Promise((resolve, reject) => {
+              writeStream.on("finish", resolve);
+              writeStream.on("error", reject);
+            });
+            result.images.push(filename);
+          }
+        } catch (err) {
+          console.error("Failed to download album image:", err);
+        }
+      }
+
+      for (const vidMsg of albumData.videos) {
+        const msgData = {
+          key: vidMsg.key,
+          message: vidMsg.message,
+        };
+        try {
+          if (returnType === "stream") {
+            const stream = await downloadMediaMessage(msgData, "stream");
+            result.videos.push(stream);
+          } else {
+            const ext =
+              vidMsg.message.videoMessage?.mimetype?.split("/")[1] || "mp4";
+            const filename = getTempPath(`album_vid_${vidMsg.key.id}.${ext}`);
+            const stream = await downloadMediaMessage(msgData, "stream");
+            const writeStream = fs.createWriteStream(filename);
+            stream.pipe(writeStream);
+            await new Promise((resolve, reject) => {
+              writeStream.on("finish", resolve);
+              writeStream.on("error", reject);
+            });
+            result.videos.push(filename);
+          }
+        } catch (err) {
+          console.error("Failed to download album video:", err);
+        }
+      }
+
+      return result;
+    }
+
     if (this.data.message.ptvMessage) {
       this.data.message = JSON.parse(
         JSON.stringify(this.data.message).replace("ptvMessage", "videoMessage")
       );
     }
-
-    const buffer = await downloadMediaMessage(this.data, "buffer");
-    if (returnType === "buffer") return buffer;
 
     let ext = "bin";
     const mediaMessageType = Object.keys(this.data.message)[0];
@@ -123,8 +194,20 @@ class ReplyMessage extends Base {
     }
 
     const filename = getTempPath(`temp.${ext}`);
-    await fs.writeFileSync(filename, buffer);
-    return filename;
+
+    if (returnType === "buffer") {
+      const buffer = await downloadMediaMessage(this.data, "buffer");
+      return buffer;
+    } else {
+      const stream = await downloadMediaMessage(this.data, "stream");
+      const writeStream = fs.createWriteStream(filename);
+      stream.pipe(writeStream);
+      await new Promise((resolve, reject) => {
+        writeStream.on("finish", resolve);
+        writeStream.on("error", reject);
+      });
+      return filename;
+    }
   }
 }
 

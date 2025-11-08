@@ -55,6 +55,7 @@ Module(
     let results = await gis(splitInput[0], count + buffer);
     if (results.length < 1) return await message.send("*_No results found!_*");
 
+    // buffer and send with success tracking since many URLs have access issues
     let successCount = 0;
     let i = 0;
     const imagesToSend = [];

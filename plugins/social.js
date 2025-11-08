@@ -1,38 +1,15 @@
 const { Module } = require("../main");
 const {
   pinterestSearch,
-  getBuffer,
   downloadGram,
   pinterestDl,
   tiktok,
   igStalk,
   fb,
 } = require("./utils");
-const { getTempPath } = require("../core/helpers");
-const fileType = require("file-type");
-const fs = require("fs");
-const ffmpeg = require("fluent-ffmpeg");
-
-const getFileType = async (buffer) => {
-  try {
-    if (fileType.fileTypeFromBuffer) {
-      return await fileType.fileTypeFromBuffer(buffer);
-    }
-
-    if (fileType.fromBuffer) {
-      return await fileType.fromBuffer(buffer);
-    }
-
-    return await fileType(buffer);
-  } catch (error) {
-    return null;
-  }
-};
 const botConfig = require("../config");
 const axios = require("axios");
 const isFromMe = botConfig.MODE === "public" ? false : true;
-const commandHandlerPrefix =
-  botConfig.HANDLERS !== "false" ? botConfig.HANDLERS.split("")[0] : "";
 
 async function checkRedirect(url) {
   let split_url = url.split("/");
@@ -85,7 +62,7 @@ Module(
           "_Something went wrong, Please try again!_"
         );
       }
-      if (downloadResult === false)
+      if (downloadResult === false || !downloadResult.length)
         return await message.sendReply(
           "_Something went wrong, Please try again!_"
         );
@@ -214,7 +191,7 @@ Module(
     } catch {
       return await message.sendReply("*_Sorry, server error_*");
     }
-    if (!storyData) return await message.sendReply("*_User has no stories!_*");
+    if (!storyData || !storyData.length) return await message.sendReply("*_Not found!_*");
     if (storyData.length === 1)
       return await message.sendReply(
         { url: storyData[0] },

@@ -37,7 +37,7 @@ class Message extends Base {
     this.jid = data.key.remoteJid;
     this.isGroup = data.key.remoteJid.endsWith("@g.us");
     this.fromMe = data.key.fromMe;
-    this.fromBot = data.key.id?.startsWith('3EB0');
+    this.fromBot = data.key.id?.startsWith("3EB0");
 
     if (this.isGroup) {
       this.sender = data.key.participant || data.key.participantAlt;
@@ -292,15 +292,26 @@ class Message extends Base {
       this.data.message = JSON.parse(
         JSON.stringify(this.data.message).replace("ptvMessage", "videoMessage")
       );
-    const buffer = await downloadMediaMessage(this.data, "buffer");
-    if (type === "buffer") return buffer;
+
     const ext =
       this.data.message[Object.keys(this.data.message)[0]].mimetype?.split(
         "/"
       )[1];
     const filename = getTempPath(`temp.${ext}`);
-    await fs.writeFileSync(filename, buffer);
-    return filename;
+
+    if (type === "buffer") {
+      const buffer = await downloadMediaMessage(this.data, "buffer");
+      return buffer;
+    } else {
+      const stream = await downloadMediaMessage(this.data, "stream");
+      const writeStream = fs.createWriteStream(filename);
+      stream.pipe(writeStream);
+      await new Promise((resolve, reject) => {
+        writeStream.on("finish", resolve);
+        writeStream.on("error", reject);
+      });
+      return filename;
+    }
   }
 
   async sendReply(content, type = "text", options = {}) {
