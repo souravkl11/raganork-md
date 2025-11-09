@@ -2,7 +2,12 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 
-const TEMP_DIR = path.join(os.tmpdir(), "raganork");
+let TEMP_DIR;
+if (process.env.TEMP_DIR) {
+  TEMP_DIR = process.env.TEMP_DIR;
+} else {
+  TEMP_DIR = path.join(os.tmpdir(), "raganork");
+}
 
 function ensureTempDir() {
   if (!fs.existsSync(TEMP_DIR)) {

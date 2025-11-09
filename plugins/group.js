@@ -286,76 +286,67 @@ Module(
 Module(
   {
     pattern: "quoted",
-    fromMe: false,
+    fromMe: true,
     desc: "Sends replied message's replied message. Useful for recovering deleted messages.",
     usage: ".quoted (reply to a quoted message)",
     use: "group",
   },
   async (message, match) => {
-    if (!message.isGroup) return await message.sendReply("_Group command!_");
-    let adminAccesValidated = ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (message.fromOwner || adminAccesValidated) {
-      if (!message.reply_message) {
-        return await message.sendReply("_Please reply to a message!_");
-      }
-      try {
-        const repliedMessage = await getFullMessage(
-          message.reply_message.id + "_"
+    try {
+      const repliedMessage = await getFullMessage(
+        message.reply_message.id + "_"
+      );
+      if (!repliedMessage.found) {
+        return await message.sendReply(
+          "_Original message not found in database!_"
         );
-        if (!repliedMessage.found) {
-          return await message.sendReply(
-            "_Original message not found in database!_"
-          );
-        }
-        const messageData = repliedMessage.messageData;
-        let quotedMessageId = null;
-        let quotedMessage = null;
-        let participant = null;
-        if (messageData.message) {
-          const msgKeys = Object.keys(messageData.message);
-          for (const key of msgKeys) {
-            const msgContent = messageData.message[key];
-            if (msgContent?.contextInfo?.stanzaId) {
-              quotedMessageId = msgContent.contextInfo.stanzaId;
-              quotedMessage = msgContent.contextInfo.quotedMessage;
-              participant = msgContent.contextInfo.participant;
-              break;
-            }
+      }
+      const messageData = repliedMessage.messageData;
+      let quotedMessageId = null;
+      let quotedMessage = null;
+      let participant = null;
+      if (messageData.message) {
+        const msgKeys = Object.keys(messageData.message);
+        for (const key of msgKeys) {
+          const msgContent = messageData.message[key];
+          if (msgContent?.contextInfo?.stanzaId) {
+            quotedMessageId = msgContent.contextInfo.stanzaId;
+            quotedMessage = msgContent.contextInfo.quotedMessage;
+            participant = msgContent.contextInfo.participant;
+            break;
           }
         }
-        if (!quotedMessageId) {
-          return await message.sendReply(
-            "_The replied message doesn't contain a quoted message!_"
-          );
-        }
-        const originalQuoted = await getFullMessage(quotedMessageId + "_");
-        if (originalQuoted.found) {
-          return await message.forwardMessage(
-            message.jid,
-            originalQuoted.messageData
-          );
-        } else if (quotedMessage) {
-          const reconstructedMsg = {
-            key: {
-              remoteJid: message.jid,
-              fromMe: false,
-              id: quotedMessageId,
-              participant: participant,
-            },
-            message: quotedMessage,
-          };
-          return await message.forwardMessage(message.jid, reconstructedMsg);
-        } else {
-          return await message.sendReply(
-            "_Quoted message not found and no cached data available!_"
-          );
-        }
-      } catch (error) {
-        console.error("Error in quoted command:", error);
-        return await message.sendReply("_Failed to load quoted message!_");
       }
+      if (!quotedMessageId) {
+        return await message.sendReply(
+          "_The replied message doesn't contain a quoted message!_"
+        );
+      }
+      const originalQuoted = await getFullMessage(quotedMessageId);
+      if (originalQuoted.found) {
+        return await message.forwardMessage(
+          message.jid,
+          originalQuoted.messageData
+        );
+      } else if (quotedMessage) {
+        const reconstructedMsg = {
+          key: {
+            remoteJid: message.jid,
+            fromMe: false,
+            id: quotedMessageId,
+            participant: participant,
+          },
+          message: quotedMessage,
+        };
+        return await message.forwardMessage(message.jid, reconstructedMsg);
+      } else {
+        return await message.sendReply(
+          "_Quoted message not found and no cached data available!_"
+        );
+      }
+    } catch (error) {
+      console.error("Error in quoted command:", error);
+      return await message.sendReply("_Failed to load quoted message!_");
     }
   }
 );

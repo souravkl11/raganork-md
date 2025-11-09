@@ -95,6 +95,40 @@ Module(
       pdfWriteStream.on("error", async (error) => {
         await message.sendReply(`_PDF conversion failed: ${error.message}_`);
       });
+    } else if (message.reply_message && message.reply_message.album) {
+      // handle album
+      const albumData = await message.reply_message.download();
+      const allImages = albumData.images || [];
+
+      if (allImages.length === 0)
+        return await message.sendReply("_No images in album (videos can't be converted to PDF)_");
+
+      await message.send(
+        `_Adding ${allImages.length} album images to PDF..._`
+      );
+
+      for (let i = 0; i < allImages.length; i++) {
+        try {
+          const file = allImages[i];
+          const detectedFileType = await getFileType(
+            fs.readFileSync(file)
+          );
+
+          if (detectedFileType && detectedFileType.mime.startsWith("image")) {
+            const newImagePath = path.join(
+              imageInputDirectory,
+              `topdf_album_${i}.jpg`
+            );
+            fs.copyFileSync(file, newImagePath);
+          }
+        } catch (err) {
+          console.error("Failed to add album image to PDF:", err);
+        }
+      }
+
+      await message.sendReply(
+        `_*Successfully saved ${allImages.length} album images*_\n_*Total images ready. Use '.pdf get' to generate PDF!*_`
+      );
     } else if (message.reply_message) {
       const repliedMessageBuffer = await message.reply_message.download(
         "buffer"

@@ -39,7 +39,7 @@ async function deleteMentionReply() {
 
 function isSudoUser(jid) {
   if (!jid) return false;
-  
+
   let sudoMap = [];
   if (config.SUDO_MAP) {
     try {
@@ -49,7 +49,7 @@ function isSudoUser(jid) {
       sudoMap = [];
     }
   }
-  
+
   return sudoMap.includes(jid);
 }
 
@@ -290,66 +290,39 @@ Module(
 
         case "image":
           if (mentionData.url) {
-            await message.client.sendMessage(
-              message.jid,
-              {
-                image: { url: mentionData.url },
-                caption: mentionData.caption || "",
-              },
-              { quoted: message.data }
-            );
+            await message.sendReply({ url: mentionData.url }, "image", {
+              caption: mentionData.caption || "",
+            });
           }
           break;
 
         case "video":
           if (mentionData.url) {
-            await message.client.sendMessage(
-              message.jid,
-              {
-                video: { url: mentionData.url },
-                caption: mentionData.caption || "",
-              },
-              { quoted: message.data }
-            );
+            await message.sendReply({ url: mentionData.url }, "video", {
+              caption: mentionData.caption || "",
+            });
           }
           break;
 
         case "audio":
           if (mentionData.url) {
-            await message.client.sendMessage(
-              message.jid,
-              {
-                audio: { url: mentionData.url },
-                ptt: true,
-                mimetype: "audio/mp4",
-              },
-              { quoted: message.data }
-            );
+            await message.sendReply({ url: mentionData.url }, "audio", {
+              ptt: true
+            });
           }
           break;
 
         case "sticker":
           if (mentionData.url) {
-            await message.client.sendMessage(
-              message.jid,
-              {
-                sticker: { url: mentionData.url },
-              },
-              { quoted: message.data }
-            );
+            await message.sendReply({ url: mentionData.url }, "sticker");
           }
           break;
 
         case "document":
           if (mentionData.url) {
-            await message.client.sendMessage(
-              message.jid,
-              {
-                document: { url: mentionData.url },
-                caption: mentionData.caption || "",
-              },
-              { quoted: message.data }
-            );
+            await message.sendReply({ url: mentionData.url }, "document", {
+              caption: mentionData.caption || "",
+            });
           }
           break;
       }
