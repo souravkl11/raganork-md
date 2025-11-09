@@ -73,14 +73,14 @@ Module(
       if (downloadResult.length === 1) {
         return await message.sendMessage(
           { url: downloadResult[0] },
-          /\.(jpg|jpeg|png|webp)$/i.test(downloadResult[0]) ? "image" : "video",
+          /\.(jpg|jpeg|png|webp)(\?|$)/i.test(downloadResult[0]) ? "image" : "video",
           {
             quoted: quotedMessage,
           }
         );
       }
       let albumObject = downloadResult.map((mediaUrl) => {
-        return /\.(jpg|jpeg|png|webp)$/i.test(mediaUrl)
+        return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(mediaUrl)
           ? { image: mediaUrl }
           : { video: mediaUrl };
       });
@@ -195,13 +195,13 @@ Module(
     if (storyData.length === 1)
       return await message.sendReply(
         { url: storyData[0] },
-        /\.(jpg|jpeg|png|webp)$/i.test(storyData[0]) ? "image" : "video"
+        /\.(jpg|jpeg|png|webp)(\?|$)/i.test(storyData[0]) ? "image" : "video"
       );
     userIdentifier = userIdentifier
       .replace("https://instagram.com/stories/", "")
       .split("/")[0];
     let albumObject = storyData.map((storyMediaUrl) => {
-      return /\.(jpg|jpeg|png|webp)$/i.test(storyMediaUrl)
+      return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(storyMediaUrl)
         ? { image: storyMediaUrl }
         : { video: storyMediaUrl };
     });
