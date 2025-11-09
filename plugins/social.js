@@ -1,350 +1,329 @@
 const { Module } = require("../main");
-const config = require("../config");
-const { setVar } = require("./manage");
 const {
+  pinterestSearch,
   downloadGram,
   pinterestDl,
   tiktok,
+  igStalk,
   fb,
 } = require("./utils");
-const { getVideoInfo } = require("./utils/yt");
-const fs = require("fs");
-const fromMe = config.MODE !== "public";
+const botConfig = require("../config");
+const axios = require("axios");
+const isFromMe = botConfig.MODE === "public" ? false : true;
 
-const HANDLER_PREFIX =
-  config.HANDLERS === "false" ? "" : (config.HANDLERS || ".").charAt(0);
-
-const URL_PATTERNS = {
-  instagram:
-    /^https?:\/\/(?:www\.)?instagram\.com\/(?:p\/[A-Za-z0-9_-]+\/?|reel\/[A-Za-z0-9_-]+\/?|tv\/[A-Za-z0-9_-]+\/?|stories\/[A-Za-z0-9_.-]+\/\d+\/?)(?:\?.*)?$/i,
-  youtube:
-    /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[\?&].*)?$/i,
-  tiktok:
-    /^https?:\/\/(?:www\.)?(?:tiktok\.com\/@?[A-Za-z0-9_.-]+\/video\/\d+|vm\.tiktok\.com\/[A-Za-z0-9_-]+\/?|vt\.tiktok\.com\/[A-Za-z0-9_-]+\/?|v\.tiktok\.com\/[A-Za-z0-9_-]+\/?)(?:\?.*)?$/i,
-  pinterest:
-    /^https?:\/\/(?:www\.)?(?:pinterest\.com\/(?:pin\/\d+\/?[A-Za-z0-9_-]*)\/?|pin\.it\/[A-Za-z0-9_-]+\/?)(?:\?.*)?$/i,
-  twitter:
-    /^https?:\/\/(?:www\.)?(?:twitter\.com|x\.com|mobile\.twitter\.com)\/[A-Za-z0-9_]{1,15}\/status\/\d+(?:\?.*)?$/i,
-  facebook:
-    /^https?:\/\/(?:www\.)?(?:fb\.watch\/[A-Za-z0-9_-]+\/?|(?:facebook\.com|m\.facebook\.com)\/(?:(?:watch(?:\/?|\?v=))|(?:.*\/videos?\/\d+)|(?:video\.php\?v=\d+)|(?:.*\/posts\/\d+))(?:[\s\S]*)?)$/i,
-};
-
-function getFirstUrl(text) {
-  if (!text) return null;
-  const urlMatch = text.match(/https?:\/\/\S+/i);
-  if (!urlMatch) return null;
-  return urlMatch[0].replace(/[)\]\.,!?>]*$/, "");
-}
-
-function detectPlatform(url) {
-  for (const [platform, re] of Object.entries(URL_PATTERNS)) {
-    if (re.test(url)) return platform;
+async function checkRedirect(url) {
+  let split_url = url.split("/");
+  if (split_url.includes("share")) {
+    let res = await axios.get(url);
+    return res.request.res.responseUrl;
   }
-  return null;
+  return url;
 }
+Module(
+  {
+    pattern: "insta ?(.*)",
+    fromMe: isFromMe,
+    desc: "Instagram post/reel/tv/highlights downloader",
+    usage: "insta link or reply to a link",
+    use: "download",
+  },
+  async (message, match) => {
+    let mediaLink = match[1] || message.reply_message?.text;
+    if (/\bhttps?:\/\/\S+/gi.test(mediaLink)) {
+      mediaLink = mediaLink.match(/\bhttps?:\/\/\S+/gi)[0];
+    }
+    if (
+      mediaLink &&
+      (mediaLink.includes("gist") ||
+        mediaLink.includes("youtu") ||
+        mediaLink.startsWith("ll"))
+    )
+      return;
+    if (!mediaLink) return await message.sendReply("_*Need Instagram link*_");
+    mediaLink = await checkRedirect(mediaLink);
+    if (mediaLink.includes("stories"))
+      return await message.sendReply("*_Use .story command!_*");
+    if (mediaLink && !mediaLink.includes("instagram.com")) {
+      return await message.sendReply("_Need valid Instagram link_");
+    }
 
-function isAlreadyCommand(text) {
-  text = text?.toLowerCase()?.trim();
-  if (!text) return false;
-  const regex =
-    /(insta\s|instah|story\s|storyh|tiktok\s|tiktokh|pinterest\s|pinteresth|twitter\s|twitterh|fb\s|fbh|play\s|playh|ytv\s|ytvh)/;
-  return regex.test(text);
-}
-
-function formatBytes(bytes) {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-}
-
-Module({ on: "text", fromMe }, async (message) => {
-  try {
-    if (message.fromBot) return;
-    const chatJid = message.jid;
-    const isGroup = chatJid.includes("@g.us");
-    const autodlEnabledForChat = (() => {
-      try {
-        const enabledList = config.AUTODL || "";
-        const enabled = enabledList
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        if (enabled.includes(chatJid)) return true;
-        if (isGroup && config.AUTODL_ALL_GROUPS === "true") return true;
-        if (!isGroup && config.AUTODL_ALL_DMS === "true") return true;
-        return false;
-      } catch (e) {
-        return false;
+    const instagramRegex =
+      /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com(?:\/.+?)?\/(p|s|reel|tv)\/)([\w-]+)(?:\/)?(?:\?.*)?$/;
+    const urlMatch = instagramRegex.exec(mediaLink);
+    if (urlMatch) {
+      const mediaId = urlMatch[2];
+      if (mediaId && mediaId.length > 20) {
+        return await message.sendReply("_This account appears to be private!_");
       }
-    })();
-    if (!autodlEnabledForChat) return;
-    let text = message.text || "";
-    if (isAlreadyCommand(text)) return;
-
-    const url = getFirstUrl(text);
-    if (!url) return;
-
-    const platform = detectPlatform(url);
-    if (!platform) return;
-
-    await message.react("⬇️");
-
-    if (platform === "youtube") {
       try {
-        const info = await getVideoInfo(url);
-        const videoFormats = info.formats
-          .filter((f) => f.type === "video" && f.quality)
-          .sort((a, b) => {
-            const getRes = (q) => {
-              const match = q.match(/(\d+)/);
-              return match ? parseInt(match[1]) : 0;
-            };
-            return getRes(b.quality) - getRes(a.quality);
-          });
-
-        const uniqueQualities = [
-          ...new Set(videoFormats.map((f) => f.quality)),
-        ].slice(0, 5);
-
-        const videoIdMatch = url.match(
-          /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&\s/?]+)/
+        var downloadResult = await downloadGram(urlMatch[0]);
+      } catch {
+        return await message.sendReply(
+          "_Something went wrong, Please try again!_"
         );
-        const videoId = videoIdMatch ? videoIdMatch[1] : info.videoId || "";
+      }
+      if (downloadResult === false || !downloadResult.length)
+        return await message.sendReply(
+          "_Something went wrong, Please try again!_"
+        );
 
-        let qualityText = "_*Select Video Quality*_\n\n";
-        qualityText += `_*${info.title}*_\n\n(${videoId})\n\n`;
-
-        if (uniqueQualities.length === 0) {
-          return await message.react("❌");
-        }
-
-        uniqueQualities.forEach((quality, index) => {
-          const format = videoFormats.find((f) => f.quality === quality);
-          const audioFormat = info.formats.find((f) => f.type === "audio");
-
-          let sizeInfo = "";
-          if (format.size && audioFormat?.size) {
-            const parseSize = (sizeStr) => {
-              const match = sizeStr.match(/([\d.]+)\s*(KB|MB|GB)/i);
-              if (!match) return 0;
-              const value = parseFloat(match[1]);
-              const unit = match[2].toUpperCase();
-              if (unit === "KB") return value * 1024;
-              if (unit === "MB") return value * 1024 * 1024;
-              if (unit === "GB") return value * 1024 * 1024 * 1024;
-              return value;
-            };
-
-            const videoSize = parseSize(format.size);
-            const audioSize = parseSize(audioFormat.size);
-            const totalSize = videoSize + audioSize;
-
-            if (totalSize > 0) {
-              sizeInfo = ` ~ _${formatBytes(totalSize)}_`;
-            }
+      const quotedMessage = message.reply_message
+        ? message.quoted
+        : message.data;
+      if (downloadResult.length === 1) {
+        return await message.sendMessage(
+          { url: downloadResult[0] },
+          /\.(jpg|jpeg|png|webp)(\?|$)/i.test(downloadResult[0]) ? "image" : "video",
+          {
+            quoted: quotedMessage,
           }
-
-          qualityText += `*${index + 1}.* _*${quality}*_${sizeInfo}\n`;
-        });
-
-        qualityText += "\n_Reply with a number to download_";
-        await message.sendReply(qualityText);
-      } catch (err) {
-        if (config.DEBUG) console.error("[AutoDL YT]", err?.message || err);
-        await message.react("❌");
+        );
       }
-      return;
+      let albumObject = downloadResult.map((mediaUrl) => {
+        return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(mediaUrl)
+          ? { image: mediaUrl }
+          : { video: mediaUrl };
+      });
+      albumObject[0].caption = `_Download complete!_`;
+      return await message.client.albumMessage(
+        message.jid,
+        albumObject,
+        message.data
+      );
     }
-
-    if (platform === "instagram") {
-      try {
-        const isStory = url.includes("/stories/");
-        const downloadResult = await downloadGram(url);
-        
-        if (!downloadResult || !downloadResult.length) {
-          return await message.react("❌");
-        }
-
-        const quotedMessage = message.reply_message ? message.quoted : message.data;
-        
-        if (downloadResult.length === 1) {
-          await message.sendMessage(
-            { url: downloadResult[0] },
-            /\.(jpg|jpeg|png|webp)(\?|$)/i.test(downloadResult[0]) ? "image" : "video",
-            { quoted: quotedMessage }
-          );
-        } else {
-          const albumObject = downloadResult.map((mediaUrl) => {
-            return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(mediaUrl)
-              ? { image: mediaUrl }
-              : { video: mediaUrl };
-          });
-          await message.client.albumMessage(message.jid, albumObject, message.data);
-        }
-      } catch (err) {
-        if (config.DEBUG) console.error("[AutoDL IG]", err?.message || err);
-        await message.react("❌");
-      }
-      return;
-    }
-
-    if (platform === "tiktok") {
-      try {
-        const downloadResult = await tiktok(url);
-        await message.sendReply(downloadResult, "video");
-      } catch (err) {
-        if (config.DEBUG) console.error("[AutoDL TikTok]", err?.message || err);
-        await message.react("❌");
-      }
-      return;
-    }
-
-    if (platform === "pinterest") {
-      try {
-        const pinterestResult = await pinterestDl(url);
-        if (!pinterestResult || !pinterestResult.status || !pinterestResult.result) {
-          return await message.react("❌");
-        }
-        const quotedMessage = message.reply_message ? message.quoted : message.data;
-        await message.sendMessage({ url: pinterestResult.result }, "video", { quoted: quotedMessage });
-      } catch (err) {
-        if (config.DEBUG) console.error("[AutoDL Pinterest]", err?.message || err);
-        await message.react("❌");
-      }
-      return;
-    }
-
-    if (platform === "facebook") {
-      try {
-        const result = await fb(url);
-        await message.sendReply({ url: result.url }, "video");
-      } catch (err) {
-        if (config.DEBUG) console.error("[AutoDL FB]", err?.message || err);
-        await message.react("❌");
-      }
-      return;
-    }
-
-    if (platform === "twitter") {
-      await message.react("❌");
-      return;
-    }
-
-  } catch (err) {
-    if (config.DEBUG) console.error("[AutoDL]", err?.message || err);
   }
-});
+);
 
 Module(
   {
-    pattern: "autodl ?(.*)",
-    fromMe: true,
-    desc: "Auto-download URL watcher - enable in chats or globally",
-    usage:
-      ".autodl - show menu\n.autodl on/off - enable/disable in current chat\n.autodl on/off groups - enable/disable in all groups\n.autodl on/off dms - enable/disable in all DMs\n.autodl status - show current status",
+    pattern: "fb ?(.*)",
+    fromMe: isFromMe,
+    desc: "Facebook video downloader",
+    usage: "fb link or reply to a link",
+    use: "download",
   },
   async (message, match) => {
-    const input = match[1]?.trim();
-    const chatJid = message.jid;
+    let videoLink = !message.reply_message?.message
+      ? match[1]
+      : message.reply_message.message;
 
-    const readList = () => {
+    if (/\bhttps?:\/\/\S+/gi.test(videoLink)) {
+      videoLink = videoLink.match(/\bhttps?:\/\/\S+/gi)[0];
+    }
+    if (!videoLink) return await message.sendReply("_Need facebook link_");
+    try {
+      const { url } = await fb(videoLink);
+      return await message.sendReply({ url }, "video");
+    } catch (e) {
+      console.error("Facebook download error:", e.message);
+      return await message.sendReply(
+        "_Something went wrong, Please try again!_"
+      );
+    }
+  }
+);
+
+Module(
+  {
+    pattern: "ig ?(.*)",
+    fromMe: isFromMe,
+    desc: "Gets account info from instagram",
+    usage: "ig username",
+    excludeFromCommands: true,
+    use: "search",
+  },
+  async (message, match) => {
+    if (!match[1]) return await message.sendReply("_Need Instagram username!_");
+
+    if (match[1].startsWith("https") && match[1].includes("instagram")) {
+      const usernameRegex = /instagram\.com\/([^/?]+)/i;
+      const usernameMatch = match[1].match(usernameRegex);
+      match[1] = usernameMatch && usernameMatch[1];
+    }
+
+    try {
+      var accountInfo = await igStalk(encodeURIComponent(match[1]));
+    } catch {
+      return await message.sendReply("_Server busy!_");
+    }
+
+    await message.sendMessage({ url: accountInfo.profile_pic }, "image", {
+      caption: `_*Name:*_ ${accountInfo.full_name}\n_*Followers:*_ ${
+        accountInfo.followers
+      }\n_*Following:*_ ${accountInfo.following}\n_*Bio:*_ ${
+        accountInfo.bio
+      }\n_*Private account:*_ ${
+        accountInfo.is_private ? "Yes" : "No"
+      } \n_*Posts:*_ ${accountInfo.posts}`,
+      quoted: message.data,
+    });
+  }
+);
+
+Module(
+  {
+    pattern: "story ?(.*)",
+    fromMe: isFromMe,
+    desc: "Instagram stories downloader",
+    usage: ".story username or link",
+    use: "download",
+  },
+  async (message, match) => {
+    let userIdentifier =
+      match[1] !== "" ? match[1] : message.reply_message.text;
+
+    if (
+      userIdentifier &&
+      (userIdentifier.includes("/reel/") ||
+        userIdentifier.includes("/tv/") ||
+        userIdentifier.includes("/p/"))
+    )
+      return;
+    if (!userIdentifier)
+      return await message.sendReply("_Need an Instagram username or link!_");
+
+    userIdentifier = !/\bhttps?:\/\/\S+/gi.test(userIdentifier)
+      ? `https://instagram.com/stories/${userIdentifier}/`
+      : userIdentifier.match(/\bhttps?:\/\/\S+/gi)[0];
+
+    try {
+      var storyData = await downloadGram(userIdentifier);
+    } catch {
+      return await message.sendReply("*_Sorry, server error_*");
+    }
+    if (!storyData || !storyData.length) return await message.sendReply("*_Not found!_*");
+    if (storyData.length === 1)
+      return await message.sendReply(
+        { url: storyData[0] },
+        /\.(jpg|jpeg|png|webp)(\?|$)/i.test(storyData[0]) ? "image" : "video"
+      );
+    userIdentifier = userIdentifier
+      .replace("https://instagram.com/stories/", "")
+      .split("/")[0];
+    let albumObject = storyData.map((storyMediaUrl) => {
+      return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(storyMediaUrl)
+        ? { image: storyMediaUrl }
+        : { video: storyMediaUrl };
+    });
+    albumObject[0].caption = `_Stories from ${userIdentifier}_`;
+    return await message.client.albumMessage(
+      message.jid,
+      albumObject,
+      message.data
+    );
+  }
+);
+
+Module(
+  {
+    pattern: "pinterest ?(.*)",
+    fromMe: isFromMe,
+    desc: "Pinterest downloader",
+    usage: ".pinterest query or link",
+    use: "download",
+  },
+  async (message, match) => {
+    let userQuery = match[1] !== "" ? match[1] : message.reply_message.text;
+    if (userQuery === "g") return;
+    if (!userQuery)
+      return await message.sendReply("_Need search term or pin video link_");
+
+    if (/\bhttps?:\/\/\S+/gi.test(userQuery)) {
+      userQuery = userQuery.match(/\bhttps?:\/\/\S+/gi)[0];
+      let pinterestResult;
       try {
-        const list = config.AUTODL || "";
-        return list
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      } catch (e) {
-        return [];
+        pinterestResult = await pinterestDl(userQuery);
+      } catch (err) {
+        console.error("pinterestDl error:", err?.message || err);
+        return await message.sendReply("_Server error_");
       }
-    };
 
-    if (!input) {
-      const enabledList = readList();
-      const enabled = enabledList.includes(chatJid);
-      const globalGroups = config.AUTODL_ALL_GROUPS === "true";
-      const globalDMs = config.AUTODL_ALL_DMS === "true";
+      if (
+        !pinterestResult ||
+        !pinterestResult.status ||
+        !pinterestResult.result
+      )
+        return await message.sendReply(
+          "_No downloadable media found for this link_"
+        );
 
+      const url = pinterestResult.result;
+      const quotedMessage = message.reply_message
+        ? message.quoted
+        : message.data;
+      await message.sendMessage({ url }, "video", { quoted: quotedMessage });
+    } else {
+      let desiredCount = parseInt(userQuery.split(",")[1]) || 5;
+      let searchQuery = userQuery.split(",")[0] || userQuery;
+      let searchResults;
+      try {
+        const res = await pinterestSearch(searchQuery, desiredCount);
+        if (!res || !res.status || !Array.isArray(res.result)) {
+          return await message.sendReply("_No results found for this query_");
+        }
+        searchResults = res.result;
+      } catch (err) {
+        console.error("pinterestSearch error:", err?.message || err);
+        return await message.sendReply(
+          "_Server error while searching Pinterest_"
+        );
+      }
+
+      const toDownload = Math.min(desiredCount, searchResults.length);
+      await message.sendReply(
+        `_Downloading ${toDownload} results for ${searchQuery} from Pinterest_`
+      );
+
+      const imagesToSend = searchResults
+        .slice(0, toDownload)
+        .map((url) => ({ image: url }));
+      imagesToSend[0].caption = `_Pinterest results for ${searchQuery}_`;
+      try {
+        await message.client.albumMessage(
+          message.jid,
+          imagesToSend,
+          message.data
+        );
+      } catch (error) {
+        console.log(
+          "Album send failed, falling back to individual sends:",
+          error
+        );
+        for (const url of searchResults) {
+          try {
+            await message.sendMessage({ url }, "image");
+          } catch (error) {
+            console.error(
+              "Error downloading pinterest item:",
+              error?.message || error
+            );
+          }
+        }
+      }
+    }
+  }
+);
+
+Module(
+  {
+    pattern: "tiktok ?(.*)",
+    fromMe: isFromMe,
+    desc: "TikTok video downloader",
+    usage: ".tiktok reply or link",
+    use: "download",
+  },
+  async (message, match) => {
+    let videoLink = match[1] !== "" ? match[1] : message.reply_message.text;
+    if (!videoLink) return await message.sendReply("_Need a TikTok URL_");
+    videoLink = videoLink.match(/\bhttps?:\/\/\S+/gi)[0];
+    let downloadResult;
+    try {
+      downloadResult = await tiktok(videoLink);
+      await message.sendReply(downloadResult, "video");
+    } catch (error) {
       return await message.sendReply(
-        `*_⬇️ AutoDownload Manager_*\n\n` +
-          `- _Current chat:_ ${chatJid.includes("@g.us") ? "Group" : "DM"}\n` +
-          `- _Status:_ ${enabled ? "Enabled ✅" : "Disabled ❌"}\n` +
-          `- _Global Groups:_ ${
-            globalGroups ? "Enabled ✅" : "Disabled ❌"
-          }\n` +
-          `- _Global DMs:_ ${globalDMs ? "Enabled ✅" : "Disabled ❌"}\n\n` +
-          `_Commands:_\n` +
-          `- \`${HANDLER_PREFIX}autodl on/off\` - Sets in current chat\n` +
-          `- \`${HANDLER_PREFIX}autodl on/off groups\` - Sets in all groups\n` +
-          `- \`${HANDLER_PREFIX}autodl on dms\` - Sets in all DMs\n` +
-          `- \`${HANDLER_PREFIX}autodl off dms\` - Sets in all DMs\n` +
-          `- \`${HANDLER_PREFIX}autodl status\` - Show detailed status`
+        "_Something went wrong, Please try again!_"
       );
     }
-
-    const parts = input.split(" ");
-    const cmd = parts[0].toLowerCase();
-    const target = parts[1]?.toLowerCase();
-
-    if (cmd === "on") {
-      if (target === "groups") {
-        await setVar("AUTODL_ALL_GROUPS", "true");
-        return await message.sendReply(
-          "_AutoDL enabled for all groups ✅_\n_Use .autodl off groups to disable_"
-        );
-      } else if (target === "dms") {
-        await setVar("AUTODL_ALL_DMS", "true");
-        return await message.sendReply(
-          "_AutoDL enabled for all DMs ✅_\n_Use .autodl off dms to disable_"
-        );
-      } else {
-        const enabledList = readList();
-        if (!enabledList.includes(chatJid)) enabledList.push(chatJid);
-        await setVar("AUTODL", enabledList.join(","));
-        return await message.sendReply(
-          "_AutoDL enabled in this chat ✅_\n_Send a message with a supported URL to auto-convert to download command_"
-        );
-      }
-    }
-
-    if (cmd === "off") {
-      if (target === "groups") {
-        await setVar("AUTODL_ALL_GROUPS", "false");
-        return await message.sendReply(
-          "_AutoDL disabled for all groups ❌_\n_Use .autodl on groups to enable_"
-        );
-      } else if (target === "dms") {
-        await setVar("AUTODL_ALL_DMS", "false");
-        return await message.sendReply(
-          "_AutoDL disabled for all DMs ❌_\n_Use .autodl on dms to enable_"
-        );
-      } else {
-        const enabledList = readList().filter((x) => x !== chatJid);
-        await setVar("AUTODL", enabledList.join(","));
-        return await message.sendReply(
-          "_AutoDL disabled in this chat ❌_\n_Use .autodl on to re-enable_"
-        );
-      }
-    }
-
-    if (cmd === "status") {
-      const enabledList = readList();
-      const globalGroups = config.AUTODL_ALL_GROUPS === "true";
-      const globalDMs = config.AUTODL_ALL_DMS === "true";
-      return await message.sendReply(
-        `*_AutoDL Status_*\n\n` +
-          `• _Enabled chats:_ ${
-            enabledList.length > 0 ? enabledList.join(", ") : "None"
-          }\n` +
-          `• _Global Groups:_ ${
-            globalGroups ? "Enabled ✅" : "Disabled ❌"
-          }\n` +
-          `• _Global DMs:_ ${globalDMs ? "Enabled ✅" : "Disabled ❌"}`
-      );
-    }
-
-    return await message.sendReply(`_Unknown option: ${cmd}_`);
   }
 );

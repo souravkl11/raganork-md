@@ -1,6 +1,9 @@
 const { Module } = require("../main");
 const config = require("../config");
 const { setVar } = require("./manage");
+const { downloadGram, pinterestDl, tiktok, fb } = require("./utils");
+const { getVideoInfo } = require("./utils/yt");
+const fs = require("fs");
 const fromMe = config.MODE !== "public";
 
 const HANDLER_PREFIX =
@@ -42,6 +45,15 @@ function isAlreadyCommand(text) {
     /(insta\s|instah|story\s|storyh|tiktok\s|tiktokh|pinterest\s|pinteresth|twitter\s|twitterh|fb\s|fbh|play\s|playh|ytv\s|ytvh)/;
   return regex.test(text);
 }
+
+function formatBytes(bytes) {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+}
+
 Module({ on: "text", fromMe }, async (message) => {
   try {
     if (message.fromBot) return;
@@ -72,47 +84,167 @@ Module({ on: "text", fromMe }, async (message) => {
     const platform = detectPlatform(url);
     if (!platform) return;
 
-    let cmd;
+    await message.react("⬇️");
+
     if (platform === "youtube") {
-      const lower = text.toLowerCase();
-      cmd = lower.includes("audio") || lower.includes("mp3") ? "play" : "ytv";
-    } else if (platform === "instagram") {
-      cmd = url.includes("/stories/") ? "story" : "insta";
-    } else if (platform === "tiktok") cmd = "tiktok";
-    else if (platform === "pinterest") cmd = "pinterest";
-    else if (platform === "twitter") cmd = "twitter";
-    else if (platform === "facebook") cmd = "fb";
-    else return;
+      try {
+        const info = await getVideoInfo(url);
+        const videoFormats = info.formats
+          .filter((f) => f.type === "video" && f.quality)
+          .sort((a, b) => {
+            const getRes = (q) => {
+              const match = q.match(/(\d+)/);
+              return match ? parseInt(match[1]) : 0;
+            };
+            return getRes(b.quality) - getRes(a.quality);
+          });
 
-    const downloadCommand = `${HANDLER_PREFIX}${cmd} ${url}`.trim();
+        const uniqueQualities = [
+          ...new Set(videoFormats.map((f) => f.quality)),
+        ].slice(0, 5);
 
-    const md = message.data && message.data.message;
-    if (md) {
-      if (
-        md.extendedTextMessage &&
-        typeof md.extendedTextMessage.text !== "undefined"
-      ) {
-        md.extendedTextMessage.text = downloadCommand;
+        const videoIdMatch = url.match(
+          /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&\s/?]+)/
+        );
+        const videoId = videoIdMatch ? videoIdMatch[1] : info.videoId || "";
+
+        let qualityText = "_*Select Video Quality*_\n\n";
+        qualityText += `_*${info.title}*_\n\n(${videoId})\n\n`;
+
+        if (uniqueQualities.length === 0) {
+          return await message.react("❌");
+        }
+
+        uniqueQualities.forEach((quality, index) => {
+          const format = videoFormats.find((f) => f.quality === quality);
+          const audioFormat = info.formats.find((f) => f.type === "audio");
+
+          let sizeInfo = "";
+          if (format.size && audioFormat?.size) {
+            const parseSize = (sizeStr) => {
+              const match = sizeStr.match(/([\d.]+)\s*(KB|MB|GB)/i);
+              if (!match) return 0;
+              const value = parseFloat(match[1]);
+              const unit = match[2].toUpperCase();
+              if (unit === "KB") return value * 1024;
+              if (unit === "MB") return value * 1024 * 1024;
+              if (unit === "GB") return value * 1024 * 1024 * 1024;
+              return value;
+            };
+
+            const videoSize = parseSize(format.size);
+            const audioSize = parseSize(audioFormat.size);
+            const totalSize = videoSize + audioSize;
+
+            if (totalSize > 0) {
+              sizeInfo = ` ~ _${formatBytes(totalSize)}_`;
+            }
+          }
+
+          qualityText += `*${index + 1}.* _*${quality}*_${sizeInfo}\n`;
+        });
+
+        qualityText += "\n_Reply with a number to download_";
+        await message.sendReply(qualityText);
+      } catch (err) {
+        if (config.DEBUG) console.error("[AutoDL YT]", err?.message || err);
+        await message.react("❌");
       }
-      if (typeof md.conversation !== "undefined") {
-        md.conversation = downloadCommand;
-      }
+      return;
     }
 
-    message.text = downloadCommand;
-    message.message = downloadCommand;
+    if (platform === "instagram") {
+      try {
+        const isStory = url.includes("/stories/");
+        const downloadResult = await downloadGram(url);
 
-    await message.react("⬇️");
-    await message.client.ev.emit("messages.upsert", {
-      messages: [message.data],
-      type: "notify",
-    });
+        if (!downloadResult || !downloadResult.length) {
+          return await message.react("❌");
+        }
+
+        const quotedMessage = message.reply_message
+          ? message.quoted
+          : message.data;
+
+        if (downloadResult.length === 1) {
+          await message.sendMessage(
+            { url: downloadResult[0] },
+            /\.(jpg|jpeg|png|webp)(\?|$)/i.test(downloadResult[0])
+              ? "image"
+              : "video",
+            { quoted: quotedMessage }
+          );
+        } else {
+          const albumObject = downloadResult.map((mediaUrl) => {
+            return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(mediaUrl)
+              ? { image: mediaUrl }
+              : { video: mediaUrl };
+          });
+          await message.client.albumMessage(
+            message.jid,
+            albumObject,
+            message.data
+          );
+        }
+      } catch (err) {
+        if (config.DEBUG) console.error("[AutoDL IG]", err?.message || err);
+        await message.react("❌");
+      }
+      return;
+    }
+
+    if (platform === "tiktok") {
+      try {
+        const downloadResult = await tiktok(url);
+        await message.sendReply(downloadResult, "video");
+      } catch (err) {
+        if (config.DEBUG) console.error("[AutoDL TikTok]", err?.message || err);
+        await message.react("❌");
+      }
+      return;
+    }
+
+    if (platform === "pinterest") {
+      try {
+        const pinterestResult = await pinterestDl(url);
+        if (
+          !pinterestResult ||
+          !pinterestResult.status ||
+          !pinterestResult.result
+        ) {
+          return await message.react("❌");
+        }
+        const quotedMessage = message.reply_message
+          ? message.quoted
+          : message.data;
+        await message.sendMessage({ url: pinterestResult.result }, "video", {
+          quoted: quotedMessage,
+        });
+      } catch (err) {
+        if (config.DEBUG)
+          console.error("[AutoDL Pinterest]", err?.message || err);
+        await message.react("❌");
+      }
+      return;
+    }
+
+    if (platform === "facebook") {
+      try {
+        const result = await fb(url);
+        await message.sendReply({ url: result.url }, "video");
+      } catch (err) {
+        if (config.DEBUG) console.error("[AutoDL FB]", err?.message || err);
+        await message.react("❌");
+      }
+      return;
+    }
+
+    if (platform === "twitter") {
+      await message.react("❌");
+      return;
+    }
   } catch (err) {
-    if (config.DEBUG)
-      console.error(
-        "[AutoDownload] Error:",
-        err && err.message ? err.message : err
-      );
+    if (config.DEBUG) console.error("[AutoDL]", err?.message || err);
   }
 });
 
