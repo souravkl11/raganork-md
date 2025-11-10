@@ -247,7 +247,7 @@ Module(
 );
 Module(
   {
-    pattern: "slow ?(.*)",
+    pattern: "slow",
     fromMe: w,
     use: "edit",
     desc: "Slows down music & decreases pitch. For making slowed+reverb audios",

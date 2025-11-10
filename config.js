@@ -35,10 +35,22 @@ const sequelize =
           match: [/SQLITE_BUSY/, /database is locked/, /EBUSY/],
           max: 3,
         },
+        pool: {
+          max: 5,
+          min: 1,
+          acquire: 30000,
+          idle: 10000,
+        },
       })
     : new Sequelize(DATABASE_URL, {
         dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
         logging: DEBUG,
+        pool: {
+          max: 20,
+          min: 5,
+          acquire: 30000,
+          idle: 10000,
+        },
       });
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID;

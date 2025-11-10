@@ -37,6 +37,7 @@ const {
   avMix,
   webp2mp4,
   addID3,
+  trim,
 } = mediaProcessing;
 
 // Utility functions
@@ -109,6 +110,7 @@ module.exports = {
   avMix,
   webp2mp4,
   addID3,
+  trim,
 
   // Utilities
   parseUptime,
