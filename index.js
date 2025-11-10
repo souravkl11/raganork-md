@@ -60,26 +60,26 @@ async function main() {
   await botManager.initializeBots();
   console.log("- Bot initialization complete.");
   logger.info("Bot initialization complete");
-  const PORT = process.env.PORT || 3000;
+  const startServer = () => {
+    const PORT = process.env.PORT || 3000;
 
-  const server = http.createServer((req, res) => {
-    if (req.url === "/health") {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("OK");
-    } else {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("Raganork Bot is running!");
-    }
-  });
+    const server = http.createServer((req, res) => {
+      if (req.url === "/health") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end("OK");
+      } else {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end("Raganork Bot is running!");
+      }
+    });
 
-  server.listen(PORT, () => {
-    logger.info(`Web server listening on port ${PORT}`);
-  });
+    server.listen(PORT, () => {
+      logger.info(`Web server listening on port ${PORT}`);
+    });
+  };
+
+  if (process.env.USE_SERVER !== "false") startServer();
 }
-
-/**
- * Validates critical configuration values after loading from database
- */
 
 if (require.main === module) {
   main().catch((error) => {
