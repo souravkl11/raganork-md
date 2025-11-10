@@ -506,11 +506,10 @@ Module(
 
       let shouldRespond = false;
       const messageText = message.text;
-
       if (isDM) {
         shouldRespond = true;
       } else if (isGroup) {
-        const botJid = message.client.user?.id;
+        const botJid = message.client.user?.lid;
 
         if (message.mention && message.mention.length > 0) {
           const botMentioned = message.mention.some((jid) => {
