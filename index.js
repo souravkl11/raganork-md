@@ -13,7 +13,12 @@ const { BotManager } = require("./core/manager");
 const config = require("./config");
 const { SESSION, logger } = config;
 const http = require("http");
-const { ensureTempDir, TEMP_DIR } = require("./core/helpers");
+const {
+  ensureTempDir,
+  TEMP_DIR,
+  initializeKickBot,
+  cleanupKickBot,
+} = require("./core/helpers");
 
 async function main() {
   ensureTempDir();
@@ -50,6 +55,7 @@ async function main() {
   const shutdownHandler = async (signal) => {
     console.log(`\nReceived ${signal}, shutting down...`);
     logger.info(`Received ${signal}, shutting down...`);
+    cleanupKickBot();
     await botManager.shutdown();
     process.exit(0);
   };
@@ -60,6 +66,9 @@ async function main() {
   await botManager.initializeBots();
   console.log("- Bot initialization complete.");
   logger.info("Bot initialization complete");
+
+  initializeKickBot();
+
   const startServer = () => {
     const PORT = process.env.PORT || 3000;
 
