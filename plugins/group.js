@@ -755,10 +755,7 @@ Module(
       msgText += `${targets.length}. @${p.id.split("@")[0]}\n`;
     }
     if (isReply) {
-      await message.client.sendMessage(message.jid, {
-        forward: message.quoted,
-        mentions: targets,
-      });
+      await message.forwardMessage(message.jid, message.quoted,{detectLinks: true,contextInfo: {mentionedJid: targets, isForwarded: false}});
     } else {
       await message.client.sendMessage(message.jid, {
         text: "```" + msgText + "```",
