@@ -716,7 +716,7 @@ Module(
     desc: Lang.TAGALL_DESC,
     use: "group",
     usage:
-      ".tag (reply to message)\n.tagall (tag everyone)\n.tagadmin (tag admins only)\n.tag 120363355307899193@g.us (tag in specific group)",
+      ".tag text\n.tag (reply to message)\n.tagall (tag everyone)\n.tagadmin (tag admins only)\n.tag 120363355307899193@g.us (tag in specific group)",
   },
   async (message, match) => {
     const groupJidMatch = match[2]?.match(/(\d+@g\.us)/);
@@ -741,9 +741,12 @@ Module(
     const isTagAdmin = match[1]?.includes("admin");
     const isTagAll = match[1]?.includes("all");
     const isReply = !!message.reply_message;
-    if (!isReply && !isTagAdmin && !isTagAll) {
+    const customText = match[2]?.trim();
+    const hasCustomText = customText && !customText.match(/(\d+@g\.us)/);
+    
+    if (!isReply && !isTagAdmin && !isTagAll && !hasCustomText) {
       return await message.sendReply(
-        `_Tag what?_\n\n${handler}tag \`admin\`\n${handler}tag \`all\`\n${handler}tag \`(reply)\`\n${handler}tag \`120363355307899193@g.us\``
+        `_Tag what?_\n\n${handler}tag \`<text here>\`\n${handler}tag \`admin\`\n${handler}tag \`all\`\n${handler}tag \`(reply)\`\n${handler}tag \`120363355307899193@g.us\``
       );
     }
     const targets = [];
@@ -756,6 +759,11 @@ Module(
     }
     if (isReply) {
       await message.forwardMessage(message.jid, message.quoted,{detectLinks: true,contextInfo: {mentionedJid: targets, isForwarded: false}});
+    } else if (hasCustomText) {
+      await message.client.sendMessage(message.jid, {
+        text: customText,
+        mentions: targets,
+      });
     } else {
       await message.client.sendMessage(message.jid, {
         text: "```" + msgText + "```",
