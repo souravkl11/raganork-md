@@ -151,6 +151,14 @@ Module(
       );
     }
 
+    // Convert YouTube Shorts URL to regular watch URL if needed
+    if (url.includes("youtube.com/shorts/")) {
+      const shortId = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/)?.[1];
+      if (shortId) {
+        url = `https://www.youtube.com/watch?v=${shortId}`;
+      }
+    }
+
     try {
       const infoMsg = await message.sendReply("_📊 Fetching video info..._");
       const info = await getVideoInfo(url);
@@ -244,8 +252,16 @@ Module(
 
     if (!url || (!url.includes("youtube.com") && !url.includes("youtu.be"))) {
       return await message.sendReply(
-        "_Please provide a valid YouTube link!_\n_Example: .video https://youtube.com/watch?v=xxxxx_"
+        "_Please provide a valid YouTube link!_\n_Example: .video https://youtube.com/watch?v=xxxxx or https://youtube.com/shorts/xxxxx_"
       );
+    }
+
+    // Convert YouTube Shorts URL to regular watch URL if needed
+    if (url.includes("youtube.com/shorts/")) {
+      const shortId = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/)?.[1];
+      if (shortId) {
+        url = `https://www.youtube.com/watch?v=${shortId}`;
+      }
     }
 
     let downloadMsg;
@@ -319,8 +335,16 @@ Module(
 
     if (!url || (!url.includes("youtube.com") && !url.includes("youtu.be"))) {
       return await message.sendReply(
-        "_Please provide a valid YouTube link!_\n_Example: .yta https://youtube.com/watch?v=xxxxx_"
+        "_Please provide a valid YouTube link!_\n_Example: .yta https://youtube.com/watch?v=xxxxx or https://youtube.com/shorts/xxxxx_"
       );
+    }
+
+    // Convert YouTube Shorts URL to regular watch URL if needed
+    if (url.includes("youtube.com/shorts/")) {
+      const shortId = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/)?.[1];
+      if (shortId) {
+        url = `https://www.youtube.com/watch?v=${shortId}`;
+      }
     }
 
     let downloadMsg;
@@ -401,6 +425,13 @@ Module(
             urlMatch[0].includes("youtu.be"))
         ) {
           url = urlMatch[0];
+          // Convert YouTube Shorts URL to regular watch URL if needed
+          if (url.includes("youtube.com/shorts/")) {
+            const shortId = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/)?.[1];
+            if (shortId) {
+              url = `https://www.youtube.com/watch?v=${shortId}`;
+            }
+          }
         }
       }
 

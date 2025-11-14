@@ -23,72 +23,98 @@ Module(
   {
     pattern: "insta ?(.*)",
     fromMe: isFromMe,
-    desc: "Instagram post/reel/tv/highlights downloader",
-    usage: "insta link or reply to a link",
+    desc: "Instagram post/reel/tv/highlights downloader - supports multiple links",
+    usage: "insta link(s) or reply to link(s)",
     use: "download",
   },
   async (message, match) => {
-    let mediaLink = match[1] || message.reply_message?.text;
-    if (/\bhttps?:\/\/\S+/gi.test(mediaLink)) {
-      mediaLink = mediaLink.match(/\bhttps?:\/\/\S+/gi)[0];
-    }
-    if (
-      mediaLink &&
-      (mediaLink.includes("gist") ||
-        mediaLink.includes("youtu") ||
-        mediaLink.startsWith("ll"))
-    )
-      return;
-    if (!mediaLink) return await message.sendReply("_*Need Instagram link*_");
-    mediaLink = await checkRedirect(mediaLink);
-    if (mediaLink.includes("stories"))
-      return await message.sendReply("*_Use .story command!_*");
-    if (mediaLink && !mediaLink.includes("instagram.com")) {
-      return await message.sendReply("_Need valid Instagram link_");
-    }
+    let mediaLinks = match[1] || message.reply_message?.text;
+    if (!mediaLinks)
+      return await message.sendReply("_*Need Instagram link(s)*_");
 
+    // extract all urls from the text
+    const allUrls = mediaLinks.match(/\bhttps?:\/\/\S+/gi) || [];
+    if (!allUrls.length)
+      return await message.sendReply("_*Need Instagram link(s)*_");
+
+    // filter and validate instagram urls
+    const instagramUrls = [];
     const instagramRegex =
-      /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com(?:\/.+?)?\/(p|s|reel|tv)\/)([\w-]+)(?:\/)?(?:\?.*)?$/;
-    const urlMatch = instagramRegex.exec(mediaLink);
-    if (urlMatch) {
-      const mediaId = urlMatch[2];
-      if (mediaId && mediaId.length > 20) {
-        return await message.sendReply("_This account appears to be private!_");
-      }
-      try {
-        var downloadResult = await downloadGram(urlMatch[0]);
-      } catch {
-        return await message.sendReply(
-          "_Something went wrong, Please try again!_"
-        );
-      }
-      if (downloadResult === false || !downloadResult.length)
-        return await message.sendReply(
-          "_Something went wrong, Please try again!_"
-        );
+      /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|s|reel|tv)\/[\w-]+/i;
 
+    for (let url of allUrls) {
+      if (url.includes("gist") || url.includes("youtu") || url.startsWith("ll"))
+        continue;
+
+      url = await checkRedirect(url);
+
+      if (url.includes("stories")) continue;
+
+      if (!url.includes("instagram.com")) continue;
+
+      if (instagramRegex.test(url)) {
+        const mediaId = url.match(/\/([\w-]+)\/?$/)?.[1];
+        if (mediaId && mediaId.length > 20) continue; // skip private accounts
+
+        instagramUrls.push(url);
+      }
+    }
+
+    if (!instagramUrls.length)
+      return await message.sendReply("_Need valid Instagram link(s)_");
+
+    try {
+      const allMediaUrls = [];
       const quotedMessage = message.reply_message
         ? message.quoted
         : message.data;
-      if (downloadResult.length === 1) {
+
+      // download from all urls
+      for (const url of instagramUrls) {
+        try {
+          const downloadResult = await downloadGram(url);
+          if (downloadResult && downloadResult.length) {
+            allMediaUrls.push(...downloadResult);
+          }
+        } catch (err) {
+          console.error("Error downloading from:", url, err?.message);
+        }
+      }
+
+      if (!allMediaUrls.length)
+        return await message.sendReply(
+          "_Something went wrong, Please try again!_"
+        );
+
+      // send as single media or album
+      if (allMediaUrls.length === 1) {
         return await message.sendMessage(
-          { url: downloadResult[0] },
-          /\.(jpg|jpeg|png|webp)(\?|$)/i.test(downloadResult[0]) ? "image" : "video",
+          { url: allMediaUrls[0] },
+          /\.(jpg|jpeg|png|webp)(\?|$)/i.test(allMediaUrls[0])
+            ? "image"
+            : "video",
           {
             quoted: quotedMessage,
           }
         );
       }
-      let albumObject = downloadResult.map((mediaUrl) => {
+
+      // send as album
+      const albumObject = allMediaUrls.map((mediaUrl) => {
         return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(mediaUrl)
           ? { image: mediaUrl }
           : { video: mediaUrl };
       });
-      albumObject[0].caption = `_Download complete!_`;
+      albumObject[0].caption = `_Download complete! (${allMediaUrls.length} items)_`;
       return await message.client.albumMessage(
         message.jid,
         albumObject,
         message.data
+      );
+    } catch (err) {
+      console.error("Insta command error:", err?.message || err);
+      return await message.sendReply(
+        "_Something went wrong, Please try again!_"
       );
     }
   }
@@ -191,7 +217,8 @@ Module(
     } catch {
       return await message.sendReply("*_Sorry, server error_*");
     }
-    if (!storyData || !storyData.length) return await message.sendReply("*_Not found!_*");
+    if (!storyData || !storyData.length)
+      return await message.sendReply("*_Not found!_*");
     if (storyData.length === 1)
       return await message.sendReply(
         { url: storyData[0] },
