@@ -3,7 +3,6 @@ const config = require("../config");
 const axios = require("axios");
 const fromMe = config.MODE !== "public";
 const { setVar } = require("./manage");
-const axios = require("axios");
 const fs = require("fs");
 const { callGenerativeAI } = require("./utils/misc");
 
