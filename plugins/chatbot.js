@@ -1,7 +1,11 @@
 const { Module } = require("../main");
 const config = require("../config");
+const axios = require("axios");
+const fromMe = config.MODE !== "public";
 const { setVar } = require("./manage");
 const axios = require("axios");
+const fs = require("fs");
+const { callGenerativeAI } = require("./utils/misc");
 
 const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 const models = [
@@ -249,6 +253,7 @@ Module(
     pattern: "chatbot ?(.*)",
     fromMe: true,
     desc: "AI Chatbot management with Gemini API - supports text and image analysis",
+    type: "ai",
     usage:
       '.chatbot - _Show help menu_\n.chatbot on/off - _Enable/disable in current chat_\n.chatbot on/off groups - _Enable/disable in all groups_\n.chatbot on/off dms - _Enable/disable in all DMs_\n.chatbot set "prompt" - _Set system prompt_\n.chatbot clear - _Clear conversation context_\n_Reply to images for AI image analysis_',
   },
@@ -579,6 +584,83 @@ Module(
       }
     } catch (error) {
       console.error("Error in message handler:", error);
+    }
+  }
+);
+
+Module(
+  {
+    pattern: "ai ?(.*)",
+    fromMe,
+    desc: "Ask Gemini AI with text and/or image input",
+    type: "ai",
+  },
+  async (message, match) => {
+    let imageParts = [];
+    let prompt = match[1]?.trim() || "";
+
+    if (message.reply_message) {
+      if (message.reply_message.image) {
+        try {
+          const buffer = await message.reply_message.download("buffer");
+          const imagePart = await imageToGenerativePart(buffer);
+          if (imagePart) imageParts.push(imagePart);
+        } catch (error) {
+          console.error("Error downloading image:", error);
+          return await message.sendReply("❌ Failed to download the image.");
+        }
+        if (!prompt) prompt = "What do you see in this image?";
+      }
+      else if (message.reply_message.album) {
+        try {
+          const albumData = await message.reply_message.download();
+
+          for (const imagePath of albumData.images) {
+            try {
+              const buffer = fs.readFileSync(imagePath);
+              const imagePart = await imageToGenerativePart(buffer);
+              if (imagePart) imageParts.push(imagePart);
+            } catch (err) {
+              console.error("Error processing album image:", err);
+            }
+          }
+
+          if (!imageParts.length) {
+            return await message.sendReply("❌ No images found in album.");
+          }
+          if (!prompt) prompt = "Analyze these images for me.";
+        } catch (error) {
+          console.error("Error downloading album:", error);
+          return await message.sendReply("❌ Failed to download album.");
+        }
+      }
+      else if (message.reply_message.text && !prompt) {
+        prompt = message.reply_message.text;
+      }
+    }
+
+    if (!prompt && !imageParts.length) {
+      return await message.sendReply("Please provide a prompt or reply to a message/image.");
+    }
+
+    let sent_msg;
+    try {
+      sent_msg = await message.sendReply("_Thinking..._");
+      const fullText = await callGenerativeAI(prompt, imageParts, message, sent_msg);
+
+      if (!fullText) {
+        await message.edit("❌ Received empty response from AI.", message.jid, sent_msg.key);
+        return;
+      }
+
+      await message.edit(fullText, message.jid, sent_msg.key);
+    } catch (error) {
+      console.error("AI command error:", error.message);
+      if (sent_msg) {
+        await message.edit("❌ An error occurred with the AI API.", message.jid, sent_msg.key);
+      } else {
+        await message.sendReply("❌ An error occurred with the AI API.");
+      }
     }
   }
 );
