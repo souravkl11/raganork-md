@@ -282,14 +282,14 @@ Module(
         selectedOption <= configs.length
       ) {
         const setting = configs[selectedOption - 1];
-        let msg = `*${setting.title}*\n\n1. ON\n2. OFF`;
+        let msg = `_*${setting.title}*_\n\n1. ON\n2. OFF`;
         return await message.sendReply(msg);
       }
     }
     let msg =
-      "*Settings configuration menu*\n\nSelect an option by number:\n\n";
+      "*_Settings configuration menu_*\n\n_Select an option by number:_\n\n";
     configs.forEach((e, index) => {
-      msg += `${index + 1}. ${e.title}\n`;
+      msg += `_${index + 1}. ${e.title}_\n`;
     });
     return await message.sendReply(msg);
   }
@@ -1398,7 +1398,7 @@ Module(
       const optionNumber = parseInt(sMatch[0]);
       if (optionNumber > 0 && optionNumber <= configs.length) {
         const setting = configs[optionNumber - 1];
-        let msg = `*${setting.title}*\n\n1. ON\n2. OFF`;
+        let msg = `*_${setting.title}_*\n1. ON\n2. OFF`;
         return await message.sendReply(msg);
       }
     } else if (

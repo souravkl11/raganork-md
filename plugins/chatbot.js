@@ -252,7 +252,6 @@ Module(
     pattern: "chatbot ?(.*)",
     fromMe: true,
     desc: "AI Chatbot management with Gemini API - supports text and image analysis",
-    type: "ai",
     usage:
       '.chatbot - _Show help menu_\n.chatbot on/off - _Enable/disable in current chat_\n.chatbot on/off groups - _Enable/disable in all groups_\n.chatbot on/off dms - _Enable/disable in all DMs_\n.chatbot set "prompt" - _Set system prompt_\n.chatbot clear - _Clear conversation context_\n_Reply to images for AI image analysis_',
   },

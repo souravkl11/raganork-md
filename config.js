@@ -13,6 +13,110 @@ const isRailway = __dirname.startsWith("/railway");
 
 const logger = P({ level: process.env.LOG_LEVEL || "silent" });
 
+function applySQLiteResilience(sequelizeInstance) {
+  if (!sequelizeInstance || sequelizeInstance.__sqliteGuardsApplied) {
+    return;
+  }
+
+  sequelizeInstance.__sqliteGuardsApplied = true;
+  const busyTimeoutMs = parseInt(process.env.SQLITE_BUSY_TIMEOUT || "15000", 10); // modifiable
+  const pragmas = [
+    "PRAGMA journal_mode=WAL;",
+    "PRAGMA synchronous=NORMAL;",
+    "PRAGMA temp_store=MEMORY;",
+    "PRAGMA cache_size=-32000;",
+    `PRAGMA busy_timeout=${busyTimeoutMs};`,
+  ];
+
+  sequelizeInstance.addHook("afterConnect", async (connection) => {
+    if (!connection || typeof connection.exec !== "function") {
+      return;
+    }
+
+    try {
+      for (const pragma of pragmas) {
+        await new Promise((resolve, reject) => {
+          connection.exec(pragma, (err) => (err ? reject(err) : resolve()));
+        });
+      }
+    } catch (error) {
+      logger.warn({ err: error }, "failed to apply sqlite pragmas");
+    }
+  });
+
+  const originalQuery = sequelizeInstance.query.bind(sequelizeInstance);
+  const writeQueue = [];
+  let queueActive = false;
+
+  const flushQueue = async () => {
+    if (queueActive || writeQueue.length === 0) {
+      return;
+    }
+
+    queueActive = true;
+
+    while (writeQueue.length > 0) {
+      const { task, resolve, reject } = writeQueue.shift();
+      try {
+        const result = await task();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    }
+
+    queueActive = false;
+  };
+
+  const isWriteQuery = (sql) => {
+    if (!sql || typeof sql !== "string") return true; // default to safe mode
+    const normalizedSql = sql.trim().toUpperCase();
+    return (
+      normalizedSql.startsWith("INSERT") ||
+      normalizedSql.startsWith("UPDATE") ||
+      normalizedSql.startsWith("DELETE") ||
+      normalizedSql.startsWith("CREATE") ||
+      normalizedSql.startsWith("ALTER") ||
+      normalizedSql.startsWith("DROP") ||
+      normalizedSql.startsWith("PRAGMA")
+    );
+  };
+
+  sequelizeInstance.query = function serializedQuery(sql, ...rest) {
+    // only queue writes; reads can run concurrently
+    if (!isWriteQuery(sql)) {
+      return originalQuery(sql, ...rest);
+    }
+
+    return new Promise((resolve, reject) => {
+      writeQueue.push({
+        task: () => originalQuery(sql, ...rest),
+        resolve,
+        reject,
+      });
+      setImmediate(flushQueue);
+    });
+  };
+
+  if (typeof sequelizeInstance.queryRaw === "function") {
+    const originalQueryRaw = sequelizeInstance.queryRaw.bind(sequelizeInstance);
+    sequelizeInstance.queryRaw = function serializedQueryRaw(sql, ...rest) {
+      if (!isWriteQuery(sql)) {
+        return originalQueryRaw(sql, ...rest);
+      }
+
+      return new Promise((resolve, reject) => {
+        writeQueue.push({
+          task: () => originalQueryRaw(sql, ...rest),
+          resolve,
+          reject,
+        });
+        setImmediate(flushQueue);
+      });
+    };
+  }
+}
+
 const MAX_RECONNECT_ATTEMPTS = parseInt(
   process.env.MAX_RECONNECT_ATTEMPTS || "5",
   10
@@ -25,33 +129,39 @@ const DATABASE_URL =
 const DEBUG =
   process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBUG);
 
-const sequelize =
-  DATABASE_URL === "./bot.db"
-    ? new Sequelize({
-        dialect: "sqlite",
-        storage: DATABASE_URL,
-        logging: DEBUG,
-        retry: {
-          match: [/SQLITE_BUSY/, /database is locked/, /EBUSY/],
-          max: 3,
-        },
-        pool: {
-          max: 5,
-          min: 1,
-          acquire: 30000,
-          idle: 10000,
-        },
-      })
-    : new Sequelize(DATABASE_URL, {
-        dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
-        logging: DEBUG,
-        pool: {
-          max: 20,
-          min: 5,
-          acquire: 30000,
-          idle: 10000,
-        },
-      });
+const sequelize = (() => {
+  if (DATABASE_URL === "./bot.db") {
+    const sqliteInstance = new Sequelize({
+      dialect: "sqlite",
+      storage: DATABASE_URL,
+      logging: DEBUG,
+      retry: {
+        match: [/SQLITE_BUSY/, /database is locked/, /EBUSY/],
+        max: 3,
+      },
+      pool: {
+        max: 5,
+        min: 1,
+        acquire: 30000,
+        idle: 10000,
+      },
+    });
+
+    applySQLiteResilience(sqliteInstance);
+    return sqliteInstance;
+  }
+
+  return new Sequelize(DATABASE_URL, {
+    dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
+    logging: DEBUG,
+    pool: {
+      max: 20,
+      min: 5,
+      acquire: 30000,
+      idle: 10000,
+    },
+  });
+})();
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID;
 
@@ -61,7 +171,7 @@ const SESSION = SESSION_STRING
 
 const settingsMenu = [
   { title: "PM antispam block", env_var: "PM_ANTISPAM" },
-  { title: "Command auto reaction", env_var: "CMD_REACTION" },
+  //{ title: "Command auto reaction", env_var: "CMD_REACTION" },
   { title: "Auto read all messages", env_var: "READ_MESSAGES" },
   { title: "Auto read command messages", env_var: "READ_COMMAND" },
   { title: "Auto read status updates", env_var: "AUTO_READ_STATUS" },
