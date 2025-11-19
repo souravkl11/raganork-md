@@ -110,15 +110,17 @@ Module({ on: "text", fromMe }, async (message) => {
       // handle youtube separately (only process first url for yt)
       if (platformGroups["youtube"]) {
         let url = platformGroups["youtube"][0];
-        
+
         // Convert YouTube Shorts URL to regular watch URL if needed
         if (url.includes("youtube.com/shorts/")) {
-          const shortId = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/)?.[1];
+          const shortId = url.match(
+            /youtube\.com\/shorts\/([A-Za-z0-9_-]+)/
+          )?.[1];
           if (shortId) {
             url = `https://www.youtube.com/watch?v=${shortId}`;
           }
         }
-        
+
         const lowerText = text.toLowerCase();
         const isAudioMode =
           /\baudio\b|\bmp3\b/.test(lowerText) && !isAlreadyCommand(text);
@@ -149,15 +151,13 @@ Module({ on: "text", fromMe }, async (message) => {
                 downloadMsg.key
               );
 
-              await message.sendMessage(
-                { stream: fs.createReadStream(audioPath) },
-                "document",
-                {
-                  fileName: `${result.title}.mp3`,
-                  mimetype: "audio/mpeg",
-                  caption: `_*${result.title}*_`,
-                }
-              );
+              const stream = fs.createReadStream(audioPath);
+              await message.sendMessage({ stream }, "document", {
+                fileName: `${result.title}.mp3`,
+                mimetype: "audio/mpeg",
+                caption: `_*${result.title}*_`,
+              });
+              stream.destroy();
 
               await message.edit(
                 "_Download complete!_",
@@ -165,6 +165,7 @@ Module({ on: "text", fromMe }, async (message) => {
                 downloadMsg.key
               );
 
+              await new Promise((resolve) => setTimeout(resolve, 100));
               if (fs.existsSync(audioPath)) {
                 fs.unlinkSync(audioPath);
               }

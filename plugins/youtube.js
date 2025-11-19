@@ -277,29 +277,26 @@ Module(
       const stats = fs.statSync(videoPath);
 
       if (stats.size > VIDEO_SIZE_LIMIT) {
-        await message.sendMessage(
-          { stream: fs.createReadStream(videoPath) },
-          "document",
-          {
-            fileName: `${result.title}.mp4`,
-            mimetype: "video/mp4",
-            caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
-              stats.size
-            )}_\n_Quality: 360p_`,
-          }
-        );
+        const stream = fs.createReadStream(videoPath);
+        await message.sendMessage({ stream }, "document", {
+          fileName: `${result.title}.mp4`,
+          mimetype: "video/mp4",
+          caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
+            stats.size
+          )}_\n_Quality: 360p_`,
+        });
+        stream.destroy();
       } else {
-        await message.sendReply(
-          { stream: fs.createReadStream(videoPath) },
-          "video",
-          {
-            caption: `_*${result.title}*_\n\n_Quality: 360p_`,
-          }
-        );
+        const stream = fs.createReadStream(videoPath);
+        await message.sendReply({ stream }, "video", {
+          caption: `_*${result.title}*_\n\n_Quality: 360p_`,
+        });
+        stream.destroy();
       }
 
       await message.edit("_Download complete!_", message.jid, downloadMsg.key);
 
+      await new Promise((resolve) => setTimeout(resolve, 100));
       if (fs.existsSync(videoPath)) {
         fs.unlinkSync(videoPath);
       }
@@ -366,18 +363,17 @@ Module(
 
       await message.edit("_Uploading audio..._", message.jid, downloadMsg.key);
 
-      await message.sendMessage(
-        { stream: fs.createReadStream(audioPath) },
-        "document",
-        {
-          fileName: `${result.title}.mp3`,
-          mimetype: "audio/mpeg",
-          caption: `_*${result.title}*_`,
-        }
-      );
+      const stream = fs.createReadStream(audioPath);
+      await message.sendMessage({ stream }, "document", {
+        fileName: `${result.title}.mp3`,
+        mimetype: "audio/mpeg",
+        caption: `_*${result.title}*_`,
+      });
+      stream.destroy();
 
       await message.edit("_Download complete!_", message.jid, downloadMsg.key);
 
+      await new Promise((resolve) => setTimeout(resolve, 100));
       if (fs.existsSync(audioPath)) {
         fs.unlinkSync(audioPath);
       }
@@ -427,7 +423,9 @@ Module(
           url = urlMatch[0];
           // Convert YouTube Shorts URL to regular watch URL if needed
           if (url.includes("youtube.com/shorts/")) {
-            const shortId = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/)?.[1];
+            const shortId = url.match(
+              /youtube\.com\/shorts\/([A-Za-z0-9_-]+)/
+            )?.[1];
             if (shortId) {
               url = `https://www.youtube.com/watch?v=${shortId}`;
             }
@@ -455,13 +453,11 @@ Module(
           downloadMsg.key
         );
 
-        await message.sendReply(
-          { stream: fs.createReadStream(audioPath) },
-          "audio",
-          {
-            mimetype: "audio/mpeg",
-          }
-        );
+        const stream1 = fs.createReadStream(audioPath);
+        await message.sendReply({ stream: stream1 }, "audio", {
+          mimetype: "audio/mpeg",
+        });
+        stream1.destroy();
 
         await message.edit(
           `_Downloaded *${result.title}*!_`,
@@ -469,6 +465,7 @@ Module(
           downloadMsg.key
         );
 
+        await new Promise((resolve) => setTimeout(resolve, 100));
         if (fs.existsSync(audioPath)) {
           fs.unlinkSync(audioPath);
         }
@@ -510,13 +507,11 @@ Module(
           downloadMsg.key
         );
 
-        await message.sendReply(
-          { stream: fs.createReadStream(audioPath) },
-          "audio",
-          {
-            mimetype: "audio/mpeg",
-          }
-        );
+        const stream2 = fs.createReadStream(audioPath);
+        await message.sendReply({ stream: stream2 }, "audio", {
+          mimetype: "audio/mpeg",
+        });
+        stream2.destroy();
 
         await message.edit(
           `_Downloaded *${video.title}*!_`,
@@ -524,6 +519,7 @@ Module(
           downloadMsg.key
         );
 
+        await new Promise((resolve) => setTimeout(resolve, 100));
         if (fs.existsSync(audioPath)) {
           fs.unlinkSync(audioPath);
         }
@@ -612,13 +608,11 @@ Module(
             downloadMsg.key
           );
 
-          await message.sendReply(
-            { stream: fs.createReadStream(audioPath) },
-            "audio",
-            {
-              mimetype: "audio/mpeg",
-            }
-          );
+          const stream3 = fs.createReadStream(audioPath);
+          await message.sendReply({ stream: stream3 }, "audio", {
+            mimetype: "audio/mpeg",
+          });
+          stream3.destroy();
 
           await message.edit(
             "_Download complete!_",
@@ -626,6 +620,7 @@ Module(
             downloadMsg.key
           );
 
+          await new Promise((resolve) => setTimeout(resolve, 100));
           if (fs.existsSync(audioPath)) {
             fs.unlinkSync(audioPath);
           }
@@ -736,13 +731,11 @@ Module(
               downloadMsg.key
             );
 
-            await message.sendReply(
-              { stream: fs.createReadStream(filePath) },
-              "audio",
-              {
-                mimetype: "audio/mpeg",
-              }
-            );
+            const stream4 = fs.createReadStream(filePath);
+            await message.sendReply({ stream: stream4 }, "audio", {
+              mimetype: "audio/mpeg",
+            });
+            stream4.destroy();
 
             await message.edit(
               "_Download complete!_",
@@ -750,6 +743,7 @@ Module(
               downloadMsg.key
             );
 
+            await new Promise((resolve) => setTimeout(resolve, 100));
             if (fs.existsSync(filePath)) {
               fs.unlinkSync(filePath);
             }
@@ -783,25 +777,21 @@ Module(
             const stats = fs.statSync(filePath);
 
             if (stats.size > VIDEO_SIZE_LIMIT) {
-              await message.sendMessage(
-                { stream: fs.createReadStream(filePath) },
-                "document",
-                {
-                  fileName: `${result.title}.mp4`,
-                  mimetype: "video/mp4",
-                  caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
-                    stats.size
-                  )}_\n_Quality: 360p_`,
-                }
-              );
+              const stream5 = fs.createReadStream(filePath);
+              await message.sendMessage({ stream: stream5 }, "document", {
+                fileName: `${result.title}.mp4`,
+                mimetype: "video/mp4",
+                caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
+                  stats.size
+                )}_\n_Quality: 360p_`,
+              });
+              stream5.destroy();
             } else {
-              await message.sendReply(
-                { stream: fs.createReadStream(filePath) },
-                "video",
-                {
-                  caption: `_*${result.title}*_\n\n_Quality: 360p_`,
-                }
-              );
+              const stream6 = fs.createReadStream(filePath);
+              await message.sendReply({ stream: stream6 }, "video", {
+                caption: `_*${result.title}*_\n\n_Quality: 360p_`,
+              });
+              stream6.destroy();
             }
 
             await message.edit(
@@ -810,6 +800,7 @@ Module(
               downloadMsg.key
             );
 
+            await new Promise((resolve) => setTimeout(resolve, 100));
             if (fs.existsSync(filePath)) {
               fs.unlinkSync(filePath);
             }
@@ -902,25 +893,21 @@ Module(
           const stats = fs.statSync(videoPath);
 
           if (stats.size > VIDEO_SIZE_LIMIT) {
-            await message.sendMessage(
-              { stream: fs.createReadStream(videoPath) },
-              "document",
-              {
-                fileName: `${result.title}.mp4`,
-                mimetype: "video/mp4",
-                caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
-                  stats.size
-                )}_\n_Quality: ${selectedQuality}_`,
-              }
-            );
+            const stream7 = fs.createReadStream(videoPath);
+            await message.sendMessage({ stream: stream7 }, "document", {
+              fileName: `${result.title}.mp4`,
+              mimetype: "video/mp4",
+              caption: `_*${result.title}*_\n\n_File size: ${formatBytes(
+                stats.size
+              )}_\n_Quality: ${selectedQuality}_`,
+            });
+            stream7.destroy();
           } else {
-            await message.sendReply(
-              { stream: fs.createReadStream(videoPath) },
-              "video",
-              {
-                caption: `_*${result.title}*_\n\n_Quality: ${selectedQuality}_`,
-              }
-            );
+            const stream8 = fs.createReadStream(videoPath);
+            await message.sendReply({ stream: stream8 }, "video", {
+              caption: `_*${result.title}*_\n\n_Quality: ${selectedQuality}_`,
+            });
+            stream8.destroy();
           }
 
           await message.edit(
@@ -929,6 +916,7 @@ Module(
             downloadMsg.key
           );
 
+          await new Promise((resolve) => setTimeout(resolve, 100));
           if (fs.existsSync(videoPath)) {
             fs.unlinkSync(videoPath);
           }
