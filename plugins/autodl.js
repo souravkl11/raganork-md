@@ -203,7 +203,7 @@ Module({ on: "text", fromMe }, async (message) => {
 
           const uniqueQualities = [
             ...new Set(videoFormats.map((f) => f.quality)),
-          ].slice(0, 5);
+          ];
 
           const videoIdMatch = url.match(
             /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&\s/?]+)/
@@ -246,6 +246,30 @@ Module({ on: "text", fromMe }, async (message) => {
 
             qualityText += `*${index + 1}.* _*${quality}*_${sizeInfo}\n`;
           });
+
+          const audioFormat = info.formats.find((f) => f.type === "audio");
+          if (audioFormat) {
+            let audioSizeInfo = "";
+            if (audioFormat.size) {
+              const parseSize = (sizeStr) => {
+                const match = sizeStr.match(/([\d.]+)\s*(KB|MB|GB)/i);
+                if (!match) return 0;
+                const value = parseFloat(match[1]);
+                const unit = match[2].toUpperCase();
+                if (unit === "KB") return value * 1024;
+                if (unit === "MB") return value * 1024 * 1024;
+                if (unit === "GB") return value * 1024 * 1024 * 1024;
+                return value;
+              };
+              const audioSize = parseSize(audioFormat.size);
+              if (audioSize > 0) {
+                audioSizeInfo = ` ~ _${formatBytes(audioSize)}_`;
+              }
+            }
+            qualityText += `*${
+              uniqueQualities.length + 1
+            }.* _*Audio Only*_${audioSizeInfo}\n`;
+          }
 
           qualityText += "\n_Reply with a number to download_";
           await message.sendReply(qualityText);
