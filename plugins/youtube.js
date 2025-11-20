@@ -388,7 +388,7 @@ Module(
       const stream = fs.createReadStream(audioPath);
       await message.sendMessage({ stream }, "document", {
         fileName: `${result.title}.mp3`,
-        mimetype: "audio/mpeg",
+        mimetype: "audio/mp4",
         caption: `_*${result.title}*_`,
       });
       stream.destroy();
@@ -477,7 +477,7 @@ Module(
 
         const stream1 = fs.createReadStream(audioPath);
         await message.sendReply({ stream: stream1 }, "audio", {
-          mimetype: "audio/mpeg",
+          mimetype: "audio/mp4",
         });
         stream1.destroy();
 
@@ -531,7 +531,7 @@ Module(
 
         const stream2 = fs.createReadStream(audioPath);
         await message.sendReply({ stream: stream2 }, "audio", {
-          mimetype: "audio/mpeg",
+          mimetype: "audio/mp4",
         });
         stream2.destroy();
 
@@ -632,7 +632,7 @@ Module(
 
           const stream3 = fs.createReadStream(audioPath);
           await message.sendReply({ stream: stream3 }, "audio", {
-            mimetype: "audio/mpeg",
+            mimetype: "audio/mp4",
           });
           stream3.destroy();
 
@@ -755,7 +755,7 @@ Module(
 
             const stream4 = fs.createReadStream(filePath);
             await message.sendReply({ stream: stream4 }, "audio", {
-              mimetype: "audio/mpeg",
+              mimetype: "audio/mp4",
             });
             stream4.destroy();
 
@@ -915,7 +915,7 @@ Module(
             const stream = fs.createReadStream(audioPath);
             await message.sendMessage({ stream }, "document", {
               fileName: `${result.title}.mp3`,
-              mimetype: "audio/mpeg",
+              mimetype: "audio/mp4",
               caption: `_*${result.title}*_`,
             });
             stream.destroy();
