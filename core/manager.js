@@ -1,7 +1,8 @@
-const { WhatsAppBot } = require('./bot');
+const { WhatsAppBot } = require("./bot");
 const { logger, SESSION } = require('../config');
-const { sequelize } = require('./database'); 
-const { CustomAuthState } = require('./auth');
+const { sequelize } = require("./database");
+const { CustomAuthState } = require("./auth");
+const { flushQueueOnShutdown, stopFlushTimer } = require("./store");
 
 class BotManager {
     constructor() {
@@ -44,13 +45,20 @@ class BotManager {
     async shutdown() {
         logger.info('Shutting down all bots...');
 
-        try {
-            logger.info('Saving all session data before shutdown...');
-            await CustomAuthState.saveAllSessions();
-            logger.info('All session data saved successfully');
-        } catch (error) {
-            logger.error({ err: error }, 'Error saving sessions during shutdown');
-        }
+    try {
+      stopFlushTimer();
+      await flushQueueOnShutdown();
+    } catch (err) {
+      logger.error({ err }, "Failed to flush message queue during shutdown");
+    }
+
+    try {
+      logger.info("Saving all session data before shutdown...");
+      await CustomAuthState.saveAllSessions();
+      logger.info("All session data saved successfully");
+    } catch (error) {
+      logger.error({ err: error }, "Error saving sessions during shutdown");
+    }
 
         for (const [sessionId, bot] of this.bots.entries()) {
             try {

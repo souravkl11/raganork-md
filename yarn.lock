@@ -811,10 +811,10 @@ axios@^1.9.0:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-baileys@7.0.0-rc.5:
-  version "7.0.0-rc.5"
-  resolved "https://registry.yarnpkg.com/baileys/-/baileys-7.0.0-rc.5.tgz#01879bed5791cd1b72b2896d8ee43360d292780d"
-  integrity sha512-y95gW7UtKbD4dQb46G75rnr0U0LtnBItA002ARggDiCgm92Z8wnM+wxqC8OI/sDFanz3TgzqE4t7MPwNusUqUQ==
+baileys@7.0.0-rc.8:
+  version "7.0.0-rc.8"
+  resolved "https://registry.yarnpkg.com/baileys/-/baileys-7.0.0-rc.8.tgz#5391cef5e7983a92573703068fb14014e2f0475f"
+  integrity sha512-sY4Zdhb2JgeQGhrDT3TPIIM/ge5wH05VwApMHxixvauY4Z1vbVQol2lsXkKiScAfkLUeQXa5kYSeVK8+lYxz1A==
   dependencies:
     "@cacheable/node-cache" "^1.4.0"
     "@hapi/boom" "^9.1.3"
