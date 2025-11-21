@@ -136,25 +136,19 @@ Module({ on: "text", fromMe }, async (message) => {
               const result = await downloadAudio(url);
               audioPath = result.path;
 
-              await message.edit(
-                "_Converting to MP3..._",
-                message.jid,
-                downloadMsg.key
-              );
-
               const mp3Path = await convertM4aToMp3(audioPath);
               audioPath = mp3Path;
 
               await message.edit(
-                "_Uploading audio..._",
+                "_Sending audio..._",
                 message.jid,
                 downloadMsg.key
               );
 
               const stream = fs.createReadStream(audioPath);
               await message.sendMessage({ stream }, "document", {
-                fileName: `${result.title}.mp3`,
-                mimetype: "audio/mpeg",
+                fileName: `${result.title}.m4a`,
+                mimetype: "audio/mp4",
                 caption: `_*${result.title}*_`,
               });
               stream.destroy();
@@ -266,9 +260,7 @@ Module({ on: "text", fromMe }, async (message) => {
                 audioSizeInfo = ` ~ _${formatBytes(audioSize)}_`;
               }
             }
-            qualityText += `*${
-              uniqueQualities.length + 1
-            }.* _*Audio Only*_${audioSizeInfo}\n`;
+            qualityText += `*${uniqueQualities.length + 1}.* _*Audio Only*_${audioSizeInfo}\n`;
           }
 
           qualityText += "\n_Reply with a number to download_";

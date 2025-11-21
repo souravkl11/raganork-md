@@ -374,20 +374,14 @@ Module(
       const result = await downloadAudio(url);
       audioPath = result.path;
 
-      await message.edit(
-        "_Converting to MP3..._",
-        message.jid,
-        downloadMsg.key
-      );
-
       const mp3Path = await convertM4aToMp3(audioPath);
       audioPath = mp3Path;
 
-      await message.edit("_Uploading audio..._", message.jid, downloadMsg.key);
+      await message.edit("_Sending audio..._", message.jid, downloadMsg.key);
 
       const stream = fs.createReadStream(audioPath);
       await message.sendMessage({ stream }, "document", {
-        fileName: `${result.title}.mp3`,
+        fileName: `${result.title}.m4a`,
         mimetype: "audio/mp4",
         caption: `_*${result.title}*_`,
       });
@@ -460,12 +454,6 @@ Module(
         const result = await downloadAudio(url);
         audioPath = result.path;
 
-        await message.edit(
-          "_Converting to MP3..._",
-          message.jid,
-          downloadMsg.key
-        );
-
         const mp3Path = await convertM4aToMp3(audioPath);
         audioPath = mp3Path;
 
@@ -513,12 +501,6 @@ Module(
 
         const result = await downloadAudio(video.url);
         audioPath = result.path;
-
-        await message.edit(
-          `_Converting to MP3..._`,
-          message.jid,
-          downloadMsg.key
-        );
 
         const mp3Path = await convertM4aToMp3(audioPath);
         audioPath = mp3Path;
@@ -615,17 +597,11 @@ Module(
           const result = await downloadAudio(selectedVideo.url);
           audioPath = result.path;
 
-          await message.edit(
-            "_Converting to MP3..._",
-            message.jid,
-            downloadMsg.key
-          );
-
           const mp3Path = await convertM4aToMp3(audioPath);
           audioPath = mp3Path;
 
           await message.edit(
-            "_Uploading audio..._",
+            "_Sending audio..._",
             message.jid,
             downloadMsg.key
           );
@@ -738,17 +714,11 @@ Module(
             const result = await downloadAudio(url);
             filePath = result.path;
 
-            await message.edit(
-              "_Converting to MP3..._",
-              message.jid,
-              downloadMsg.key
-            );
-
             const mp3Path = await convertM4aToMp3(filePath);
             filePath = mp3Path;
 
             await message.edit(
-              "_Uploading audio..._",
+              "_Sending audio..._",
               message.jid,
               downloadMsg.key
             );
@@ -897,24 +867,18 @@ Module(
             const result = await downloadAudio(url);
             audioPath = result.path;
 
-            await message.edit(
-              "_Converting to MP3..._",
-              message.jid,
-              downloadMsg.key
-            );
-
             const mp3Path = await convertM4aToMp3(audioPath);
             audioPath = mp3Path;
 
             await message.edit(
-              "_Uploading audio..._",
+              "_Sending audio..._",
               message.jid,
               downloadMsg.key
             );
 
             const stream = fs.createReadStream(audioPath);
             await message.sendMessage({ stream }, "document", {
-              fileName: `${result.title}.mp3`,
+              fileName: `${result.title}.m4a`,
               mimetype: "audio/mp4",
               caption: `_*${result.title}*_`,
             });

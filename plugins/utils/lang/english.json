@@ -37,7 +37,7 @@
       "ADD_DESC": "Adds members to the group.",
       "ADDED": "_added to the group_",
       "ALREADY_PROMOTED": "_Person is already an admin_",
-      "PROMOTED": "_is now as admin!_",
+      "PROMOTED": "_is now an admin!_",
       "PROMOTE_DESC": "Makes any person an admin.",
       "LEAVE_DESC": "Leaves from group.",
       "DEMOTE_DESC": "Removes the person from admin position.",
