@@ -38,7 +38,7 @@ function Module(info, func) {
   ];
 
   const commandInfo = {
-    fromMe: info.fromMe ?? true,
+    fromMe: info.fromMe ?? config.isPrivate,
     desc: info.desc ?? "",
     usage: info.usage ?? "",
     excludeFromCommands: info.excludeFromCommands ?? false,

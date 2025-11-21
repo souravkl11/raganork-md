@@ -36,12 +36,10 @@ let MODE = config.MODE,
   STICKER_DATA = config.STICKER_DATA;
 const { getString } = require("./utils/lang");
 const Lang = getString("converters");
-let w = MODE == "public" ? false : true;
 
 Module(
   {
     pattern: "img ?(.*)",
-    fromMe: w,
     use: "search",
     desc: "Searches for an image on Google Images and sends the requested number of results.",
   },
@@ -112,7 +110,6 @@ Module(
   {
     pattern: "sticker ?(.*)",
     use: "edit",
-    fromMe: w,
     desc: Lang.STICKER_DESC,
   },
   async (message, match) => {
@@ -187,7 +184,6 @@ Module(
 Module(
   {
     pattern: "mp3 ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: Lang.MP3_DESC,
   },
@@ -248,7 +244,6 @@ Module(
 Module(
   {
     pattern: "slow",
-    fromMe: w,
     use: "edit",
     desc: "Slows down music & decreases pitch. For making slowed+reverb audios",
   },
@@ -315,7 +310,6 @@ Module(
 Module(
   {
     pattern: "sped ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: "Speeds up music & increases pitch. For making sped-up+reverb audios",
   },
@@ -382,7 +376,6 @@ Module(
 Module(
   {
     pattern: "bass ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: Lang.BASS_DESC,
   },
@@ -421,7 +414,6 @@ Module(
 Module(
   {
     pattern: "photo ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: Lang.PHOTO_DESC,
   },
@@ -440,7 +432,6 @@ Module(
 Module(
   {
     pattern: "attp ?(.*)",
-    fromMe: w,
     use: "utility",
     desc: "Text to animated sticker",
   },
@@ -463,7 +454,6 @@ Module(
 Module(
   {
     pattern: "tts ?(.*)",
-    fromMe: w,
     desc: Lang.TTS_DESC,
     use: "utility",
   },
@@ -536,7 +526,6 @@ Module(
 Module(
   {
     pattern: "doc ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: "Converts replied media to document format",
   },
@@ -658,7 +647,6 @@ Module(
 Module(
   {
     pattern: "upload ?(.*)",
-    fromMe: w,
     use: "utility",
     desc: "Downloads file from URL and sends as document",
   },
@@ -741,7 +729,6 @@ Module(
 Module(
   {
     pattern: "square ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: "Crops video/image to 1:1 aspect ratio (square format)",
   },
@@ -830,7 +817,6 @@ Module(
 Module(
   {
     pattern: "resize ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: "Change video/image aspect ratio. Usage: .resize 16:9, .resize 9:16, .resize 4:3, .resize 21:9",
   },
@@ -962,7 +948,6 @@ Module(
 Module(
   {
     pattern: "compress ?(.*)",
-    fromMe: w,
     use: "edit",
     desc: "Compress video/image by percentage. Usage: .compress 50 (50% compression), .compress 80 (80% compression)",
   },

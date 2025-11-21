@@ -23,11 +23,9 @@ async function findMusic(file) {
   });
 }
 const Lang = getString("media");
-const fromMe = MODE == "public" ? false : true;
 Module(
   {
     pattern: "trim ?(.*)",
-    fromMe: fromMe,
     desc: Lang.TRIM_DESC,
     usage: Lang.TRIM_USE,
     use: "edit",
@@ -61,7 +59,6 @@ Module(
 Module(
   {
     pattern: "black",
-    fromMe: fromMe,
     desc: "Audio to black video",
     use: "edit",
   },
@@ -118,7 +115,6 @@ Module(
 Module(
   {
     pattern: "avmix",
-    fromMe: fromMe,
     desc: Lang.AVMIX_DESC,
     use: "edit",
   },
@@ -164,7 +160,6 @@ Module(
 Module(
   {
     pattern: "vmix ?(.*)",
-    fromMe: fromMe,
     desc: "Merges/Joins two videos",
     use: "edit",
   },
@@ -231,7 +226,6 @@ Module(
 Module(
   {
     pattern: "slowmo",
-    fromMe: fromMe,
     desc: "Video to smooth slow motion",
     use: "edit",
   },
@@ -257,7 +251,6 @@ Module(
 Module(
   {
     pattern: "circle",
-    fromMe: fromMe,
     desc: "Sticker/photo to circle crop",
     use: "edit",
   },
@@ -268,7 +261,6 @@ Module(
 Module(
   {
     pattern: "gif",
-    fromMe: fromMe,
     desc: "Video to gif with audio",
   },
   async (message, match) => {
@@ -291,7 +283,6 @@ Module(
 Module(
   {
     pattern: "interp ?(.*)",
-    fromMe: fromMe,
     desc: "Increases video's frame rate (FPS)",
     use: "edit",
   },
@@ -319,7 +310,6 @@ Module(
 Module(
   {
     pattern: "find ?(.*)",
-    fromMe: fromMe,
     desc: "Finds music name using AI",
     usage: ".find reply to a music",
     use: "search",
@@ -364,7 +354,6 @@ YouTube: ${
 Module(
   {
     pattern: "rotate ?(.*)",
-    fromMe: fromMe,
     desc: "Rotates video (left/right)",
   },
   async (message, match) => {
@@ -384,7 +373,7 @@ Module(
   }
 );
 Module(
-  { pattern: "flip ?(.*)", fromMe: fromMe, desc: "Flips video" },
+  { pattern: "flip ?(.*)", desc: "Flips video" },
   async (message, match) => {
     if (!message.reply_message || !message.reply_message.video)
       return await message.sendReply("*Reply to a video*");

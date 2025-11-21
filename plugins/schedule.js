@@ -2,7 +2,6 @@ const { Module } = require("../main");
 const { scheduledMessages } = require("./utils/db/schedulers");
 const moment = require("moment");
 let config = require("../config");
-let a = config.MODE == "public" ? false : true;
 
 function isValidJID(text) {
   return (
@@ -102,7 +101,6 @@ async function createMessageObject(replyMessage) {
 Module(
   {
     pattern: "schedule ?(.*)",
-    fromMe: a,
     use: "utility",
     desc: "Schedule a message to be sent later. Reply to a message with: schedule <jid> <time> or schedule <time> <jid>",
   },
@@ -175,7 +173,6 @@ Module(
 Module(
   {
     pattern: "scheduled ?(.*)",
-    fromMe: a,
     use: "utility",
     desc: "List all pending scheduled messages",
   },
@@ -214,7 +211,6 @@ Module(
 Module(
   {
     pattern: "cancel ?(.*)",
-    fromMe: a,
     use: "utility",
     desc: "Cancel a scheduled message by ID",
   },

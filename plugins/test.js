@@ -15,12 +15,9 @@ function TimeCalculator(a) {
   );
 }
 const { Module } = require("../main");
-const { MODE } = require("../config");
-let auto = MODE == "public" ? false : true;
 Module(
   {
     pattern: "age ?(.*)",
-    fromMe: auto,
     desc: "Age calculator .age dob",
     use: "utility",
   },
@@ -43,7 +40,6 @@ Module(
 Module(
   {
     pattern: "cntd ?(.*)",
-    fromMe: auto,
     desc: "Counts Date",
     use: "utility",
   },
@@ -66,7 +62,6 @@ Module(
 Module(
   {
     pattern: "ping",
-    fromMe: auto,
     use: "utility",
     desc: "Measures ping",
   },

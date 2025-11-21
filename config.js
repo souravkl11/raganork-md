@@ -285,6 +285,11 @@ const config = new Proxy(baseConfig, {
       return () => ({ ...target, ...Object.fromEntries(dynamicValues) });
     }
 
+    if (key === 'isPrivate') {
+      const mode = dynamicValues.has('MODE') ? dynamicValues.get('MODE') : target.MODE;
+      return mode === 'private';
+    }
+
     if (dynamicValues.has(key)) {
       return dynamicValues.get(key);
     }

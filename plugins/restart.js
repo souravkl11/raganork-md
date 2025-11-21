@@ -1,10 +1,9 @@
 const { Module } = require("../main");
-let auto = true;
 
 Module(
   {
     pattern: "reload",
-    fromMe: auto,
+    fromMe: true,
     excludeFromCommands: true,
   },
   async (m) => {
@@ -16,7 +15,7 @@ Module(
 Module(
   {
     pattern: "reboot",
-    fromMe: auto,
+    fromMe: true,
     excludeFromCommands: true,
   },
   async (m) => {
@@ -28,7 +27,7 @@ Module(
 Module(
   {
     pattern: "restart",
-    fromMe: auto,
+    fromMe: true,
     desc: "Restarts the bot",
     use: "system",
   },

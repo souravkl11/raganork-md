@@ -8,12 +8,10 @@ const {
 } = require("./utils");
 const { Module } = require("../main");
 let config = require("../config");
-let a = config.MODE == "public" ? false : true;
 let fs = require("fs");
 Module(
   {
     pattern: "take ?(.*)",
-    fromMe: a,
     use: "edit",
     desc: "Changes sticker/audio pack & author name. Title, artist, thumbnail etc.",
   },
@@ -101,7 +99,6 @@ Module(
 Module(
   {
     pattern: "mp4 ?(.*)",
-    fromMe: a,
     use: "edit",
     desc: "Converts animated sticker to video",
   },
@@ -130,7 +127,6 @@ Module(
 Module(
   {
     pattern: "url ?(.*)",
-    fromMe: a,
     desc: "Uploads image to imgbb and sends a url",
     use: "edit",
   },
