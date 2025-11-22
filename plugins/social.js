@@ -29,6 +29,7 @@ Module(
   },
   async (message, match) => {
     let mediaLinks = match[1] || message.reply_message?.text;
+    if (mediaLinks.startsWith("ll")) return;
     if (!mediaLinks)
       return await message.sendReply("_*Need Instagram link(s)*_");
 

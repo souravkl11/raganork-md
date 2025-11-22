@@ -253,7 +253,7 @@ Module(
         return;
       }
 
-      const botId = message.client.user?.id?.split(":")[0] + "@s.whatsapp.net";
+      const botId = message.client.user?.lid?.split(":")[0] + "@s.whatsapp.net";
       const botNumericId = botId?.split("@")[0];
 
       let isMentioned = false;
@@ -307,7 +307,8 @@ Module(
         case "audio":
           if (mentionData.url) {
             await message.sendReply({ url: mentionData.url }, "audio", {
-              ptt: true
+              ptt: true,
+              mimetype: "audio/mpeg",
             });
           }
           break;

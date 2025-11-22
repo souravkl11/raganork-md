@@ -138,6 +138,8 @@ class Message extends Base {
       this.mention = null;
     }
 
+    this.reply = this.sendReply;
+
     return super._patch(data);
   }
 
@@ -315,103 +317,11 @@ class Message extends Base {
   }
 
   async sendReply(content, type = "text", options = {}) {
-    const { ephemeralExpiration, quoted, ...messageOptions } = options;
-
-    const realOptions = { quoted: quoted || this.data };
-    if (this.ephemeral && !ephemeralExpiration) {
-      realOptions.ephemeralExpiration = this.ephemeral.expiration;
-    } else if (ephemeralExpiration) {
-      realOptions.ephemeralExpiration = ephemeralExpiration;
-    }
-
-    if (type == "text") {
-      return await this.client.sendMessage(
-        this.jid,
-        { text: content, ...messageOptions },
-        realOptions
-      );
-    }
-    if (type == "image") {
-      const { thumbnail, ...otherOptions } = messageOptions;
-      const imageMessage = { image: content, ...otherOptions };
-
-      if (thumbnail) {
-        const thumbBuffer = await genThumb(thumbnail);
-        imageMessage.jpegThumbnail = thumbBuffer;
-      }
-
-      return await this.client.sendMessage(this.jid, imageMessage, realOptions);
-    }
-    if (type == "video") {
-      const { thumbnail, ...otherOptions } = messageOptions;
-      const messageContent = { video: content, ...otherOptions };
-
-      if (thumbnail) {
-        const thumbBuffer = await genThumb(thumbnail);
-        messageContent.jpegThumbnail = thumbBuffer;
-      }
-
-      return await this.client.sendMessage(
-        this.jid,
-        messageContent,
-        realOptions
-      );
-    }
-    if (type == "audio") {
-      return await this.client.sendMessage(
-        this.jid,
-        { audio: content, mimetype: "audio/mp4", ...messageOptions },
-        realOptions
-      );
-    }
-    if (type == "sticker") {
-      return await this.client.sendMessage(
-        this.jid,
-        { sticker: content, ...messageOptions },
-        realOptions
-      );
-    }
-  }
-  async reply(content, type = "text") {
-    const options = this.ephemeral
-      ? { quoted: this.data, ephemeralExpiration: this.ephemeral.expiration }
-      : { quoted: this.data };
-
-    if (type == "text") {
-      return await this.client.sendMessage(
-        this.jid,
-        { text: content },
-        options
-      );
-    }
-    if (type == "image") {
-      return await this.client.sendMessage(
-        this.jid,
-        { image: content },
-        options
-      );
-    }
-    if (type == "video") {
-      return await this.client.sendMessage(
-        this.jid,
-        { video: content },
-        options
-      );
-    }
-    if (type == "audio") {
-      return await this.client.sendMessage(
-        this.jid,
-        { audio: content, mimetype: "audio/mp4", ...options },
-        options
-      );
-    }
-    if (type == "sticker") {
-      return await this.client.sendMessage(
-        this.jid,
-        { sticker: content },
-        options
-      );
-    }
+    const optionsWithQuoted = {
+      ...options,
+      quoted: options.quoted || this.data,
+    };
+    return await this.sendMessage(content, type, optionsWithQuoted);
   }
   async edit(text = "", _jid = this.jid, _key = false) {
     return await this.client.sendMessage(_jid, {
@@ -422,70 +332,12 @@ class Message extends Base {
   async getThumb(url) {
     return await genThumb(url);
   }
-  async sendInteractiveMessage(jid, list, options) {
-    if (!jid.includes("@")) throw "Invalid JID";
-    let media;
-    if (options.image) {
-      media = await prepareWAMessageMedia(
-        { image: options.image },
-        { upload: this.client.waUploadToServer }
-      );
-    }
-    if (options.video) {
-      media = await prepareWAMessageMedia(
-        { video: options.video },
-        { upload: this.client.waUploadToServer }
-      );
-    }
-    let buttons = [
-      {
-        name: list.type,
-        buttonParamsJson: JSON.stringify(list.body),
-      },
-    ];
-    if (list.type == "quick_reply") {
-      buttons = list.body;
-    }
-    const msg = generateWAMessageFromContent(
-      jid,
-      {
-        viewOnceMessage: {
-          message: {
-            messageContextInfo: {
-              deviceListMetadata: {},
-              deviceListMetadataVersion: 2,
-            },
-            interactiveMessage: proto.Message.InteractiveMessage.create({
-              body: proto.Message.InteractiveMessage.Body.create({
-                text: list.head.subtitle,
-              }),
-              footer: proto.Message.InteractiveMessage.Footer.create({
-                text: list.head.footer,
-              }),
-              header: proto.Message.InteractiveMessage.Header.create({
-                ...media,
-                title: list.head.title,
-                subtitle: list.head.subtitle,
-                hasMediaAttachment: false,
-              }),
-              nativeFlowMessage:
-                proto.Message.InteractiveMessage.NativeFlowMessage.create({
-                  buttons: buttons.map((button) => ({
-                    name: button.name,
-                    buttonParamsJson: button.buttonParamsJson,
-                  })),
-                }),
-            }),
-          },
-        },
-      },
-      {}
-    );
 
-    await this.client.relayMessage(jid, msg.message, {
-      messageId: msg.key.id,
-    });
+  // @deprecated
+  async sendInteractiveMessage(jid, list, options) {
+    return null;
   }
+  
   async forwardMessage(jid, message, options = {}) {
     let vtype;
     let mtype = getContentType(message.message);

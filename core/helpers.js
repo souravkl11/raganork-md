@@ -1,11 +1,13 @@
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
-const { spawn } = require("child_process");
+const { Readable } = require("stream");
+const ffmpeg = require("fluent-ffmpeg");
 
 let TEMP_DIR;
 if (process.env.TEMP_DIR) {
   TEMP_DIR = process.env.TEMP_DIR;
+  os.tmpdir = () => path.join(__dirname, "..", TEMP_DIR);
 } else {
   TEMP_DIR = path.join(os.tmpdir(), "raganork");
 }
@@ -117,8 +119,7 @@ async function pingHostname(url) {
     if (response.ok) {
       return true;
     }
-  } catch (e) {
-  }
+  } catch (e) {}
   return false;
 }
 
@@ -148,32 +149,16 @@ function cleanupKickBot() {
 
 function convertToOgg(inputBuffer) {
   return new Promise((resolve, reject) => {
-    try {
-      const ffmpeg = spawn("ffmpeg", [
-        "-y",
-        "-i",
-        "pipe:0",
-        "-c:a",
-        "libopus",
-        "-f",
-        "ogg",
-        "pipe:1",
-      ]);
+    const inputStream = Readable.from(inputBuffer);
+    const outputStream = ffmpeg(inputStream)
+      .audioCodec("libopus")
+      .format("ogg")
+      .pipe();
 
-      const chunks = [];
-      ffmpeg.stdout.on("data", (c) => chunks.push(c));
-      ffmpeg.stderr.on("data", () => {});
-      ffmpeg.on("error", (err) => reject(err));
-      ffmpeg.on("close", (code) => {
-        if (code === 0) resolve(Buffer.concat(chunks));
-        else reject(new Error("ffmpeg exited with code " + code));
-      });
-
-      ffmpeg.stdin.write(inputBuffer);
-      ffmpeg.stdin.end();
-    } catch (err) {
-      reject(err);
-    }
+    const chunks = [];
+    outputStream.on("data", (chunk) => chunks.push(chunk));
+    outputStream.on("end", () => resolve(Buffer.concat(chunks)));
+    outputStream.on("error", reject);
   });
 }
 
