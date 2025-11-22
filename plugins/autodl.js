@@ -1,8 +1,8 @@
 const { Module } = require("../main");
 const config = require("../config");
 const { setVar } = require("./manage");
-const { downloadGram, pinterestDl, tiktok, fb } = require("./utils");
-const { getVideoInfo, downloadAudio, convertM4aToMp3 } = require("./utils/yt");
+const { downloadGram, pinterestDl, tiktok, fb, spotifyTrack } = require("./utils");
+const { getVideoInfo, downloadAudio, convertM4aToMp3, searchYoutube } = require("./utils/yt");
 const fs = require("fs");
 const fromMe = config.MODE !== "public";
 
@@ -14,6 +14,8 @@ const URL_PATTERNS = {
     /^https?:\/\/(?:www\.)?instagram\.com\/(?:p\/[A-Za-z0-9_-]+\/?|reel\/[A-Za-z0-9_-]+\/?|tv\/[A-Za-z0-9_-]+\/?|stories\/[A-Za-z0-9_.-]+\/\d+\/?)(?:\?.*)?$/i,
   youtube:
     /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/[A-Za-z0-9_-]+\/?)|youtu\.be\/)([A-Za-z0-9_-]{11})?(?:[\?&].*)?$/i,
+  spotify:
+    /^https?:\/\/(?:open\.)?spotify\.com\/(?:intl-[a-z]{2}\/)?track\/[A-Za-z0-9]+(?:\?.*)?$/i,
   tiktok:
     /^https?:\/\/(?:www\.)?(?:tiktok\.com\/@?[A-Za-z0-9_.-]+\/video\/\d+|vm\.tiktok\.com\/[A-Za-z0-9_-]+\/?|vt\.tiktok\.com\/[A-Za-z0-9_-]+\/?|v\.tiktok\.com\/[A-Za-z0-9_-]+\/?)(?:\?.*)?$/i,
   pinterest:
@@ -49,7 +51,7 @@ function isAlreadyCommand(text) {
   text = text?.toLowerCase()?.trim();
   if (!text) return false;
   const regex =
-    /(insta\s|instah|story\s|storyh|tiktok\s|tiktokh|pinterest\s|pinteresth|twitter\s|twitterh|fb\s|fbh|play\s|playh|ytv\s|ytvh)/;
+    /(insta\s|instah|story\s|storyh|tiktok\s|tiktokh|pinterest\s|pinteresth|twitter\s|twitterh|fb\s|fbh|play\s|playh|ytv\s|ytvh|yta\s|ytah|spotify\s|spotifyh)/;
   return regex.test(text);
 }
 
@@ -384,6 +386,79 @@ Module({ on: "text", fromMe }, async (message) => {
         } catch (err) {
           if (config.DEBUG) console.error("[AutoDL FB]", err?.message || err);
           await message.react("❌");
+        }
+        return;
+      }
+
+      // handle spotify (only process first url for now)
+      if (platformGroups["spotify"]) {
+        let downloadMsg;
+        let audioPath;
+
+        try {
+          downloadMsg = await message.sendReply("_Fetching Spotify info..._");
+          const spotifyInfo = await spotifyTrack(platformGroups["spotify"][0]);
+          const { title, artist } = spotifyInfo;
+
+          await message.edit(
+            `_Downloading *${title}* by *${artist}*..._`,
+            message.jid,
+            downloadMsg.key
+          );
+
+          const query = `${title} ${artist}`;
+          const results = await searchYoutube(query, 1);
+
+          if (!results || results.length === 0) {
+            await message.edit(
+              "_No matching songs found on YouTube!_",
+              message.jid,
+              downloadMsg.key
+            );
+            return;
+          }
+
+          const video = results[0];
+          const result = await downloadAudio(video.url);
+          audioPath = result.path;
+
+          const mp3Path = await convertM4aToMp3(audioPath);
+          audioPath = mp3Path;
+
+          await message.edit(
+            "_Sending audio..._",
+            message.jid,
+            downloadMsg.key
+          );
+
+          const stream = fs.createReadStream(audioPath);
+          await message.sendReply({ stream }, "audio", {
+            mimetype: "audio/mp4",
+          });
+          stream.destroy();
+
+          await message.edit(
+            "_Download complete!_",
+            message.jid,
+            downloadMsg.key
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          if (fs.existsSync(audioPath)) {
+            fs.unlinkSync(audioPath);
+          }
+        } catch (err) {
+          if (config.DEBUG)
+            console.error("[AutoDL Spotify]", err?.message || err);
+          if (downloadMsg) {
+            await message.edit("_Download failed!_", message.jid, downloadMsg.key);
+          } else {
+            await message.sendReply("_Download failed. Please try again._");
+          }
+
+          if (audioPath && fs.existsSync(audioPath)) {
+            fs.unlinkSync(audioPath);
+          }
         }
         return;
       }
