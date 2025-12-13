@@ -322,7 +322,7 @@ Module(
     fromMe: false,
   },
   async (message, match) => {
-    message.myjid = message.client.user.id.split(":")[0];
+    message.myjid = message.client.user.lid.split(":")[0];
     var db = await antifake.get();
     let sudos = SUDO.split(",");
     const jids = [];
@@ -356,12 +356,12 @@ Module(
       pdmjids.includes(message.jid)
     ) {
       if (message.from.split("@")[0] == message.myjid) return;
-      if (message.action == "demote") admin_jids.push(message.participant[0]);
+      if (message.action == "demote") admin_jids.push(message.participant[0].id);
       await message.client.sendMessage(message.jid, {
         text: `_*[${
           message.action == "promote" ? "Promote detected" : "Demote detected"
         }]*_\n\n@${message.from.split("@")[0]} ${message.action}d @${
-          message.participant[0].split("@")[0]
+          message.participant[0].id.split("@")[0]
         }`,
         mentions: admin_jids,
       });
@@ -370,7 +370,7 @@ Module(
       if (
         message.from.split("@")[0] == message.myjid ||
         sudos.includes(message.from.split("@")[0]) ||
-        message.participant[0].split("@")[0] == message.myjid ||
+        message.participant[0].id.split("@")[0] == message.myjid ||
         (await isSuperAdmin(message, message.from))
       )
         return;
@@ -383,7 +383,7 @@ Module(
       );
       return await message.client.groupParticipantsUpdate(
         message.jid,
-        [message.participant[0]],
+        [message.participant[0].id],
         "demote"
       );
     }
@@ -394,7 +394,7 @@ Module(
         (await isSuperAdmin(message, message.from))
       )
         return;
-      if (message.participant[0].split("@")[0] == message.myjid) {
+      if (message.participant[0].id.split("@")[0] == message.myjid) {
         return await message.client.sendMessage(message.jid, {
           text: `_*Bot number was demoted, I'm unable to execute anti-demote* [Demoted by @${
             message.from.split("@")[0]
@@ -411,18 +411,18 @@ Module(
       );
       return await message.client.groupParticipantsUpdate(
         message.jid,
-        [message.participant[0]],
+        [message.participant[0].id],
         "promote"
       );
     }
     if (message.action === "add" && jids.includes(message.jid)) {
       var allowed = ALLOWED.split(",");
-      if (isFake(message.participant[0], allowed)) {
+      if (isFake(message.participant[0].id, allowed)) {
         var admin = await isAdmin(message);
         if (!admin) return;
         return await message.client.groupParticipantsUpdate(
           message.jid,
-          [message.participant[0]],
+          [message.participant[0].id],
           "remove"
         );
       }

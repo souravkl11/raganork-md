@@ -4,27 +4,41 @@ const Commands = [];
 let commandPrefix;
 let handlerPrefix;
 
+function escapeRegex(str) {
+  return String(str).replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
+}
+
+function buildHandlerPrefix(rawHandlers, allowNoPrefix) {
+  if (rawHandlers === "^" || rawHandlers === "" || rawHandlers == null) {
+    return "^";
+  }
+
+  const handlersStr = String(rawHandlers);
+
+  if (handlersStr.length > 1 && handlersStr[0] === handlersStr[1]) {
+    const literal = `^${escapeRegex(handlersStr)}`;
+    return allowNoPrefix ? `${literal}?` : literal;
+  }
+
+  const parts = Array.from(handlersStr)
+    .map((h) => escapeRegex(h))
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return "^";
+  }
+
+  const group = `^(?:${parts.join("|")})`;
+  return allowNoPrefix ? `${group}?` : group;
+}
+
 if (config.HANDLERS === "false") {
   commandPrefix = "^";
 } else {
   commandPrefix = config.HANDLERS;
 }
 
-if (typeof commandPrefix === "string") {
-  if (commandPrefix.length > 1 && commandPrefix[0] === commandPrefix[1]) {
-    handlerPrefix = commandPrefix;
-  } else if (
-    /[-!$%^&*()_+|~=`{}\[\]:";'<>?,./]/.test(commandPrefix) &&
-    commandPrefix !== "^"
-  ) {
-    handlerPrefix = `^[${commandPrefix}]`;
-  } else {
-    handlerPrefix = commandPrefix;
-  }
-}
-if (config.MULTI_HANDLERS && handlerPrefix.includes("^[")) {
-  handlerPrefix = handlerPrefix + "?";
-}
+handlerPrefix = buildHandlerPrefix(commandPrefix, Boolean(config.MULTI_HANDLERS));
 
 function Module(info, func) {
   const validEventTypes = [
@@ -53,12 +67,12 @@ function Module(info, func) {
   } else if (info.on !== undefined && validEventTypes.includes(info.on)) {
     commandInfo.on = info.on;
     if (info.pattern !== undefined) {
-      const prefix = info.handler ?? true ? handlerPrefix : "";
+      const prefix = (info.handler ?? true) ? handlerPrefix : "";
       const patternStr = `${prefix}${info.pattern}`;
       commandInfo.pattern = new RegExp(patternStr, "s");
     }
   } else if (info.pattern !== undefined) {
-    const prefix = info.handler ?? true ? handlerPrefix : "";
+    const prefix = (info.handler ?? true) ? handlerPrefix : "";
     const patternStr = `${prefix}${info.pattern}`;
     commandInfo.pattern = new RegExp(patternStr, "s");
   }

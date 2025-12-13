@@ -300,14 +300,14 @@ Module({ on: "text", fromMe }, async (message) => {
         if (allMediaUrls.length === 1) {
           await message.sendMessage(
             { url: allMediaUrls[0] },
-            /\.(jpg|jpeg|png|webp)(\?|$)/i.test(allMediaUrls[0])
+            /\.(jpg|jpeg|png|webp|heic)(\?|$)/i.test(allMediaUrls[0])
               ? "image"
               : "video",
             { quoted: quotedMessage }
           );
         } else {
           const albumObject = allMediaUrls.map((mediaUrl) => {
-            return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(mediaUrl)
+            return /\.(jpg|jpeg|png|webp|heic)(\?|$)/i.test(mediaUrl)
               ? { image: mediaUrl }
               : { video: mediaUrl };
           });

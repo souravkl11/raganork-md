@@ -14,17 +14,12 @@ async function parseWelcomeMessage(template, messageObject, participants = []) {
       messageObject.jid
     );
     const participantCount = groupMetadata.participants.length;
-    const participant = participants[0];
+    const participant = participants[0]?.id;
     let participantNumber = "";
     let participantName = "";
     if (participant) {
       participantNumber = participant.split("@")[0];
-      try {
-        const contact = await messageObject.client.getContact(participant);
-        participantName = contact.name || contact.notify || participantNumber;
-      } catch {
-        participantName = participantNumber;
-      }
+      participantName = participantNumber;
     }
     let parsedMessage = template
       .replace(/\$mention/g, `@${participantNumber}`)
