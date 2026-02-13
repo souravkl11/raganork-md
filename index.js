@@ -1,4 +1,31 @@
-const path = require("path");
+const express = require('express');
+const https = require('https');
+const app = express();
+
+// --- 1. EXPRESS SERVER SETUP ---
+// This creates a webpage so Render has something to "ping"
+const PORT = process.env.PORT || 10000;
+
+app.get('/', (req, res) => {
+  res.send('<h1>Bot Status: Online</h1><p>The WhatsApp bot is running 24/7.</p>');
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Web server is active on port ${PORT}`);
+});
+
+// --- 2. SELF-PING RELOADER ---
+// This visits your own URL every 14 minutes to prevent Render from sleeping
+const YOUR_URL = 'https://my-application-t515.onrender.com'; // Make sure this matches your Render URL
+
+setInterval(() => {
+  https.get(YOUR_URL, (res) => {
+    console.log(`Self-ping successful: Status ${res.statusCode}`);
+  }).on('error', (err) => {
+    console.error('Self-ping failed:', err.message);
+  });
+}, 14 * 60 * 1000); // 14 minutes
+ const path = require("path");
 const fs = require("fs");
 if (fs.existsSync("./config.env")) {
   require("dotenv").config({ path: "./config.env" });
@@ -97,3 +124,4 @@ if (require.main === module) {
     process.exit(1);
   });
 }
+
