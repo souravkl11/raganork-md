@@ -138,7 +138,7 @@ Module({ on: "text", fromMe }, async (message) => {
               const result = await downloadAudio(url);
               audioPath = result.path;
 
-              const mp3Path = await convertM4aToMp3(audioPath);
+              const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
               audioPath = mp3Path;
 
               await message.edit(
@@ -422,7 +422,7 @@ Module({ on: "text", fromMe }, async (message) => {
           const result = await downloadAudio(video.url);
           audioPath = result.path;
 
-          const mp3Path = await convertM4aToMp3(audioPath);
+          const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
           audioPath = mp3Path;
 
           await message.edit(

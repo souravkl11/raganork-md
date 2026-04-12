@@ -375,7 +375,7 @@ Module(
       const result = await downloadAudio(url);
       audioPath = result.path;
 
-      const mp3Path = await convertM4aToMp3(audioPath);
+      const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
       audioPath = mp3Path;
 
       await message.edit("_Sending audio..._", message.jid, downloadMsg.key);
@@ -455,7 +455,7 @@ Module(
         const result = await downloadAudio(url);
         audioPath = result.path;
 
-        const mp3Path = await convertM4aToMp3(audioPath);
+        const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
         audioPath = mp3Path;
 
         await message.edit(
@@ -503,7 +503,7 @@ Module(
         const result = await downloadAudio(video.url);
         audioPath = result.path;
 
-        const mp3Path = await convertM4aToMp3(audioPath);
+        const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
         audioPath = mp3Path;
 
         await message.edit(
@@ -598,7 +598,7 @@ Module(
           const result = await downloadAudio(selectedVideo.url);
           audioPath = result.path;
 
-          const mp3Path = await convertM4aToMp3(audioPath);
+          const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
           audioPath = mp3Path;
 
           await message.edit(
@@ -715,7 +715,7 @@ Module(
             const result = await downloadAudio(url);
             filePath = result.path;
 
-            const mp3Path = await convertM4aToMp3(filePath);
+            const mp3Path = await convertM4aToMp3(filePath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
             filePath = mp3Path;
 
             await message.edit(
@@ -868,7 +868,7 @@ Module(
             const result = await downloadAudio(url);
             audioPath = result.path;
 
-            const mp3Path = await convertM4aToMp3(audioPath);
+            const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
             audioPath = mp3Path;
 
             await message.edit(
@@ -1035,7 +1035,7 @@ Module(
       const result = await downloadAudio(video.url);
       audioPath = result.path;
 
-      const mp3Path = await convertM4aToMp3(audioPath);
+      const mp3Path = await convertM4aToMp3(audioPath, { title: title || result?.title, artist: artist || result?.info?.channel?.name, thumbnail: spotifyInfo?.thumbnail || result?.info?.thumbnail });
       audioPath = mp3Path;
 
       await message.edit(
