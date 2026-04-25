@@ -38,7 +38,7 @@ Module(
       return await message.sendReply(Lang.TRIM_NEED_REPLY);
     if (!match[1] || !match[1].includes(","))
       return await message.sendReply(
-        message.reply_message.audio ? Lang.TRIM_NEED : Lang.TRIM_VIDEO_NEED
+        message.reply_message.audio ? Lang.TRIM_NEED : Lang.TRIM_VIDEO_NEED,
       );
     const parts = match[1].split(",");
     const start = parts[0]?.trim();
@@ -46,15 +46,18 @@ Module(
     const savedFile = await message.reply_message.download();
     await message.sendMessage("_Processing trim..._");
     if (message.reply_message.audio) {
-      const out = getTempPath("trim.ogg");
+      const out = getTempPath("trim.m4a");
       await trim(savedFile, start, end, out);
-      await message.sendReply({stream: fs.createReadStream(out)}, "audio");
+      await message.sendReply(
+        { stream: fs.createReadStream(out), mimetype: "audio/mp4" },
+        "audio",
+      );
     } else if (message.reply_message.video) {
       const out = getTempPath("trim.mp4");
       await trim(savedFile, start, end, out);
-      await message.send({stream: fs.createReadStream(out)}, "video");
+      await message.send({ stream: fs.createReadStream(out) }, "video");
     }
-  }
+  },
 );
 Module(
   {
@@ -68,7 +71,7 @@ Module(
 
     try {
       const processingMsg = await message.sendReply(
-        "_Processing audio to black video..._"
+        "_Processing audio to black video..._",
       );
       const audioFile = await message.reply_message.download();
       const outputPath = getTempPath(`black_${Date.now()}.mp4`);
@@ -102,7 +105,7 @@ Module(
       await message.edit(
         "_Black video created successfully!_",
         message.jid,
-        processingMsg.key
+        processingMsg.key,
       );
       if (fs.existsSync(audioFile)) fs.unlinkSync(audioFile);
       if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
@@ -110,7 +113,7 @@ Module(
       console.error("Black video creation error:", error);
       await message.send("_Failed to create black video. Please try again._");
     }
-  }
+  },
 );
 Module(
   {
@@ -132,7 +135,7 @@ Module(
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
         getTempPath("avmix/audio.mp3"),
-        fs.readFileSync(savedFile)
+        fs.readFileSync(savedFile),
       );
       return await message.sendReply(Lang.AVMIX_AUDIO_ADDED);
     }
@@ -140,14 +143,14 @@ Module(
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
         getTempPath("avmix/video.mp4"),
-        fs.readFileSync(savedFile)
+        fs.readFileSync(savedFile),
       );
       return await message.sendReply(Lang.AVMIX_VIDEO_ADDED);
     }
     if (files.length >= 2 || !message.reply_message) {
       let video = await avMix(
         getTempPath("avmix/video.mp4"),
-        getTempPath("avmix/audio.mp3")
+        getTempPath("avmix/audio.mp3"),
       );
       await message.sendReply(video, "video");
       await fs.unlinkSync(getTempPath("avmix/video.mp4"));
@@ -155,7 +158,7 @@ Module(
       await fs.unlinkSync("./merged.mp4");
       return;
     }
-  }
+  },
 );
 Module(
   {
@@ -175,17 +178,17 @@ Module(
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
         getTempPath("vmix/video1.mp4"),
-        fs.readFileSync(savedFile)
+        fs.readFileSync(savedFile),
       );
       return await message.sendReply(
-        "*Added video 2. Type .vmix again to process!*"
+        "*Added video 2. Type .vmix again to process!*",
       );
     }
     if (message.reply_message.video && files.length == 0) {
       var savedFile = await message.reply_message.download();
       await fs.writeFileSync(
         getTempPath("vmix/video2.mp4"),
-        fs.readFileSync(savedFile)
+        fs.readFileSync(savedFile),
       );
       return await message.sendReply("*Added video 1*");
     }
@@ -213,15 +216,15 @@ Module(
         await merge(
           [getTempPath("vmix/video1.mp4"), getTempPath("vmix/video2.mp4")],
           getTempSubdir(""),
-          "merged.mp4"
+          "merged.mp4",
         ),
-        "video"
+        "video",
       );
       await fs.unlinkSync(getTempPath("vmix/video1.mp4"));
       await fs.unlinkSync(getTempPath("vmix/video2.mp4"));
       return;
     }
-  }
+  },
 );
 Module(
   {
@@ -243,10 +246,10 @@ Module(
       .on("end", async () => {
         return await message.send(
           fs.readFileSync(getTempPath("slowmo.mp4")),
-          "video"
+          "video",
         );
       });
-  }
+  },
 );
 Module(
   {
@@ -256,7 +259,7 @@ Module(
   },
   async (message, match) => {
     await circle(message);
-  }
+  },
 );
 Module(
   {
@@ -278,7 +281,7 @@ Module(
           gifPlayback: true,
         });
       });
-  }
+  },
 );
 Module(
   {
@@ -302,10 +305,10 @@ Module(
       .on("end", async () => {
         return await message.send(
           fs.readFileSync(getTempPath("interp.mp4")),
-          "video"
+          "video",
         );
       });
-  }
+  },
 );
 Module(
   {
@@ -319,7 +322,7 @@ Module(
       return await message.sendReply("_Reply to a music_");
     if (message.reply_message.duration > 60)
       return await message.send(
-        "_Audio too large! Use .trim command and cut the audio to < 60 secs_"
+        "_Audio too large! Use .trim command and cut the audio to < 60 secs_",
       );
     var audio = await message.reply_message.download("buffer");
     var data = await findMusic(audio);
@@ -349,7 +352,7 @@ YouTube: ${
       //    headerType:1
     };
     await message.client.sendMessage(message.jid, Message);
-  }
+  },
 );
 Module(
   {
@@ -359,7 +362,7 @@ Module(
   async (message, match) => {
     if (!match[1] || !message.reply_message || !message.reply_message.video)
       return await message.sendReply(
-        "*Reply to a video*\n*.rotate left|right|flip*"
+        "*Reply to a video*\n*.rotate left|right|flip*",
       );
     var file = await message.reply_message.download();
     var angle = "1";
@@ -368,9 +371,9 @@ Module(
     await message.send("_Processing..._");
     await message.sendReply(
       fs.readFileSync(await rotate(file, angle)),
-      "video"
+      "video",
     );
-  }
+  },
 );
 Module(
   { pattern: "flip ?(.*)", desc: "Flips video" },
@@ -382,7 +385,7 @@ Module(
     await message.send("_Processing..._");
     await message.sendReply(
       fs.readFileSync(await rotate(file, angle)),
-      "video"
+      "video",
     );
-  }
+  },
 );

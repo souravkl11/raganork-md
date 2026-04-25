@@ -230,15 +230,34 @@ Module(
     }
 
     let savedFile = await message.reply_message.download();
+    const audioPath = getTempPath(`audio_${Date.now()}.m4a`);
+    
     ffmpeg(savedFile)
-      .save(getTempPath("tomp3.mp3"))
+      .audioCodec("aac")
+      .outputOptions(["-movflags", "faststart", "-q:a", "100"])
+      .noVideo()
+      .output(audioPath)
       .on("end", async () => {
-        await message.sendMessage(
-          fs.readFileSync(getTempPath("tomp3.mp3")),
-          "audio",
-          { quoted: message.quoted }
-        );
-      });
+        try {
+          const stream = fs.createReadStream(audioPath);
+          await message.sendReply({ stream }, "audio", {
+            mimetype: "audio/mp4",
+          });
+          stream.destroy();
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          if (fs.existsSync(audioPath)) {
+            fs.unlinkSync(audioPath);
+          }
+        } catch (err) {
+          console.error("Error sending audio:", err);
+        }
+      })
+      .on("error", (err) => {
+        console.error("FFmpeg error:", err);
+        if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
+      })
+      .run();
   }
 );
 Module(
