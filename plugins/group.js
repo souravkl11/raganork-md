@@ -1017,3 +1017,127 @@ Module(
     }
   }
 );
+
+Module(
+  {
+    pattern: "gstatus ?(.*)",
+    fromMe: false,
+    use: "group",
+    desc: "Post a group status update (text/image/video/audio)",
+    usage:
+      ".gstatus your text\n.gstatus (reply to image/video/audio)\n.gstatus your caption (reply to image/video)\n.gstatus 120363xxxx@g.us (reply to a message in DM or group)",
+  },
+  async (message, match) => {
+    const rawInput = (match[1] || "").trim();
+    const quoted = message.reply_message;
+    const jidMatch = rawInput.match(/(\d+(?:-\d+)?@g\.us|\d+@s\.whatsapp\.net|\d+@lid)/i);
+    const hasTargetJid = !!jidMatch;
+
+    if (!message.isGroup && !hasTargetJid) {
+      return await message.sendReply(
+        "_In DM, use .gstatus <group_jid> and reply to a message._"
+      );
+    }
+
+    let adminAccesValidated = false;
+    if (message.isGroup && ADMIN_ACCESS) {
+      adminAccesValidated = await isAdmin(message, message.sender);
+    }
+
+    if (!(message.fromOwner || adminAccesValidated)) return;
+
+    // var admin = await isAdmin(message);
+    // if (!admin) return await message.sendReply(Lang.NOT_ADMIN);
+
+    if (typeof message.sendGroupStatus !== "function") {
+      return await message.sendReply("_Group status is not supported in this build._");
+    }
+
+    const targetJid = hasTargetJid ? jidMatch[1] : message.jid;
+    const text = hasTargetJid ? rawInput.replace(jidMatch[0], "").trim() : rawInput;
+
+    if (!targetJid.endsWith("@g.us")) {
+      return await message.sendReply("_Target must be a valid group JID (..@g.us)._\n_Example: .gstatus 120363xxxx@g.us (reply to a message)_");
+    }
+
+    if (hasTargetJid && !quoted) {
+      return await message.sendReply("_Reply to a message first, then use .gstatus <jid>._");
+    }
+
+    if (!quoted && !text) {
+      return await message.sendReply(
+        "_Reply to an image/video/audio or provide text to post group status._"
+      );
+    }
+
+    const sendGroupStatusToTarget = async (payload) => {
+      const previousJid = message.jid;
+      message.jid = targetJid;
+      try {
+        await message.sendGroupStatus(payload);
+      } finally {
+        message.jid = previousJid;
+      }
+    };
+
+    const targetInfo = hasTargetJid ? ` to ${targetJid}` : "";
+
+    try {
+      if (quoted?.image) {
+        const buffer = await quoted.download("buffer");
+        await sendGroupStatusToTarget({
+          image: buffer,
+          ...(text || quoted.caption
+            ? { caption: text || quoted.caption }
+            : {}),
+        });
+        return await message.react("✅");
+      }
+
+      if (quoted?.video) {
+        const buffer = await quoted.download("buffer");
+        await sendGroupStatusToTarget({
+          video: buffer,
+          ...(text || quoted.caption
+            ? { caption: text || quoted.caption }
+            : {}),
+        });
+        return await message.react("✅");
+      }
+
+      if (quoted?.audio) {
+        const buffer = await quoted.download("buffer");
+        await sendGroupStatusToTarget({
+          audio: buffer,
+          mimetype: quoted.mimetype || "audio/mp4",
+        });
+        return await message.react("✅");
+      }
+
+      if (quoted?.text || quoted?.message) {
+        const quotedText = (quoted.text || quoted.message || "").trim();
+        const finalText = (text || quotedText || "").trim();
+        if (!finalText) {
+          return await message.sendReply(
+            "_Unsupported reply type. Use image, video, audio, or a text message._"
+          );
+        }
+        await sendGroupStatusToTarget({ text: finalText });
+        return await message.react("✅");
+      }
+
+      if (text) {
+        await sendGroupStatusToTarget({ text });
+        return await message.react("✅");
+      }
+
+      return await message.sendReply(
+        "_Unsupported reply type. Use image, video, audio, or text._"
+      );
+    } catch (error) {
+      return await message.sendReply(
+        `_Failed to post group status: ${error.message}_`
+      );
+    }
+  }
+);

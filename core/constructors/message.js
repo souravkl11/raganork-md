@@ -1,4 +1,5 @@
 let generateWAMessageFromContent,
+  generateWAMessageContent,
   proto,
   prepareWAMessageMedia,
   generateForwardMessageContent,
@@ -9,6 +10,7 @@ const baileysPromise = loadBaileys()
   .then((baileys) => {
     ({
       generateWAMessageFromContent,
+      generateWAMessageContent,
       proto,
       prepareWAMessageMedia,
       generateForwardMessageContent,
@@ -170,6 +172,112 @@ class Message extends Base {
     });
   }
 
+  _isGroupStatusType(type = "") {
+    if (!type || typeof type !== "string") return false;
+    const normalized = type.toLowerCase();
+    return [
+      "groupstatus",
+      "group-status",
+      "group_status",
+      "groupstatusmessage",
+      "groupstatusmessagev2",
+      "gstatus",
+      "gs",
+    ].includes(normalized);
+  }
+
+  _buildGroupStatusPayload(content, messageOptions = {}) {
+    const source =
+      content &&
+      typeof content === "object" &&
+      !Buffer.isBuffer(content) &&
+      content.groupStatusMessage
+        ? content.groupStatusMessage
+        : content;
+
+    if (typeof source === "string") {
+      return { text: source, ...messageOptions };
+    }
+
+    if (Buffer.isBuffer(source) || source instanceof Uint8Array) {
+      const mediaType = (messageOptions.mediaType || "image").toLowerCase();
+      const payload = { ...messageOptions };
+      delete payload.mediaType;
+
+      if (mediaType === "video") {
+        payload.video = source;
+      } else if (mediaType === "audio") {
+        payload.audio = source;
+      } else {
+        payload.image = source;
+      }
+      return payload;
+    }
+
+    if (source && typeof source === "object") {
+      return { ...source, ...messageOptions };
+    }
+
+    return { text: "", ...messageOptions };
+  }
+
+  async sendGroupStatus(content, options = {}) {
+    await baileysPromise;
+
+    if (!this.jid.endsWith("@g.us")) {
+      throw new Error("Group status can only be sent to a group chat.");
+    }
+
+    if (
+      typeof generateWAMessageFromContent !== "function" ||
+      typeof generateWAMessageContent !== "function"
+    ) {
+      throw new Error("Baileys helpers are not ready to send group status.");
+    }
+
+    const { quoted, ...messageOptions } = options;
+    const payload = this._buildGroupStatusPayload(content, messageOptions);
+
+    if ((payload.image || payload.video) && payload.text && !payload.caption) {
+      payload.caption = payload.text;
+      delete payload.text;
+    }
+
+    const userJid = this.client.user?.id || this.client.user?.jid;
+    const waMsgContent =
+      payload.message && typeof payload.message === "object"
+        ? payload.message
+        : await generateWAMessageContent(payload, {
+            upload: this.client.waUploadToServer,
+            mediaCache: this.client.mediaCache,
+            options: this.client.options,
+            logger: this.client.logger,
+            userJid,
+            jid: this.jid,
+          });
+
+    const groupStatusContent = {
+      groupStatusMessageV2: {
+        message: waMsgContent.message || waMsgContent,
+      },
+    };
+
+    const waMessage = generateWAMessageFromContent(
+      this.jid,
+      groupStatusContent,
+      {
+        quoted,
+        userJid,
+      }
+    );
+
+    await this.client.relayMessage(this.jid, waMessage.message, {
+      messageId: waMessage.key.id,
+    });
+
+    return waMessage;
+  }
+
   async sendMessage(content, type = "text", options = {}) {
     const { ephemeralExpiration, quoted, ...messageOptions } = options;
 
@@ -181,6 +289,19 @@ class Message extends Base {
     }
     if (quoted) {
       realOptions.quoted = quoted;
+    }
+
+    const hasGroupStatusPayload =
+      content &&
+      typeof content === "object" &&
+      !Buffer.isBuffer(content) &&
+      content.groupStatusMessage;
+
+    if (this._isGroupStatusType(type) || hasGroupStatusPayload) {
+      return await this.sendGroupStatus(content, {
+        ...messageOptions,
+        quoted: realOptions.quoted,
+      });
     }
 
     if (type == "text") {
