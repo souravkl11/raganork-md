@@ -95,9 +95,7 @@ class Message extends Base {
       this.quoted = {
         key: {
           remoteJid: contextInfo.remoteJid,
-          fromMe:
-            quotedParticipantJid?.split("@")[0] ===
-            this.client.user?.id?.split(":")[0],
+          fromMe: this.reply_message.fromMe,
           id: this.reply_message.id,
           participant: quotedParticipantJid,
         },
