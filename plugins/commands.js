@@ -559,3 +559,35 @@ Module(
     await parseAlive(message, aliveMessage);
   }
 );
+
+Module(
+  {
+    pattern: "mem",
+    fromMe: true,
+    desc: "Show memory usage of the bot process",
+    use: "system",
+  },
+  async (message) => {
+    const mb = (n) => (n / 1024 / 1024).toFixed(1) + " MB";
+    const m = process.memoryUsage();
+    const { CustomAuthState } = require("../core/auth");
+    const sessions = Object.entries(CustomAuthState.getStats())
+      .map(([id, s]) => `  ${id}: ${s.keys} keys, ${s.pendingWrites} pending`)
+      .join("\n");
+    const handles =
+      typeof process._getActiveHandles === "function"
+        ? process._getActiveHandles().length
+        : "n/a";
+    await message.sendReply(
+      "```" +
+        `rss        : ${mb(m.rss)}\n` +
+        `heap used  : ${mb(m.heapUsed)} / ${mb(m.heapTotal)}\n` +
+        `external   : ${mb(m.external)}\n` +
+        `buffers    : ${mb(m.arrayBuffers)}\n` +
+        `uptime     : ${Math.round(process.uptime() / 60)} min\n` +
+        `handles    : ${handles}\n` +
+        `sessions   :\n${sessions || "  none"}` +
+        "```",
+    );
+  },
+);

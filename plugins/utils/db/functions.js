@@ -1,3 +1,4 @@
+const { cachedList } = require("./cache");
 const {
   warnDB,
   FakeDB,
@@ -261,20 +262,35 @@ function checkLinkAllowed(url, config) {
   return true;
 }
 
+// read on every group message, so keep it in memory
+const antiSpamList = cachedList(() => antiSpamDB.findAll());
+
 async function getAntiSpam() {
-  return await antiSpamDB.findAll();
+  return await antiSpamList();
 }
 
 async function setAntiSpam(jid) {
-  return await antiSpamDB.create({ jid });
+  try {
+    return await antiSpamDB.create({ jid });
+  } finally {
+    antiSpamList.invalidate();
+  }
 }
 
 async function delAntiSpam(jid = null) {
-  return await antiSpamDB.destroy({ where: { jid } });
+  try {
+    return await antiSpamDB.destroy({ where: { jid } });
+  } finally {
+    antiSpamList.invalidate();
+  }
 }
 
 async function resetAntiSpam() {
-  return await antiSpamDB.destroy({ where: {}, truncate: true });
+  try {
+    return await antiSpamDB.destroy({ where: {}, truncate: true });
+  } finally {
+    antiSpamList.invalidate();
+  }
 }
 
 async function getPdm() {
@@ -325,36 +341,65 @@ async function resetAntiPromote() {
   return await antiPromote.destroy({ where: {}, truncate: true });
 }
 
+const antiBotList = cachedList(() => antiBotDB.findAll());
+
 async function getAntiBot() {
-  return await antiBotDB.findAll();
+  return await antiBotList();
 }
 
 async function setAntiBot(jid) {
-  return await antiBotDB.create({ jid });
+  try {
+    return await antiBotDB.create({ jid });
+  } finally {
+    antiBotList.invalidate();
+  }
 }
 
 async function delAntiBot(jid = null) {
-  return await antiBotDB.destroy({ where: { jid } });
+  try {
+    return await antiBotDB.destroy({ where: { jid } });
+  } finally {
+    antiBotList.invalidate();
+  }
 }
 
 async function resetAntiBot() {
-  return await antiBotDB.destroy({ where: {}, truncate: true });
+  try {
+    return await antiBotDB.destroy({ where: {}, truncate: true });
+  } finally {
+    antiBotList.invalidate();
+  }
 }
 
+// checked on every group message by the antiword plugin
+const antiWordList = cachedList(() => antiWordDB.findAll());
+
 async function getAntiWord() {
-  return await antiWordDB.findAll();
+  return await antiWordList();
 }
 
 async function setAntiWord(jid) {
-  return await antiWordDB.create({ jid });
+  try {
+    return await antiWordDB.create({ jid });
+  } finally {
+    antiWordList.invalidate();
+  }
 }
 
 async function delAntiWord(jid = null) {
-  return await antiWordDB.destroy({ where: { jid } });
+  try {
+    return await antiWordDB.destroy({ where: { jid } });
+  } finally {
+    antiWordList.invalidate();
+  }
 }
 
 async function resetAntiWord() {
-  return await antiWordDB.destroy({ where: {}, truncate: true });
+  try {
+    return await antiWordDB.destroy({ where: {}, truncate: true });
+  } finally {
+    antiWordList.invalidate();
+  }
 }
 
 async function getWelcome(jid = null) {
@@ -446,6 +491,11 @@ async function getFilter(jid = null, trigger = null) {
   }
 }
 
+// every text message is checked against filters, keep the enabled ones in memory
+const enabledFilters = cachedList(() =>
+  FilterDB.findAll({ where: { enabled: true } }),
+);
+
 async function setFilter(
   trigger,
   response,
@@ -473,22 +523,29 @@ async function setFilter(
     },
   });
 
-  if (existing) {
-    await existing.update(filterData);
-    return existing;
+  try {
+    if (existing) {
+      await existing.update(filterData);
+      return existing;
+    }
+    return await FilterDB.create(filterData);
+  } finally {
+    enabledFilters.invalidate();
   }
-
-  return await FilterDB.create(filterData);
 }
 
 async function delFilter(trigger, jid = null, scope = "chat") {
-  return await FilterDB.destroy({
-    where: {
-      trigger,
-      jid: scope === "chat" ? jid : null,
-      scope,
-    },
-  });
+  try {
+    return await FilterDB.destroy({
+      where: {
+        trigger,
+        jid: scope === "chat" ? jid : null,
+        scope,
+      },
+    });
+  } finally {
+    enabledFilters.invalidate();
+  }
 }
 
 async function toggleFilter(trigger, jid = null, scope = "chat", enabled) {
@@ -501,7 +558,9 @@ async function toggleFilter(trigger, jid = null, scope = "chat", enabled) {
   });
 
   if (filter) {
-    await filter.update({ enabled });
+    // no explicit state: flip whatever is stored
+    await filter.update({ enabled: enabled === undefined ? !filter.enabled : enabled });
+    enabledFilters.invalidate();
     return filter;
   }
   return false;
@@ -521,7 +580,13 @@ async function getFiltersByScope(scope, jid = null) {
 async function checkFilterMatch(text, jid) {
   if (!text) return null;
 
-  const filters = await getFilter(jid);
+  // same scope rules as getFilter(jid), evaluated in memory
+  const dmOrGroup = jid.includes("@g.us") ? "group" : "dm";
+  const filters = (await enabledFilters()).filter(
+    (f) =>
+      (f.scope === "chat" && f.jid === jid) ||
+      (f.jid === null && (f.scope === "global" || f.scope === dmOrGroup)),
+  );
 
   for (const filter of filters) {
     const trigger = filter.caseSensitive

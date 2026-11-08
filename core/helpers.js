@@ -4,6 +4,76 @@ const os = require("os");
 const { Readable } = require("stream");
 const ffmpeg = require("fluent-ffmpeg");
 
+// process-wide ffmpeg guard: every save()/pipe() goes through run(), so patching it
+// caps concurrent encodes and gives every job a kill timeout, whatever plugin started it
+const FFMPEG_CONCURRENCY = Math.max(1, parseInt(process.env.FFMPEG_CONCURRENCY || "2", 10) || 2);
+const FFMPEG_TIMEOUT_S = Math.max(30, parseInt(process.env.FFMPEG_TIMEOUT || "600", 10) || 600);
+(function limitFfmpeg() {
+  const proto = ffmpeg.prototype;
+  if (proto.__rgnkLimited) return;
+  proto.__rgnkLimited = true;
+  const originalRun = proto.run;
+  let active = 0;
+  const waiting = [];
+
+  const next = () => {
+    while (active < FFMPEG_CONCURRENCY && waiting.length) {
+      active++;
+      waiting.shift()();
+    }
+  };
+
+  proto.run = proto.exec = proto.execute = function (...args) {
+    if (!this.options.timeout) this.options.timeout = FFMPEG_TIMEOUT_S;
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      active--;
+      next();
+    };
+    this.once("end", release);
+    this.once("error", release);
+
+    let queued = false;
+    const start = () => {
+      try {
+        originalRun.apply(this, args);
+      } catch (err) {
+        // started right away: throw to the caller like before. started later: report via event
+        if (!queued) {
+          release();
+          throw err;
+        }
+        this.emit("error", err);
+      }
+    };
+    waiting.push(start);
+    next();
+    if (waiting.includes(start)) queued = true;
+    return this;
+  };
+})();
+
+// temp file name that can't collide with a parallel job
+function uniqueTempPath(name) {
+  const ext = path.extname(name);
+  const base = path.basename(name, ext);
+  return getTempPath(
+    `${base}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`,
+  );
+}
+
+// promise wrapper for a fluent-ffmpeg command writing to a file
+function runFfmpeg(command, output) {
+  return new Promise((resolve, reject) => {
+    command
+      .on("end", () => resolve(output))
+      .on("error", (err) => reject(err))
+      .save(output);
+  });
+}
+
 let TEMP_DIR;
 if (process.env.TEMP_DIR) {
   TEMP_DIR = process.env.TEMP_DIR;
@@ -30,6 +100,37 @@ function getTempSubdir(subdir) {
     fs.mkdirSync(subdirPath, { recursive: true });
   }
   return subdirPath;
+}
+
+// temp files get unique names now, so sweep old ones instead of relying on overwrites
+let tempSweepTimer = null;
+async function sweepTempDir(dir = TEMP_DIR, maxAgeMs = 30 * 60 * 1000) {
+  let entries;
+  try {
+    entries = await fs.promises.readdir(dir, { withFileTypes: true });
+  } catch (_) {
+    return;
+  }
+  const cutoff = Date.now() - maxAgeMs;
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    try {
+      if (entry.isDirectory()) {
+        await sweepTempDir(full, maxAgeMs);
+        const left = await fs.promises.readdir(full);
+        if (left.length === 0) await fs.promises.rmdir(full);
+      } else if ((await fs.promises.stat(full)).mtimeMs < cutoff) {
+        await fs.promises.unlink(full);
+      }
+    } catch (_) {}
+  }
+}
+
+function startTempSweeper() {
+  if (tempSweepTimer) return;
+  sweepTempDir();
+  tempSweepTimer = setInterval(sweepTempDir, 15 * 60 * 1000);
+  tempSweepTimer.unref?.();
 }
 
 async function loadBaileys() {
@@ -75,17 +176,12 @@ const jimp = require("jimp");
 
 async function genThumb(url) {
   try {
-    let size = 301;
     const img = await jimp.read(url);
-    function getPossibleRatio(a, b) {
-      for (var i = 0; size + 2 > size + 1; i++) {
-        a = a > size || b > size ? a / 1.001 : a;
-        b = a > size || b > size ? b / 1.001 : b;
-        if (parseInt(a) < size && parseInt(b) < size)
-          return { w: parseInt(a), h: parseInt(b) };
-      }
-    }
-    var { w, h } = getPossibleRatio(img.bitmap.width, img.bitmap.height);
+    const { width, height } = img.bitmap;
+    // fit inside 300x300, never upscale
+    const scale = Math.min(1, 300 / Math.max(width, height));
+    const w = Math.max(1, Math.round(width * scale));
+    const h = Math.max(1, Math.round(height * scale));
     return await img.resize(w, h).getBufferAsync("image/jpeg");
   } catch (error) {
     console.error("Error generating thumbnail:", error);
@@ -426,4 +522,7 @@ module.exports = {
   ensureTempDir,
   getTempPath,
   getTempSubdir,
+  uniqueTempPath,
+  runFfmpeg,
+  startTempSweeper,
 };

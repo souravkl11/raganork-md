@@ -4,6 +4,19 @@ const { isAdmin, filter } = require("./utils");
 
 const handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
 
+const SCOPES = ["chat", "global", "group", "dm"];
+
+// triggers can contain spaces, so only a trailing scope word is split off:
+// "good morning" -> trigger "good morning", "good morning global" -> scope global
+function parseTriggerAndScope(input) {
+  const words = input.trim().split(/\s+/);
+  const last = words[words.length - 1].toLowerCase();
+  if (words.length > 1 && SCOPES.includes(last)) {
+    return { trigger: words.slice(0, -1).join(" "), scope: last };
+  }
+  return { trigger: words.join(" "), scope: "chat" };
+}
+
 Module(
   {
     pattern: "filter ?(.*)",
@@ -188,15 +201,7 @@ Module(
       );
     }
 
-    const parts = input.split(" ");
-    const trigger = parts[0];
-    const scope = parts[1] || "chat";
-
-    if (!["chat", "global", "group", "dm"].includes(scope)) {
-      return await message.sendReply(
-        "_Invalid scope! Use: chat, global, group, or dm_"
-      );
-    }
+    const { trigger, scope } = parseTriggerAndScope(input);
 
     try {
       const deleted = await filter.delete(trigger, message.jid, scope);
@@ -236,29 +241,12 @@ Module(
       );
     }
 
-    const parts = input.split(" ");
-    const trigger = parts[0];
-    const scope = parts[1] || "chat";
-
-    if (!["chat", "global", "group", "dm"].includes(scope)) {
-      return await message.sendReply(
-        "_Invalid scope! Use: chat, global, group, or dm_"
-      );
-    }
+    const { trigger, scope } = parseTriggerAndScope(input);
 
     try {
-      const currentFilter = await filter.get(message.jid, trigger);
-      if (!currentFilter) {
-        return await message.sendReply(`❌ _Filter "${trigger}" not found!_`);
-      }
-
-      const newStatus = !currentFilter.enabled;
-      const toggled = await filter.toggle(
-        trigger,
-        message.jid,
-        scope,
-        newStatus
-      );
+      // flips the stored state, including re-enabling a disabled filter
+      const toggled = await filter.toggle(trigger, message.jid, scope);
+      const newStatus = toggled?.enabled;
 
       if (toggled) {
         await message.sendReply(
@@ -267,7 +255,7 @@ Module(
           } successfully!_`
         );
       } else {
-        await message.sendReply(`❌ _Failed to toggle filter "${trigger}"!_`);
+        await message.sendReply(`❌ _Filter "${trigger}" not found!_`);
       }
     } catch (error) {
       console.error("Filter toggle error:", error);

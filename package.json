@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "pm2 start index.js --name raganork-md --attach"
+    "start": "pm2 start index.js --name raganork-md --attach --node-args=\"--max-old-space-size=${MAX_HEAP:-512}\""
   },
   "keywords": [
     "whatsapp",

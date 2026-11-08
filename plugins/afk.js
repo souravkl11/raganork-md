@@ -143,12 +143,22 @@ async function removeAFK(userJid) {
   return afkData;
 }
 
+// counters and last-seen change on every message; batch those writes
+let afkSaveTimer = null;
+function scheduleAFKSave() {
+  if (afkSaveTimer) return;
+  afkSaveTimer = setTimeout(() => {
+    afkSaveTimer = null;
+    saveAFKData();
+  }, 30000);
+  afkSaveTimer.unref?.();
+}
+
 async function updateLastSeen(userJid) {
   const afkData = afkCache.get(userJid);
   if (afkData) {
     afkData.lastSeen = new Date();
-
-    await saveAFKData();
+    scheduleAFKSave();
   }
 }
 
@@ -156,8 +166,7 @@ async function incrementMessageCount(userJid) {
   const afkData = afkCache.get(userJid);
   if (afkData) {
     afkData.messageCount++;
-
-    await saveAFKData();
+    scheduleAFKSave();
   }
 }
 

@@ -6,6 +6,7 @@ let generateWAMessageFromContent,
   getContentType,
   downloadMediaMessage;
 const { loadBaileys } = require("../helpers");
+const { isSudo } = require("../sudo");
 const baileysPromise = loadBaileys()
   .then((baileys) => {
     ({
@@ -53,17 +54,7 @@ class Message extends Base {
     const senderNumeric = this.sender?.split("@")[0];
 
     // check if sender is sudo using SUDO_MAP
-    let isSudoUser = false;
-    if (config.SUDO_MAP) {
-      try {
-        const sudoMap = JSON.parse(config.SUDO_MAP);
-        if (Array.isArray(sudoMap)) {
-          isSudoUser = sudoMap.includes(this.sender);
-        }
-      } catch (e) {
-        isSudoUser = false;
-      }
-    }
+    const isSudoUser = isSudo(this.sender);
 
     this.fromOwner =
       data.key.fromMe || senderNumeric === botNumeric || isSudoUser;

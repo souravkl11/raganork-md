@@ -27,8 +27,50 @@ const WhatsappSession = sequelize.define('WhatsappSession', {
                 this.setDataValue('sessionData', null);
             }
         }
+    },
+    // v3 layout: creds live here, keys live in WhatsappSessionKeys (one row each)
+    creds: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    storageVersion: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     }
 });
+
+const WhatsappSessionKey = sequelize.define('WhatsappSessionKey', {
+    sessionId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false
+    },
+    keyName: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false
+    },
+    value: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    }
+}, {
+    timestamps: false,
+    indexes: [{ fields: ['sessionId'] }]
+});
+
+// adds columns introduced after a table was first created (sync() never alters)
+async function ensureColumns(model, columns) {
+    const queryInterface = sequelize.getQueryInterface();
+    const tableName = model.getTableName();
+    const description = await queryInterface.describeTable(tableName);
+    for (const [name, spec] of Object.entries(columns)) {
+        if (!description[name]) {
+            logger.info(`Adding column '${name}' to '${tableName}'`);
+            await queryInterface.addColumn(tableName, name, spec);
+        }
+    }
+}
 
 const BotVariable = sequelize.define('BotVariable', {
     key: {
@@ -54,7 +96,12 @@ async function initializeDatabase() {
         await sequelize.authenticate();
         logger.info('Database connection established.');
         await WhatsappSession.sync();
-        logger.info('WhatsappSession table synced.');
+        await ensureColumns(WhatsappSession, {
+            creds: { type: DataTypes.TEXT, allowNull: true },
+            storageVersion: { type: DataTypes.INTEGER, allowNull: true },
+        });
+        await WhatsappSessionKey.sync();
+        logger.info('WhatsappSession tables synced.');
 
         await BotVariable.sync();
         logger.info('BotVariable table synced.');
@@ -109,7 +156,9 @@ async function migrateSudoToLID(client) {
 module.exports = {
     sequelize,
     WhatsappSession,
+    WhatsappSessionKey,
     BotVariable,
+    ensureColumns,
     initializeDatabase,
     migrateSudoToLID
 };

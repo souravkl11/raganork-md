@@ -1,6 +1,7 @@
 const { Module } = require("../main");
 const { SUDO, HANDLERS } = require("../config");
 const config = require("../config");
+const { isSudo } = require("../core/sudo");
 const { uploadToCatbox } = require("./utils/upload");
 
 const fs = require("fs");
@@ -10,13 +11,20 @@ var handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
 
 const { setVar, delVar } = require("./manage");
 
+// parsed once per distinct config value, this runs on every mention
+let lastMentionRaw;
+let lastMentionParsed = null;
 function getMentionReply() {
+  const raw = config.MENTION_REPLY;
+  if (raw === lastMentionRaw) return lastMentionParsed;
+  lastMentionRaw = raw;
   try {
-    return config.MENTION_REPLY ? JSON.parse(config.MENTION_REPLY) : null;
+    lastMentionParsed = raw ? JSON.parse(raw) : null;
   } catch (error) {
     console.error("Error parsing mention reply:", error);
-    return null;
+    lastMentionParsed = null;
   }
+  return lastMentionParsed;
 }
 
 async function setMentionReply(data) {
@@ -38,19 +46,7 @@ async function deleteMentionReply() {
 }
 
 function isSudoUser(jid) {
-  if (!jid) return false;
-
-  let sudoMap = [];
-  if (config.SUDO_MAP) {
-    try {
-      sudoMap = JSON.parse(config.SUDO_MAP);
-      if (!Array.isArray(sudoMap)) sudoMap = [];
-    } catch (e) {
-      sudoMap = [];
-    }
-  }
-
-  return sudoMap.includes(jid);
+  return isSudo(jid);
 }
 
 Module(

@@ -112,6 +112,18 @@ pm2 stop raganork-md
 pm2 restart raganork-md
 ```
 
+## Performance Tuning (optional)
+
+```
+MAX_HEAP=512              # V8 heap cap in MB used by npm start (lower = earlier GC, less RAM)
+FFMPEG_CONCURRENCY=2      # max ffmpeg jobs at once
+FFMPEG_TIMEOUT=600        # seconds before a stuck ffmpeg job is killed
+MAX_RECONNECT_ATTEMPTS=10 # reconnects (with backoff) before giving up
+WA_VERSION=2.3000.x       # pin a WhatsApp web version (default: latest published)
+```
+
+Use `.mem` to see the bot's memory usage. On container platforms where every MB counts, running `node --max-old-space-size=384 index.js` directly instead of `npm start` skips the PM2 daemon (~50-70 MB).
+
 ## Commands
 
 Default prefix: `.`
@@ -120,6 +132,7 @@ Default prefix: `.`
 - `.ping` – Check response time
 - `.restart` – Restart bot (sudo only)
 - `.shutdown` – Stop bot (sudo only)
+- `.mem` – Show memory usage (sudo only)
 
 ## File Structure
 
@@ -154,4 +167,4 @@ GPL License - See LICENSE file for details.
 
 ---
 
-**Note:** Some files are obfuscated for security reasons and should not be modified.
+**Note:** `core/private.js` is obfuscated for security reasons and should not be modified. Everything else is regular source.

@@ -1,4 +1,5 @@
 const config = require("../../../config");
+const { cachedList } = require("./cache");
 const { DataTypes, Op } = require("sequelize");
 
 async function updateOrCreate(model, findCriteria, createData) {
@@ -55,9 +56,12 @@ const StickyCmdDB = config.sequelize.define("stickcmd", {
   file: { type: DataTypes.STRING(1000), allowNull: false },
 });
 
+// looked up for every sticker message
+const stickcmdList = cachedList(() => StickyCmdDB.findAll());
+
 const stickcmd = {
   async get() {
-    return await StickyCmdDB.findAll();
+    return await stickcmdList();
   },
   async set(commandName, fileContent) {
     const existingRecord = await StickyCmdDB.findOne({
@@ -67,6 +71,7 @@ const stickcmd = {
       await existingRecord.destroy();
     }
     await StickyCmdDB.create({ command: commandName, file: fileContent });
+    stickcmdList.invalidate();
     return true;
   },
   async delete(identifier, type = "file") {
@@ -79,6 +84,7 @@ const stickcmd = {
     if (!whereClause) return false;
 
     const result = await StickyCmdDB.destroy({ where: whereClause });
+    stickcmdList.invalidate();
     return result > 0;
   },
 };

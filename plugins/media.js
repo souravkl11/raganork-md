@@ -7,21 +7,8 @@ const config = require("../config"),
   MODE = config.MODE;
 const { getString } = require("./utils/lang");
 const { avMix, circle, rotate, trim } = require("./utils");
-const acrcloud = require("acrcloud");
-const acr = new acrcloud({
-  host: "identify-eu-west-1.acrcloud.com",
-  access_key: config.ACR_A,
-  access_secret: config.ACR_S,
-});
 var handler = config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
-async function findMusic(file) {
-  return new Promise((resolve, reject) => {
-    acr.identify(file).then((result) => {
-      var data = result.metadata?.music[0];
-      resolve(data);
-    });
-  });
-}
+const findMusic = (file) => require("../core/private").identifyMusic(file);
 const Lang = getString("media");
 Module(
   {

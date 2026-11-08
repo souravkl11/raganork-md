@@ -3,10 +3,57 @@ const { logger, SESSION } = require('../config');
 const { sequelize } = require("./database");
 const { CustomAuthState } = require("./auth");
 const { flushQueueOnShutdown, stopFlushTimer } = require("./store");
+const config = require("../config");
+const { createAnnouncementFeed } = require("./private");
+const { version } = require("../package.json");
+
+const RECENT_ANNOUNCEMENTS = 50;
 
 class BotManager {
     constructor() {
-        this.bots = new Map(); 
+        this.bots = new Map();
+        this.feed = null;
+        this.recentAnnouncements = [];
+    }
+
+    connectedBots() {
+        return [...this.bots.values()].filter((bot) => bot.isConnected && bot.sock);
+    }
+
+    // called by bots on open/close; starts the shared feed and keeps its session count fresh
+    onSessionStateChange() {
+        if (!this.feed) {
+            if (this.connectedBots().length === 0) return;
+            this.feed = createAnnouncementFeed({
+                version,
+                getSessionCount: () => this.connectedBots().length,
+                onAnnouncement: (text, id) => this.broadcastAnnouncement(text, id),
+                onError: (err) => logger.debug({ err: err?.message || err }, 'announcement feed error'),
+            });
+            return;
+        }
+        this.feed.refresh();
+    }
+
+    async broadcastAnnouncement(text, id) {
+        const dedupeKey = id || text;
+        if (this.recentAnnouncements.includes(dedupeKey)) return;
+        this.recentAnnouncements.push(dedupeKey);
+        if (this.recentAnnouncements.length > RECENT_ANNOUNCEMENTS) this.recentAnnouncements.shift();
+
+        const sentTo = new Set();
+        for (const bot of this.connectedBots()) {
+            const owner = config.SUDO
+                ? config.SUDO.split(",")[0].trim() + "@s.whatsapp.net"
+                : bot.sock.user?.id?.split(":")[0] + "@s.whatsapp.net";
+            if (sentTo.has(owner)) continue;
+            sentTo.add(owner);
+            try {
+                await bot.sock.sendMessage(owner, { text });
+            } catch (err) {
+                logger.error({ session: bot.sessionId, err }, 'Failed to send announcement message');
+            }
+        }
     }
 
     async initializeBots() {
@@ -16,6 +63,7 @@ class BotManager {
             try {
                 logger.info({ session: sessionId }, `Attempting to initialize bot for session.`);
                 const bot = new WhatsAppBot(sessionId);
+                bot.manager = this;
                 await bot.initialize(); 
                 if (bot.sock) { 
                     this.bots.set(sessionId, bot);
@@ -44,6 +92,10 @@ class BotManager {
 
     async shutdown() {
         logger.info('Shutting down all bots...');
+        if (this.feed) {
+            this.feed.close();
+            this.feed = null;
+        }
 
     try {
       stopFlushTimer();

@@ -9,6 +9,7 @@ const {
 const { Module } = require("../main");
 let config = require("../config");
 let fs = require("fs");
+const { getTempPath } = require("../core/helpers");
 Module(
   {
     pattern: "take ?(.*)",
@@ -105,21 +106,20 @@ Module(
   async (m, t) => {
     if (m.reply_message.sticker) {
       var q = await m.reply_message.download();
+      const out = getTempPath(`mp4_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.mp4`);
       try {
-        var result = await webp2mp4(q, __dirname + "/temp/output.mp4");
+        await webp2mp4(q, out);
+        await m.client.sendMessage(
+          m.jid,
+          { video: { url: out } },
+          { quoted: m.quoted }
+        );
       } catch (e) {
         console.log(e);
         return await m.sendReply("*Failed*");
+      } finally {
+        fs.unlink(out, () => {});
       }
-      await m.client.sendMessage(
-        m.jid,
-        {
-          video: {
-            url: __dirname + "/temp/output.mp4",
-          },
-        },
-        { quoted: m.quoted }
-      );
     } else return await m.sendReply("_Reply to an animated sticker!_");
   }
 );

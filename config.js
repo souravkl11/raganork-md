@@ -83,8 +83,10 @@ function applySQLiteResilience(sequelizeInstance) {
   };
 
   sequelizeInstance.query = function serializedQuery(sql, ...rest) {
-    // only queue writes; reads can run concurrently
-    if (!isWriteQuery(sql)) {
+    // only queue writes; reads can run concurrently. queries bound to a transaction
+    // skip the queue: the transaction already holds the lock, and queueing them behind
+    // a writer that is waiting on that lock stalls everything until busy_timeout
+    if (!isWriteQuery(sql) || rest[0]?.transaction) {
       return originalQuery(sql, ...rest);
     }
 
@@ -101,7 +103,7 @@ function applySQLiteResilience(sequelizeInstance) {
   if (typeof sequelizeInstance.queryRaw === "function") {
     const originalQueryRaw = sequelizeInstance.queryRaw.bind(sequelizeInstance);
     sequelizeInstance.queryRaw = function serializedQueryRaw(sql, ...rest) {
-      if (!isWriteQuery(sql)) {
+      if (!isWriteQuery(sql) || rest[0]?.transaction) {
         return originalQueryRaw(sql, ...rest);
       }
 
@@ -118,7 +120,7 @@ function applySQLiteResilience(sequelizeInstance) {
 }
 
 const MAX_RECONNECT_ATTEMPTS = parseInt(
-  process.env.MAX_RECONNECT_ATTEMPTS || "5",
+  process.env.MAX_RECONNECT_ATTEMPTS || "10",
   10
 );
 const VERSION = require("./package.json").version;
@@ -231,11 +233,6 @@ const baseConfig = {
   CALL_REJECT_MESSAGE: process.env.CALL_REJECT_MESSAGE || "",
   PMB: process.env.PMB || "_Personal messages not allowed, BLOCKED!_",
   READ_COMMAND: convertToBool(process.env.READ_COMMAND) || true,
-  IMGBB_KEY: [
-    "76a050f031972d9f27e329d767dd988f",
-    "deb80cd12ababea1c9b9a8ad6ce3fab2",
-    "78c84c62b32a88e86daf87dd509a657a",
-  ],
   RG: process.env.RG || "919074309534-1632403322@g.us,120363116963909366@g.us",
   BOT_INFO: process.env.BOT_INFO || "𝖱𝖺𝗀𝖺𝗇𝗈𝗋𝗄;𝖱𝗒𝗓𝖾𝗇;default",
   RBG_KEY: process.env.RBG_KEY || "",
@@ -259,8 +256,6 @@ const baseConfig = {
   LANGUAGE: process.env.LANGUAGE || "english",
   AUTO_UPDATE: convertToBool(process.env.AUTO_UPDATE) || true,
   SUPPORT_GROUP: process.env.SUPPORT_GROUP || "https://t.me/raganork_in",
-  ACR_A: "ff489a0160188cf5f0750eaf486eee74",
-  ACR_S: "ytu3AdkCu7fkRVuENhXxs9jsOW4YJtDXimAWMpJp",
   settingsMenu,
 
   SESSION,

@@ -18,10 +18,12 @@ const {
   TEMP_DIR,
   initializeKickBot,
   cleanupKickBot,
+  startTempSweeper,
 } = require("./core/helpers");
 
 async function main() {
   ensureTempDir();
+  startTempSweeper();
   logger.info(`Created temporary directory at ${TEMP_DIR}`);
   console.log(`Raganork v${require("./package.json").version}`);
   console.log(`- Configured sessions: ${SESSION.join(", ")}`);
