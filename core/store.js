@@ -390,7 +390,18 @@ async function storeMessage(msgData) {
   if (msgData.key.remoteJid === "status@broadcast") return;
 
   const knownMessageTypes = Object.keys(messageTypeMap);
-  const messageType = Object.keys(msgData.message).find((key) =>
+  // disappearing-chat and view once messages wrap the real content
+  let content = msgData.message;
+  for (let i = 0; i < 3; i++) {
+    const inner =
+      content.ephemeralMessage?.message ||
+      content.viewOnceMessage?.message ||
+      content.viewOnceMessageV2?.message ||
+      content.viewOnceMessageV2Extension?.message;
+    if (!inner) break;
+    content = inner;
+  }
+  const messageType = Object.keys(content).find((key) =>
     knownMessageTypes.includes(key),
   );
   const mappedType = messageType ? messageTypeMap[messageType] : "unknown";

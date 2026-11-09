@@ -31,6 +31,7 @@ const { logger, MAX_RECONNECT_ATTEMPTS } = require("../config");
 const { CustomAuthState } = require("./auth");
 const { handler, groupUpdate, startEvent } = require("./handler");
 const { getFullMessage, AntiDeleteCache, storeMessage } = require("./store");
+const { getSudoMap } = require("./sudo");
 const config = require("../config");
 const Schedule = require("./schedulers");
 const Jimp = require("jimp");
@@ -96,6 +97,37 @@ async function generateProfilePicture(mediaUpload) {
     console.error("Error processing image for profile picture:", error);
     throw new Error(`Could not generate profile picture: ${error.message}`);
   }
+}
+
+// --- anti-delete helpers ---
+const ANTI_DELETE_MODES = ["chat", "sudo", "custom"];
+const ANTI_DELETE_DEDUPE_MS = 10 * 60 * 1000;
+const recentlyRecovered = new Map();
+
+// true when the same deletion was already handled (revoke events can repeat)
+function seenRecently(cacheKey) {
+  const now = Date.now();
+  for (const [key, at] of recentlyRecovered) {
+    if (now - at > ANTI_DELETE_DEDUPE_MS) recentlyRecovered.delete(key);
+    else break; // insertion ordered, the rest are newer
+  }
+  if (recentlyRecovered.has(cacheKey)) return true;
+  recentlyRecovered.set(cacheKey, now);
+  return false;
+}
+
+// where the recovered message should be sent
+function resolveAntiDeleteTarget(originalChat, botUser) {
+  if (config.ANTI_DELETE === "custom" && config.ANTI_DELETE_JID) {
+    return config.ANTI_DELETE_JID;
+  }
+  if (config.ANTI_DELETE === "chat") return originalChat;
+  // sudo: first SUDO_MAP entry (LID), then legacy SUDO numbers, then the bot itself
+  const sudoMap = getSudoMap();
+  if (sudoMap.length) return sudoMap[0];
+  const legacy = config.SUDO && config.SUDO.split(",")[0].trim();
+  if (legacy) return legacy.includes("@") ? legacy : `${legacy}@s.whatsapp.net`;
+  return botUser?.lid || `${botUser?.id?.split(":")[0]}@s.whatsapp.net`;
 }
 
 async function forwardMessage(client, jid, message, options = {}) {
@@ -1329,59 +1361,11 @@ class WhatsAppBot {
 
           // Handle anti-delete functionality
           if (
-            (config.ANTI_DELETE === "chat" ||
-              config.ANTI_DELETE === "sudo" ||
-              config.ANTI_DELETE === "custom") &&
+            ANTI_DELETE_MODES.includes(config.ANTI_DELETE) &&
             !update.update.message &&
             update.update?.messageStubType === 1
           ) {
-            const cacheKey = `${update.key.remoteJid}_${update.key.id}`;
-            const cachedMessage = this.messageCache.get(cacheKey);
-            let recoveredMessage = null;
-            if (cachedMessage) {
-              recoveredMessage = cachedMessage;
-              logger.debug(
-                { session: this.sessionId, key: update.key },
-                `Recovered deleted message from cache`,
-              );
-            } else {
-              const dbMsgKey = update.key.id;
-              const fullMessage = await getFullMessage(dbMsgKey);
-              if (fullMessage && fullMessage.found) {
-                recoveredMessage = fullMessage.messageData;
-                logger.debug(
-                  { session: this.sessionId, key: update.key },
-                  `Recovered deleted message from database`,
-                );
-              }
-            }
-            if (recoveredMessage && this.isConnected) {
-              const sudoOrMe = config.SUDO
-                ? config.SUDO.split(",")[0].trim() + "@s.whatsapp.net"
-                : this.sock.user?.id?.split(":")[0] + "@s.whatsapp.net";
-              let targetJid;
-              if (config.ANTI_DELETE === "custom" && config.ANTI_DELETE_JID) {
-                targetJid = config.ANTI_DELETE_JID;
-              } else if (config.ANTI_DELETE === "chat") {
-                targetJid = update.key.remoteJid;
-              } else {
-                targetJid = sudoOrMe;
-              }
-
-              const isGroup = recoveredMessage.key.remoteJid?.endsWith("@g.us");
-              const participantJid =
-                recoveredMessage.key.participant ||
-                recoveredMessage.key.participantAlt ||
-                recoveredMessage.key.remoteJid;
-              await forwardMessage(this.sock, targetJid, recoveredMessage, {
-                contextInfo: {
-                  quotedMessage: { conversation: "Anti-delete 🛡️" },
-                  stanzaId: recoveredMessage.key.id,
-                  participant: participantJid,
-                  remoteJid: recoveredMessage.key.remoteJid,
-                },
-              });
-            }
+            await this._handleAntiDelete(update);
           }
         } catch (error) {
           logger.error(
@@ -1391,6 +1375,87 @@ class WhatsAppBot {
         }
       }
     });
+  }
+
+  async _handleAntiDelete(update) {
+    const { remoteJid, id } = update.key;
+    if (remoteJid === "status@broadcast" || remoteJid.endsWith("@newsletter"))
+      return;
+
+    const cacheKey = `${remoteJid}_${id}`;
+    if (seenRecently(cacheKey)) return;
+
+    try {
+      let recovered = this.messageCache.get(cacheKey);
+      if (!recovered) {
+        const full = await getFullMessage(id);
+        if (full?.found) recovered = full.messageData;
+      }
+      if (!recovered || !this.isConnected) {
+        recentlyRecovered.delete(cacheKey);
+        return;
+      }
+
+      if (
+        recovered.key?.fromMe &&
+        String(config.ANTI_DELETE_OWN) !== "true"
+      ) {
+        recentlyRecovered.delete(cacheKey);
+        return;
+      }
+
+      const targetJid = resolveAntiDeleteTarget(remoteJid, this.sock.user);
+      const isGroup = remoteJid.endsWith("@g.us");
+      const participantJid =
+        recovered.key.participant ||
+        recovered.key.participantAlt ||
+        recovered.key.remoteJid;
+      const sameChat = targetJid === remoteJid;
+
+      let chatLabel = remoteJid.split("@")[0];
+      if (!sameChat && isGroup) {
+        try {
+          chatLabel = (await this.sock.groupMetadata(remoteJid)).subject;
+        } catch (_) {}
+      } else if (!sameChat && recovered.pushName) {
+        chatLabel = `${recovered.pushName} (${chatLabel})`;
+      }
+
+      const senderLabel = recovered.pushName
+        ? `${recovered.pushName} (${participantJid.split("@")[0]})`
+        : participantJid.split("@")[0];
+      const header = [
+        "Anti-delete 🛡️",
+        ...(sameChat ? [] : [`Chat: ${chatLabel}`]),
+        `Sender: ${senderLabel}`,
+        ...(recovered.messageTimestamp
+          ? [
+              `Sent: ${new Date(
+                Number(recovered.messageTimestamp) * 1000,
+              ).toLocaleString()}`,
+            ]
+          : []),
+      ].join("\n");
+
+      try {
+        await forwardMessage(this.sock, targetJid, recovered, {
+          contextInfo: {
+            quotedMessage: { conversation: header },
+            stanzaId: recovered.key.id,
+            participant: participantJid,
+            remoteJid: recovered.key.remoteJid,
+          },
+        });
+      } catch (error) {
+        await this.sock.sendMessage(targetJid, {
+          text: `_Anti-delete 🛡️: a message was deleted but could not be recovered_\n\n${header}\n_Reason: ${error.message}_`,
+        });
+        throw error;
+      }
+    } catch (error) {
+      recentlyRecovered.delete(cacheKey);
+      throw error;
+    }
   }
 
   // Utility methods with better error handling

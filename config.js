@@ -136,7 +136,7 @@ const sequelize = (() => {
     const sqliteInstance = new Sequelize({
       dialect: "sqlite",
       storage: DATABASE_URL,
-      logging: DEBUG,
+      logging: false,
       retry: {
         match: [/SQLITE_BUSY/, /database is locked/, /EBUSY/],
         max: 3,

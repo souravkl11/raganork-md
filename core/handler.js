@@ -337,7 +337,8 @@ const handler = async (message, client) => {
     console.log(
       `[msg] ${isGroup ? "group" : "pm"} ${msg.key.remoteJid} from ${senderJid}${
         msg.key.fromMe ? " (me)" : ""
-      } | ${type}: ${textMsg || "<no text>"}`,
+      } | ${type}: ${textMsg || "<no text>"}
+       ${JSON.stringify(msg.message, null, 2)}`,
     );
   }
 
