@@ -49,7 +49,8 @@ function bufferReviver(_, value) {
 }
 
 const serialize = (value) => JSON.stringify(value, bufferReplacer);
-const deserialize = (text) => JSON.parse(text, bufferReviver);
+const deserialize = (text) =>
+  JSON.parse(typeof text === "string" ? text : JSON.stringify(text), bufferReviver);
 
 function newSessionEntry() {
   return {
