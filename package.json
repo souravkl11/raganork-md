@@ -1,11 +1,13 @@
 {
   "name": "raganork-md",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "A multi functional wa bot.",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "pm2 start index.js --name raganork-md --attach --node-args=\"--max-old-space-size=${MAX_HEAP:-512}\""
+    "start": "pm2 start index.js --name raganork-md --attach --node-args=\"--max-old-space-size=${MAX_HEAP:-512}\"",
+    "test": "node --test --test-force-exit test/*.test.js",
+    "test:syntax": "bash scripts/quick-test.sh"
   },
   "keywords": [
     "whatsapp",

@@ -7,9 +7,7 @@ const {
   igStalk,
   fb,
 } = require("./utils");
-const botConfig = require("../config");
 const axios = require("axios");
-const isFromMe = botConfig.MODE === "public" ? false : true;
 
 async function checkRedirect(url) {
   let split_url = url.split("/");
@@ -22,7 +20,6 @@ async function checkRedirect(url) {
 Module(
   {
     pattern: "insta ?(.*)",
-    fromMe: isFromMe,
     desc: "Instagram post/reel/tv/highlights downloader - supports multiple links",
     usage: "insta link(s) or reply to link(s)",
     use: "download",
@@ -124,7 +121,6 @@ Module(
 Module(
   {
     pattern: "fb ?(.*)",
-    fromMe: isFromMe,
     desc: "Facebook video downloader",
     usage: "fb link or reply to a link",
     use: "download",
@@ -153,7 +149,6 @@ Module(
 Module(
   {
     pattern: "ig ?(.*)",
-    fromMe: isFromMe,
     desc: "Gets account info from instagram",
     usage: "ig username",
     excludeFromCommands: true,
@@ -190,7 +185,6 @@ Module(
 Module(
   {
     pattern: "story ?(.*)",
-    fromMe: isFromMe,
     desc: "Instagram stories downloader",
     usage: ".story username or link",
     use: "download",
@@ -245,7 +239,6 @@ Module(
 Module(
   {
     pattern: "pinterest ?(.*)",
-    fromMe: isFromMe,
     desc: "Pinterest downloader",
     usage: ".pinterest query or link",
     use: "download",
@@ -335,7 +328,6 @@ Module(
 Module(
   {
     pattern: "tiktok ?(.*)",
-    fromMe: isFromMe,
     desc: "TikTok video downloader",
     usage: ".tiktok reply or link",
     use: "download",

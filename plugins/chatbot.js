@@ -1,7 +1,6 @@
 const { Module } = require("../main");
 const config = require("../config");
 const axios = require("axios");
-const fromMe = config.MODE !== "public";
 const { setVar } = require("./manage");
 const fs = require("fs");
 
@@ -623,7 +622,6 @@ Module(
 Module(
   {
     pattern: "ai ?(.*)",
-    fromMe,
     desc: "Ask Gemini AI with text and/or image input",
     type: "ai",
   },

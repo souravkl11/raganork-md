@@ -44,29 +44,35 @@ const {
   linkDetector,
 } = require("./utils");
 const config = require("../config");
-const { settingsMenu, ADMIN_ACCESS } = config;
+const { settingsMenu } = config;
 const fs = require("fs");
-const { BotVariable } = require("../core/database");
+const configStore = require("../core/config/store");
+const { needsRestart } = require("../core/config/schema");
 
-var handler = config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
+const { helpPrefix } = require("../core/plugins/registry");
+
+// only keys the schema marks restart: true (HANDLERS, LANGUAGE, ...) are not live
+function restartNote(key) {
+  return needsRestart(key) ? "\n_Restart needed for this to take effect._" : "";
+}
 
 async function setVar(key, value, message = false) {
-  await BotVariable.upsert({
-    key: key.trim(),
-    value: value,
-  });
-  config[key.trim()] = value;
+  // saves to the database, then applies live and emits config:changed
+  await configStore.set(key.trim(), value, { persist: true });
   if (message) {
-    await message.sendReply(`_${key.trim()} set to '${value}' successfully!_`);
+    await message.sendReply(
+      `_${key.trim()} set to '${value}' successfully!_${restartNote(key.trim())}`
+    );
   }
   return true;
 }
 
 async function delVar(key, message = false) {
-  await BotVariable.destroy({ where: { key: key.trim() } });
-  delete config[key.trim()];
+  await configStore.unset(key.trim(), { persist: true });
   if (message) {
-    await message.sendReply(`_${key.trim()} deleted successfully!_`);
+    await message.sendReply(
+      `_${key.trim()} deleted successfully!_${restartNote(key.trim())}`
+    );
   }
   return true;
 }
@@ -569,21 +575,21 @@ Module(
           : [];
       if (!availableCommands.includes(match.trim()))
         return await message.sendReply(
-          `_${handler}${match.trim()} is not a valid command!_`
+          `_${helpPrefix()}${match.trim()} is not a valid command!_`
         );
       if (match == "toggle" || match == "setvar" || match == "getvar")
         return await message.sendReply(
-          `_You can't disable ${handler}${match.trim()} command!_`
+          `_You can't disable ${helpPrefix()}${match.trim()} command!_`
         );
       if (!disabled.includes(match)) {
         disabled.push(match.trim());
         await message.sendReply(
-          `_Successfully turned off \`${handler}${match}\` command_\n_Use \`${handler}toggle ${match}\` to enable this command back_`
+          `_Successfully turned off \`${helpPrefix()}${match}\` command_\n_Use \`${helpPrefix()}toggle ${match}\` to enable this command back_`
         );
         return await setVar("DISABLED_COMMANDS", disabled.join(","), false);
       } else {
         await message.sendReply(
-          `_Successfully turned on \`${handler}${match}\` command_`
+          `_Successfully turned on \`${helpPrefix()}${match}\` command_`
         );
         return await setVar(
           "DISABLED_COMMANDS",
@@ -593,7 +599,7 @@ Module(
       }
     } else
       return await message.sendReply(
-        `_Example: ${handler}toggle img_\n\n_(This will disable .img command)_`
+        `_Example: ${helpPrefix()}toggle img_\n\n_(This will disable .img command)_`
       );
   }
 );
@@ -606,7 +612,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -649,7 +655,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -692,7 +698,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -807,7 +813,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
 
@@ -845,7 +851,7 @@ Module(
             `✅ *Antilink Enabled!*\n\n` +
               `• Mode: *${config.mode.toUpperCase()}*\n` +
               `• Type: *${config.isWhitelist ? "WHITELIST" : "BLACKLIST"}*\n` +
-              `• Use \`${handler}antilink help\` for more options`
+              `• Use \`${helpPrefix()}antilink help\` for more options`
           );
 
         case "off":
@@ -866,7 +872,7 @@ Module(
                 `• \`warn\` - Warn users for links\n` +
                 `• \`kick\` - Kick users for links\n` +
                 `• \`delete\` - Only delete the message\n\n` +
-                `_Usage:_ \`${handler}antilink mode delete\``
+                `_Usage:_ \`${helpPrefix()}antilink mode delete\``
             );
           }
 
@@ -903,7 +909,7 @@ Module(
           if (!value) {
             return await message.sendReply(
               `_Add domains to whitelist:_\n\n` +
-                `_Usage:_ \`${handler}antilink allow google.com,youtube.com\`\n` +
+                `_Usage:_ \`${helpPrefix()}antilink allow google.com,youtube.com\`\n` +
                 `_Current:_ ${config?.allowedLinks || "gist,instagram,youtu"}`
             );
           }
@@ -939,7 +945,7 @@ Module(
           if (!value) {
             return await message.sendReply(
               `_Add domains to blacklist:_\n\n` +
-                `_Usage:_ \`${handler}antilink block facebook.com,twitter.com\`\n` +
+                `_Usage:_ \`${helpPrefix()}antilink block facebook.com,twitter.com\`\n` +
                 `_Current:_ ${config?.blockedLinks || "None"}`
             );
           }
@@ -975,7 +981,7 @@ Module(
           if (!value) {
             return await message.sendReply(
               `_Set custom warning message:_\n\n` +
-                `_Usage:_ \`${handler}antilink message Links not allowed!\`\n` +
+                `_Usage:_ \`${helpPrefix()}antilink message Links not allowed!\`\n` +
                 `_Current:_ ${config?.customMessage || "Default message"}`
             );
           }
@@ -1009,15 +1015,15 @@ Module(
           return await message.sendReply(
             `🛡️ *Antilink System Help*\n\n` +
               `*Basic Commands:*\n` +
-              `• \`${handler}antilink on/off\` - Enable/disable\n` +
-              `• \`${handler}antilink mode warn/kick/delete\` - Set action\n\n` +
+              `• \`${helpPrefix()}antilink on/off\` - Enable/disable\n` +
+              `• \`${helpPrefix()}antilink mode warn/kick/delete\` - Set action\n\n` +
               `*Link Control:*\n` +
-              `• \`${handler}antilink allow domain1,domain2\` - Whitelist mode\n` +
-              `• \`${handler}antilink block domain1,domain2\` - Blacklist mode\n\n` +
+              `• \`${helpPrefix()}antilink allow domain1,domain2\` - Whitelist mode\n` +
+              `• \`${helpPrefix()}antilink block domain1,domain2\` - Blacklist mode\n\n` +
               `*Customization:*\n` +
-              `• \`${handler}antilink message Your text\` - Custom warning\n` +
-              `• \`${handler}antilink reset\` - Reset to default\n` +
-              `• \`${handler}antilink status\` - View current settings\n\n` +
+              `• \`${helpPrefix()}antilink message Your text\` - Custom warning\n` +
+              `• \`${helpPrefix()}antilink reset\` - Reset to default\n` +
+              `• \`${helpPrefix()}antilink status\` - View current settings\n\n` +
               `*Detection:*\n` +
               `• Catches \`https://example.com\`\n` +
               `• Catches \`www.example.com\`\n` +
@@ -1058,7 +1064,7 @@ Module(
                   : config.blockedLinks || "None"
               }\n\n` +
               `*Custom Message:* ${config.customMessage || "Default"}\n\n` +
-              `_Use \`${handler}antilink help\` for all commands_`
+              `_Use \`${helpPrefix()}antilink help\` for all commands_`
           );
       }
     } catch (error) {
@@ -1078,7 +1084,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -1430,7 +1436,9 @@ Module(
         if (quotedMsg.includes(setting.title)) {
           const value = option === 1 ? "true" : "false";
           await setVar(setting.env_var, value);
-          await message.sendReply(`${setting.title} set to ${value}`);
+          await message.sendReply(
+            `${setting.title} set to ${value}${restartNote(setting.env_var)}`
+          );
           return;
         }
       }

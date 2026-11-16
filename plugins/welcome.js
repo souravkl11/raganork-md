@@ -1,11 +1,10 @@
 const { Module } = require("../main");
-const { ADMIN_ACCESS, HANDLERS } = require("../config");
+const config = require("../config");
 const { isAdmin, welcome, goodbye } = require("./utils");
 const {
   parseWelcomeMessage,
   sendWelcomeMessage,
 } = require("./utils/welcome-parser");
-var handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
 
 Module(
   {
@@ -17,7 +16,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -237,7 +236,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -320,7 +319,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -352,7 +351,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;

@@ -32,8 +32,6 @@ const getFileType = async (buffer) => {
     return null;
   }
 };
-let MODE = config.MODE,
-  STICKER_DATA = config.STICKER_DATA;
 const { getString } = require("./utils/lang");
 const Lang = getString("converters");
 
@@ -116,9 +114,9 @@ Module(
     if (match[1] && match[1].trim() !== "") {
       var result = await attp(match[1].trim());
       var exif = {
-        author: STICKER_DATA.split(";")[1] || "",
+        author: config.STICKER_DATA.split(";")[1] || "",
         packname: message.senderName,
-        categories: STICKER_DATA.split(";")[2] || "😂",
+        categories: config.STICKER_DATA.split(";")[2] || "😂",
         android: "https://github.com/souravkl11/Raganork-md/",
         ios: "https://github.com/souravkl11/Raganork-md/",
       };
@@ -132,9 +130,9 @@ Module(
       return await message.send(Lang.STICKER_NEED_REPLY);
 
     var exif = {
-      author: STICKER_DATA.split(";")[1] || "",
+      author: config.STICKER_DATA.split(";")[1] || "",
       packname: message.senderName,
-      categories: STICKER_DATA.split(";")[2] || "😂",
+      categories: config.STICKER_DATA.split(";")[2] || "😂",
       android: "https://github.com/souravkl11/Raganork-md/",
       ios: "https://github.com/souravkl11/Raganork-md/",
     };
@@ -458,9 +456,9 @@ Module(
     if (match[1] == "") return await message.send("*Need text*");
     var result = await attp(match[1]);
     var exif = {
-      author: STICKER_DATA.split(";")[1] || "",
+      author: config.STICKER_DATA.split(";")[1] || "",
       packname: message.senderName,
-      categories: STICKER_DATA.split(";")[2] || "😂",
+      categories: config.STICKER_DATA.split(";")[2] || "😂",
       android: "https://github.com/souravkl11/Raganork-md/",
       ios: "https://github.com/souravkl11/Raganork-md/",
     };

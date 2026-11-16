@@ -842,6 +842,7 @@ module.exports = {
   fetchRecentChats,
   flushQueueOnShutdown,
   stopFlushTimer,
+  getQueueLength: () => messageQueue.length,
   fetchFromStore: async (chat) => {
     const stats = await UserStats.findAll({
       where: { chatJid: chat },

@@ -1,7 +1,6 @@
 const { Module } = require("../main");
 const { isAdmin } = require("./utils");
-const { ADMIN_ACCESS, MODE } = require("../config");
-const isPrivateMode = MODE !== "public";
+const config = require("../config");
 Module(
   {
     pattern: "react ?(.*)",
@@ -84,7 +83,6 @@ Module(
 Module(
   {
     pattern: "retry ?(.*)",
-    fromMe: isPrivateMode,
     desc: "Retries replied command to run the command again",
     use: "misc",
   },
@@ -155,7 +153,7 @@ Module(
     desc: "Deletes message for everyone. Supports admin deletion",
   },
   async (m, t) => {
-    let adminAccesValidated = ADMIN_ACCESS ? await isAdmin(m, m.sender) : false;
+    let adminAccesValidated = config.ADMIN_ACCESS ? await isAdmin(m, m.sender) : false;
     if (!m.reply_message) return;
     if (m.fromOwner || adminAccesValidated) {
       m.jid = m.quoted.key.remoteJid;

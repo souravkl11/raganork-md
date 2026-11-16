@@ -1,27 +1,11 @@
 const config = require("../config");
-const fs = require("fs");
-const path = require("path");
-const axios = require("axios");
-const { BotVariable } = require("../core/database");
 const { Message, Image, Video, GroupUpdate } = require("./constructors");
 const { antibot, antispam } = require("../plugins/utils");
-const {
-  stickcmd,
-  AutoMuteDB,
-  AutoUnMuteDB,
-  StickyCmdDB,
-  ScheduledMessageDB,
-} = require("../plugins/utils/db/schedulers");
+const { stickcmd } = require("../plugins/utils/db/schedulers");
 const {
   storeMessage,
   trackSpamMessage,
-  Chat,
-  User,
-  UserStats,
-  SpamTracker,
-  ensureFullContentColumnExists,
   getRecentMessageCount,
-  AntiDeleteCache,
 } = require("../core/store");
 const { filter } = require("../plugins/utils/db/functions");
 String.prototype.format = function () {
@@ -31,71 +15,31 @@ String.prototype.format = function () {
     return typeof args[i] != "undefined" ? args[i++] : "";
   });
 };
-let commands;
-(async () => {
-  await BotVariable.sync();
-  const variables = await BotVariable.findAll();
+const { commands } = require("./plugins/registry");
+const { derived } = require("./config/derived");
+const { loadAll } = require("./plugins/loader");
 
-  if (variables.length > 0) {
-    // Convert database variables to a plain object
-    const dbConfig = {};
-    variables.forEach((v) => {
-      dbConfig[v.key] = v.value;
-    });
+// resolves once db config is loaded, every plugin is registered and tables are synced.
+// started on first require (as before); every entry point waits for it.
+const ready = loadAll();
+ready.catch((error) => {
+  console.error("Failed to load plugins:", error);
+});
 
-    config.loadFromDB(dbConfig);
-  }
-  commands = require("../main").commands;
-  fs.readdirSync("./plugins/sql/")
-    .filter((plugin) => path.extname(plugin) === ".js")
-    .forEach((plugin) => require(`../plugins/sql/${plugin}`));
-
-  fs.readdirSync("./plugins")
-    .filter((plugin) => path.extname(plugin) === ".js")
-    .forEach((plugin) => {
-      try {
-        require(`../plugins/${plugin}`);
-      } catch (error) {
-        console.error(`Error loading plugin ${plugin}:`, error);
-      }
-    });
-
-  const plugindb = require("../plugins/sql/plugin");
-  await Chat.sync();
-  await User.sync();
-  // add new columns before sync(), which would otherwise try to index a missing column
-  await ensureFullContentColumnExists();
-  await AntiDeleteCache.sync();
-  await UserStats.sync();
-  // SpamTracker is now in-memory, no sync needed
-  await AutoMuteDB.sync();
-  await AutoUnMuteDB.sync();
-  await StickyCmdDB.sync();
-  await ScheduledMessageDB.sync();
-  await config.sequelize.sync();
-
-  const plugins = await plugindb.PluginDB.findAll();
-  for (const plugin of plugins) {
-    const pluginPath = `./plugins/${plugin.dataValues.name}.js`;
-    if (!fs.existsSync(pluginPath)) {
-      try {
-        const response = await axios(plugin.dataValues.url);
-        fs.writeFileSync(pluginPath, response.data);
-        require("." + pluginPath);
-      } catch (error) {
-        console.error(`Error on plugin: ${plugin.dataValues.name}\n\n${error}`);
-      }
-    }
-  }
-})();
-
-const msgCount = parseInt((config.ANTISPAM_COUNT || "5/60").split("/")[0]);
-const msgTime = parseInt(
-  (config.ANTISPAM_COUNT || "5/60").split("/")[1] + "000",
+// parsed again only when the config value changes
+const antispamLimits = derived("ANTISPAM_COUNT", (raw) => {
+  const [count, seconds] = String(raw || "5/60").split("/");
+  return { msgCount: parseInt(count), msgTime: parseInt(seconds + "000") };
+});
+const blockedChatList = derived("BLOCK_CHAT", (raw) => (raw || "")?.split(","));
+const blockedJidList = derived("RG", (raw) => (raw || "")?.split(","));
+const disabledCommandList = derived("DISABLED_COMMANDS", (raw) =>
+  typeof raw === "string" ? raw.split(",") : [],
 );
 const { getSudoMap, getSudoList, isSudo } = require("./sudo");
 
 const handler = async (message, client) => {
+  await ready;
   const msg = message.messages[0];
   if (!msg || !msg.key.remoteJid || !msg.message) return;
   const botNumber = client.user?.lid?.split(":")[0];
@@ -139,8 +83,8 @@ const handler = async (message, client) => {
       await client.readMessages([{ ...msg.key, participant: msg.key.remoteJidAlt }]);
     }
   }
-  const blockedChats = (config.BLOCK_CHAT || "")?.split(",");
-  const blockedJids = (config.RG || "")?.split(",");
+  const blockedChats = blockedChatList();
+  const blockedJids = blockedJidList();
   if (
     blockedChats.includes(msg.key.remoteJid) ||
     blockedJids.includes(msg.key.remoteJid)
@@ -148,6 +92,7 @@ const handler = async (message, client) => {
     return;
   await storeMessage(msg);
   if (msg.key.remoteJid.endsWith("us") || config.PM_ANTISPAM) {
+    const { msgCount, msgTime } = antispamLimits();
     const antibotDb = await antibot.get();
     const antibotJids = antibotDb.map((data) => data.jid);
     if (
@@ -387,10 +332,7 @@ const handler = async (message, client) => {
   const sudoLids = getSudoMap();
   // computed once per message instead of once per command
   const parsedText = parseText(textMsg);
-  const disabledCommands =
-    typeof config.DISABLED_COMMANDS === "string"
-      ? config.DISABLED_COMMANDS.split(",")
-      : [];
+  const disabledCommands = disabledCommandList();
 
   commands.map(async (cmd) => {
     if (
@@ -522,6 +464,7 @@ const handler = async (message, client) => {
 };
 
 const groupUpdate = async (client, update) => {
+  await ready;
   for (const cmd of commands.filter((cmd) => cmd.on === "group-update")) {
     if (config.BLOCK_CHAT.includes(update.id) || !update.action) return;
     const processor = new GroupUpdate(client, update);
@@ -544,6 +487,7 @@ const groupUpdate = async (client, update) => {
 };
 
 const startEvent = async (client) => {
+  await ready;
   const startCommands = commands.filter((cmd) => cmd.on === "start");
   if (startCommands.length === 0) return;
   const executeStartCommand = async (cmd, index) => {
@@ -591,4 +535,4 @@ const startEvent = async (client) => {
   });
 };
 
-module.exports = { handler, groupUpdate, startEvent };
+module.exports = { handler, groupUpdate, startEvent, ready };

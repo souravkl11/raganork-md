@@ -1,6 +1,5 @@
 const { Module } = require("../main");
 const { isAdmin } = require("./utils");
-const { ADMIN_ACCESS } = require("../config");
 const config = require("../config");
 const { setVar, getVar, delVar } = require("./manage");
 

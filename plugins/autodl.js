@@ -4,9 +4,8 @@ const { setVar } = require("./manage");
 const { downloadGram, pinterestDl, tiktok, fb, spotifyTrack } = require("./utils");
 const { getVideoInfo, downloadAudio, convertM4aToMp3, searchYoutube } = require("./utils/yt");
 const fs = require("fs");
-const fromMe = config.MODE !== "public";
 
-const HANDLER_PREFIX =
+const handlerPrefix = () =>
   config.HANDLERS === "false" ? "" : (config.HANDLERS || ".").charAt(0);
 
 const URL_PATTERNS = {
@@ -63,7 +62,7 @@ function formatBytes(bytes) {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
 }
 
-Module({ on: "text", fromMe }, async (message) => {
+Module({ on: "text" }, async (message) => {
   try {
     if (message.fromBot) return;
     const chatJid = message.jid;
@@ -516,11 +515,11 @@ Module(
           }\n` +
           `- _Global DMs:_ ${globalDMs ? "Enabled ✅" : "Disabled ❌"}\n\n` +
           `_Commands:_\n` +
-          `- \`${HANDLER_PREFIX}autodl on/off\` - Sets in current chat\n` +
-          `- \`${HANDLER_PREFIX}autodl on/off groups\` - Sets in all groups\n` +
-          `- \`${HANDLER_PREFIX}autodl on dms\` - Sets in all DMs\n` +
-          `- \`${HANDLER_PREFIX}autodl off dms\` - Sets in all DMs\n` +
-          `- \`${HANDLER_PREFIX}autodl status\` - Show detailed status`
+          `- \`${handlerPrefix()}autodl on/off\` - Sets in current chat\n` +
+          `- \`${handlerPrefix()}autodl on/off groups\` - Sets in all groups\n` +
+          `- \`${handlerPrefix()}autodl on dms\` - Sets in all DMs\n` +
+          `- \`${handlerPrefix()}autodl off dms\` - Sets in all DMs\n` +
+          `- \`${handlerPrefix()}autodl status\` - Show detailed status`
       );
     }
 

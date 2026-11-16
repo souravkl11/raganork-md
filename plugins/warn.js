@@ -1,5 +1,5 @@
 const { Module } = require("../main");
-const { ADMIN_ACCESS, HANDLERS, WARN, SUDO } = require("../config");
+const config = require("../config");
 const {
   isAdmin,
   getWarn,
@@ -10,9 +10,9 @@ const {
   getAllWarns,
 } = require("./utils");
 
-const handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
-const warnLimit = parseInt(WARN || 4);
-const sudoUsers = (SUDO || "").split(",");
+const { helpPrefix } = require("../core/plugins/registry");
+const getWarnLimit = () => parseInt(config.WARN || 4);
+const getSudoUsers = () => (config.SUDO || "").split(",");
 
 Module(
   {
@@ -27,7 +27,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group-only command!_");
 
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -44,12 +44,12 @@ Module(
       return await message.sendReply(
         `_Please mention a user or reply to their message!_\n\n` +
           `*Usage:*\n` +
-          `• \`${handler}warn @user reason\`\n` +
-          `• \`${handler}warn reply reason\`\n` +
-          `• \`${handler}warnings @user\` - Check warnings\n` +
-          `• \`${handler}rmwarn @user\` - Remove one warning\n` +
-          `• \`${handler}resetwarn @user\` - Remove all warnings\n` +
-          `• \`${handler}warnlist\` - List all warned users`
+          `• \`${helpPrefix()}warn @user reason\`\n` +
+          `• \`${helpPrefix()}warn reply reason\`\n` +
+          `• \`${helpPrefix()}warnings @user\` - Check warnings\n` +
+          `• \`${helpPrefix()}rmwarn @user\` - Remove one warning\n` +
+          `• \`${helpPrefix()}resetwarn @user\` - Remove all warnings\n` +
+          `• \`${helpPrefix()}warnlist\` - List all warned users`
       );
     }
 
@@ -59,7 +59,7 @@ Module(
     }
 
     const targetNumericId = targetUser?.split("@")[0];
-    if (sudoUsers.includes(targetNumericId)) {
+    if (getSudoUsers().includes(targetNumericId)) {
       return await message.sendReply("_Cannot warn bot owners/sudo users!_");
     }
 
@@ -71,7 +71,7 @@ Module(
     try {
       await setWarn(message.jid, targetUser, reason, message.sender);
 
-      const warnData = await getWarn(message.jid, targetUser, warnLimit);
+      const warnData = await getWarn(message.jid, targetUser, getWarnLimit());
       const currentWarns = warnData.current;
       const remaining = warnData.remaining;
 
@@ -88,7 +88,7 @@ Module(
               `⚠ *User Kicked!*\n\n` +
               `- User: \`@${targetNumericId}\`\n` +
               `- Reason: \`${reason}\`\n` +
-              `- Warnings: \`${currentWarns}/${warnLimit} (LIMIT EXCEEDED)\`\n` +
+              `- Warnings: \`${currentWarns}/${getWarnLimit()} (LIMIT EXCEEDED)\`\n` +
               `- Action: \`Removed from group\`\n\n` +
               `_User has been kicked for exceeding the warning limit._`,
             mentions: [targetUser],
@@ -98,7 +98,7 @@ Module(
             text:
               `⚠ *Warning Limit Exceeded!*\n\n` +
               `- User: \`@${targetNumericId}\`\n` +
-              `- Warnings: \`${currentWarns}/${warnLimit}\`\n` +
+              `- Warnings: \`${currentWarns}/${getWarnLimit()}\`\n` +
               `- Error: \`Failed to kick user\`\n\n` +
               `_Please manually remove the user or check my admin permissions._`,
             mentions: [targetUser],
@@ -110,7 +110,7 @@ Module(
             `⚠ *User Warned!*\n\n` +
             `- User: \`@${targetNumericId}\`\n` +
             `- Reason: \`${reason}\`\n` +
-            `- Warnings: \`${currentWarns}/${warnLimit}\`\n` +
+            `- Warnings: \`${currentWarns}/${getWarnLimit()}\`\n` +
             `- Remaining: \`${remaining}\`\n\n` +
             `${
               remaining === 1
@@ -139,7 +139,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group-only command!_");
 
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -157,17 +157,17 @@ Module(
             `✓ *No Warnings*\n\n` +
             `- User: \`@${targetNumericId}\`\n` +
             `- Status: \`Clean record\`\n` +
-            `- Warnings: \`0/${warnLimit}\``,
+            `- Warnings: \`0/${getWarnLimit()}\``,
           mentions: [targetUser],
         });
       }
 
       const currentWarns = warnings.length;
-      const remaining = warnLimit - currentWarns;
+      const remaining = getWarnLimit() - currentWarns;
 
       let warningsList = `📋 *Warning History*\n\n`;
       warningsList += `- User: \`@${targetNumericId}\`\n`;
-      warningsList += `- Total Warnings: \`${currentWarns}/${warnLimit}\`\n`;
+      warningsList += `- Total Warnings: \`${currentWarns}/${getWarnLimit()}\`\n`;
       warningsList += `- Remaining: \`${remaining > 0 ? remaining : 0}\`\n\n`;
 
       warnings.slice(0, 5).forEach((warn, index) => {
@@ -211,7 +211,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group-only command!_");
 
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -281,7 +281,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group-only command!_");
 
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) {
@@ -351,7 +351,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group-only command!_");
 
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) {
@@ -372,7 +372,7 @@ Module(
       }
 
       let warnList = `📋 *Group Warning List*\n\n`;
-      warnList += `- Warning Limit: \`${warnLimit}\`\n\n`;
+      warnList += `- Warning Limit: \`${getWarnLimit()}\`\n\n`;
 
       const sortedUsers = Object.entries(allWarnings).sort(
         ([, a], [, b]) => b.length - a.length
@@ -383,7 +383,7 @@ Module(
       sortedUsers.forEach(([userJid, userWarnings], index) => {
         const userNumericId = userJid?.split("@")[0];
         const warnCount = userWarnings.length;
-        const remaining = warnLimit - warnCount;
+        const remaining = getWarnLimit() - warnCount;
         const status =
           remaining <= 0
             ? "⚠ LIMIT EXCEEDED"
@@ -392,7 +392,7 @@ Module(
             : `✓ ${remaining} remaining`;
 
         warnList += `*${index + 1}.* @${userNumericId}\n`;
-        warnList += `   _Warnings: \`${warnCount}/${warnLimit}\`_\n`;
+        warnList += `   _Warnings: \`${warnCount}/${getWarnLimit()}\`_\n`;
         warnList += `   _Status: \`${status}\`_\n`;
 
         if (userWarnings.length > 0) {
@@ -407,7 +407,7 @@ Module(
       });
 
       warnList += `_Total warned users: ${sortedUsers.length}_\n`;
-      warnList += `_Use ${handler}warnings @user for detailed history_`;
+      warnList += `_Use ${helpPrefix()}warnings @user for detailed history_`;
 
       await message.client.sendMessage(message.jid, {
         text: warnList,
@@ -435,8 +435,8 @@ Module(
       return await message.sendReply(
         `⚠ *Invalid Warning Limit*\n\n` +
           `- Please provide a number between 1 and 20.\n` +
-          `- Current limit: \`${warnLimit}\`\n\n` +
-          `*Usage:* \`${handler}setwarnlimit 5\``
+          `- Current limit: \`${getWarnLimit()}\`\n\n` +
+          `*Usage:* \`${helpPrefix()}setwarnlimit 5\``
       );
     }
 
@@ -444,7 +444,7 @@ Module(
       await message.sendReply(
         `✓ *Warning Limit Updated!*\n\n` +
           `- New limit: \`${newLimit} warnings\`\n` +
-          `- Previous limit: \`${warnLimit}\`\n\n` +
+          `- Previous limit: \`${getWarnLimit()}\`\n\n` +
           `_Users will now be kicked after ${newLimit} warnings._`
       );
     } catch (error) {
@@ -466,7 +466,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group-only command!_");
 
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) {
@@ -490,21 +490,21 @@ Module(
 
       Object.values(allWarnings).forEach((userWarnings) => {
         const count = userWarnings.length;
-        if (count >= warnLimit) atLimit++;
-        else if (count >= warnLimit - 1) nearLimit++;
+        if (count >= getWarnLimit()) atLimit++;
+        else if (count >= getWarnLimit() - 1) nearLimit++;
         else safe++;
       });
 
       const stats =
         `📊 *Group Warning Statistics*\n\n` +
-        `- Warning Limit: \`${warnLimit}\`\n` +
+        `- Warning Limit: \`${getWarnLimit()}\`\n` +
         `- Total Warned Users: \`${totalUsers}\`\n` +
         `- Total Warnings Issued: \`${totalWarnings}\`\n\n` +
         `*User Status:*\n` +
         `- ⚠ At Limit: \`${atLimit}\`\n` +
         `- ⚠ Near Limit: \`${nearLimit}\`\n` +
         `- ✓ Safe: \`${safe}\`\n\n` +
-        `_Use ${handler}warnlist to see detailed list_`;
+        `_Use ${helpPrefix()}warnlist to see detailed list_`;
 
       await message.sendReply(stats);
     } catch (error) {

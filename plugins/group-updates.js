@@ -22,8 +22,8 @@ async function isSuperAdmin(message, user = message.client.user.id) {
   return superadmin;
 }
 const { Module } = require("../main");
-const { ALLOWED, HANDLERS, ADMIN_ACCESS, SUDO } = require("../config");
-var handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
+const config = require("../config");
+const { helpPrefix } = require("../core/plugins/registry");
 
 function tConvert(time) {
   time = time.toString().match(/^([01]\d|2[0-3])( )([0-5]\d)(:[0-5]\d)?$/) || [
@@ -141,7 +141,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -186,7 +186,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -228,7 +228,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -260,7 +260,7 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -272,7 +272,7 @@ Module(
       }
       if (match[1] === "allow") {
         return await message.sendReply(
-          `_Allowed prefixes are: ${ALLOWED} (applies to all groups)_`
+          `_Allowed prefixes are: ${config.ALLOWED} (applies to all groups)_`
         );
       }
       if (match[1] === "off") {
@@ -281,21 +281,21 @@ Module(
       }
       const buttons = [
         {
-          buttonId: handler + "antifake on",
+          buttonId: helpPrefix() + "antifake on",
           buttonText: {
             displayText: "On",
           },
           type: 1,
         },
         {
-          buttonId: handler + "antifake off",
+          buttonId: helpPrefix() + "antifake off",
           buttonText: {
             displayText: "Off",
           },
           type: 1,
         },
         {
-          buttonId: handler + "antifake allow",
+          buttonId: helpPrefix() + "antifake allow",
           buttonText: {
             displayText: "Allowed prefixes",
           },
@@ -324,7 +324,7 @@ Module(
   async (message, match) => {
     message.myjid = message.client.user.lid.split(":")[0];
     var db = await antifake.get();
-    let sudos = SUDO.split(",");
+    let sudos = config.SUDO.split(",");
     const jids = [];
     db.map((data) => {
       jids.push(data.jid);
@@ -416,7 +416,7 @@ Module(
       );
     }
     if (message.action === "add" && jids.includes(message.jid)) {
-      var allowed = ALLOWED.split(",");
+      var allowed = config.ALLOWED.split(",");
       if (isFake(message.participant[0].id, allowed)) {
         var admin = await isAdmin(message);
         if (!admin) return;

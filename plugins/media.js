@@ -7,7 +7,6 @@ const config = require("../config"),
   MODE = config.MODE;
 const { getString } = require("./utils/lang");
 const { avMix, circle, rotate, trim } = require("./utils");
-var handler = config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
 const findMusic = (file) => require("../core/private").identifyMusic(file);
 const Lang = getString("media");
 Module(

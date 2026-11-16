@@ -10,14 +10,14 @@ const baileysPromise = loadBaileys()
     process.exit(1);
   });
 const { isAdmin, isNumeric, mentionjid } = require("./utils");
-const { ADMIN_ACCESS, HANDLERS, MODE } = require("../config");
+const config = require("../config");
 const { Module } = require("../main");
 const {
   fetchFromStore,
   getFullMessage,
   fetchRecentChats,
 } = require("../core/store");
-var handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
+const { helpPrefix } = require("../core/plugins/registry");
 
 Module(
   {
@@ -55,7 +55,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -155,7 +155,7 @@ Module(
     usage: ".promote @mention or reply",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -186,7 +186,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -361,7 +361,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -392,7 +392,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -433,7 +433,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -455,7 +455,7 @@ Module(
   async (message) => {
     if (message.isGroup) {
       let adminAccesValidated =
-        ADMIN_ACCESS && message.isGroup
+        config.ADMIN_ACCESS && message.isGroup
           ? await isAdmin(message, message.sender)
           : false;
       if (message.fromOwner || adminAccesValidated) {
@@ -463,7 +463,7 @@ Module(
         await message.sendReply(jid);
       }
     } else {
-      if (MODE !== "public" && !message.fromOwner) return;
+      if (config.MODE !== "public" && !message.fromOwner) return;
       await message.sendReply(message.jid);
     }
   }
@@ -478,7 +478,7 @@ Module(
   },
   async (message) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -506,7 +506,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -527,7 +527,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -547,7 +547,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -567,7 +567,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -593,7 +593,7 @@ Module(
   },
   async (message, match) => {
     if (!message.isGroup) return await message.sendReply(Lang.GROUP_COMMAND);
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -622,7 +622,7 @@ Module(
     usage: ".common jid1,jid2\n.common kick group_jid",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -688,7 +688,7 @@ Module(
     usage: ".diff jid1,jid2",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -725,7 +725,7 @@ Module(
     } else if (!message.isGroup) {
       return await message.sendReply(Lang.GROUP_COMMAND);
     }
-    const adminAccessValidated = ADMIN_ACCESS
+    const adminAccessValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!(message.fromOwner || adminAccessValidated)) return;
@@ -746,7 +746,7 @@ Module(
     
     if (!isReply && !isTagAdmin && !isTagAll && !hasCustomText) {
       return await message.sendReply(
-        `_Tag what?_\n\n${handler}tag \`<text here>\`\n${handler}tag \`admin\`\n${handler}tag \`all\`\n${handler}tag \`(reply)\`\n${handler}tag \`120363355307899193@g.us\``
+        `_Tag what?_\n\n${helpPrefix()}tag \`<text here>\`\n${helpPrefix()}tag \`admin\`\n${helpPrefix()}tag \`all\`\n${helpPrefix()}tag \`(reply)\`\n${helpPrefix()}tag \`120363355307899193@g.us\``
       );
     }
     const targets = [];
@@ -994,7 +994,7 @@ Module(
     usage: ".gpp (reply to image to set group icon)",
   },
   async (message, match) => {
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -1040,7 +1040,7 @@ Module(
     }
 
     let adminAccesValidated = false;
-    if (message.isGroup && ADMIN_ACCESS) {
+    if (message.isGroup && config.ADMIN_ACCESS) {
       adminAccesValidated = await isAdmin(message, message.sender);
     }
 

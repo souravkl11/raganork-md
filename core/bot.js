@@ -27,7 +27,7 @@ const baileysPromise = loadBaileys()
     process.exit(1);
   });
 const NodeCache = require("node-cache");
-const { logger, MAX_RECONNECT_ATTEMPTS } = require("../config");
+const { logger, baileysLogger } = require("../config");
 const { CustomAuthState } = require("./auth");
 const { handler, groupUpdate, startEvent } = require("./handler");
 const { getFullMessage, AntiDeleteCache, storeMessage } = require("./store");
@@ -322,19 +322,36 @@ function resolveWaVersion() {
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 60000;
 const STABLE_CONNECTION_MS = 60000;
+// once the fast attempts are used up, keep trying at this pace instead of giving up
+const SLOW_RETRY_MS = 10 * 60 * 1000;
+const SLOW_RETRY_JITTER = 0.2;
+const SLOW_RETRY_LOG_EVERY_MS = 60 * 60 * 1000;
 
 class WhatsAppBot {
+  // follows MAX_RECONNECT_ATTEMPTS live unless a value is assigned to this session
+  get maxReconnectAttempts() {
+    return this._maxReconnectAttempts ?? config.MAX_RECONNECT_ATTEMPTS;
+  }
+
+  set maxReconnectAttempts(value) {
+    this._maxReconnectAttempts = value;
+  }
+
   constructor(sessionId) {
     this.sessionId = sessionId;
     this.sock = null;
     this.authState = null;
     this.isConnected = false;
     this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = MAX_RECONNECT_ATTEMPTS;
     this.initialConnectMessageSent = false;
     this.reconnectTimer = null;
     this.stableTimer = null;
     this.stopped = false;
+    // read by the /status endpoint
+    this.lastOpenAt = null;
+    this.loggedOut = false;
+    this.stopReason = null; // "logged_out" | "replaced" | null
+    this.lastSlowRetryLogAt = 0;
 
     this.groupCache = groupCache;
     this.contactCache = contactCache;
@@ -369,31 +386,48 @@ class WhatsAppBot {
 
   _scheduleReconnect(statusCode) {
     if (this.stopped || this.reconnectTimer) return;
-    const attempt = this.reconnectAttempts++;
     let delay;
+    let slow = false;
     if (statusCode === DisconnectReason.restartRequired) {
+      this.reconnectAttempts++;
       delay = 0; // expected right after pairing
-    } else if (statusCode === DisconnectReason.connectionReplaced) {
-      // another instance took over this session (e.g. deploy overlap); back off hard
-      delay = 2 * 60000 + Math.random() * 3 * 60000;
+    } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      slow = true;
+      delay = SLOW_RETRY_MS * (1 - SLOW_RETRY_JITTER + Math.random() * 2 * SLOW_RETRY_JITTER);
     } else {
-      delay = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempt);
-      delay = delay / 2 + Math.random() * (delay / 2);
+      const attempt = this.reconnectAttempts++;
+      if (statusCode === DisconnectReason.connectionReplaced) {
+        // another instance took over this session (e.g. deploy overlap); back off hard
+        delay = 2 * 60000 + Math.random() * 3 * 60000;
+      } else {
+        delay = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** attempt);
+        delay = delay / 2 + Math.random() * (delay / 2);
+      }
     }
-    logger.info(
-      { session: this.sessionId, attempt: attempt + 1, delayMs: Math.round(delay), statusCode },
-      "Scheduling reconnect",
-    );
+    const info = {
+      session: this.sessionId,
+      attempt: this.reconnectAttempts,
+      delayMs: Math.round(delay),
+      statusCode,
+    };
+    if (!slow) {
+      logger.info(info, "Scheduling reconnect");
+    } else if (Date.now() - this.lastSlowRetryLogAt >= SLOW_RETRY_LOG_EVERY_MS) {
+      this.lastSlowRetryLogAt = Date.now();
+      logger.warn(info, "Fast reconnect attempts used up, retrying slowly");
+      console.warn(
+        `[${this.sessionId}] Still offline after ${this.reconnectAttempts} attempts, retrying every ~${Math.round(SLOW_RETRY_MS / 60000)} min.`,
+      );
+    }
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
+      if (this.stopped) return;
       this.initialize().catch((err) => {
         logger.error(
           { session: this.sessionId, attempt: this.reconnectAttempts, err },
           "Reconnect failed",
         );
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          this._scheduleReconnect();
-        }
+        this._scheduleReconnect();
       });
     }, delay);
   }
@@ -437,7 +471,7 @@ class WhatsAppBot {
           keys: this.authState.getBaileysKeysInterface(),
         },
         ...(version ? { version } : {}),
-        logger: logger.child({ session: this.sessionId }),
+        logger: baileysLogger.child({ session: this.sessionId }),
         browser: ["Raganork", "Chrome", "1.0.0"],
         cachedGroupMetadata: (jid) => {
           const cached = this.groupCache.get(jid);
@@ -540,6 +574,8 @@ class WhatsAppBot {
         this.manager?.onSessionStateChange?.();
 
         if (statusCode === DisconnectReason.loggedOut) {
+          this.loggedOut = true;
+          this.stopReason = "logged_out";
           sessionLogger.error(
             `Logged out. Please delete session data and rescan QR.`,
           );
@@ -548,18 +584,23 @@ class WhatsAppBot {
           );
           this._teardownSocket();
           await CustomAuthState.deleteSessionById(this.sessionId);
-        } else if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          this._teardownSocket();
-          this._scheduleReconnect(statusCode);
-        } else {
+        } else if (
+          statusCode === DisconnectReason.connectionReplaced &&
+          this.reconnectAttempts >= this.maxReconnectAttempts
+        ) {
+          // two hosts running one session would otherwise kick each other forever
+          this.stopReason = "replaced";
           sessionLogger.error(
             { attempts: this.reconnectAttempts },
-            `Max reconnection attempts reached.`,
+            `Session replaced by another instance, giving up.`,
           );
           console.error(
-            `[${this.sessionId}] ERROR: Max reconnection attempts reached. Stopping reconnection.`,
+            `[${this.sessionId}] ERROR: Session is being used somewhere else. Not reconnecting.`,
           );
           this._teardownSocket();
+        } else {
+          this._teardownSocket();
+          this._scheduleReconnect(statusCode);
         }
       } else if (connection === "open") {
         sessionLogger.info(
@@ -567,6 +608,9 @@ class WhatsAppBot {
           `Connection established.`,
         );
         this.isConnected = true;
+        this.lastOpenAt = Date.now();
+        this.stopReason = null;
+        this.loggedOut = false;
         // only forgive past failures once the link has stayed up for a while
         if (this.stableTimer) clearTimeout(this.stableTimer);
         this.stableTimer = setTimeout(() => {
@@ -1315,17 +1359,20 @@ class WhatsAppBot {
         }
       }
       if (upsert.type === "notify") {
-        try {
-          await handler(upsert, this.sock, this);
-        } catch (e) {
-          logger.error(
-            { session: this.sessionId, err: e },
-            `Message handler error`,
-          );
-          console.error(
-            `[${this.sessionId}] ERROR: Message handler failed. Details:`,
-            e.message,
-          );
+        // the handler only looks at messages[0], so give it one message at a time
+        for (const m of upsert.messages) {
+          try {
+            await handler({ messages: [m], type: upsert.type }, this.sock, this);
+          } catch (e) {
+            logger.error(
+              { session: this.sessionId, err: e },
+              `Message handler error`,
+            );
+            console.error(
+              `[${this.sessionId}] ERROR: Message handler failed. Details:`,
+              e.message,
+            );
+          }
         }
       }
     });

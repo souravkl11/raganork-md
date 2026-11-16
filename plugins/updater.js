@@ -7,7 +7,7 @@ const config = require("../config");
 const fs = require("fs").promises;
 const axios = require("axios");
 
-const handler = config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
+const { helpPrefix } = require("../core/plugins/registry");
 const localPackageJson = require("../package.json");
 
 async function isGitRepo() {
@@ -88,7 +88,7 @@ Module(
           for (let i in commits.all) {
             updateInfo += `${parseInt(i) + 1}• *${commits.all[i].message}*\n`;
           }
-          updateInfo += `\n_Use "${handler}update start" to apply the update_`;
+          updateInfo += `\n_Use "${helpPrefix()}update start" to apply the update_`;
         } else if (isBetaUpdate) {
           updateInfo = `*_BETA UPDATE AVAILABLE_*\n\n`;
           updateInfo += `📦 Current version: *${localVersion}*\n`;
@@ -97,7 +97,7 @@ Module(
           for (let i in commits.all) {
             updateInfo += `${parseInt(i) + 1}• *${commits.all[i].message}*\n`;
           }
-          updateInfo += `\n_Use "${handler}update beta" to apply beta updates_`;
+          updateInfo += `\n_Use "${helpPrefix()}update beta" to apply beta updates_`;
         }
 
         return await message.edit(updateInfo, message.jid, processingMsg.key);
@@ -107,7 +107,7 @@ Module(
         if (!isStableUpdate) {
           if (isBetaUpdate) {
             return await message.edit(
-              `_Only beta updates available. Use "${handler}update beta" to apply them._`,
+              `_Only beta updates available. Use "${helpPrefix()}update beta" to apply them._`,
               message.jid,
               processingMsg.key
             );
@@ -216,7 +216,7 @@ Module(
         }
       } else {
         return await message.edit(
-          `_Invalid command. Use "${handler}update" to check updates, "${handler}update start" for stable updates, or "${handler}update beta" for beta updates._`,
+          `_Invalid command. Use "${helpPrefix()}update" to check updates, "${helpPrefix()}update start" for stable updates, or "${helpPrefix()}update beta" for beta updates._`,
           message.jid,
           processingMsg.key
         );

@@ -5,7 +5,6 @@ const fs = require("fs");
 const { PluginDB, installPlugin } = require("./sql/plugin");
 let { getString } = require("./utils/lang");
 let Lang = getString("external_plugin");
-var handler = config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
 
 Module(
   {

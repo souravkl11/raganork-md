@@ -118,7 +118,9 @@ pm2 restart raganork-md
 MAX_HEAP=512              # V8 heap cap in MB used by npm start (lower = earlier GC, less RAM)
 FFMPEG_CONCURRENCY=2      # max ffmpeg jobs at once
 FFMPEG_TIMEOUT=600        # seconds before a stuck ffmpeg job is killed
-MAX_RECONNECT_ATTEMPTS=10 # reconnects (with backoff) before giving up
+MAX_RECONNECT_ATTEMPTS=10 # fast reconnects (with backoff) before switching to one retry every ~10 min
+LOG_LEVEL=warn            # bot log level (silent|error|warn|info|debug), default warn
+BAILEYS_LOG_LEVEL=silent  # WhatsApp library log level, separate from LOG_LEVEL, default silent
 WA_VERSION=2.3000.x       # pin a WhatsApp web version (default: latest published)
 ```
 
@@ -167,4 +169,4 @@ GPL License - See LICENSE file for details.
 
 ---
 
-**Note:** `core/private.js` is obfuscated for security reasons and should not be modified. Everything else is regular source.
+**Note:** `core/private.js` is obfuscated because it contains the maintainer's private backend endpoints and keys. Everything else is regular source.

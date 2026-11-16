@@ -1,17 +1,17 @@
 const P = require("pino");
 const fs = require("fs");
 const { Sequelize } = require("sequelize");
-
-function convertToBool(text, fault = "true", fault2 = "on") {
-  return text === fault || text === fault2;
-}
+const schema = require("./core/config/schema");
+const store = require("./core/config/store");
 
 const isVPS = !(__dirname.startsWith("/rgnk") || __dirname.startsWith("/skl"));
 const isHeroku = __dirname.startsWith("/skl");
 const isKoyeb = __dirname.startsWith("/rgnk");
 const isRailway = __dirname.startsWith("/railway");
 
-const logger = P({ level: process.env.LOG_LEVEL || "silent" });
+// app logs and baileys logs are separate: baileys is very chatty at info/debug
+const logger = P({ level: process.env.LOG_LEVEL || "warn" });
+const baileysLogger = P({ level: process.env.BAILEYS_LOG_LEVEL || "silent" });
 
 function applySQLiteResilience(sequelizeInstance) {
   if (!sequelizeInstance || sequelizeInstance.__sqliteGuardsApplied) {
@@ -119,20 +119,16 @@ function applySQLiteResilience(sequelizeInstance) {
   }
 }
 
-const MAX_RECONNECT_ATTEMPTS = parseInt(
-  process.env.MAX_RECONNECT_ATTEMPTS || "10",
-  10
-);
 const VERSION = require("./package.json").version;
+const SQLITE_PATH = process.env.SQLITE_PATH || "./bot.db";
 const DATABASE_URL =
   process.env.DATABASE_URL === undefined
-    ? "./bot.db"
+    ? SQLITE_PATH
     : process.env.DATABASE_URL;
-const DEBUG =
-  process.env.DEBUG === undefined ? false : convertToBool(process.env.DEBUG);
+const DEBUG = store.fromEnv("DEBUG");
 
 const sequelize = (() => {
-  if (DATABASE_URL === "./bot.db") {
+  if (DATABASE_URL === SQLITE_PATH) {
     const sqliteInstance = new Sequelize({
       dialect: "sqlite",
       storage: DATABASE_URL,
@@ -186,16 +182,15 @@ const settingsMenu = [
   { title: "Disable bot startup message", env_var: "DISABLE_START_MESSAGE" },
 ];
 
+// defaults and env parsing live in core/config/schema.js
+const envValues = {};
+for (const [key, entry] of schema.schema) {
+  if (!entry.external) envValues[key] = store.fromEnv(key);
+}
+
 const baseConfig = {
   VERSION,
-  ALIVE:
-    process.env.ALIVE ||
-    "_I am alive! (use .setalive help for custom alive msg)_",
-  BLOCK_CHAT: process.env.BLOCK_CHAT || "",
-  PM_ANTISPAM: convertToBool(process.env.PM_ANTISPAM) || "",
-  ALWAYS_ONLINE: convertToBool(process.env.ALWAYS_ONLINE) || false,
-  MANGLISH_CHATBOT: convertToBool(process.env.MANGLISH_CHATBOT) || false,
-  ADMIN_ACCESS: convertToBool(process.env.ADMIN_ACCESS) || false,
+  ...envValues,
   PLATFORM: isHeroku
     ? "Heroku"
     : isRailway
@@ -207,127 +202,75 @@ const baseConfig = {
   isKoyeb,
   isVPS,
   isRailway,
-  AUTOMUTE_MSG:
-    process.env.AUTOMUTE_MSG || "_Group automuted!_\n_(edit AUTOMUTE_MSG)_",
-  ANTIWORD_WARN: process.env.ANTIWORD_WARN || "",
-  ANTI_SPAM: process.env.ANTI_SPAM || "919074309534-1632403322@g.us",
-  MULTI_HANDLERS: convertToBool(process.env.MULTI_HANDLERS) || false,
-  DISABLE_START_MESSAGE:
-    convertToBool(process.env.DISABLE_START_MESSAGE) || false,
-  NOLOG: process.env.NOLOG || false,
-  DISABLED_COMMANDS:
-    (process.env.DISABLED_COMMANDS
-      ? process.env.DISABLED_COMMANDS.split(",")
-      : undefined) || [],
-  ANTI_BOT: process.env.ANTI_BOT || "",
-  ANTISPAM_COUNT: process.env.ANTISPAM_COUNT || "6/10",
-  AUTOUNMUTE_MSG:
-    process.env.AUTOUNMUTE_MSG ||
-    "_Group auto unmuted!_\n_(edit AUTOUNMUTE_MSG)_",
-  AUTO_READ_STATUS: convertToBool(process.env.AUTO_READ_STATUS) || false,
-  READ_MESSAGES: convertToBool(process.env.READ_MESSAGES) || false,
-  PMB_VAR: convertToBool(process.env.PMB_VAR) || false,
-  DIS_PM: convertToBool(process.env.DIS_PM) || false,
-  REJECT_CALLS: convertToBool(process.env.REJECT_CALLS) || false,
-  ALLOWED_CALLS: process.env.ALLOWED_CALLS || "",
-  CALL_REJECT_MESSAGE: process.env.CALL_REJECT_MESSAGE || "",
-  PMB: process.env.PMB || "_Personal messages not allowed, BLOCKED!_",
-  READ_COMMAND: convertToBool(process.env.READ_COMMAND) || true,
-  RG: process.env.RG || "919074309534-1632403322@g.us,120363116963909366@g.us",
-  BOT_INFO: process.env.BOT_INFO || "𝖱𝖺𝗀𝖺𝗇𝗈𝗋𝗄;𝖱𝗒𝗓𝖾𝗇;default",
-  RBG_KEY: process.env.RBG_KEY || "",
-  ALLOWED: process.env.ALLOWED || "91,94,2",
-  NOT_ALLOWED: process.env.NOT_ALLOWED || "852",
-  CHATBOT: process.env.CHATBOT || "off",
-  HANDLERS: process.env.HANDLERS || ".,",
-  STICKER_DATA: process.env.STICKER_DATA || "Raganork",
-  BOT_NAME: process.env.BOT_NAME || "Raganork",
-  AUDIO_DATA:
-    process.env.AUDIO_DATA === undefined || process.env.AUDIO_DATA === "private"
-      ? "default"
-      : process.env.AUDIO_DATA,
-  TAKE_KEY: process.env.TAKE_KEY || "",
-  CMD_REACTION: convertToBool(process.env.CMD_REACTION) || false,
-  MODE: process.env.MODE || "private",
-  WARN: process.env.WARN || "4",
-  ANTILINK_WARN: process.env.ANTILINK_WARN || "",
-  ANTI_DELETE: convertToBool(process.env.ANTI_DELETE) || false,
-  SUDO: process.env.SUDO || "",
-  LANGUAGE: process.env.LANGUAGE || "english",
-  AUTO_UPDATE: convertToBool(process.env.AUTO_UPDATE) || true,
-  SUPPORT_GROUP: process.env.SUPPORT_GROUP || "https://t.me/raganork_in",
   settingsMenu,
 
   SESSION,
   logger,
-  MAX_RECONNECT_ATTEMPTS,
+  baileysLogger,
   sequelize,
   DATABASE_URL,
   DEBUG,
 };
+store.attachBase(baseConfig);
 
-const dynamicValues = new Map();
+// plain function properties, defined below. they are non-configurable, so the proxy
+// must list them in ownKeys and report their real descriptors
+const HELPER_NAMES = ["loadFromDB", "getDynamicKeys", "isDynamic", "getSource", "debug"];
 
 const config = new Proxy(baseConfig, {
   get(target, prop) {
     const key = typeof prop === "symbol" ? prop.toString() : prop;
 
     if (key === "toJSON" || key === "valueOf") {
-      return () => ({ ...target, ...Object.fromEntries(dynamicValues) });
+      return () => store.snapshot();
     }
 
     if (key === "inspect" || key === Symbol.for("nodejs.util.inspect.custom")) {
-      return () => ({ ...target, ...Object.fromEntries(dynamicValues) });
+      return () => store.snapshot();
     }
 
-    if (key === 'isPrivate') {
-      const mode = dynamicValues.has('MODE') ? dynamicValues.get('MODE') : target.MODE;
-      return mode === 'private';
+    // read at every access so commands without an explicit fromMe follow MODE live.
+    // fails closed: anything but "public" (typo, empty, unset) keeps commands owner-only
+    if (key === "isPrivate") {
+      return store.get("MODE") !== "public";
     }
 
-    if (dynamicValues.has(key)) {
-      return dynamicValues.get(key);
-    }
-
-    if (key in target) {
-      return target[key];
-    }
-
-    if (typeof key === "string" && process.env[key] !== undefined) {
-      return process.env[key];
-    }
-
-    return undefined;
+    return store.get(key);
   },
 
   set(target, prop, value) {
     const key = typeof prop === "symbol" ? prop.toString() : prop;
-
-    dynamicValues.set(key, value);
+    store.set(key, value);
     return true;
   },
 
   has(target, prop) {
     const key = typeof prop === "symbol" ? prop.toString() : prop;
-    return (
-      dynamicValues.has(key) ||
-      key in target ||
-      (typeof key === "string" && key in process.env)
-    );
+    return store.has(key);
+  },
+
+  // drops a runtime/db value; the env or default value shows again. the database
+  // row is removed by delVar in plugins/manage.js
+  deleteProperty(target, prop) {
+    const key = typeof prop === "symbol" ? prop.toString() : prop;
+    if (HELPER_NAMES.includes(key)) return false;
+    store.unset(key);
+    return true;
   },
 
   ownKeys(target) {
     const baseKeys = Object.keys(target);
-    const dynamicKeys = Array.from(dynamicValues.keys()).filter(
-      (k) => typeof k === "string"
-    );
-    return [...new Set([...baseKeys, ...dynamicKeys])];
+    const dynamicKeys = store.overriddenKeys().filter((k) => typeof k === "string");
+    return [...new Set([...baseKeys, ...dynamicKeys, ...HELPER_NAMES])];
   },
 
   getOwnPropertyDescriptor(target, prop) {
     const key = typeof prop === "symbol" ? prop.toString() : prop;
 
-    if (dynamicValues.has(key) || key in target) {
+    if (HELPER_NAMES.includes(key)) {
+      return Reflect.getOwnPropertyDescriptor(target, prop);
+    }
+    if (store.isOverridden(key) || key in target) {
       return {
         enumerable: true,
         configurable: true,
@@ -340,22 +283,7 @@ const config = new Proxy(baseConfig, {
 
 Object.defineProperty(config, "loadFromDB", {
   value: function (dbValues = {}) {
-    let loadedCount = 0;
-    const booleanKeys = [
-      ...settingsMenu.map((item) => item.env_var),
-      "MANGLISH_CHATBOT",
-    ];
-    for (const [key, value] of Object.entries(dbValues)) {
-      if (value !== undefined && value !== null) {
-        if (booleanKeys.includes(key)) {
-          this[key] = convertToBool(value);
-        } else {
-          this[key] = value;
-        }
-        loadedCount++;
-      }
-    }
-
+    const loadedCount = store.loadAll(dbValues);
     console.log(`- Loaded ${loadedCount} vars`);
     return this;
   },
@@ -365,7 +293,7 @@ Object.defineProperty(config, "loadFromDB", {
 
 Object.defineProperty(config, "getDynamicKeys", {
   value: function () {
-    return Array.from(dynamicValues.keys());
+    return store.overriddenKeys();
   },
   writable: false,
   enumerable: false,
@@ -373,7 +301,7 @@ Object.defineProperty(config, "getDynamicKeys", {
 
 Object.defineProperty(config, "isDynamic", {
   value: function (key) {
-    return dynamicValues.has(key);
+    return store.isOverridden(key);
   },
   writable: false,
   enumerable: false,
@@ -381,11 +309,7 @@ Object.defineProperty(config, "isDynamic", {
 
 Object.defineProperty(config, "getSource", {
   value: function (key) {
-    if (dynamicValues.has(key)) return "database";
-    if (key in baseConfig) return "config";
-    if (typeof key === "string" && process.env[key] !== undefined)
-      return "environment";
-    return "not_found";
+    return store.sourceOf(key);
   },
   writable: false,
   enumerable: false,
@@ -395,8 +319,8 @@ Object.defineProperty(config, "debug", {
   value: function () {
     const result = {
       static: Object.keys(baseConfig),
-      dynamic: Array.from(dynamicValues.keys()),
-      values: { ...baseConfig, ...Object.fromEntries(dynamicValues) },
+      dynamic: store.overriddenKeys(),
+      values: store.snapshot(),
     };
     console.log("Config Debug Info:", result);
     return result;

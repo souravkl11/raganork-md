@@ -1,5 +1,5 @@
 const { isAdmin, mentionjid } = require("./utils");
-const { ADMIN_ACCESS } = require("../config");
+const config = require("../config");
 const { Module } = require("../main");
 const {
   fetchFromStore,
@@ -69,7 +69,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group command!_");
 
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -147,7 +147,7 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group command!_");
 
-    let adminAccesValidated = ADMIN_ACCESS
+    let adminAccesValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (message.fromOwner || adminAccesValidated) {
@@ -329,7 +329,7 @@ Module(
   },
   async (message, match) => {
     let adminAccesValidated =
-      ADMIN_ACCESS && message.isGroup
+      config.ADMIN_ACCESS && message.isGroup
         ? await isAdmin(message, message.sender)
         : false;
     if (message.fromOwner || adminAccesValidated) {

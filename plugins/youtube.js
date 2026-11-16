@@ -11,8 +11,6 @@ const {
 const { spotifyTrack } = require("./utils/misc");
 
 const config = require("../config");
-const MODE = config.MODE;
-const fromMe = MODE === "public" ? false : true;
 
 const VIDEO_SIZE_LIMIT = 150 * 1024 * 1024;
 
@@ -36,7 +34,6 @@ function formatViews(views) {
 Module(
   {
     pattern: "song ?(.*)",
-    fromMe: fromMe,
     desc: "Search YouTube and download audio",
     usage: ".song <query>",
     use: "download",
@@ -85,7 +82,6 @@ Module(
 Module(
   {
     pattern: "yts ?(.*)",
-    fromMe: fromMe,
     desc: "Search YouTube with detailed info",
     usage: ".yts <query>",
     use: "download",
@@ -134,7 +130,6 @@ Module(
 Module(
   {
     pattern: "ytv ?(.*)",
-    fromMe: fromMe,
     desc: "Download YouTube video with quality selection",
     usage: ".ytv <link>",
     use: "download",
@@ -261,7 +256,6 @@ Module(
 Module(
   {
     pattern: "video ?(.*)",
-    fromMe: fromMe,
     desc: "Download YouTube video at 360p",
     usage: ".video <link>",
     use: "download",
@@ -341,7 +335,6 @@ Module(
 Module(
   {
     pattern: "yta ?(.*)",
-    fromMe: fromMe,
     desc: "Download YouTube audio as document",
     usage: ".yta <link>",
     use: "download",
@@ -412,7 +405,6 @@ Module(
 Module(
   {
     pattern: "play ?(.*)",
-    fromMe: fromMe,
     desc: "Play audio from YouTube search or link",
     usage: ".play <song name or link>",
     use: "download",
@@ -547,7 +539,6 @@ Module(
 Module(
   {
     on: "text",
-    fromMe: fromMe,
   },
   async (message, match) => {
     const numberMatch = message.text?.match(/^\d+$/);
@@ -988,7 +979,6 @@ Module(
 Module(
   {
     pattern: "spotify ?(.*)",
-    fromMe: fromMe,
     desc: "Download audio from Spotify link",
     usage: ".spotify <spotify link>",
     use: "download",

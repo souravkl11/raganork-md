@@ -1,9 +1,7 @@
 const { Module } = require('../main');
-const isPrivateMode = require('../config').MODE !== 'public';
 const { fancy } = require('./utils');
 Module({
      pattern: 'fancy ?(.*)',
-     fromMe: isPrivateMode,
      use: 'utility',
      desc: 'Creates fancy text fonts'
  }, (async (message, match) => {

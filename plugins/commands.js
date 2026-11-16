@@ -1,6 +1,7 @@
 const { commands, Module } = require("../main");
-const { MODE, HANDLERS, ALIVE, VERSION } = require("../config");
+const { VERSION } = require("../config");
 const config = require("../config");
+const { helpPrefix } = require("../core/plugins/registry");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
@@ -9,7 +10,6 @@ const { setVar } = require("./manage");
 const { getTotalUserCount } = require("../core/store");
 const { parseAliveMessage, sendAliveMessage } = require("./utils/alive-parser");
 
-const isPrivateMode = MODE === "private";
 
 const extractCommandName = (pattern) => {
   const match = pattern?.toString().match(/(\W*)([A-Za-z1234567890 ]*)/);
@@ -30,7 +30,6 @@ const retrieveCommandDetails = (commandName) => {
 Module(
   {
     pattern: "info ?(.*)",
-    fromMe: isPrivateMode,
     desc: "Gives command information",
   },
   async (message, args) => {
@@ -67,7 +66,6 @@ Module(
 Module(
   {
     pattern: "list ?(.*)",
-    fromMe: isPrivateMode,
     excludeFromCommands: true,
   },
   async (message, args) => {
@@ -94,7 +92,7 @@ Module(
     });
 
     let responseMessage = `*Total Available Commands: ${totalCommandCount}*\n\n`;
-    const handlerPrefix = HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || ".";
+    const handlerPrefix = config.HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || ".";
 
     for (const category in categorizedCommands) {
       responseMessage += `*───「 ${category.toUpperCase()} 」───*\n\n`;
@@ -154,11 +152,10 @@ const manage = {
 Module(
   {
     pattern: "alive",
-    fromMe: isPrivateMode,
     desc: "Checks if the bot is alive.",
   },
   async (message, match) => {
-    await parseAlive(message, ALIVE);
+    await parseAlive(message, config.ALIVE);
   }
 );
 
@@ -254,7 +251,7 @@ _Hi $user!_
     }
 
     if (input === "get") {
-      const current = ALIVE;
+      const current = config.ALIVE;
       if (!current) {
         return await message.sendReply(
           "_No custom alive message set! Using default message._"
@@ -289,7 +286,6 @@ _Hi $user!_
 Module(
   {
     pattern: "menu",
-    fromMe: isPrivateMode,
     use: "utility",
     desc: "Displays the bot command menu.",
   },
@@ -317,7 +313,7 @@ Module(
 
     let final = "";
     let i = 0;
-    const handlerPrefix = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
+    const handlerPrefix = helpPrefix();
     for (const n of types) {
       for (const x of cmd_obj[n]) {
         i = i + 1;
@@ -350,7 +346,7 @@ Module(
 ┃${star}│
 ┃${star}│ _*\`Owner\`*_ : ${botOwner}
 ┃${star}│ _*\`User\`*_ : ${message.senderName.replace(/[\r\n]+/gm, "")}
-┃${star}│ _*\`Mode\`*_ : ${MODE}
+┃${star}│ _*\`Mode\`*_ : ${config.MODE}
 ┃${star}│ _*\`Server\`*_ : ${os.platform() === "linux" ? "Linux" : "Unknown OS"}
 ┃${star}│ _*\`Available RAM\`*_ : ${used} of ${total}
 ┃${star}│ _*\`Total Users\`*_ : ${totalUsers}
@@ -390,7 +386,6 @@ ${cmdmenu}`;
 Module(
   {
     pattern: "games ?(.*)",
-    fromMe: isPrivateMode,
     desc: "Lists all available games",
   },
   async (message, args) => {
@@ -400,7 +395,7 @@ Module(
     if (!gameCommands.length) {
       return await message.sendReply("_No games are installed._");
     }
-    const handlerPrefix = HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || ".";
+    const handlerPrefix = config.HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || ".";
     let response = `*───「 Available Games 」───*\n\n`;
     gameCommands.forEach((cmd) => {
       const name = extractCommandName(cmd.pattern);
@@ -547,7 +542,7 @@ Module(
     use: "utility",
   },
   async (message, match) => {
-    const aliveMessage = ALIVE;
+    const aliveMessage = config.ALIVE;
 
     if (!aliveMessage) {
       return await message.sendReply(

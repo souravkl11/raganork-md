@@ -1,8 +1,8 @@
 const { Module } = require("../main");
-const { ADMIN_ACCESS, HANDLERS } = require("../config");
+const config = require("../config");
 const { isAdmin, filter } = require("./utils");
 
-const handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
+const { helpPrefix } = require("../core/plugins/registry");
 
 const SCOPES = ["chat", "global", "group", "dm"];
 
@@ -28,7 +28,7 @@ Module(
   },
   async (message, match) => {
     if (match[0].includes("filters")) return;
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -36,15 +36,15 @@ Module(
     if (!input) {
       return await message.sendReply(
         `*📝 Filter Commands:*\n\n` +
-          `• \`${handler}filter trigger | response\` - Create chat filter\n` +
-          `• \`${handler}filter trigger | response | global\` - Create global filter\n` +
-          `• \`${handler}filter trigger | response | group\` - Create group-only filter\n` +
-          `• \`${handler}filter trigger | response | dm\` - Create DM-only filter\n` +
-          `• \`${handler}filter trigger | response | chat | exact\` - Exact match only\n` +
-          `• \`${handler}filter trigger | response | chat | case\` - Case sensitive\n` +
-          `• \`${handler}filters\` - List all filters\n` +
-          `• \`${handler}delfilter trigger\` - Delete filter\n` +
-          `• \`${handler}togglefilter trigger\` - Enable/disable filter\n\n` +
+          `• \`${helpPrefix()}filter trigger | response\` - Create chat filter\n` +
+          `• \`${helpPrefix()}filter trigger | response | global\` - Create global filter\n` +
+          `• \`${helpPrefix()}filter trigger | response | group\` - Create group-only filter\n` +
+          `• \`${helpPrefix()}filter trigger | response | dm\` - Create DM-only filter\n` +
+          `• \`${helpPrefix()}filter trigger | response | chat | exact\` - Exact match only\n` +
+          `• \`${helpPrefix()}filter trigger | response | chat | case\` - Case sensitive\n` +
+          `• \`${helpPrefix()}filters\` - List all filters\n` +
+          `• \`${helpPrefix()}delfilter trigger\` - Delete filter\n` +
+          `• \`${helpPrefix()}togglefilter trigger\` - Enable/disable filter\n\n` +
           `*Scopes:*\n` +
           `• \`chat\` - Current chat only (default)\n` +
           `• \`global\` - All chats\n` +
@@ -130,7 +130,7 @@ Module(
     use: "utility",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -189,7 +189,7 @@ Module(
     use: "utility",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -229,7 +229,7 @@ Module(
     use: "utility",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -273,7 +273,7 @@ Module(
     use: "utility",
   },
   async (message, match) => {
-    let adminAccess = ADMIN_ACCESS
+    let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
     if (!message.fromOwner && !adminAccess) return;
@@ -325,7 +325,7 @@ Module(
       `*What are filters?*\n` +
       `Filters are auto-reply triggers that respond to specific words or phrases automatically.\n\n` +
       `*📝 Creating Filters:*\n` +
-      `\`${handler}filter hello | Hi there!\`\n` +
+      `\`${helpPrefix()}filter hello | Hi there!\`\n` +
       `• Creates a chat-specific filter\n` +
       `• When someone says "hello", bot replies "Hi there!"\n\n` +
       `*🌍 Filter Scopes:*\n` +
@@ -337,15 +337,15 @@ Module(
       `• \`exact\` - Only exact word matches\n` +
       `• \`case\` - Case sensitive matching\n\n` +
       `*📋 Examples:*\n` +
-      `\`${handler}filter bot | I'm here! | chat\`\n` +
-      `\`${handler}filter help | Contact admin | global\`\n` +
-      `\`${handler}filter Hello | Hi! | group | exact\`\n` +
-      `\`${handler}filter PASSWORD | Shh! | dm | case\`\n\n` +
+      `\`${helpPrefix()}filter bot | I'm here! | chat\`\n` +
+      `\`${helpPrefix()}filter help | Contact admin | global\`\n` +
+      `\`${helpPrefix()}filter Hello | Hi! | group | exact\`\n` +
+      `\`${helpPrefix()}filter PASSWORD | Shh! | dm | case\`\n\n` +
       `*🔧 Management:*\n` +
-      `• \`${handler}filters\` - List all filters\n` +
-      `• \`${handler}delfilter trigger\` - Delete filter\n` +
-      `• \`${handler}togglefilter trigger\` - Enable/disable\n` +
-      `• \`${handler}testfilter text\` - Test matching\n\n` +
+      `• \`${helpPrefix()}filters\` - List all filters\n` +
+      `• \`${helpPrefix()}delfilter trigger\` - Delete filter\n` +
+      `• \`${helpPrefix()}togglefilter trigger\` - Enable/disable\n` +
+      `• \`${helpPrefix()}testfilter text\` - Test matching\n\n` +
       `*💡 Tips:*\n` +
       `• Filters are checked for every message\n` +
       `• Global filters work everywhere\n` +

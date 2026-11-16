@@ -2,7 +2,6 @@ const { Module } = require("../main");
 const { convert: imageToPdf, sizes } = require("image-to-pdf");
 const fileSystem = require("node:fs/promises");
 const fileType = require("file-type");
-const { MODE } = require("../config");
 const path = require("path");
 const fs = require("fs");
 const { getTempSubdir, getTempPath } = require("../core/helpers");
@@ -30,7 +29,6 @@ const finalPdfOutputPath = getTempPath("converted.pdf");
 Module(
   {
     pattern: "pdf ?(.*)",
-    fromMe: MODE === "private",
     desc: "Images to PDF",
     use: "converters",
     usage: ".pdf help",

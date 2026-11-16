@@ -1,5 +1,4 @@
 const { Module } = require("../main");
-const { SUDO, HANDLERS } = require("../config");
 const config = require("../config");
 const { isSudo } = require("../core/sudo");
 const { uploadToCatbox } = require("./utils/upload");
@@ -7,7 +6,7 @@ const { uploadToCatbox } = require("./utils/upload");
 const fs = require("fs");
 const path = require("path");
 
-var handler = HANDLERS !== "false" ? HANDLERS.split("")[0] : "";
+const { helpPrefix } = require("../core/plugins/registry");
 
 const { setVar, delVar } = require("./manage");
 
@@ -64,7 +63,7 @@ Module(
 
     if (!subcommand) {
       return await message.sendReply(
-        `Please specify a subcommand!\n\n*Available commands:*\n• \`${handler}mention set\` - Set mention reply (reply to message or add text)\n• \`${handler}mention get\` - View current mention reply\n• \`${handler}mention del\` - Delete mention reply\n• \`${handler}mention help\` - Show detailed help`
+        `Please specify a subcommand!\n\n*Available commands:*\n• \`${helpPrefix()}mention set\` - Set mention reply (reply to message or add text)\n• \`${helpPrefix()}mention get\` - View current mention reply\n• \`${helpPrefix()}mention del\` - Delete mention reply\n• \`${helpPrefix()}mention help\` - Show detailed help`
       );
     }
 
@@ -188,7 +187,7 @@ Module(
         }
 
         return await message.sendReply(
-          `Please provide input for set command!\n\n*Usage:*\n• Reply to any message and type \`${handler}mention set\`\n• Or use \`${handler}mention set <text>\` for text message`
+          `Please provide input for set command!\n\n*Usage:*\n• Reply to any message and type \`${helpPrefix()}mention set\`\n• Or use \`${helpPrefix()}mention set <text>\` for text message`
         );
 
       case "help":
@@ -198,10 +197,10 @@ Module(
 When someone mentions the bot or sudo users, the bot automatically sends a saved reply message.
 
 *Commands:* _(Owner only)_
-• \`${handler}mention set\` - Reply to any message to set it as mention reply
-• \`${handler}mention set <text>\` - Set text as mention reply
-• \`${handler}mention get\` - View current mention reply
-• \`${handler}mention del\` - Delete mention reply
+• \`${helpPrefix()}mention set\` - Reply to any message to set it as mention reply
+• \`${helpPrefix()}mention set <text>\` - Set text as mention reply
+• \`${helpPrefix()}mention get\` - View current mention reply
+• \`${helpPrefix()}mention del\` - Delete mention reply
 
 *Supported Types:*
 • Text messages
@@ -217,10 +216,10 @@ When someone mentions the bot or sudo users, the bot automatically sends a saved
 3. Bot automatically sends the saved reply
 
 *Examples:*
-• Reply to an image and type \`${handler}mention set\`
-• \`${handler}mention set Hello! I'm a bot\`
-• \`${handler}mention get\` - to see current reply
-• \`${handler}mention del\` - to remove reply
+• Reply to an image and type \`${helpPrefix()}mention set\`
+• \`${helpPrefix()}mention set Hello! I'm a bot\`
+• \`${helpPrefix()}mention get\` - to see current reply
+• \`${helpPrefix()}mention del\` - to remove reply
 
 _Note: Media files are uploaded to cloud storage for reliability._`;
 
@@ -228,7 +227,7 @@ _Note: Media files are uploaded to cloud storage for reliability._`;
 
       default:
         return await message.sendReply(
-          `Unknown subcommand: \`${subcommand}\`\n\n*Available commands:*\n• \`${handler}mention set\` - Set mention reply\n• \`${handler}mention get\` - View current mention reply\n• \`${handler}mention del\` - Delete mention reply\n• \`${handler}mention help\` - Show help`
+          `Unknown subcommand: \`${subcommand}\`\n\n*Available commands:*\n• \`${helpPrefix()}mention set\` - Set mention reply\n• \`${helpPrefix()}mention get\` - View current mention reply\n• \`${helpPrefix()}mention del\` - Delete mention reply\n• \`${helpPrefix()}mention help\` - Show help`
         );
     }
   }
