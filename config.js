@@ -149,8 +149,12 @@ const sequelize = (() => {
     return sqliteInstance;
   }
 
+  // ssl stays on unless DATABASE_SSL says otherwise (a plain postgres service in ci has none)
+  const useSsl = !["false", "0", "off", "no"].includes(
+    String(process.env.DATABASE_SSL ?? "true").trim().toLowerCase(),
+  );
   return new Sequelize(DATABASE_URL, {
-    dialectOptions: { ssl: { require: true, rejectUnauthorized: false } },
+    dialectOptions: useSsl ? { ssl: { require: true, rejectUnauthorized: false } } : {},
     logging: DEBUG,
     pool: {
       max: 20,

@@ -1,16 +1,22 @@
 // resolution and storage behind the config proxy in config.js.
-// lookup order: runtime/db override, then the base values built from env at load,
-// then process.env (so keys nobody registered still work).
+// lookup order: the current session's override (session-scoped keys only, when the code
+// runs inside a session context), then the global runtime/db override, then the base
+// values built from env at load, then process.env (so keys nobody registered still work).
+// writes inside a session context go to that session (session_variables); writes outside
+// one, and writes of global-scope keys, go to bot_variables.
 // this file must not require config.js or core/database at load time: config.js
 // requires it first. persisting loads the database lazily.
 const schema = require("./schema");
 const events = require("../events");
+const context = require("../context");
 
 const TRUE_WORDS = new Set(["true", "on", "1", "yes"]);
 const FALSE_WORDS = new Set(["false", "off", "0", "no"]);
 
 let base = {};
 const overrides = new Map();
+// accountId -> Map(key -> coerced value)
+let sessionOverrides = new Map();
 
 function attachBase(values) {
   base = values;
@@ -35,10 +41,27 @@ function parseInteger(raw) {
   return Number.isNaN(n) ? undefined : n;
 }
 
-// a listener that throws must not make `config.X = v` throw inside a plugin
-function notify(key, value) {
+// the account whose overrides apply to this key right now, or null for the global ones
+function sessionAccount(key) {
+  const accountId = context.accountId();
+  return accountId && schema.scopeOf(key) === "session" ? accountId : null;
+}
+
+function sessionValues(accountId, create = false) {
+  let values = sessionOverrides.get(accountId);
+  if (!values && create) {
+    values = new Map();
+    sessionOverrides.set(accountId, values);
+  }
+  return values;
+}
+
+// a listener that throws must not make `config.X = v` throw inside a plugin.
+// session writes carry the session; sessionId and accountId are null for a global write
+function notify(key, value, accountId = null) {
+  const sessionId = accountId ? context.current()?.sessionId ?? null : null;
   try {
-    events.emit("config:changed", { key, value, sessionId: null });
+    events.emit("config:changed", { key, value, sessionId, accountId });
   } catch (error) {
     console.error(`config:changed listener failed for ${key}:`, error);
   }
@@ -87,6 +110,11 @@ function fromEnv(key, env = process.env) {
 }
 
 function get(key) {
+  const accountId = sessionAccount(key);
+  if (accountId) {
+    const values = sessionOverrides.get(accountId);
+    if (values?.has(key)) return values.get(key);
+  }
   if (overrides.has(key)) return overrides.get(key);
   if (key in base) return base[key];
   if (typeof key === "string" && process.env[key] !== undefined) return process.env[key];
@@ -94,33 +122,45 @@ function get(key) {
 }
 
 function has(key) {
-  return overrides.has(key) || key in base || (typeof key === "string" && key in process.env);
+  return isOverridden(key) || key in base || (typeof key === "string" && key in process.env);
 }
 
 // sync unless persist is set, then a promise that resolves after the database write
 // (database first, memory second: a failed write leaves the live value alone).
 // the database keeps the raw value; only the in-memory one is coerced
 function set(key, value, { persist = false } = {}) {
+  const accountId = sessionAccount(key);
   const apply = () => {
     const stored = coerce(key, value);
-    overrides.set(key, stored);
-    notify(key, stored);
+    if (accountId) sessionValues(accountId, true).set(key, stored);
+    else overrides.set(key, stored);
+    notify(key, stored, accountId);
     return stored;
   };
   if (!persist) return apply();
+  if (accountId) {
+    const { SessionVariable } = require("../database");
+    return SessionVariable.upsert({ accountId, key, value }).then(apply);
+  }
   const { BotVariable } = require("../database");
   return BotVariable.upsert({ key, value }).then(apply);
 }
 
-// drops the override only: the base value (env or default) shows again.
+// drops the override only: inside a session that is the session's override (the global
+// value shows again), otherwise the global one (the env or default value shows again).
 // the event carries the value readers see afterwards (undefined if there is none)
 function unset(key, { persist = false } = {}) {
+  const accountId = sessionAccount(key);
   const apply = () => {
-    const had = overrides.delete(key);
-    notify(key, get(key));
+    const had = accountId ? Boolean(sessionValues(accountId)?.delete(key)) : overrides.delete(key);
+    notify(key, get(key), accountId);
     return had;
   };
   if (!persist) return apply();
+  if (accountId) {
+    const { SessionVariable } = require("../database");
+    return SessionVariable.destroy({ where: { accountId, key } }).then(apply);
+  }
   const { BotVariable } = require("../database");
   return BotVariable.destroy({ where: { key } }).then(apply);
 }
@@ -137,20 +177,54 @@ function loadAll(dbValues = {}) {
   return count;
 }
 
+// replaces every session override with these session_variables rows
+// ({ accountId, key, value }). like loadAll it is silent
+function loadSessions(rows = []) {
+  const next = new Map();
+  let count = 0;
+  for (const { accountId, key, value } of rows) {
+    if (!accountId || value === undefined || value === null) continue;
+    if (schema.scopeOf(key) !== "session") continue; // global keys have no per-session value
+    if (!next.has(accountId)) next.set(accountId, new Map());
+    next.get(accountId).set(key, coerce(key, value));
+    count++;
+  }
+  sessionOverrides = next;
+  return count;
+}
+
+// boot step after the data migrations: read every session's overrides into memory
+async function reloadSessions() {
+  const { SessionVariable } = require("../database");
+  const rows = await SessionVariable.findAll({ attributes: ["accountId", "key", "value"], raw: true });
+  return loadSessions(rows);
+}
+
+// forgets the in-memory session overrides (the rows stay in the database)
+function clearSessions() {
+  sessionOverrides = new Map();
+}
+
 function isOverridden(key) {
-  return overrides.has(key);
+  const accountId = sessionAccount(key);
+  return Boolean(accountId && sessionOverrides.get(accountId)?.has(key)) || overrides.has(key);
+}
+
+function currentSessionValues() {
+  const accountId = context.accountId();
+  return (accountId && sessionOverrides.get(accountId)) || new Map();
 }
 
 function overriddenKeys() {
-  return Array.from(overrides.keys());
+  return [...new Set([...overrides.keys(), ...currentSessionValues().keys()])];
 }
 
 function snapshot() {
-  return { ...base, ...Object.fromEntries(overrides) };
+  return { ...base, ...Object.fromEntries(overrides), ...Object.fromEntries(currentSessionValues()) };
 }
 
 function sourceOf(key) {
-  if (overrides.has(key)) return "database";
+  if (isOverridden(key)) return "database";
   if (key in base) return "config";
   if (typeof key === "string" && process.env[key] !== undefined) return "environment";
   return "not_found";
@@ -166,6 +240,9 @@ module.exports = {
   set,
   unset,
   loadAll,
+  loadSessions,
+  reloadSessions,
+  clearSessions,
   isOverridden,
   overriddenKeys,
   snapshot,

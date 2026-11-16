@@ -93,6 +93,8 @@ async function restoreExternalPlugins() {
 }
 
 async function loadAll() {
+  // migrations first: syncing a model before them can index a column that does not exist yet
+  await require("../database").initializeDatabase();
   await loadDbConfig();
   loadDirectory(`${PLUGIN_DIR}/sql/`, { swallow: false });
   loadDirectory(PLUGIN_DIR, { swallow: true });

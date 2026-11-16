@@ -3,6 +3,7 @@ const config = require("../config");
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../core/database");
 const { setVar, delVar } = require("./manage");
+const context = require("../core/context");
 
 /**
  * Auto anti view-once.
@@ -48,7 +49,7 @@ function isVVCommand(text) {
   return Boolean(vvPattern) && vvPattern.test(text.charAt(0).toLowerCase() + text.slice(1));
 }
 
-// ids currently being forwarded (guards against concurrent duplicate replies)
+// <account>:<id> currently being forwarded (guards against concurrent duplicate replies)
 const inFlight = new Set();
 
 function getReplyContext(message) {
@@ -156,11 +157,14 @@ Module({ on: "message", fromMe: false }, async (m) => {
   const vv = extractViewOnce(ctx.quotedMessage);
   if (!vv) return;
 
-  if (inFlight.has(quotedId)) return;
-  inFlight.add(quotedId);
+  // once per message and per session: two sessions in the same chat each forward to their own target.
+  // rows written before accounts exist are the bare message id and still count for every session
+  const sentKey = `${context.accountId() || "_"}:${quotedId}`;
+  if (inFlight.has(sentKey)) return;
+  inFlight.add(sentKey);
   try {
     await tableReady;
-    if (await VVSent.findByPk(quotedId)) return;
+    if ((await VVSent.findByPk(sentKey)) || (await VVSent.findByPk(quotedId))) return;
 
     const sourceChat = m.jid;
     const origSender = ctx.participant || sourceChat;
@@ -185,10 +189,10 @@ Module({ on: "message", fromMe: false }, async (m) => {
 
     await m.forwardMessage(target, fake, options);
     // mark as sent only after a successful forward so failures can be retried
-    await VVSent.create({ msgId: quotedId, chat: sourceChat });
+    await VVSent.create({ msgId: sentKey, chat: sourceChat });
   } catch (e) {
     if (config.DEBUG) console.error("autovv error:", e);
   } finally {
-    inFlight.delete(quotedId);
+    inFlight.delete(sentKey);
   }
 });

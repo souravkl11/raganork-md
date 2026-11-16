@@ -1,4 +1,5 @@
 const config = require("../../../config");
+const { scoped, accountColumn: accountId, accountOptions } = require("../../../core/db/scoped");
 const { cachedList } = require("./cache");
 const { DataTypes, Op } = require("sequelize");
 
@@ -12,9 +13,10 @@ async function updateOrCreate(model, findCriteria, createData) {
 }
 
 const AutoMuteDB = config.sequelize.define("automute", {
+  accountId,
   chat: { type: DataTypes.STRING, allowNull: false },
   time: { type: DataTypes.STRING, allowNull: false },
-});
+}, accountOptions("automutes"));
 
 const automute = {
   async get() {
@@ -30,9 +32,10 @@ const automute = {
 };
 
 const AutoUnMuteDB = config.sequelize.define("autounmute", {
+  accountId,
   chat: { type: DataTypes.STRING, allowNull: false },
   time: { type: DataTypes.STRING, allowNull: false },
-});
+}, accountOptions("autounmutes"));
 
 const autounmute = {
   async get() {
@@ -52,9 +55,10 @@ const autounmute = {
 };
 
 const StickyCmdDB = config.sequelize.define("stickcmd", {
+  accountId,
   command: { type: DataTypes.STRING(1000), allowNull: false },
   file: { type: DataTypes.STRING(1000), allowNull: false },
-});
+}, accountOptions("stickcmds"));
 
 // looked up for every sticker message
 const stickcmdList = cachedList(() => StickyCmdDB.findAll());
@@ -90,11 +94,12 @@ const stickcmd = {
 };
 
 const ScheduledMessageDB = config.sequelize.define("scheduled_messages", {
+  accountId,
   jid: { type: DataTypes.STRING, allowNull: false },
   message: { type: DataTypes.STRING(2048), allowNull: false },
   scheduleTime: { type: DataTypes.DATE, allowNull: false },
   isSent: { type: DataTypes.BOOLEAN, defaultValue: false },
-});
+}, accountOptions("scheduled_messages"));
 
 const scheduledMessages = {
   async getDueForSending() {
@@ -129,6 +134,8 @@ const scheduledMessages = {
     return result > 0;
   },
 };
+
+[AutoMuteDB, AutoUnMuteDB, StickyCmdDB, ScheduledMessageDB].forEach(scoped);
 
 module.exports = {
   automute,

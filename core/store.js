@@ -1,5 +1,7 @@
 const config = require("../config");
+const context = require("./context");
 const { DataTypes, Op } = require("sequelize");
+const { scoped, accountColumn } = require("./db/scoped");
 const logger = config.logger;
 
 const Chat = config.sequelize.define(
@@ -62,6 +64,8 @@ const User = config.sequelize.define(
 const AntiDeleteCache = config.sequelize.define(
   "AntiDeleteCache",
   {
+    accountId: accountColumn,
+    // <accountId>:<id>_<timestamp>; rows from before accounts are <id>_<timestamp>
     messageId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -98,6 +102,7 @@ const AntiDeleteCache = config.sequelize.define(
       { fields: ["timestamp"] },
       { fields: ["chatJid"] },
       { fields: ["msgId"] },
+      { name: "anti_delete_caches_account_id", fields: ["accountId"] },
     ],
   },
 );
@@ -105,6 +110,7 @@ const AntiDeleteCache = config.sequelize.define(
 const UserStats = config.sequelize.define(
   "UserStats",
   {
+    accountId: accountColumn,
     userJid: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -157,13 +163,17 @@ const UserStats = config.sequelize.define(
   {
     timestamps: true,
     indexes: [
-      { fields: ["userJid", "chatJid"], unique: true },
+      // the name is the one the two-column index always had (see migration 004)
+      { name: "user_stats_user_jid_chat_jid", fields: ["accountId", "userJid", "chatJid"], unique: true },
       { fields: ["chatJid"] },
       { fields: ["totalMessages"] },
       { fields: ["lastMessageAt"] },
     ],
   },
 );
+
+scoped(UserStats);
+scoped(AntiDeleteCache);
 
 // SpamTracker is now in-memory
 const SpamTracker = null;
@@ -201,7 +211,7 @@ const FLUSH_INTERVAL = 5000; // 5 seconds
 let flushTimer = null;
 
 // NEW: In-memory SpamTracker
-const spamTracker = new Map(); // Key: 'userJid_chatJid', Value: Array of timestamps
+const spamTracker = new Map(); // Key: 'accountId:userJid_chatJid', Value: Array of timestamps
 
 const STAT_FIELDS = [
   "textMessages",
@@ -215,7 +225,7 @@ let statsUpsertSupported = true;
 
 // thumbnails are the bulk of a stored message and nothing reads them back
 function stripForStorage(key, value) {
-  if (key === "jpegThumbnail" || key === "_mappedType") return undefined;
+  if (key === "jpegThumbnail" || key === "_mappedType" || key === "_accountId") return undefined;
   return value;
 }
 
@@ -247,10 +257,13 @@ function aggregateBatch(batch) {
       });
     }
 
-    const messageId = id + "_" + ts.getTime();
+    // the primary key stays unique per account: two sessions in one group both store the message
+    const accountId = msgData._accountId || null;
+    const messageId = (accountId ? accountId + ":" : "") + id + "_" + ts.getTime();
     if (!cacheRows.has(messageId)) {
       cacheRows.set(messageId, {
         messageId,
+        accountId,
         msgId: id,
         chatJid: remoteJid,
         senderJid: sender,
@@ -259,10 +272,11 @@ function aggregateBatch(batch) {
       });
     }
 
-    const statKey = sender + "\u0000" + remoteJid;
+    // the same user in the same group counts once per account that received the message
+    const statKey = (accountId || "") + "\u0000" + sender + "\u0000" + remoteJid;
     let stat = stats.get(statKey);
     if (!stat) {
-      stat = { userJid: sender, chatJid: remoteJid, totalMessages: 0, otherMessages: 0, lastMessageAt: null };
+      stat = { accountId, userJid: sender, chatJid: remoteJid, totalMessages: 0, otherMessages: 0, lastMessageAt: null };
       for (const f of STAT_FIELDS) stat[f] = 0;
       stats.set(statKey, stat);
     }
@@ -281,17 +295,18 @@ function aggregateBatch(batch) {
   };
 }
 
-// one multi-row INSERT ... ON CONFLICT DO UPDATE (sqlite >= 3.24 and postgres)
+// one multi-row INSERT ... ON CONFLICT DO UPDATE (sqlite >= 3.24 and postgres).
+// every row needs an accountId: a NULL never conflicts, so it would insert again on every flush
 async function upsertStats(stats, transaction) {
   const qg = config.sequelize.getQueryInterface().queryGenerator;
   const q = (name) => qg.quoteIdentifier(name);
   const table = qg.quoteTable(UserStats.getTableName());
   const counters = ["totalMessages", ...STAT_FIELDS, "otherMessages"];
-  const cols = ["userJid", "chatJid", ...counters, "lastMessageAt", "createdAt", "updatedAt"];
+  const cols = ["accountId", "userJid", "chatJid", ...counters, "lastMessageAt", "createdAt", "updatedAt"];
   const replacements = [];
   const now = new Date();
   const values = stats.map((s) => {
-    replacements.push(s.userJid, s.chatJid, ...counters.map((c) => s[c]), s.lastMessageAt, now, now);
+    replacements.push(s.accountId, s.userJid, s.chatJid, ...counters.map((c) => s[c]), s.lastMessageAt, now, now);
     return `(${cols.map(() => "?").join(",")})`;
   });
   const updates = [
@@ -301,17 +316,19 @@ async function upsertStats(stats, transaction) {
   ];
   await config.sequelize.query(
     `INSERT INTO ${table} (${cols.map(q).join(",")}) VALUES ${values.join(",")} ` +
-      `ON CONFLICT (${q("userJid")}, ${q("chatJid")}) DO UPDATE SET ${updates.join(", ")}`,
+      `ON CONFLICT (${q("accountId")}, ${q("userJid")}, ${q("chatJid")}) DO UPDATE SET ${updates.join(", ")}`,
     { replacements, transaction },
   );
 }
 
-// fallback for old databases created without the (userJid, chatJid) unique index
+// fallback for databases without the unique index, and the path for rows with no account
+// (a message stored outside any session): those are the legacy NULL rows. the flush runs
+// unscoped, so the account goes into the where clause by hand
 async function upsertStatsSlow(stats, transaction) {
   for (const s of stats) {
     const [row] = await UserStats.findOrCreate({
-      where: { userJid: s.userJid, chatJid: s.chatJid },
-      defaults: { userJid: s.userJid, chatJid: s.chatJid },
+      where: { accountId: s.accountId, userJid: s.userJid, chatJid: s.chatJid },
+      defaults: { accountId: s.accountId, userJid: s.userJid, chatJid: s.chatJid },
       transaction,
     });
     const by = { totalMessages: s.totalMessages, otherMessages: s.otherMessages };
@@ -327,22 +344,32 @@ async function persistBatch(batch) {
     await Chat.bulkCreate(chats, { ignoreDuplicates: true, transaction });
     await User.bulkCreate(users, { ignoreDuplicates: true, transaction });
     await AntiDeleteCache.bulkCreate(cacheRows, { ignoreDuplicates: true, transaction });
-    if (statsUpsertSupported) {
-      try {
-        await upsertStats(stats, transaction);
-        return;
-      } catch (err) {
-        if (!/ON CONFLICT|conflict|unique|constraint/i.test(err.message || "")) throw err;
-        statsUpsertSupported = false;
-        logger.warn({ err: err.message }, "UserStats upsert unsupported, using slow path");
-        throw err; // abort this transaction; the retry below runs the slow path
+    const withAccount = stats.filter((s) => s.accountId);
+    const withoutAccount = stats.filter((s) => !s.accountId);
+    if (withAccount.length) {
+      if (statsUpsertSupported) {
+        try {
+          await upsertStats(withAccount, transaction);
+        } catch (err) {
+          if (!/ON CONFLICT|conflict|unique|constraint/i.test(err.message || "")) throw err;
+          statsUpsertSupported = false;
+          logger.warn({ err: err.message }, "UserStats upsert unsupported, using slow path");
+          throw err; // abort this transaction; the retry below runs the slow path
+        }
+      } else {
+        await upsertStatsSlow(withAccount, transaction);
       }
     }
-    await upsertStatsSlow(stats, transaction);
+    if (withoutAccount.length) await upsertStatsSlow(withoutAccount, transaction);
   });
 }
 
-async function flushMessageQueue() {
+// runs for every account's messages at once, so never as one session
+function flushMessageQueue() {
+  return context.runUnscoped(flushQueued);
+}
+
+async function flushQueued() {
   // never run two flushes at once: overlapping transactions fight over the sqlite lock
   if (flushing || messageQueue.length === 0) return;
   flushing = true;
@@ -409,6 +436,8 @@ async function storeMessage(msgData) {
 
   // Add mappedType to msgData for use in saveMessageToDB
   msgData._mappedType = mappedType;
+  // the flush runs outside any session, so remember whose message this is now
+  msgData._accountId = context.accountId();
 
   // Safety bound: prevent unbounded memory growth if database writes are delayed
   if (messageQueue.length > 5000) {
@@ -418,9 +447,12 @@ async function storeMessage(msgData) {
   messageQueue.push(msgData);
 }
 
+// per account: the same user in the same group is tracked separately for each session
+const spamKey = (userJid, chatJid) => `${context.accountId() || "_"}:${userJid}_${chatJid}`;
+
 async function trackSpamMessage(userJid, chatJid, messageId) {
   if (!userJid || !chatJid || !messageId) return;
-  const key = `${userJid}_${chatJid}`;
+  const key = spamKey(userJid, chatJid);
   const now = Date.now();
   if (!spamTracker.has(key)) spamTracker.set(key, []);
   const entries = spamTracker.get(key);
@@ -429,7 +461,7 @@ async function trackSpamMessage(userJid, chatJid, messageId) {
 }
 
 async function getRecentMessageCount(userJid, chatJid, timeWindowMs) {
-  const key = `${userJid}_${chatJid}`;
+  const key = spamKey(userJid, chatJid);
   const cutoff = Date.now() - timeWindowMs;
   const entries = spamTracker.get(key) || [];
   return entries.filter((ts) => ts >= cutoff).length;
@@ -531,9 +563,10 @@ async function getTopUsers(chatJid, limit = 10) {
   }
 }
 
+// users this account has seen (Users itself is shared by every account)
 async function getTotalUserCount() {
   try {
-    const count = await User.count();
+    const count = await UserStats.count({ distinct: true, col: "userJid" });
     return count;
   } catch (error) {
     console.error("Error getting total user count:", error);
@@ -639,7 +672,7 @@ async function fetchRecentChats(limit = 10) {
           [Op.ne]: null, // Only chats with actual messages
         },
       },
-      group: ["chatJid"],
+      group: ["chatJid", "Chat.jid", "Chat.type", "Chat.name", "Chat.isActive"],
       order: [
         [
           config.sequelize.fn("MAX", config.sequelize.col("lastMessageAt")),
@@ -807,7 +840,8 @@ function initializeCleanupIntervals() {
   cleanupIntervals.antiDeleteCache = setInterval(
     async () => {
       try {
-        await cleanupAntiDeleteCache();
+        // expires every account's rows
+        await context.runUnscoped(() => cleanupAntiDeleteCache());
       } catch (error) {
         console.error("Error in anti-delete cache cleanup interval:", error);
       }

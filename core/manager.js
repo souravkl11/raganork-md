@@ -2,6 +2,8 @@ const { WhatsAppBot } = require("./bot");
 const { logger, SESSION } = require('../config');
 const { sequelize } = require("./database");
 const { CustomAuthState } = require("./auth");
+const migrator = require("./db/migrator");
+const configStore = require("./config/store");
 const { flushQueueOnShutdown, stopFlushTimer } = require("./store");
 const config = require("../config");
 const { createAnnouncementFeed } = require("./private");
@@ -43,8 +45,9 @@ class BotManager {
 
         const sentTo = new Set();
         for (const bot of this.connectedBots()) {
-            const owner = config.SUDO
-                ? config.SUDO.split(",")[0].trim() + "@s.whatsapp.net"
+            const sudo = bot.inSession ? bot.inSession(() => config.SUDO) : config.SUDO;
+            const owner = sudo
+                ? sudo.split(",")[0].trim() + "@s.whatsapp.net"
                 : bot.sock.user?.id?.split(":")[0] + "@s.whatsapp.net";
             if (sentTo.has(owner)) continue;
             sentTo.add(owner);
@@ -58,13 +61,37 @@ class BotManager {
 
     async initializeBots() {
         logger.info({ sessions: SESSION }, `Initializing all configured bots.`);
-        await CustomAuthState.deleteGarbageSessions(SESSION);        
+        await CustomAuthState.deleteGarbageSessions(SESSION);
+        // 1. every bot loads its auth, so the account ids are known
+        const loaded = [];
+        // one entry per configured session, in SESSION order. `resolved` is true only when
+        // the account id came from the login (creds.me.id): a session that failed to load,
+        // or has not logged in yet, is unresolved and keeps data migrations from guessing
+        const accounts = [];
         for (const sessionId of SESSION) {
             try {
                 logger.info({ session: sessionId }, `Attempting to initialize bot for session.`);
                 const bot = new WhatsAppBot(sessionId);
                 bot.manager = this;
-                await bot.initialize(); 
+                await bot.loadAuth();
+                loaded.push(bot);
+                accounts.push({ sessionId, accountId: bot.accountId, resolved: Boolean(bot.accountResolved) });
+            } catch (error) {
+                accounts.push({ sessionId, accountId: null, resolved: false });
+                logger.error({ session: sessionId, err: error }, `Overall failure to initialize bot in BotManager`);
+            }
+        }
+
+        // 2. data migrations and per-session settings, before any socket delivers a message.
+        // a failure here aborts boot (the error says which migration)
+        await migrator.runStage("data", { accounts });
+        await configStore.reloadSessions();
+
+        // 3. connect
+        for (const bot of loaded) {
+            const sessionId = bot.sessionId;
+            try {
+                await bot.connect();
                 if (bot.sock) { 
                     this.bots.set(sessionId, bot);
                     logger.info({ session: sessionId }, `Bot initialization scheduled. Connection status will follow.`);

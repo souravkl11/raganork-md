@@ -512,6 +512,24 @@ class CustomAuthState {
     }
   }
 
+  // the phone number the session is logged in as. creds.me.id looks like
+  // "<digits>:<device>@s.whatsapp.net"; before the first login (or if it looks odd)
+  // the session id stands in
+  getAccountId() {
+    return this._accountDigits() || this.sessionId;
+  }
+
+  // false while getAccountId() is only the session id standing in
+  hasAccountId() {
+    return this._accountDigits() !== null;
+  }
+
+  _accountDigits() {
+    const id = this.sessionData.creds?.me?.id;
+    const head = typeof id === "string" ? id.split(/[:@]/)[0] : "";
+    return /^\d+$/.test(head) ? head : null;
+  }
+
   async saveSession() {
     await flushSession(this.sessionId, this.sessionData);
   }

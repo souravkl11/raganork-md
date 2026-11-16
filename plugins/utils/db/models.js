@@ -1,7 +1,9 @@
 const { DataTypes } = require("sequelize");
 const config = require("../../../config");
+const { scoped, accountColumn: accountId, accountOptions } = require("../../../core/db/scoped");
 
 const warnDB = config.sequelize.define("_warn", {
+  accountId,
   chat: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -23,25 +25,33 @@ const warnDB = config.sequelize.define("_warn", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
-});
+}, accountOptions("_warns"));
 
 const FakeDB = config.sequelize.define("fake", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("fakes"));
 
 // Legacy antilink table - will be removed
 const antilinkDB = config.sequelize.define("antilink", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("antilinks"));
 
 // New advanced antilink system
+// one row per (account, group): the old antilink_configs table is keyed by jid alone
 const AntilinkConfigDB = config.sequelize.define("antilink_config", {
+  accountId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    primaryKey: true,
+  },
   jid: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -84,51 +94,58 @@ const AntilinkConfigDB = config.sequelize.define("antilink_config", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
-});
+}, { tableName: "account_antilink_configs" });
 
 const antiSpamDB = config.sequelize.define("antispam", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("antispams"));
 
 const PDMDB = config.sequelize.define("pdm", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("pdms"));
 
 const antiDemote = config.sequelize.define("antidemote", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("antidemotes"));
 
 const antiPromote = config.sequelize.define("antipromote", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("antipromotes"));
 
 const antiBotDB = config.sequelize.define("antibot", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("antibots"));
 
 const antiWordDB = config.sequelize.define("antiword", {
+  accountId,
   jid: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-});
+}, accountOptions("antiwords"));
 
 const WelcomeDB = config.sequelize.define("welcome", {
+  accountId,
   jid: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -141,9 +158,10 @@ const WelcomeDB = config.sequelize.define("welcome", {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
-});
+}, accountOptions("welcomes"));
 
 const GoodbyeDB = config.sequelize.define("goodbye", {
+  accountId,
   jid: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -156,9 +174,10 @@ const GoodbyeDB = config.sequelize.define("goodbye", {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
-});
+}, accountOptions("goodbyes"));
 
 const FilterDB = config.sequelize.define("filter", {
+  accountId,
   trigger: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -191,7 +210,23 @@ const FilterDB = config.sequelize.define("filter", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-});
+}, accountOptions("filters"));
+
+[
+  warnDB,
+  FakeDB,
+  antilinkDB,
+  AntilinkConfigDB,
+  antiSpamDB,
+  PDMDB,
+  antiDemote,
+  antiPromote,
+  antiBotDB,
+  antiWordDB,
+  WelcomeDB,
+  GoodbyeDB,
+  FilterDB,
+].forEach(scoped);
 
 module.exports = {
   warnDB,

@@ -1,4 +1,5 @@
 const config = require("../config");
+const context = require("./context");
 const axios = require("axios");
 const cron = require("node-cron");
 const simpleGit = require("simple-git");
@@ -16,13 +17,19 @@ const { spawn } = require("child_process");
 const PRESENCE_INTERVAL = 10000;
 const UPDATE_INTERVAL = 120000;
 
-// db-wide cron jobs (automute, scheduled messages) run on one owner session only,
-// otherwise multi-session setups would send everything n times
+// cron jobs (automute, scheduled messages) per session: sessionId -> [task].
+// each session builds its tasks from its own rows, inside its own context
 const activeTasks = new Map();
-let ownerSessionId = null;
 
-// sessionId -> { client, presenceTimer }
+// sessionId -> { client, presenceTimer, session }
 const sessions = new Map();
+
+// rows with no account yet (before the backfill) are visible to every session, so only
+// one of them, the first to connect, may act on them or each would fire them
+function mayHandle(sessionId, row) {
+  if (row.accountId != null) return true;
+  return sessions.keys().next().value === sessionId;
+}
 
 let updateTimer = null;
 let updaterNotified = false;
@@ -39,20 +46,33 @@ function isNewerVersion(remote, local) {
   return false;
 }
 
-function destroyTasks() {
-  activeTasks.forEach((task) => {
+function destroyTasks(sessionId) {
+  const mine = activeTasks.get(sessionId);
+  if (!mine) return;
+  for (const task of mine) {
     try {
       task.destroy();
     } catch (_) {}
-  });
-  activeTasks.clear();
+  }
+  activeTasks.delete(sessionId);
+}
+
+function destroyAllTasks() {
+  for (const sessionId of [...activeTasks.keys()]) destroyTasks(sessionId);
+}
+
+function trackTask(sessionId, task) {
+  if (!activeTasks.has(sessionId)) activeTasks.set(sessionId, []);
+  activeTasks.get(sessionId).push(task);
 }
 
 async function notifyOwners(text) {
   const sent = new Set();
-  for (const { client } of sessions.values()) {
+  for (const { client, session } of sessions.values()) {
     const me = client.user?.id?.split(":")[0];
-    const owner = (config.SUDO || "").split(",")[0].trim() || me;
+    // SUDO is per session, so read it as that session
+    const sudo = session ? context.run(session, () => config.SUDO) : config.SUDO;
+    const owner = (sudo || "").split(",")[0].trim() || me;
     if (!owner || sent.has(owner)) continue;
     sent.add(owner);
     try {
@@ -61,7 +81,9 @@ async function notifyOwners(text) {
   }
 }
 
-async function buildTasks(client) {
+async function buildTasks(client, session, sessionId) {
+// timer callbacks run as the session that built the tasks
+const inSession = (fn) => (session ? context.run(session, fn) : fn());
 const setupMuteSchedules = async () => {
   const autoMutes = await automute.get();
   const muteTaskPromises = [];
@@ -73,26 +95,28 @@ const setupMuteSchedules = async () => {
   for (const record of autoMutes) {
     const [hours, mins] = record.dataValues.time.split(" ");
     const jid = record.dataValues.chat;
-    const taskName = `automute-${jid}`;
+    const row = record.dataValues;
 
     muteTaskPromises.push(
       new Promise((resolve) => {
         const task = cron.schedule(
           `${mins} ${hours} * * *`,
-          async () => {
-            try {
-              await client.groupSettingUpdate(jid, "announcement");
-              await client.sendMessage(jid, { text: config.AUTOMUTE_MSG });
-            } catch (error) {
-              console.error(`Error in automute task for ${jid}:`, error);
-            }
-          },
+          () =>
+            inSession(async () => {
+              if (!mayHandle(sessionId, row)) return;
+              try {
+                await client.groupSettingUpdate(jid, "announcement");
+                await client.sendMessage(jid, { text: config.AUTOMUTE_MSG });
+              } catch (error) {
+                console.error(`Error in automute task for ${jid}:`, error);
+              }
+            }),
           {
             scheduled: false,
           }
         );
 
-        activeTasks.set(taskName, task);
+        trackTask(sessionId, task);
 
         // Use setImmediate to defer the start to next event loop tick
         setImmediate(() => {
@@ -113,26 +137,28 @@ const setupMuteSchedules = async () => {
   for (const record of autoUnMutes) {
     const [hours, mins] = record.dataValues.time.split(" ");
     const jid = record.dataValues.chat;
-    const taskName = `autounmute-${jid}`;
+    const row = record.dataValues;
 
     muteTaskPromises.push(
       new Promise((resolve) => {
         const task = cron.schedule(
           `${mins} ${hours} * * *`,
-          async () => {
-            try {
-              await client.groupSettingUpdate(jid, "not_announcement");
-              await client.sendMessage(jid, { text: config.AUTOUNMUTE_MSG });
-            } catch (error) {
-              console.error(`Error in autounmute task for ${jid}:`, error);
-            }
-          },
+          () =>
+            inSession(async () => {
+              if (!mayHandle(sessionId, row)) return;
+              try {
+                await client.groupSettingUpdate(jid, "not_announcement");
+                await client.sendMessage(jid, { text: config.AUTOUNMUTE_MSG });
+              } catch (error) {
+                console.error(`Error in autounmute task for ${jid}:`, error);
+              }
+            }),
           {
             scheduled: false,
           }
         );
 
-        activeTasks.set(taskName, task);
+        trackTask(sessionId, task);
 
         // Use setImmediate to defer the start to next event loop tick
         setImmediate(() => {
@@ -154,15 +180,14 @@ const setupScheduledMessages = async () => {
     return;
   }
 
-  const taskName = "scheduled-messages";
-
   return new Promise((resolve) => {
     const task = cron.schedule(
       "* * * * *",
-      async () => {
+      () => inSession(async () => {
         try {
           const messagesToSend = await scheduledMessages.getDueForSending();
           for (const msg of messagesToSend) {
+            if (!mayHandle(sessionId, msg.dataValues)) continue;
             try {
               const jid = msg.dataValues.jid;
               let messageData;
@@ -196,13 +221,13 @@ const setupScheduledMessages = async () => {
         } catch (error) {
           console.error("Error in scheduled messages task:", error);
         }
-      },
+      }),
       {
         scheduled: false,
       }
     );
 
-    activeTasks.set(taskName, task);
+    trackTask(sessionId, task);
 
     // Use setImmediate to defer the start to next event loop tick
     setImmediate(() => {
@@ -407,7 +432,7 @@ async function sendOfflinePresence(sessionId) {
 
 function startUpdateChecker() {
   if (updateTimer) return;
-  updateTimer = setInterval(checkUpdates, UPDATE_INTERVAL);
+  updateTimer = setInterval(() => context.runUnscoped(checkUpdates), UPDATE_INTERVAL);
   updateTimer.unref?.();
 }
 
@@ -415,22 +440,19 @@ const Schedule = async (client, sessionId = client?.user?.id || "default") => {
   const existing = sessions.get(sessionId);
   if (existing?.presenceTimer) clearInterval(existing.presenceTimer);
 
+  // Schedule runs inside the session's connection.update; keep that context for the timers
+  const session = context.current();
   const presenceTimer = setInterval(
-    () => sendOfflinePresence(sessionId),
+    () => (session ? context.run(session, () => sendOfflinePresence(sessionId)) : sendOfflinePresence(sessionId)),
     PRESENCE_INTERVAL,
   );
   presenceTimer.unref?.();
-  sessions.set(sessionId, { client, presenceTimer });
+  sessions.set(sessionId, { client, presenceTimer, session });
 
-  if (!ownerSessionId || !sessions.has(ownerSessionId)) {
-    ownerSessionId = sessionId;
-  }
-  // rebuild cron jobs when the owner (re)connects so they bind to the live socket
+  // rebuild this session's cron jobs when it (re)connects so they bind to the live socket
   // and pick up rows added since the last connect
-  if (ownerSessionId === sessionId) {
-    destroyTasks();
-    await buildTasks(client);
-  }
+  destroyTasks(sessionId);
+  await buildTasks(client, session, sessionId);
 
   startUpdateChecker();
 };
@@ -441,18 +463,14 @@ Schedule.cleanup = async (sessionId) => {
     const entry = sessions.get(sessionId);
     if (entry?.presenceTimer) clearInterval(entry.presenceTimer);
     sessions.delete(sessionId);
-    if (ownerSessionId === sessionId) {
-      destroyTasks();
-      ownerSessionId = null;
-    }
+    destroyTasks(sessionId);
     return;
   }
   for (const entry of sessions.values()) {
     if (entry.presenceTimer) clearInterval(entry.presenceTimer);
   }
   sessions.clear();
-  destroyTasks();
-  ownerSessionId = null;
+  destroyAllTasks();
   if (updateTimer) clearInterval(updateTimer);
   updateTimer = null;
 };

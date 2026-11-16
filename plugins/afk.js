@@ -2,6 +2,7 @@ const { Module } = require("../main");
 const { isAdmin } = require("./utils");
 const config = require("../config");
 const { setVar, getVar, delVar } = require("./manage");
+const context = require("../core/context");
 
 const afkCache = new Map();
 
@@ -113,7 +114,9 @@ async function saveAFKData() {
         messageCount: userData.messageCount,
       };
     }
-    await setVar("AFK_DATA", JSON.stringify(afkData));
+    // afkCache is one per process and is loaded from the global row at startup,
+    // so it is saved there too, whichever session triggered the save
+    await context.runUnscoped(() => setVar("AFK_DATA", JSON.stringify(afkData)));
   } catch (error) {
     console.error("Error saving AFK data:", error);
   }

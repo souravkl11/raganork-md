@@ -91,10 +91,41 @@ const BotVariable = sequelize.define('BotVariable', {
     timestamps: true
 });
 
-async function initializeDatabase() {
+// per-session overrides of bot_variables, keyed by account (phone number).
+// the table is created by migration 001-session-variables
+const SessionVariable = sequelize.define('SessionVariable', {
+    accountId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false
+    },
+    key: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        allowNull: false
+    },
+    value: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    }
+}, {
+    tableName: 'session_variables',
+    timestamps: true
+});
+
+// memoized: index.js and the plugin loader both call it, and every table sync must
+// wait for the schema migrations (they add columns that model indexes refer to)
+let initializing = null;
+function initializeDatabase() {
+    if (!initializing) initializing = runInitializeDatabase();
+    return initializing;
+}
+
+async function runInitializeDatabase() {
     try {
         await sequelize.authenticate();
         logger.info('Database connection established.');
+        await require('./db/migrator').runStage('schema');
         await WhatsappSession.sync();
         await ensureColumns(WhatsappSession, {
             creds: { type: DataTypes.TEXT, allowNull: true },
@@ -139,12 +170,8 @@ async function migrateSudoToLID(client) {
             }
             
             if (lids.length > 0) {
-                await BotVariable.upsert({
-                    key: 'SUDO_MAP',
-                    value: JSON.stringify(lids)
-                });
-
-                config.SUDO_MAP = JSON.stringify(lids);
+                // inside a session this becomes that session's SUDO_MAP, outside it the global one
+                await require('./config/store').set('SUDO_MAP', JSON.stringify(lids), { persist: true });
                 logger.info(`Successfully migrated ${lids.length} SUDO entries to SUDO_MAP`);
             }
         } catch (error) {
@@ -158,6 +185,7 @@ module.exports = {
     WhatsappSession,
     WhatsappSessionKey,
     BotVariable,
+    SessionVariable,
     ensureColumns,
     initializeDatabase,
     migrateSudoToLID

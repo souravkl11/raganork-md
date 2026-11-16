@@ -33,6 +33,7 @@ const { handler, groupUpdate, startEvent } = require("./handler");
 const { getFullMessage, AntiDeleteCache, storeMessage } = require("./store");
 const { getSudoMap } = require("./sudo");
 const config = require("../config");
+const context = require("./context");
 const Schedule = require("./schedulers");
 const Jimp = require("jimp");
 const qrcode = require("qrcode-terminal");
@@ -279,22 +280,6 @@ class SafeNodeCache extends NodeCache {
   }
 }
 
-const groupCache = new SafeNodeCache({
-  stdTTL: 5 * 60, // 5 minutes
-  maxLimit: 2000, // soft limit with graceful batch FIFO eviction
-  useClones: false,
-  checkperiod: 60,
-  deleteOnExpire: true,
-});
-
-const contactCache = new SafeNodeCache({
-  stdTTL: 10 * 60, // 10 minutes
-  maxLimit: 5000, // soft limit with graceful batch FIFO eviction
-  useClones: false,
-  checkperiod: 60, // expire keys every minute
-  deleteOnExpire: true,
-});
-
 // resolved once per process: WA_VERSION env ("2.3000.x") > latest published > baileys default
 let waVersionPromise = null;
 function resolveWaVersion() {
@@ -339,6 +324,10 @@ class WhatsAppBot {
 
   constructor(sessionId) {
     this.sessionId = sessionId;
+    // the phone number once auth is loaded; until then the session id
+    this.accountId = sessionId;
+    // false while accountId is only the session id (no login yet)
+    this.accountResolved = false;
     this.sock = null;
     this.authState = null;
     this.isConnected = false;
@@ -353,9 +342,23 @@ class WhatsAppBot {
     this.stopReason = null; // "logged_out" | "replaced" | null
     this.lastSlowRetryLogAt = 0;
 
-    this.groupCache = groupCache;
-    this.contactCache = contactCache;
-    // per session: short ttl cache used by getMessage retries, anti-delete and albums
+    // per session: two sessions can share a group or a contact, and their
+    // metadata and push names are not the same
+    this.groupCache = new SafeNodeCache({
+      stdTTL: 5 * 60,
+      maxLimit: 2000, // soft limit with graceful batch FIFO eviction
+      useClones: false,
+      checkperiod: 60,
+      deleteOnExpire: true,
+    });
+    this.contactCache = new SafeNodeCache({
+      stdTTL: 10 * 60,
+      maxLimit: 5000,
+      useClones: false,
+      checkperiod: 60,
+      deleteOnExpire: true,
+    });
+    // short ttl cache used by getMessage retries, anti-delete and albums
     this.messageCache = new SafeNodeCache({
       stdTTL: 2 * 60,
       maxLimit: 3000,
@@ -431,7 +434,16 @@ class WhatsAppBot {
       });
     }, delay);
   }
+  // a fresh start or a reconnect: auth, then socket
   async initialize() {
+    await this.loadAuth();
+    await this.connect();
+  }
+
+  // reads the session from the database (or the session backend) and works out the
+  // account id. no socket yet: the boot sequence runs the data migrations between
+  // loadAuth() and connect(), once every account id is known
+  async loadAuth() {
     try {
       // Wait for baileys to be loaded first
       await baileysPromise;
@@ -462,6 +474,28 @@ class WhatsAppBot {
         throw new Error(
           `No valid session found for ${this.sessionId}. Please use a supported login method.`,
         );
+      }
+      this.accountId = this.authState.getAccountId();
+      this.accountResolved = this.authState.hasAccountId();
+    } catch (error) {
+      logger.error(
+        { session: this.sessionId, err: error },
+        `Failed to initialize bot`,
+      );
+      console.error(
+        `[${this.sessionId}] ERROR: Failed to initialize bot. Details:`,
+        error.message,
+      );
+      throw error;
+    }
+  }
+
+  // opens the socket with the auth that loadAuth() read
+  async connect() {
+    try {
+      await baileysPromise;
+      if (!this.authState) {
+        throw new Error(`Auth for ${this.sessionId} is not loaded, call loadAuth() first`);
       }
       const version = await resolveWaVersion();
       this._teardownSocket();
@@ -532,9 +566,24 @@ class WhatsAppBot {
     }
   }
 
+  // what every socket event and timer of this session runs inside of
+  _sessionContext() {
+    this.accountId = this.authState?.getAccountId?.() || this.accountId;
+    return { sessionId: this.sessionId, accountId: this.accountId, bot: this };
+  }
+
+  inSession(fn) {
+    return context.run(this._sessionContext(), fn);
+  }
+
+  // like sock.ev.on, but the listener runs in this session's context
+  _on(event, listener) {
+    this.sock.ev.on(event, (...args) => this.inSession(() => listener(...args)));
+  }
+
   setupEventHandlers() {
     // Connection updates
-    this.sock.ev.on("connection.update", async (update) => {
+    this._on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
       if (qr) {
         logger.info(
@@ -1209,7 +1258,7 @@ class WhatsAppBot {
         };
       }
     }); // Credential updates - handle both auth methods properly
-    this.sock.ev.on("creds.update", async (newCreds) => {
+    this._on("creds.update", async (newCreds) => {
       try {
         logger.info(
           { session: this.sessionId },
@@ -1227,7 +1276,7 @@ class WhatsAppBot {
       { session: this.sessionId },
       `Using database auth credentials handler`,
     );
-    this.sock.ev.on("call", async (callUpdate) => {
+    this._on("call", async (callUpdate) => {
       try {
         logger.info({ session: this.sessionId }, `Incoming call.`);
         if (config.REJECT_CALLS === true) {
@@ -1299,7 +1348,7 @@ class WhatsAppBot {
     });
 
     // Enhanced caching event handlers with better error handling
-    this.sock.ev.on("groups.update", (updates) => {
+    this._on("groups.update", (updates) => {
       for (const update of updates) {
         if (update.id) {
           this.sock
@@ -1321,7 +1370,7 @@ class WhatsAppBot {
       }
     });
 
-    this.sock.ev.on("group-participants.update", async (update) => {
+    this._on("group-participants.update", async (update) => {
       try {
         await groupUpdate(this.sock, update);
         const metadata = await this.sock.groupMetadata(update.id);
@@ -1338,7 +1387,7 @@ class WhatsAppBot {
       }
     });
 
-    this.sock.ev.on("contacts.update", (updates) => {
+    this._on("contacts.update", (updates) => {
       for (const contact of updates) {
         if (contact.id) {
           this.contactCache.set(contact.id, contact);
@@ -1350,7 +1399,7 @@ class WhatsAppBot {
       }
     });
 
-    this.sock.ev.on("messages.upsert", async (upsert) => {
+    this._on("messages.upsert", async (upsert) => {
       // Cache messages with better validation
       for (const message of upsert.messages) {
         if (message.key && message.key.id && message.key.remoteJid) {
@@ -1377,7 +1426,7 @@ class WhatsAppBot {
       }
     });
 
-    this.sock.ev.on("contacts.upsert", (contacts) => {
+    this._on("contacts.upsert", (contacts) => {
       for (const contact of contacts) {
         if (contact.id) {
           this.contactCache.set(contact.id, contact);
@@ -1386,7 +1435,7 @@ class WhatsAppBot {
     });
 
     // FIXED: Better message update handling with validation
-    this.sock.ev.on("messages.update", async (updates) => {
+    this._on("messages.update", async (updates) => {
       for (const update of updates) {
         if (!update.key || !update.key.remoteJid || !update.key.id) {
           continue; // Skip invalid updates
@@ -1430,7 +1479,9 @@ class WhatsAppBot {
       return;
 
     const cacheKey = `${remoteJid}_${id}`;
-    if (seenRecently(cacheKey)) return;
+    // revoke events repeat per session: each session recovers the message once
+    const dedupeKey = `${this.accountId}:${cacheKey}`;
+    if (seenRecently(dedupeKey)) return;
 
     try {
       let recovered = this.messageCache.get(cacheKey);
@@ -1439,7 +1490,7 @@ class WhatsAppBot {
         if (full?.found) recovered = full.messageData;
       }
       if (!recovered || !this.isConnected) {
-        recentlyRecovered.delete(cacheKey);
+        recentlyRecovered.delete(dedupeKey);
         return;
       }
 
@@ -1447,7 +1498,7 @@ class WhatsAppBot {
         recovered.key?.fromMe &&
         String(config.ANTI_DELETE_OWN) !== "true"
       ) {
-        recentlyRecovered.delete(cacheKey);
+        recentlyRecovered.delete(dedupeKey);
         return;
       }
 
@@ -1500,7 +1551,7 @@ class WhatsAppBot {
         throw error;
       }
     } catch (error) {
-      recentlyRecovered.delete(cacheKey);
+      recentlyRecovered.delete(dedupeKey);
       throw error;
     }
   }

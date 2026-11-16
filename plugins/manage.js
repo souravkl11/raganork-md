@@ -47,6 +47,7 @@ const config = require("../config");
 const { settingsMenu } = config;
 const fs = require("fs");
 const configStore = require("../core/config/store");
+const context = require("../core/context");
 const { needsRestart } = require("../core/config/schema");
 
 const { helpPrefix } = require("../core/plugins/registry");
@@ -68,10 +69,18 @@ async function setVar(key, value, message = false) {
 }
 
 async function delVar(key, message = false) {
-  await configStore.unset(key.trim(), { persist: true });
+  const name = key.trim();
+  // inside a session this removes the session's own value first; when it has none,
+  // the global value is the one the owner means, so delete that instead
+  let removed = await configStore.unset(name, { persist: true });
+  if (!removed && context.accountId()) {
+    removed = await context.runUnscoped(() => configStore.unset(name, { persist: true }));
+  }
   if (message) {
     await message.sendReply(
-      `_${key.trim()} deleted successfully!_${restartNote(key.trim())}`
+      removed
+        ? `_${name} deleted successfully!_${restartNote(name)}`
+        : `_${name} is not set._`
     );
   }
   return true;

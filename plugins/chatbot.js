@@ -2,13 +2,16 @@ const { Module } = require("../main");
 const config = require("../config");
 const axios = require("axios");
 const { setVar } = require("./manage");
+const context = require("../core/context");
 const fs = require("fs");
 
 const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 const MODEL = "gemma-4-31b-it";
 const models = [MODEL];
 const chatbotStates = new Map();
+// conversation history per (account, chat): two sessions in one chat do not share it
 const chatContexts = new Map();
+const contextKey = (jid) => `${context.accountId() || "_"}:${jid}`;
 
 let globalSystemPrompt =
   "You are a helpful AI assistant named Raganork. Be concise, friendly, and informative.";
@@ -40,7 +43,9 @@ async function saveChatbotData() {
         enabledChats.push(jid);
       }
     }
-    await setVar("CHATBOT", enabledChats.join(","));
+    // chatbotStates is one per process and is loaded from the global row at startup,
+    // so it is saved there too, whichever session triggered the save
+    await context.runUnscoped(() => setVar("CHATBOT", enabledChats.join(",")));
   } catch (error) {
     console.error("Error saving chatbot data:", error);
   }
@@ -49,7 +54,7 @@ async function saveChatbotData() {
 async function saveSystemPrompt(prompt) {
   try {
     globalSystemPrompt = prompt;
-    await setVar("CHATBOT_SYSTEM_PROMPT", prompt);
+    await context.runUnscoped(() => setVar("CHATBOT_SYSTEM_PROMPT", prompt));
   } catch (error) {
     console.error("Error saving system prompt:", error);
   }
@@ -169,7 +174,7 @@ async function getAIResponse(message, chatJid, imageBuffer = null) {
   }
 
   try {
-    const context = chatContexts.get(chatJid) || [];
+    const context = chatContexts.get(contextKey(chatJid)) || [];
     const contents = [];
 
     const recentContext = context.slice(-10);
@@ -203,15 +208,15 @@ async function getAIResponse(message, chatJid, imageBuffer = null) {
     const response = await callGemmaAPI(apiKey, contents, globalSystemPrompt);
     const aiResponse = extractResponseText(response.data);
     if (aiResponse) {
-      if (!chatContexts.has(chatJid)) {
+      if (!chatContexts.has(contextKey(chatJid))) {
         // Prevent unbounded memory growth if interacting across thousands of chats
         if (chatContexts.size >= 500) {
           const oldestChatKey = chatContexts.keys().next().value;
           if (oldestChatKey) chatContexts.delete(oldestChatKey);
         }
-        chatContexts.set(chatJid, []);
+        chatContexts.set(contextKey(chatJid), []);
       }
-      const contextArray = chatContexts.get(chatJid);
+      const contextArray = chatContexts.get(contextKey(chatJid));
       const contextMessage = imageBuffer
         ? `${message} [Image included]`
         : message;
@@ -268,12 +273,12 @@ async function enableChatbot(jid) {
 async function disableChatbot(jid) {
   chatbotStates.set(jid, false);
 
-  chatContexts.delete(jid);
+  chatContexts.delete(contextKey(jid));
   await saveChatbotData();
 }
 
 function clearContext(jid) {
-  chatContexts.delete(jid);
+  chatContexts.delete(contextKey(jid));
 }
 
 async function clearAllContexts(target) {
@@ -311,7 +316,7 @@ Module(
       const globalGroups = config.CHATBOT_ALL_GROUPS === "true";
       const globalDMs = config.CHATBOT_ALL_DMS === "true";
       const currentModel = MODEL;
-      const contextSize = chatContexts.get(chatJid)?.length || 0;
+      const contextSize = chatContexts.get(contextKey(chatJid))?.length || 0;
       const hasApiKey = !!config.GEMINI_API_KEY;
 
       const helpText =
@@ -477,7 +482,7 @@ Module(
         const globalGroups = config.CHATBOT_ALL_GROUPS === "true";
         const globalDMs = config.CHATBOT_ALL_DMS === "true";
         const currentModel = MODEL;
-        const contextSize = chatContexts.get(chatJid)?.length || 0;
+        const contextSize = chatContexts.get(contextKey(chatJid))?.length || 0;
         const isGroup = chatJid.includes("@g.us");
 
         let enabledReason = "";
