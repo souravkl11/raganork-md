@@ -1,6 +1,5 @@
 const { Module } = require("../main");
 const { isAdmin } = require("./utils");
-const config = require("../config");
 Module(
   {
     pattern: "react ?(.*)",
@@ -8,18 +7,10 @@ Module(
     use: "whatsapp",
   },
   async (m, t) => {
-    let msg = {
-      remoteJid: m.reply_message?.jid,
-      id: m.reply_message.id,
-    };
-    const reactionMessage = {
-      react: {
-        text: t[1],
-        key: msg,
-      },
-    };
-
-    await m.client.sendMessage(m.jid, reactionMessage);
+    if (!m.quoted) return await m.sendReply("_Reply to a message_");
+    await m.client.sendMessage(m.jid, {
+      react: { text: t[1], key: m.quoted.key },
+    });
   }
 );
 Module(
@@ -34,6 +25,22 @@ Module(
     }
   }
 );
+const forwardTo = (command, forwarded) => async (m, t) => {
+  if (!m.reply_message) return await m.sendReply("_Reply to a message_");
+  const query = t[1] || m.jid;
+  const jidMap = query.split(" ").filter((x) => x.includes("@"));
+  if (!jidMap.length) {
+    return await m.sendReply(
+      `_No valid JID found in the query, use \`${command} jid1 jid2 ...\`_`
+    );
+  }
+  const contextInfo = forwarded
+    ? { isForwarded: true, forwardingScore: 2 }
+    : { isForwarded: false };
+  for (const jid of jidMap) {
+    await m.forwardMessage(jid, m.quoted, { contextInfo });
+  }
+};
 Module(
   {
     pattern: "send ?(.*)",
@@ -41,21 +48,7 @@ Module(
     desc: "Forwards replied message to the given jid",
     use: "whatsapp",
   },
-  async (m, t) => {
-    if (!m.reply_message) return await m.sendReply("_Reply to a message_");
-    const query = t[1] || m.jid;
-    const jidMap = query.split(" ").filter((x) => x.includes("@"));
-    if (!jidMap.length) {
-      return await m.sendReply(
-        "_No valid JID found in the query, use `send jid1 jid2 ...`_"
-      );
-    }
-    for (const jid of jidMap) {
-      await m.forwardMessage(jid, m.quoted, {
-        contextInfo: { isForwarded: false },
-      });
-    }
-  }
+  forwardTo("send", false)
 );
 Module(
   {
@@ -64,33 +57,29 @@ Module(
     desc: "Forwards replied message to the given jid",
     use: "whatsapp",
   },
-  async (m, t) => {
-    if (!m.reply_message) return await m.sendReply("_Reply to a message_");
-    const query = t[1] || m.jid;
-    const jidMap = query.split(" ").filter((x) => x.includes("@"));
-    if (!jidMap.length) {
-      return await m.sendReply(
-        "_No valid JID found in the query, use `forward jid1 jid2 ...`_"
-      );
-    }
-    for (const jid of jidMap) {
-      await m.forwardMessage(jid, m.quoted, {
-        contextInfo: { isForwarded: true, forwardingScore: 2 },
-      });
-    }
-  }
+  forwardTo("forward", true)
 );
 Module(
   {
     pattern: "retry ?(.*)",
+    fromMe: true,
     desc: "Retries replied command to run the command again",
     use: "misc",
   },
   async (m, t) => {
     if (!m.reply_message)
       return await m.sendReply("_Reply to a command message_");
+    const { key, message } = m.quoted;
+    if (key.fromMe && !m.fromMe) {
+      return await m.sendReply("_Only the owner can retry the bot's own messages_");
+    }
+    // the quoted key carries the original sender; remoteJidAlt keeps a phone-jid DM resolvable
+    const original = {
+      key: { ...key, remoteJidAlt: m.data.key.remoteJidAlt },
+      message,
+    };
     await m.client.ev.emit("messages.upsert", {
-      messages: [m.quoted],
+      messages: [original],
       type: "notify",
     });
   }
@@ -150,20 +139,14 @@ Module(
   {
     pattern: "delete",
     fromMe: true,
-    desc: "Deletes message for everyone. Supports admin deletion",
+    desc: "Deletes message for everyone",
   },
   async (m, t) => {
-    let adminAccesValidated = config.ADMIN_ACCESS ? await isAdmin(m, m.sender) : false;
     if (!m.reply_message) return;
-    if (m.fromOwner || adminAccesValidated) {
-      m.jid = m.quoted.key.remoteJid;
-      if (m.quoted.key.fromMe)
-        return await m.client.sendMessage(m.jid, { delete: m.quoted.key });
-      if (!m.quoted.key.fromMe) {
-        var admin = await isAdmin(m);
-        if (!admin) return await m.sendReply("_I'm not an admin!_");
-        return await m.client.sendMessage(m.jid, { delete: m.quoted.key });
-      }
+    m.jid = m.quoted.key.remoteJid;
+    if (!m.quoted.key.fromMe && !(await isAdmin(m))) {
+      return await m.sendReply("_I'm not an admin!_");
     }
+    return await m.client.sendMessage(m.jid, { delete: m.quoted.key });
   }
 );

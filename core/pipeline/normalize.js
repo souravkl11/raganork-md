@@ -1,0 +1,77 @@
+// turns a raw messages.upsert batch into the envelope every pipeline stage works on.
+// the envelope is a plain object; stages add their own fields to it.
+//
+//   raw         the upsert payload as Baileys delivered it
+//   msg         raw.messages[0] (the pipeline reads only the first message, as it always has)
+//   sock        the Baileys socket of the session this message arrived on
+//   jid         chat jid
+//   sender      who sent it, as permissions see it (identity.senderOf)
+//   botNumber   digits of the bot's own lid
+//   isGroup     group chat
+//   isPM        a private chat (not a group, not the status feed)
+//   fromMe      sent from the bot's own account
+//   type        first key of msg.message
+//   text        the message text, "" or false when there is none; filled in by extractText
+//   parsedText  text with the command's first characters normalised (see parseText)
+const { isGroup, isStatus, senderOf, botIds } = require("../identity");
+
+// null when the batch has nothing the bot can act on
+function normalize(raw, sock) {
+  const msg = raw?.messages?.[0];
+  if (!msg || !msg.key.remoteJid || !msg.message) return null;
+  const sender = senderOf(msg, sock);
+  if (!sender) return null;
+  const jid = msg.key.remoteJid;
+  return {
+    raw,
+    msg,
+    sock,
+    jid,
+    sender,
+    botNumber: botIds(sock).lidNumber,
+    isGroup: isGroup(jid),
+    isPM: !isGroup(jid) && !isStatus(jid),
+    fromMe: msg.key.fromMe,
+    type: Object.keys(msg.message)[0],
+    text: false,
+    parsedText: null,
+  };
+}
+
+// text of the message, or the id of a button the bot itself sent. a sticker has no text:
+// `sticker: true` tells the sticker-cmd stage to look it up. the order of the branches
+// is the order the old handler checked them in, and the first one present wins.
+function extractText(env) {
+  const { msg, botNumber } = env;
+  const m = msg.message;
+  const fromBotButton = (reply) =>
+    reply?.contextInfo?.participant &&
+    reply.contextInfo.participant.split("@")[0] === botNumber;
+
+  if (m?.conversation) return { text: m.conversation };
+  if (m?.extendedTextMessage) return { text: m.extendedTextMessage.text };
+  if (m?.imageMessage?.caption) return { text: m.imageMessage.caption };
+  if (fromBotButton(m?.interactiveResponseMessage)) {
+    return {
+      text: JSON.parse(m.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson).id,
+    };
+  }
+  if (fromBotButton(m?.templateButtonReplyMessage)) {
+    return { text: m.templateButtonReplyMessage.selectedId };
+  }
+  if (m?.videoMessage?.caption) return { text: m.videoMessage.caption };
+  if (m?.stickerMessage) return { text: false, sticker: true };
+  return { text: false };
+}
+
+// lower-cases the first character and removes a space after it (so "A ping" and
+// "a ping" match the same pattern); the second character is lower-cased too
+function parseText(text) {
+  if (!text) return null;
+  const splitText = text.charAt(0).toLowerCase() + text.slice(1);
+  const sCorrect =
+    splitText.charAt(0) + splitText.charAt(1).replace(" ", "") + splitText.slice(2);
+  return splitText.charAt(0) + sCorrect.charAt(1).toLowerCase() + sCorrect.slice(2);
+}
+
+module.exports = { normalize, extractText, parseText };

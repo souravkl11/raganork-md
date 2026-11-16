@@ -1,28 +1,24 @@
 const { commands, Module } = require("../main");
 const { VERSION } = require("../config");
 const config = require("../config");
-const { helpPrefix } = require("../core/plugins/registry");
+const { helpPrefix, commandName } = require("../core/plugins/registry");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
 const { uploadToImgbb } = require("./utils/upload");
+const { bytesToSize } = require("./utils/misc");
 const { setVar } = require("./manage");
 const { getTotalUserCount } = require("../core/store");
 const { parseAliveMessage, sendAliveMessage } = require("./utils/alive-parser");
 
 
-const extractCommandName = (pattern) => {
-  const match = pattern?.toString().match(/(\W*)([A-Za-z1234567890 ]*)/);
-  return match && match[2] ? match[2].trim() : "";
-};
-
-const retrieveCommandDetails = (commandName) => {
+const retrieveCommandDetails = (name) => {
   const foundCommand = commands.find(
-    (cmd) => extractCommandName(cmd.pattern) === commandName
+    (cmd) => cmd.pattern && commandName(cmd) === name.toLowerCase()
   );
   if (!foundCommand) return null;
   return {
-    name: commandName,
+    name: name.toLowerCase(),
     ...foundCommand,
   };
 };
@@ -33,17 +29,17 @@ Module(
     desc: "Gives command information",
   },
   async (message, args) => {
-    const commandName = args[1]?.trim();
-    if (!commandName) {
+    const requested = args[1]?.trim();
+    if (!requested) {
       return await message.sendReply(
-        "_Please provide a command name. Example: .info insta_"
+        `_Please provide a command name. Example: ${helpPrefix()}info insta_`
       );
     }
 
-    const commandDetails = retrieveCommandDetails(commandName);
+    const commandDetails = retrieveCommandDetails(requested);
     if (!commandDetails) {
       return await message.sendReply(
-        `_Command '${commandName}' not found. Please check the spelling._`
+        `_Command '${requested}' not found. Please check the spelling._`
       );
     }
 
@@ -55,7 +51,7 @@ Module(
     }\n`;
     if (commandDetails.use) infoMessage += `• *Type:* ${commandDetails.use}\n`;
     if (commandDetails.usage)
-      infoMessage += `• *Usage:* ${commandDetails.name} ${commandDetails.usage}\n`;
+      infoMessage += `• *Usage:* ${helpPrefix()}${commandDetails.name} ${commandDetails.usage}\n`;
     if (commandDetails.warn)
       infoMessage += `• *Warning:* ${commandDetails.warn}\n`;
 
@@ -80,10 +76,10 @@ Module(
       if (!categorizedCommands[category]) {
         categorizedCommands[category] = [];
       }
-      const commandName = extractCommandName(cmd.pattern);
-      if (commandName) {
+      const name = commandName(cmd);
+      if (name) {
         categorizedCommands[category].push({
-          name: commandName,
+          name,
           desc: cmd.desc,
           usage: cmd.usage,
           warn: cmd.warn,
@@ -92,7 +88,7 @@ Module(
     });
 
     let responseMessage = `*Total Available Commands: ${totalCommandCount}*\n\n`;
-    const handlerPrefix = config.HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || ".";
+    const handlerPrefix = helpPrefix();
 
     for (const category in categorizedCommands) {
       responseMessage += `*───「 ${category.toUpperCase()} 」───*\n\n`;
@@ -107,21 +103,6 @@ Module(
     await message.sendReply(responseMessage);
   }
 );
-
-function bytesToSize(bytes) {
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-  if (bytes === 0) return "0 Byte";
-  const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-  return Math.round(bytes / Math.pow(1024, i), 2) + " " + sizes[i];
-}
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
 
 async function parseAlive(message, aliveMessage) {
   if (!aliveMessage) {
@@ -141,14 +122,6 @@ async function parseAlive(message, aliveMessage) {
   }
 }
 
-const manage = {
-  setVar: async (key, value, message) => {
-    await message.sendReply(
-      `_Attempted to set ${key} to ${value}. (Note: This is a placeholder and doesn't persist changes in this demo)_`
-    );
-  },
-};
-
 Module(
   {
     pattern: "alive",
@@ -166,26 +139,26 @@ Module(
     desc: "Sets the alive message for the bot with formatting options.",
     usage:
       ".setalive <message> (with placeholders)\n.setalive help (show formatting help)",
-    dontAddCommandList: true,
+    excludeFromCommands: true,
   },
   async (message, match) => {
     if (!match[1]) {
       return await message.sendReply(`*Alive Message Setup*
 
 *Usage:*
-• \`.setalive <message>\` - Set alive message
-• \`.setalive help\` - Show detailed formatting help
-• \`.setalive get\` - View current alive message
-• \`.setalive del\` - Delete custom alive message
-• \`.testalive\` - Test current alive message
+• \`${helpPrefix()}setalive <message>\` - Set alive message
+• \`${helpPrefix()}setalive help\` - Show detailed formatting help
+• \`${helpPrefix()}setalive get\` - View current alive message
+• \`${helpPrefix()}setalive del\` - Delete custom alive message
+• \`${helpPrefix()}testalive\` - Test current alive message
 
 *Quick Example:*
-\`.setalive Hey $user! $botname is online!
+\`${helpPrefix()}setalive Hey $user! $botname is online!
 _Version: $version_
 _Uptime: $uptime_
 _Users: $users_ $pp\`
 
-*Use \`.setalive help\` for all available placeholders.*`);
+*Use \`${helpPrefix()}setalive help\` for all available placeholders.*`);
     }
 
     const input = match[1].toLowerCase();
@@ -258,7 +231,7 @@ _Hi $user!_
         );
       }
       return await message.sendReply(
-        `*Current Alive Message:*\n\n${current}\n\n_Tip: Use_ \`.testalive\` _to test your message!_`
+        `*Current Alive Message:*\n\n${current}\n\n_Tip: Use_ \`${helpPrefix()}testalive\` _to test your message!_`
       );
     }
 
@@ -278,7 +251,7 @@ _Hi $user!_
 
     await setVar("ALIVE", aliveMessage);
     return await message.sendReply(
-      `_Alive message set successfully!_\n\n*Preview:*\n${aliveMessage}\n\n_Tip: Use_ \`.testalive\` _to test your message!_`
+      `_Alive message set successfully!_\n\n*Preview:*\n${aliveMessage}\n\n_Tip: Use_ \`${helpPrefix()}testalive\` _to test your message!_`
     );
   }
 );
@@ -293,10 +266,6 @@ Module(
     const stars = ["✦", "✯", "✯", "✰", "◬"];
     const star = stars[Math.floor(Math.random() * stars.length)];
 
-    let use_ = commands.map((e) => e.use);
-    const others = (use) => {
-      return use === "" ? "others" : use;
-    };
     let types = [
       ...new Set(
         commands.filter((e) => e.pattern).map((e) => e.use || "General")
@@ -307,7 +276,7 @@ Module(
     for (const command of commands) {
       let type_det = command.use || "General";
       if (!cmd_obj[type_det]?.length) cmd_obj[type_det] = [];
-      let cmd_name = extractCommandName(command.pattern);
+      let cmd_name = commandName(command);
       if (cmd_name) cmd_obj[type_det].push(cmd_name);
     }
 
@@ -345,7 +314,7 @@ Module(
 ┃${star}╭──────────────
 ┃${star}│
 ┃${star}│ _*\`Owner\`*_ : ${botOwner}
-┃${star}│ _*\`User\`*_ : ${message.senderName.replace(/[\r\n]+/gm, "")}
+┃${star}│ _*\`User\`*_ : ${(message.senderName || "").replace(/[\r\n]+/gm, "")}
 ┃${star}│ _*\`Mode\`*_ : ${config.MODE}
 ┃${star}│ _*\`Server\`*_ : ${os.platform() === "linux" ? "Linux" : "Unknown OS"}
 ┃${star}│ _*\`Available RAM\`*_ : ${used} of ${total}
@@ -395,10 +364,10 @@ Module(
     if (!gameCommands.length) {
       return await message.sendReply("_No games are installed._");
     }
-    const handlerPrefix = config.HANDLERS.match(/\[(\W*)\]/)?.[1]?.[0] || ".";
+    const handlerPrefix = helpPrefix();
     let response = `*───「 Available Games 」───*\n\n`;
     gameCommands.forEach((cmd) => {
-      const name = extractCommandName(cmd.pattern);
+      const name = commandName(cmd);
       if (name) {
         response += `• *Command:* \`${handlerPrefix}${name}\`\n`;
         response += `• *Description:* ${cmd.desc || "N/A"}\n`;
@@ -422,21 +391,21 @@ Module(
   async (message, match) => {
     const infoText = `*───「 Bot Info Configuration 」───*
 
-_Instead of using \`.setinfo\`, use these individual commands:_
+_Instead of using \`${helpPrefix()}setinfo\`, use these individual commands:_
 
 *Bot Name:*
-- Command: \`.setname <name>\`
-- Example: \`.setname Raganork\`
+- Command: \`${helpPrefix()}setname <name>\`
+- Example: \`${helpPrefix()}setname Raganork\`
 - Description: _Sets the bot's display name_
 
 *Bot Owner:*
-- Command: \`.setowner <owner>\`
-- Example: \`.setowner John\`
+- Command: \`${helpPrefix()}setowner <owner>\`
+- Example: \`${helpPrefix()}setowner John\`
 - Description: _Sets the bot owner name_
 
 *Bot Image:*
-- Command: \`.setimage\`
-- Usage: _Reply to an image with \`.setimage\`_
+- Command: \`${helpPrefix()}setimage\`
+- Usage: _Reply to an image with \`${helpPrefix()}setimage\`_
 - Description: _Sets the bot's profile image_
 
 *Current Format:*
@@ -445,7 +414,7 @@ _Bot info is stored as: \`name;owner;imagelink\`_
 *Tips:*
 - _Use \`default\` as image to use local default image_
 - _Changes are saved automatically_
-- _Use \`.menu\` to see the updated info_`;
+- _Use \`${helpPrefix()}menu\` to see the updated info_`;
 
     return await message.sendReply(infoText);
   }
@@ -461,7 +430,7 @@ Module(
   async (message, match) => {
     const name = match[1]?.trim();
     if (!name)
-      return await message.sendReply("_Provide a name: .setname Raganork_");
+      return await message.sendReply(`_Provide a name: ${helpPrefix()}setname Raganork_`);
     const parts = config.BOT_INFO.split(";");
     parts[0] = name;
     await setVar("BOT_INFO", parts.join(";"));
@@ -481,7 +450,7 @@ Module(
   async (message, match) => {
     const owner = match[1]?.trim();
     if (!owner)
-      return await message.sendReply("_Provide owner: .setowner OwnerName_");
+      return await message.sendReply(`_Provide owner: ${helpPrefix()}setowner OwnerName_`);
     const parts = config.BOT_INFO.split(";");
     parts[1] = owner;
     await setVar("BOT_INFO", parts.join(";"));
@@ -500,7 +469,7 @@ Module(
   },
   async (message, match) => {
     if (!message.reply_message || !message.reply_message.image) {
-      return await message.sendReply("_Reply to an image with .setimage_");
+      return await message.sendReply(`_Reply to an image with ${helpPrefix()}setimage_`);
     }
 
     try {
@@ -567,7 +536,7 @@ Module(
     const m = process.memoryUsage();
     const { CustomAuthState } = require("../core/auth");
     const sessions = Object.entries(CustomAuthState.getStats())
-      .map(([id, s]) => `  ${id}: ${s.keys} keys, ${s.pendingWrites} pending`)
+      .map(([, s], i) => `  session ${i + 1}: ${s.keys} keys, ${s.pendingWrites} pending`)
       .join("\n");
     const handles =
       typeof process._getActiveHandles === "function"

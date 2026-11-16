@@ -15,6 +15,18 @@ function TimeCalculator(a) {
   );
 }
 const { Module } = require("../main");
+
+// dd/mm/yyyy or dd-mm-yyyy as a local date, null when it is not a real day
+function parseDate(text) {
+  const parts = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(String(text).trim());
+  if (!parts) return null;
+  const [day, month, year] = parts.slice(1).map(Number);
+  const date = new Date(year, month - 1, day);
+  const real =
+    date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  return real ? date : null;
+}
+const BAD_DATE = "_Date must be in dd/mm/yyyy format_";
 Module(
   {
     pattern: "age ?(.*)",
@@ -23,17 +35,10 @@ Module(
   },
   async (m, t) => {
     if (!t[1]) return await m.sendReply("_Give me your Date of Birth_");
-    if (
-      !/^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(t[1])
-    )
-      return await m.sendReply("_Date must be in dd/mm/yy format_");
-    var DOB = t[1];
-    var actual = DOB.includes("-")
-      ? DOB.split("-")[1] + "-" + DOB.split("-")[0] + "-" + DOB.split("-")[2]
-      : DOB.split("/")[1] + "-" + DOB.split("/")[0] + "-" + DOB.split("/")[2];
-    var dob = new Date(actual).getTime();
-    var today = new Date().getTime();
-    var age = (today - dob) / 1000;
+    const dob = parseDate(t[1]);
+    if (!dob) return await m.sendReply(BAD_DATE);
+    var age = (Date.now() - dob.getTime()) / 1000;
+    if (age < 0) return await m.sendReply("_Date of birth must be in the past_");
     return await m.sendReply("```" + TimeCalculator(age) + "```");
   }
 );
@@ -45,18 +50,11 @@ Module(
   },
   async (m, t) => {
     if (!t[1]) return await m.sendReply("_Give me a future date!_");
-    if (
-      !/^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(t[1])
-    )
-      return await m.sendReply("_Date must be in dd/mm/yy format_");
-    var DOB = t[1];
-    var actual = DOB.includes("-")
-      ? DOB.split("-")[1] + "-" + DOB.split("-")[0] + "-" + DOB.split("-")[2]
-      : DOB.split("/")[1] + "-" + DOB.split("/")[0] + "-" + DOB.split("/")[2];
-    var dob = new Date(actual).getTime();
-    var today = new Date().getTime();
-    var age = (dob - today) / 1000;
-    return await m.sendReply("_" + TimeCalculator(age) + " remaining_");
+    const target = parseDate(t[1]);
+    if (!target) return await m.sendReply(BAD_DATE);
+    var remaining = (target.getTime() - Date.now()) / 1000;
+    if (remaining < 0) return await m.sendReply("_Give me a future date!_");
+    return await m.sendReply("_" + TimeCalculator(remaining) + " remaining_");
   }
 );
 Module(
@@ -73,3 +71,5 @@ Module(
     await message.edit("*ʟᴀᴛᴇɴᴄʏ: " + ms + " _ᴍs_*", message.jid, sent_msg.key);
   }
 );
+
+module.exports = { parseDate };

@@ -1,12 +1,12 @@
 const ffmpeg = require("fluent-ffmpeg");
 const fs = require("fs");
 const path = require("path");
-const jimp = require("jimp");
+const crypto = require("crypto");
+// jimp is heavy: required inside the functions that use it
 const webp = require("node-webpmux");
 const { getBuffer } = require("./misc");
 const axios = require("axios");
 const {
-  getTempPath,
   getTempSubdir,
   uniqueTempPath,
   runFfmpeg,
@@ -42,11 +42,27 @@ async function addExif(media, metadata) {
   return exifPath;
 }
 
+// runs fn with the replied media saved to a temp file, which is removed afterwards
+async function withDownload(replyMessage, fn) {
+  const file = await replyMessage.download();
+  try {
+    return await fn(file);
+  } finally {
+    fs.unlink(file, () => {});
+  }
+}
+
+function clampInt(value, min, max, fallback) {
+  const n = parseInt(value, 10);
+  if (Number.isNaN(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+
 // Apply bass boost to audio
 function bass(file, amount, callback) {
-  const count = amount || "20";
+  const gain = clampInt(amount, 1, 50, 20);
   const bassPath = uniqueTempPath("bass.mp3");
-  return runFfmpeg(ffmpeg().input(file).outputOptions(`-af bass=g=${count}`), bassPath)
+  return runFfmpeg(ffmpeg().input(file).audioFilters(`bass=g=${gain}`), bassPath)
     .then(() => {
       const buf = fs.readFileSync(bassPath);
       fs.unlink(bassPath, () => {});
@@ -68,39 +84,39 @@ async function circle(message) {
     return await message.sendReply("Reply to a sticker or photo");
   }
 
-  const savedFile = await message.reply_message.download();
-
-  if (savedFile.endsWith("webp")) {
-    const outputPng = uniqueTempPath("output.png");
-    const toStickerJpg = uniqueTempPath("tosticker.jpg");
-    const stWebp = uniqueTempPath("st.webp");
-    try {
-      await runFfmpeg(ffmpeg(savedFile).fromFormat("webp_pipe"), outputPng);
-      const img = await jimp.read(outputPng);
+  await withDownload(message.reply_message, async (savedFile) => {
+    if (savedFile.endsWith("webp")) {
+      const outputPng = uniqueTempPath("output.png");
+      const toStickerJpg = uniqueTempPath("tosticker.jpg");
+      const stWebp = uniqueTempPath("st.webp");
+      try {
+        await runFfmpeg(ffmpeg(savedFile).fromFormat("webp_pipe"), outputPng);
+        const img = await require("jimp").read(outputPng);
+        img.resize(480, 480);
+        img.circle();
+        fs.writeFileSync(toStickerJpg, await img.getBufferAsync("image/png"));
+        await runFfmpeg(
+          ffmpeg(toStickerJpg)
+            .outputOptions(["-y", "-vcodec libwebp"])
+            .videoFilters(STICKER_FILTER),
+          stWebp,
+        );
+        await message.sendReply(fs.readFileSync(stWebp), "sticker");
+      } finally {
+        for (const f of [outputPng, toStickerJpg, stWebp]) fs.unlink(f, () => {});
+      }
+    } else {
+      const img = await require("jimp").read(savedFile);
       img.resize(480, 480);
       img.circle();
-      fs.writeFileSync(toStickerJpg, await img.getBufferAsync("image/png"));
-      await runFfmpeg(
-        ffmpeg(toStickerJpg)
-          .outputOptions(["-y", "-vcodec libwebp"])
-          .videoFilters(STICKER_FILTER),
-        stWebp,
-      );
-      await message.sendReply(fs.readFileSync(stWebp), "sticker");
-    } finally {
-      for (const f of [outputPng, toStickerJpg, stWebp]) fs.unlink(f, () => {});
+      await message.sendReply(await img.getBufferAsync("image/png"), "image");
     }
-  } else {
-    const img = await jimp.read(savedFile);
-    img.resize(480, 480);
-    img.circle();
-    await message.sendReply(await img.getBufferAsync("image/png"), "image");
-  }
+  });
 }
 
 // Apply blur effect
 async function blur(file, count = 5) {
-  const image = await jimp.read(file);
+  const image = await require("jimp").read(file);
   image.blur(parseInt(count));
 
   return new Promise((resolve) => {
@@ -210,25 +226,75 @@ async function trim(input, start, end, output) {
     output.endsWith(".mp3") ||
     output.endsWith(".ogg");
 
+  const cmd = ffmpeg(input)
+    .seekInput(s)
+    .outputOptions(["-t", String(duration)]);
+
+  if (isAudio && output.endsWith(".m4a")) {
+    cmd.audioCodec("aac").outputOptions(["-movflags", "faststart"]).noVideo();
+  } else if (isAudio) {
+    cmd.noVideo();
+  } else {
+    cmd.videoCodec("copy").audioCodec("copy");
+  }
+
+  return runFfmpeg(cmd, output);
+}
+
+function probeDuration(file) {
   return new Promise((resolve, reject) => {
-    const cmd = ffmpeg(input)
-      .seekInput(s)
-      .outputOptions(["-t", String(duration)]);
-
-    if (isAudio && output.endsWith(".m4a")) {
-      cmd.audioCodec("aac").outputOptions(["-movflags", "faststart"]).noVideo();
-    } else if (isAudio) {
-      cmd.noVideo();
-    } else {
-      cmd.videoCodec("copy").audioCodec("copy");
-    }
-
-    cmd
-      .on("end", () => resolve(output))
-      .on("error", (err) => reject(err))
-      .save(output);
+    ffmpeg.ffprobe(file, (err, data) => {
+      if (err) return reject(err);
+      const seconds = parseFloat(data?.format?.duration);
+      resolve(Number.isFinite(seconds) ? seconds : 0);
+    });
   });
 }
+
+const MAX_INTERP_SECONDS = 30;
+
+// a reply text when motion interpolation must not run on this video, null when it may
+async function interpolationLimit(file) {
+  const seconds = await probeDuration(file).catch(() => null);
+  if (seconds === null) return "_Could not read this video_";
+  if (seconds > MAX_INTERP_SECONDS)
+    return `_Video is ${Math.round(seconds)}s long. Motion interpolation is limited to ${MAX_INTERP_SECONDS}s because it needs a lot of CPU. Trim the video first._`;
+  return null;
+}
+
+function mergeVideos(files, output) {
+  return new Promise((resolve, reject) => {
+    const command = ffmpeg({ priority: 20 }).fps(29.7);
+    for (const file of files) command.input(file);
+    command
+      .on("end", () => resolve(output))
+      .on("error", (err) => reject(err))
+      .mergeToFile(output);
+  });
+}
+
+const STAGING_MAX_AGE_MS = 10 * 60 * 1000;
+
+function removeDir(dir) {
+  return fs.promises.rm(dir, { recursive: true, force: true });
+}
+
+// one folder per (kind, key); folders left for more than 10 minutes are dropped first
+async function stagingDir(kind, key) {
+  const root = getTempSubdir(kind);
+  const cutoff = Date.now() - STAGING_MAX_AGE_MS;
+  for (const entry of await fs.promises.readdir(root, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const full = path.join(root, entry.name);
+    try {
+      if ((await fs.promises.stat(full)).mtimeMs < cutoff) await removeDir(full);
+    } catch (_) {}
+  }
+  const dir = path.join(root, crypto.createHash("sha1").update(key).digest("hex").slice(0, 16));
+  await fs.promises.mkdir(dir, { recursive: true });
+  return dir;
+}
+
 async function webp2mp4(inputPath, outputPath, options = {}) {
   if (!inputPath || !outputPath) {
     throw new Error("Input path and output path are required.");
@@ -271,4 +337,11 @@ module.exports = {
   addID3,
   attp,
   trim,
+  probeDuration,
+  interpolationLimit,
+  mergeVideos,
+  stagingDir,
+  removeDir,
+  clampInt,
+  withDownload,
 };

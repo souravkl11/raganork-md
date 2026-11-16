@@ -1,0 +1,150 @@
+const qrcode = require("qrcode-terminal");
+const config = require("../../config");
+const { logger } = config;
+const { CustomAuthState } = require("../auth");
+const { startEvent } = require("../handler");
+const Schedule = require("../schedulers");
+const { bindings } = require("./baileys");
+const { STABLE_CONNECTION_MS } = require("./reconnect");
+const { sendStartMessage } = require("./start-message");
+
+// connection.update: QR code, close (reconnect or give up), open (start message, start
+// events, schedules). runs inside the session context, registered by bot.setupEventHandlers
+async function handleConnectionUpdate(bot, update) {
+  const { connection, lastDisconnect, qr } = update;
+  if (qr) {
+    logger.info(
+      { session: bot.sessionId },
+      `QR code received, generating terminal QR...`,
+    );
+    console.log(
+      `\n🔗 [${bot.sessionId}] Scan this QR code with WhatsApp:`,
+    );
+    console.log(`┌${"─".repeat(50)}┐`);
+    qrcode.generate(qr, { small: true }, (qrcode) => {
+      // Add border to QR code for better visibility
+      const lines = qrcode.split("\n");
+      lines.forEach((line) => {
+        console.log(`│${line.padEnd(48)}│`);
+      });
+    });
+    console.log(`└${"─".repeat(50)}┘`);
+    console.log(
+      `📱 Open WhatsApp → Settings → Linked Devices → Link a Device`,
+    );
+    console.log(`⏰ QR code expires in 20 seconds. Get ready to scan!\n`);
+  }
+  const sessionLogger = logger.child({ session: bot.sessionId });
+
+  if (connection === "close") {
+    const statusCode = lastDisconnect?.error?.output?.statusCode;
+    const shouldReconnect = statusCode !== bindings.DisconnectReason.loggedOut;
+    sessionLogger.info(
+      { status: statusCode, reconnect: shouldReconnect },
+      `Connection closed.`,
+    );
+
+    bot.isConnected = false;
+    bot._clearConnectionTimers();
+    await Schedule.cleanup(bot.sessionId);
+    bot.manager?.onSessionStateChange?.();
+
+    if (statusCode === bindings.DisconnectReason.loggedOut) {
+      bot.loggedOut = true;
+      bot.stopReason = "logged_out";
+      sessionLogger.error(
+        `Logged out. Please delete session data and rescan QR.`,
+      );
+      console.log(
+        `❌ [${bot.sessionId}] SESSION LOGGED OUT. Please rescan QR and update SESSION.`,
+      );
+      bot._teardownSocket();
+      await CustomAuthState.deleteSessionById(bot.sessionId);
+    } else if (
+      statusCode === bindings.DisconnectReason.connectionReplaced &&
+      bot.reconnectAttempts >= bot.maxReconnectAttempts
+    ) {
+      // two hosts running one session would otherwise kick each other forever
+      bot.stopReason = "replaced";
+      sessionLogger.error(
+        { attempts: bot.reconnectAttempts },
+        `Session replaced by another instance, giving up.`,
+      );
+      console.error(
+        `[${bot.sessionId}] ERROR: Session is being used somewhere else. Not reconnecting.`,
+      );
+      bot._teardownSocket();
+    } else {
+      bot._teardownSocket();
+      bot._scheduleReconnect(statusCode);
+    }
+  } else if (connection === "open") {
+    sessionLogger.info(
+      { botId: bot.sock.user?.id },
+      `Connection established.`,
+    );
+    bot.isConnected = true;
+    bot.lastOpenAt = Date.now();
+    bot.stopReason = null;
+    bot.loggedOut = false;
+    // only forgive past failures once the link has stayed up for a while
+    if (bot.stableTimer) clearTimeout(bot.stableTimer);
+    bot.stableTimer = setTimeout(() => {
+      bot.stableTimer = null;
+      bot.reconnectAttempts = 0;
+    }, STABLE_CONNECTION_MS);
+    bot.stableTimer.unref?.();
+
+    // Only send start message on initial connection, not on reconnects
+    if (!bot.initialConnectMessageSent) {
+      console.log(
+        `- ✅ [${bot.sessionId}] Bot started: +${
+          bot.sock.user?.id.split(":")[0]
+        }`,
+      );
+      if (!config.DISABLE_START_MESSAGE) {
+        try {
+          await sendStartMessage(bot.sock);
+          bot.initialConnectMessageSent = true;
+          sessionLogger.info(`Initial start message sent`);
+        } catch (error) {
+          logger.error(
+            { session: bot.sessionId, err: error },
+            `Failed to send start message`,
+          );
+        }
+      }
+      bot.initialConnectMessageSent = true;
+    } else {
+      sessionLogger.debug(
+        `Reconnection successful, skipping start message.`,
+      );
+    }
+
+    // CRITICAL: Execute start event handlers immediately after connection is established
+    try {
+      await startEvent(bot.sock);
+    } catch (error) {
+      logger.error(
+        { session: bot.sessionId, err: error },
+        `Failed to execute start event handlers`,
+      );
+    }
+
+    try {
+      const { migrateSudoToLID } = require("../database");
+      await migrateSudoToLID(bot.sock);
+    } catch (error) {
+      logger.error(
+        { session: bot.sessionId, err: error },
+        `Failed to migrate SUDO to LIDs`,
+      );
+    }
+
+    // Setup additional features after start events
+    await Schedule(bot.sock, bot.sessionId);
+    bot.manager?.onSessionStateChange?.();
+  }
+}
+
+module.exports = { handleConnectionUpdate };

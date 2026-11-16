@@ -1,33 +1,8 @@
-const simpleGit = require("simple-git");
-const git = simpleGit();
 const { Module } = require("../main");
-// const { update } = require('./misc/koyeb');
-const renderDeploy = require("./utils/render-api");
-const config = require("../config");
-const fs = require("fs").promises;
-const axios = require("axios");
-
+const platform = require("../core/platform");
+const lifecycle = require("../core/lifecycle");
+const { updater } = require("../core/services/updater");
 const { helpPrefix } = require("../core/plugins/registry");
-const localPackageJson = require("../package.json");
-
-async function isGitRepo() {
-  try {
-    await fs.access(".git");
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-async function getRemoteVersion() {
-  try {
-    const remotePackageJsonUrl = `https://raw.githubusercontent.com/souravkl11/raganork-md/main/package.json`;
-    const response = await axios.get(remotePackageJsonUrl);
-    return response.data.version;
-  } catch (error) {
-    throw new Error("Failed to fetch remote version");
-  }
-}
 
 Module(
   {
@@ -37,45 +12,35 @@ Module(
     use: "owner",
   },
   async (message, match) => {
-    if (!(await isGitRepo())) {
+    if (!(await updater.isGitRepo())) {
       return await message.sendReply(
         "_This bot isn't running from a Git repository. Automatic updates aren't available._"
       );
     }
 
-    const command = match[1] ? match[1].toLowerCase() : "";
+    // "start force" and "beta force" overwrite local changes outside plugins/
+    const words = (match[1] ? match[1].toLowerCase() : "").split(/\s+/).filter(Boolean);
+    const command = words[0] || "";
+    const force = words.includes("force");
     const processingMsg = await message.sendReply("_Checking for updates..._");
+    const edit = (text) => message.edit(text, message.jid, processingMsg.key);
 
     try {
-      // fetch remote version & commits
-      await git.fetch();
-      const commits = await git.log(["main" + "..origin/" + "main"]);
-      const localVersion = localPackageJson.version;
-      let remoteVersion;
-
+      let info;
       try {
-        remoteVersion = await getRemoteVersion();
+        info = await updater.check();
       } catch (error) {
-        return await message.edit(
-          "_Failed to check remote version. Please try again later._",
-          message.jid,
-          processingMsg.key
-        );
+        if (error.message === "Failed to fetch remote version") {
+          return await edit("_Failed to check remote version. Please try again later._");
+        }
+        throw error;
       }
-
-      const hasCommits = commits.total > 0;
-      const versionChanged = remoteVersion !== localVersion;
+      const { commits, localVersion, remoteVersion, hasCommits, versionChanged } = info;
+      const { isStable: isStableUpdate, isBeta: isBetaUpdate } = info;
 
       if (!hasCommits && !versionChanged) {
-        return await message.edit(
-          "_Bot is up to date!_",
-          message.jid,
-          processingMsg.key
-        );
+        return await edit("_Bot is up to date!_");
       }
-
-      const isBetaUpdate = hasCommits && !versionChanged;
-      const isStableUpdate = hasCommits && versionChanged;
 
       if (!command) {
         let updateInfo = "";
@@ -100,134 +65,72 @@ Module(
           updateInfo += `\n_Use "${helpPrefix()}update beta" to apply beta updates_`;
         }
 
-        return await message.edit(updateInfo, message.jid, processingMsg.key);
+        return await edit(updateInfo);
       }
 
-      if (command === "start") {
-        if (!isStableUpdate) {
+      if (command === "start" || command === "beta") {
+        const beta = command === "beta";
+        if (beta && !hasCommits) {
+          return await edit("_No beta updates available!_");
+        }
+        if (!beta && !isStableUpdate) {
           if (isBetaUpdate) {
-            return await message.edit(
-              `_Only beta updates available. Use "${helpPrefix()}update beta" to apply them._`,
-              message.jid,
-              processingMsg.key
+            return await edit(
+              `_Only beta updates available. Use "${helpPrefix()}update beta" to apply them._`
             );
           }
-          return await message.edit(
-            "_No stable updates available!_",
-            message.jid,
-            processingMsg.key
-          );
+          return await edit("_No stable updates available!_");
         }
 
-        await message.edit(
-          "_Starting update..._",
-          message.jid,
-          processingMsg.key
-        );
+        await edit(beta ? "_Starting beta update..._" : "_Starting update..._");
 
         if (process.env.RENDER_SERVICE_ID) {
-          if (!config.RENDER_API_KEY) {
-            return await message.edit(
-              "_Missing RENDER_API_KEY!_",
-              message.jid,
-              processingMsg.key
-            );
-          }
-
-          await renderDeploy(
-            process.env.RENDER_SERVICE_ID,
-            config.RENDER_API_KEY
-          );
-          return await message.edit(
-            "_Render deploy started!_",
-            message.jid,
-            processingMsg.key
+          const result = await updater.deployOnRender();
+          if (!result.started) return await edit("_Missing RENDER_API_KEY!_");
+          return await edit(
+            beta ? "_Render deploy started for beta update!_" : "_Render deploy started!_"
           );
         }
 
-        if (!__dirname.startsWith("/rgnk")) {
-          await git.reset("hard", ["HEAD"]);
-          await git.pull();
-          await message.edit(
-            `_Successfully updated to version ${remoteVersion}. Please manually update npm modules if applicable!_`,
-            message.jid,
-            processingMsg.key
-          );
-          process.exit(0);
-        } else {
-          return await message.edit(
-            "_Please visit the hosted platform and hit deploy to update._",
-            message.jid,
-            processingMsg.key
-          );
-        }
-      } else if (command === "beta") {
-        if (!hasCommits) {
-          return await message.edit(
-            "_No beta updates available!_",
-            message.jid,
-            processingMsg.key
-          );
+        // the image folder counts too: Railway or Heroku running the /rgnk image still
+        // cannot keep a git update
+        const where = platform.current();
+        if (where.isKoyeb || where.inKoyebImage) {
+          return await edit("_Please visit the hosted platform and hit deploy to update._");
         }
 
-        await message.edit(
-          "_Starting beta update..._",
-          message.jid,
-          processingMsg.key
+        const result = await updater.applyLocal({ force });
+        if (!result.updated) {
+          return await edit(
+            `_Update cancelled. These files were changed here, and the update would overwrite them:_\n\n${updater.describeDirty(result.dirty)}\n\n_Revert them, or use "${helpPrefix()}update ${command} force" to update anyway._`
+          );
+        }
+        if (result.installError) {
+          return await edit(
+            `_Updated, but installing modules failed: ${result.installError}_\n\n_Run "yarn install" in the bot folder, then restart the bot. It was not restarted._`
+          );
+        }
+        const movedNote = result.moved?.length
+          ? `\n\n_The bot now ships these files, so your copies were renamed to <name>.bak:_\n${result.moved.map((f) => `• ${f}`).join("\n")}`
+          : "";
+        await edit(
+          (beta
+            ? `_Successfully applied beta update (${commits.total} commit${
+                commits.total > 1 ? "s" : ""
+              })._`
+            : `_Successfully updated to version ${remoteVersion}._`) +
+            (result.installed ? "\n_Modules were installed._" : "") +
+            movedNote
         );
-
-        if (process.env.RENDER_SERVICE_ID) {
-          if (!config.RENDER_API_KEY) {
-            return await message.edit(
-              "_Missing RENDER_API_KEY!_",
-              message.jid,
-              processingMsg.key
-            );
-          }
-
-          await renderDeploy(
-            process.env.RENDER_SERVICE_ID,
-            config.RENDER_API_KEY
-          );
-          return await message.edit(
-            "_Render deploy started for beta update!_",
-            message.jid,
-            processingMsg.key
-          );
-        }
-
-        if (!__dirname.startsWith("/rgnk")) {
-          await git.reset("hard", ["HEAD"]);
-          await git.pull();
-          await message.edit(
-            `_Successfully applied beta update (${commits.total} commit${
-              commits.total > 1 ? "s" : ""
-            }). Please manually update npm modules if applicable!_`,
-            message.jid,
-            processingMsg.key
-          );
-          process.exit(0);
-        } else {
-          return await message.edit(
-            "_Please visit the hosted platform and hit deploy to update._",
-            message.jid,
-            processingMsg.key
-          );
-        }
+        await lifecycle.restart(beta ? "beta update" : "update");
       } else {
-        return await message.edit(
-          `_Invalid command. Use "${helpPrefix()}update" to check updates, "${helpPrefix()}update start" for stable updates, or "${helpPrefix()}update beta" for beta updates._`,
-          message.jid,
-          processingMsg.key
+        return await edit(
+          `_Invalid command. Use "${helpPrefix()}update" to check updates, "${helpPrefix()}update start" for stable updates, or "${helpPrefix()}update beta" for beta updates._`
         );
       }
     } catch (error) {
       console.error("Update error:", error);
-      return await message.edit(
-        "_An error occurred while checking for updates._",
-        message.jid,
-        processingMsg.key
-      );
+      return await edit("_An error occurred while checking for updates._");
     }
   }
 );

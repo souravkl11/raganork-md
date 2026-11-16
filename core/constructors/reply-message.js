@@ -7,12 +7,12 @@ const baileysPromise = loadBaileys()
     ({ downloadMediaMessage } = baileys);
   })
   .catch((err) => {
+    // boot() awaits loadBaileys() itself and fails there, so this is only the log
     console.error("Failed to load baileys:", err.message);
-    process.exit(1);
   });
 const fs = require("fs");
 const Base = require("./base");
-const { getTempPath } = require("../helpers");
+const { uniqueTempPath } = require("../helpers");
 
 class ReplyMessage extends Base {
   constructor(client, data) {
@@ -134,7 +134,7 @@ class ReplyMessage extends Base {
           } else {
             const ext =
               imgMsg.message.imageMessage?.mimetype?.split("/")[1] || "jpg";
-            const filename = getTempPath(`album_img_${imgMsg.key.id}.${ext}`);
+            const filename = uniqueTempPath(`album_img_${imgMsg.key.id}.${ext}`);
             const stream = await downloadMediaMessage(msgData, "stream");
             const writeStream = fs.createWriteStream(filename);
             stream.pipe(writeStream);
@@ -161,7 +161,7 @@ class ReplyMessage extends Base {
           } else {
             const ext =
               vidMsg.message.videoMessage?.mimetype?.split("/")[1] || "mp4";
-            const filename = getTempPath(`album_vid_${vidMsg.key.id}.${ext}`);
+            const filename = uniqueTempPath(`album_vid_${vidMsg.key.id}.${ext}`);
             const stream = await downloadMediaMessage(msgData, "stream");
             const writeStream = fs.createWriteStream(filename);
             stream.pipe(writeStream);
@@ -193,7 +193,7 @@ class ReplyMessage extends Base {
       ext = this.mimetype.split("/")[1];
     }
 
-    const filename = getTempPath(`temp.${ext}`);
+    const filename = uniqueTempPath(`temp.${ext}`);
 
     if (returnType === "buffer") {
       const buffer = await downloadMediaMessage(this.data, "buffer");

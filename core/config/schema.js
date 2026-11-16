@@ -11,7 +11,7 @@
 //           REJECT_CALLS READ_COMMAND  (every settingsMenu key, plus MANGLISH_CHATBOT:
 //           these were already turned into booleans when loaded from the db)
 //           AUTO_UPDATE  (new: a db "false" used to stay a truthy string)
-//   int     MAX_RECONNECT_ATTEMPTS
+//   int     MAX_RECONNECT_ATTEMPTS CMD_CONCURRENCY CMD_TIMEOUT
 //   string  everything else, notably:
 //     ANTI_DELETE        "chat" | "sudo" | "custom" | "off" or false; compared as a string in core/bot.js
 //     CMD_REACTION       bool from env, raw string from the db today; only truthiness is read, but a
@@ -37,7 +37,7 @@ const entries = {
   AUTOMUTE_MSG: { type: "string", default: "_Group automuted!_\n_(edit AUTOMUTE_MSG)_" },
   ANTIWORD_WARN: { type: "string", default: "" },
   ANTI_SPAM: { type: "string", default: "919074309534-1632403322@g.us" },
-  MULTI_HANDLERS: { type: "bool", default: false, scope: "global", restart: true },
+  MULTI_HANDLERS: { type: "bool", default: false },
   DISABLE_START_MESSAGE: { type: "bool", default: false },
   NOLOG: { type: "string", default: false, scope: "global" },
   DISABLED_COMMANDS: {
@@ -63,7 +63,8 @@ const entries = {
   ALLOWED: { type: "string", default: "91,94,2" },
   NOT_ALLOWED: { type: "string", default: "852" },
   CHATBOT: { type: "string", default: "off" },
-  HANDLERS: { type: "string", default: ".,", scope: "global", restart: true },
+  // live and per session: the dispatcher builds each command's regex from the session's own value
+  HANDLERS: { type: "string", default: ".," },
   STICKER_DATA: { type: "string", default: "Raganork" },
   BOT_NAME: { type: "string", default: "Raganork" },
   AUDIO_DATA: {
@@ -82,6 +83,10 @@ const entries = {
   AUTO_UPDATE: { type: "bool", default: true, scope: "global" },
   SUPPORT_GROUP: { type: "string", default: "https://t.me/raganork_in" },
   MAX_RECONNECT_ATTEMPTS: { type: "int", default: 10, scope: "global" },
+  // command queue (core/pipeline/dispatcher.js): chats running a command at once, and seconds
+  // before a running command stops holding its slot
+  CMD_CONCURRENCY: { type: "int", default: 8, scope: "global" },
+  CMD_TIMEOUT: { type: "int", default: 300, scope: "global" },
 
   // built in config.js (they are needed before the config object exists)
   DEBUG: { type: "string", default: false, scope: "global", env: legacyBool, external: true },

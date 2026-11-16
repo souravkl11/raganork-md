@@ -1,4 +1,5 @@
 const { Module } = require("../main");
+const lifecycle = require("../core/lifecycle");
 
 Module(
   {
@@ -8,7 +9,7 @@ Module(
   },
   async (m) => {
     await m.sendReply("_Reloading bot..._");
-    process.exit(0);
+    await lifecycle.restart("reload command");
   }
 );
 
@@ -20,7 +21,7 @@ Module(
   },
   async (m) => {
     await m.sendReply("_Reloading bot..._");
-    process.exit(0);
+    await lifecycle.restart("reboot command");
   }
 );
 
@@ -33,6 +34,6 @@ Module(
   },
   async (m) => {
     await m.sendReply("_Restarting bot..._");
-    process.exit(0);
+    await lifecycle.restart("restart command");
   }
 );

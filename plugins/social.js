@@ -9,24 +9,43 @@ const {
 } = require("./utils");
 const axios = require("axios");
 
-async function checkRedirect(url) {
-  let split_url = url.split("/");
-  if (split_url.includes("share")) {
-    let res = await axios.get(url);
-    return res.request.res.responseUrl;
+const INSTAGRAM_HOSTS = new Set(["instagram.com", "www.instagram.com", "instagr.am"]);
+
+function hostOf(url) {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch (_) {
+    return "";
   }
-  return url;
+}
+
+// share links redirect to the post; only Instagram's own hosts are followed, at every hop
+async function checkRedirect(url) {
+  if (!INSTAGRAM_HOSTS.has(hostOf(url)) || !url.split("/").includes("share")) return url;
+  try {
+    const res = await axios.get(url, {
+      timeout: 10000,
+      maxContentLength: 2 * 1024 * 1024,
+      beforeRedirect: (options) => {
+        if (!INSTAGRAM_HOSTS.has(String(options.hostname).toLowerCase())) {
+          throw new Error("redirect left Instagram");
+        }
+      },
+    });
+    return res.request.res.responseUrl || url;
+  } catch (_) {
+    return url;
+  }
 }
 Module(
   {
-    pattern: "insta ?(.*)",
+    pattern: "insta(?!ll) ?(.*)",
     desc: "Instagram post/reel/tv/highlights downloader - supports multiple links",
     usage: "insta link(s) or reply to link(s)",
     use: "download",
   },
   async (message, match) => {
     let mediaLinks = match[1] || message.reply_message?.text;
-    if (mediaLinks.startsWith("ll")) return;
     if (!mediaLinks)
       return await message.sendReply("_*Need Instagram link(s)*_");
 
@@ -41,14 +60,13 @@ Module(
       /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|s|reel|tv)\/[\w-]+/i;
 
     for (let url of allUrls) {
-      if (url.includes("gist") || url.includes("youtu") || url.startsWith("ll"))
-        continue;
+      if (url.includes("gist") || url.includes("youtu")) continue;
 
       url = await checkRedirect(url);
 
       if (url.includes("stories")) continue;
 
-      if (!url.includes("instagram.com")) continue;
+      if (!INSTAGRAM_HOSTS.has(hostOf(url))) continue;
 
       if (instagramRegex.test(url)) {
         const mediaId = url.match(/\/([\w-]+)\/?$/)?.[1];
@@ -245,7 +263,6 @@ Module(
   },
   async (message, match) => {
     let userQuery = match[1] !== "" ? match[1] : message.reply_message.text;
-    if (userQuery === "g") return;
     if (!userQuery)
       return await message.sendReply("_Need search term or pin video link_");
 
@@ -274,7 +291,7 @@ Module(
         : message.data;
       await message.sendMessage({ url }, "video", { quoted: quotedMessage });
     } else {
-      let desiredCount = parseInt(userQuery.split(",")[1]) || 5;
+      let desiredCount = Math.min(Math.max(parseInt(userQuery.split(",")[1]) || 5, 1), 10);
       let searchQuery = userQuery.split(",")[0] || userQuery;
       let searchResults;
       try {
@@ -310,7 +327,7 @@ Module(
           "Album send failed, falling back to individual sends:",
           error
         );
-        for (const url of searchResults) {
+        for (const url of searchResults.slice(0, toDownload)) {
           try {
             await message.sendMessage({ url }, "image");
           } catch (error) {
@@ -335,7 +352,8 @@ Module(
   async (message, match) => {
     let videoLink = match[1] !== "" ? match[1] : message.reply_message.text;
     if (!videoLink) return await message.sendReply("_Need a TikTok URL_");
-    videoLink = videoLink.match(/\bhttps?:\/\/\S+/gi)[0];
+    videoLink = videoLink.match(/\bhttps?:\/\/\S+/gi)?.[0];
+    if (!videoLink) return await message.sendReply("_Need a TikTok URL_");
     let downloadResult;
     try {
       downloadResult = await tiktok(videoLink);

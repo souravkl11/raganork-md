@@ -76,6 +76,8 @@ const linkDetector = require("./link-detector");
 
 const fancy = require("./fancy");
 
+const guards = require("./guards");
+
 module.exports = {
   // Database Operations
   getWarn,
@@ -145,4 +147,7 @@ module.exports = {
   // Link Detection
   linkDetector,
   lyrics,
+
+  // Guards and helpers
+  ...guards,
 };

@@ -1,5 +1,6 @@
 const config = require("../config");
 const context = require("./context");
+const { isGroup: isGroupJid } = require("./identity");
 const { DataTypes, Op } = require("sequelize");
 const { scoped, accountColumn } = require("./db/scoped");
 const logger = config.logger;
@@ -238,7 +239,7 @@ function aggregateBatch(batch) {
 
   for (const msgData of batch) {
     const { id, participant, remoteJid } = msgData.key;
-    const isGroup = remoteJid.endsWith("@g.us");
+    const isGroup = isGroupJid(remoteJid);
     const sender = isGroup ? participant || remoteJid : remoteJid;
     const ts = new Date(msgData.messageTimestamp * 1000);
 

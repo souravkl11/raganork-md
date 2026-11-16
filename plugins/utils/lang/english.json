@@ -4,9 +4,9 @@
       "STICKER_DESC": "Creates stickers. Reply to media.",
       "STICKER_NEED_REPLY": "_Reply to a photo or a short video!_",
       "MP3_DESC": "Converts replied media to mp3 format",
-      "MP3_NEED_REPLY:": "_Reply to an audio or video!_",
-      "BASS_DESC:": "Bass boosts audio. .bass 20",
-      "BASS_NEED_REPLY:": "_Reply to an audio!_",
+      "MP3_NEED_REPLY": "_Reply to an audio or video!_",
+      "BASS_DESC": "Bass boosts audio. .bass 20",
+      "BASS_NEED_REPLY": "_Reply to an audio!_",
       "TTS_DESC": "Converts text to speech using google tts.",
       "TTS_NEED_REPLY": "Need text!",
       "TTS_ERROR": "Failed to convert to speech. Please check your requested params!",
@@ -25,7 +25,7 @@
       "REMOVE_DESC": "Removes plugin.",
       "NEED_PLUGIN": "_Please give a plugin name! Ex: .remove news_",
       "PLUGIN_NOT_FOUND": "_There is no such plugin installed!_.",
-      "PLUGIN_UPDATED": "_Plugin '{}' updated, restarting..!_",
+      "PLUGIN_UPDATED": "_Plugin '{}' updated ✅_",
       "DELETED": "_Deleted: '{}'. Reboot to make effect_"
     },
     "group": {

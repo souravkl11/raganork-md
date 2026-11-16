@@ -1,7 +1,9 @@
 const { Module } = require("../main");
 const config = require("../config");
 const { isSudo } = require("../core/sudo");
+const { botIds } = require("../core/identity");
 const { uploadToCatbox } = require("./utils/upload");
+const { cooldown, accountKey } = require("./utils");
 
 const fs = require("fs");
 const path = require("path");
@@ -82,7 +84,7 @@ Module(
         const mentionData = getMentionReply();
         if (!mentionData) {
           return await message.sendReply(
-            "No mention reply set!\n\n*Usage:*\n• Reply to any message and type `.mention set`\n• Or use `.mention set <text>` for text message"
+            `No mention reply set!\n\n*Usage:*\n• Reply to any message and type \`${helpPrefix()}mention set\`\n• Or use \`${helpPrefix()}mention set <text>\` for text message`
           );
         }
 
@@ -127,11 +129,16 @@ Module(
 
               const downloadedFilePath = await replyMsg.download();
 
-              const uploadResult = await uploadToCatbox(downloadedFilePath);
+              let uploadResult = null;
+              try {
+                uploadResult = await uploadToCatbox(downloadedFilePath);
+              } catch (error) {
+                console.error("Mention media upload failed:", error.message);
+              } finally {
+                fs.rmSync(downloadedFilePath, { force: true });
+              }
 
-              fs.unlinkSync(downloadedFilePath);
-
-              if (uploadResult && uploadResult.url) {
+              if (uploadResult && /^https?:\/\//i.test(uploadResult.url)) {
                 mentionData.type = mediaType;
                 mentionData.url = uploadResult.url;
                 mentionData.caption = replyMsg.text || "";
@@ -240,6 +247,7 @@ Module(
   },
   async (message) => {
     try {
+      if (message.fromBot) return;
       if (
         !message.mention ||
         !Array.isArray(message.mention) ||
@@ -248,15 +256,15 @@ Module(
         return;
       }
 
-      const botId = message.client.user?.lid?.split(":")[0] + "@s.whatsapp.net";
-      const botNumericId = botId?.split("@")[0];
+      const { lidNumber, pnNumber } = botIds(message.client);
+      const botNumbers = [lidNumber, pnNumber].filter(Boolean);
 
       let isMentioned = false;
 
       for (const mentionedJid of message.mention) {
-        const mentionedNumericId = mentionedJid?.split("@")[0];
+        const mentionedNumericId = mentionedJid?.split("@")[0]?.split(":")[0];
 
-        if (mentionedNumericId === botNumericId || mentionedJid === botId) {
+        if (mentionedNumericId && botNumbers.includes(mentionedNumericId)) {
           isMentioned = true;
           break;
         }
@@ -275,6 +283,8 @@ Module(
       if (!mentionData) {
         return;
       }
+
+      if (!cooldown(accountKey("mention", message.jid), 30 * 1000)) return;
 
       switch (mentionData.type) {
         case "text":

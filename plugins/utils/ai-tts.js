@@ -31,7 +31,7 @@ async function aiTTS(text, voice = "coral", speed = "1.00") {
     const { data } = await axios.post(
       "https://ttsmp3.com/makemp3_ai.php",
       formData,
-      { headers: formData.getHeaders() }
+      { headers: formData.getHeaders(), timeout: 30000 }
     );
     if (data?.Error === "Usage Limit exceeded") {
       return { error: "TTS API usage limit exceeded", response: data };

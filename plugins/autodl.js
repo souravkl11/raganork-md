@@ -1,12 +1,19 @@
-const { Module } = require("../main");
+const { Module, commands } = require("../main");
 const config = require("../config");
+const { helpPrefix, patternFor, commandName } = require("../core/plugins/registry");
+const { parseText } = require("../core/pipeline/normalize");
+const { queue } = require("../core/pipeline/dispatcher");
 const { setVar } = require("./manage");
-const { downloadGram, pinterestDl, tiktok, fb, spotifyTrack } = require("./utils");
-const { getVideoInfo, downloadAudio, convertM4aToMp3, searchYoutube } = require("./utils/yt");
-const fs = require("fs");
-
-const handlerPrefix = () =>
-  config.HANDLERS === "false" ? "" : (config.HANDLERS || ".").charAt(0);
+const { downloadGram, pinterestDl, tiktok, fb, spotifyTrack, accountKey } = require("./utils");
+const {
+  getVideoInfo,
+  searchYoutube,
+  sendYoutubeAudio,
+  youtubeUrlFrom,
+  videoIdOf,
+  assertWithinLimits,
+  qualityMenuText,
+} = require("./utils/yt");
 
 const URL_PATTERNS = {
   instagram:
@@ -19,18 +26,22 @@ const URL_PATTERNS = {
     /^https?:\/\/(?:www\.)?(?:tiktok\.com\/@?[A-Za-z0-9_.-]+\/video\/\d+|vm\.tiktok\.com\/[A-Za-z0-9_-]+\/?|vt\.tiktok\.com\/[A-Za-z0-9_-]+\/?|v\.tiktok\.com\/[A-Za-z0-9_-]+\/?)(?:\?.*)?$/i,
   pinterest:
     /^https?:\/\/(?:www\.)?(?:pinterest\.com\/(?:pin\/\d+\/?[A-Za-z0-9_-]*)\/?|pin\.it\/[A-Za-z0-9_-]+\/?)(?:\?.*)?$/i,
-  twitter:
-    /^https?:\/\/(?:www\.)?(?:twitter\.com|x\.com|mobile\.twitter\.com)\/[A-Za-z0-9_]{1,15}\/status\/\d+(?:\?.*)?$/i,
   facebook:
     /^https?:\/\/(?:www\.)?(?:fb\.watch\/[A-Za-z0-9_-]+\/?|(?:facebook\.com|m\.facebook\.com)\/(?:(?:watch(?:\/?|\?v=))|(?:.*\/videos?\/\d+)|(?:video\.php\?v=\d+)|(?:.*\/posts\/\d+))(?:[\s\S]*)?)$/i,
 };
 
-function getFirstUrl(text) {
-  if (!text) return null;
-  const urlMatch = text.match(/https?:\/\/\S+/i);
-  if (!urlMatch) return null;
-  return urlMatch[0].replace(/[)\]\.,!?>]*$/, "");
-}
+const DOWNLOAD_COMMANDS = new Set([
+  "insta",
+  "story",
+  "tiktok",
+  "pinterest",
+  "fb",
+  "play",
+  "video",
+  "ytv",
+  "yta",
+  "spotify",
+]);
 
 function getAllUrls(text) {
   if (!text) return [];
@@ -46,20 +57,184 @@ function detectPlatform(url) {
   return null;
 }
 
+// true when the dispatcher will run one of the download commands for this text
 function isAlreadyCommand(text) {
-  text = text?.toLowerCase()?.trim();
-  if (!text) return false;
-  const regex =
-    /(insta\s|instah|story\s|storyh|tiktok\s|tiktokh|pinterest\s|pinteresth|twitter\s|twitterh|fb\s|fbh|play\s|playh|ytv\s|ytvh|yta\s|ytah|spotify\s|spotifyh)/;
-  return regex.test(text);
+  const parsed = parseText(text);
+  if (!parsed) return false;
+  return commands.some(
+    (cmd) =>
+      !cmd.on &&
+      cmd.pattern !== undefined &&
+      DOWNLOAD_COMMANDS.has(commandName(cmd)) &&
+      patternFor(cmd).test(parsed),
+  );
 }
 
-function formatBytes(bytes) {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+const isImageUrl = (url) => /\.(jpg|jpeg|png|webp|heic)(\?|$)/i.test(url);
+
+async function downloadYoutube(message, text, link) {
+  const url = youtubeUrlFrom(link);
+  if (!url) {
+    await message.react("❌");
+    return;
+  }
+  try {
+    if (/\baudio\b|\bmp3\b/i.test(text)) {
+      await sendYoutubeAudio(message, url, { asDocument: true });
+      return;
+    }
+
+    const info = await getVideoInfo(url);
+    assertWithinLimits(info);
+    const menu = qualityMenuText(info, videoIdOf(url) || info.videoId || "");
+    if (!menu) {
+      await message.react("❌");
+      return;
+    }
+    await message.sendReply(menu);
+  } catch (err) {
+    if (config.DEBUG) console.error("[AutoDL YT]", err?.message || err);
+    if (err.code === "YT_LIMIT") await message.sendReply(`_${err.message}_`);
+    else await message.react("❌");
+  }
+}
+
+async function downloadInstagram(message, urls) {
+  const allMediaUrls = [];
+  const quotedMessage = message.reply_message ? message.quoted : message.data;
+
+  for (const url of urls) {
+    try {
+      const downloadResult = await downloadGram(url);
+      if (downloadResult && downloadResult.length) {
+        allMediaUrls.push(...downloadResult);
+      }
+    } catch (err) {
+      if (config.DEBUG) console.error("[AutoDL IG]", err?.message || err);
+    }
+  }
+
+  if (!allMediaUrls.length) {
+    await message.react("❌");
+    return;
+  }
+
+  if (allMediaUrls.length === 1) {
+    await message.sendMessage(
+      { url: allMediaUrls[0] },
+      isImageUrl(allMediaUrls[0]) ? "image" : "video",
+      { quoted: quotedMessage },
+    );
+  } else {
+    const albumObject = allMediaUrls.map((mediaUrl) =>
+      isImageUrl(mediaUrl) ? { image: mediaUrl } : { video: mediaUrl },
+    );
+    await message.client.albumMessage(message.jid, albumObject, message.data);
+  }
+}
+
+async function downloadPinterest(message, urls) {
+  const allMediaUrls = [];
+  const quotedMessage = message.reply_message ? message.quoted : message.data;
+
+  for (const url of urls) {
+    try {
+      const pinterestResult = await pinterestDl(url);
+      if (pinterestResult && pinterestResult.status && pinterestResult.result) {
+        allMediaUrls.push(pinterestResult.result);
+      }
+    } catch (err) {
+      if (config.DEBUG) console.error("[AutoDL Pinterest]", err?.message || err);
+    }
+  }
+
+  if (!allMediaUrls.length) {
+    await message.react("❌");
+    return;
+  }
+
+  if (allMediaUrls.length === 1) {
+    await message.sendMessage({ url: allMediaUrls[0] }, "video", {
+      quoted: quotedMessage,
+    });
+  } else {
+    const albumObject = allMediaUrls.map((mediaUrl) => ({ video: mediaUrl }));
+    await message.client.albumMessage(message.jid, albumObject, message.data);
+  }
+}
+
+async function downloadSpotify(message, url) {
+  let downloadMsg;
+  try {
+    downloadMsg = await message.sendReply("_Fetching Spotify info..._");
+    const spotifyInfo = await spotifyTrack(url);
+    const { title, artist } = spotifyInfo;
+
+    await message.edit(
+      `_Downloading *${title}* by *${artist}*..._`,
+      message.jid,
+      downloadMsg.key,
+    );
+
+    const results = await searchYoutube(`${title} ${artist}`, 1);
+    if (!results || results.length === 0) {
+      await message.edit("_No matching songs found on YouTube!_", message.jid, downloadMsg.key);
+      return;
+    }
+
+    await sendYoutubeAudio(message, results[0].url, {
+      status: downloadMsg,
+      meta: { title, artist, thumbnail: spotifyInfo?.thumbnail },
+    });
+  } catch (err) {
+    if (config.DEBUG) console.error("[AutoDL Spotify]", err?.message || err);
+    if (downloadMsg) {
+      await message.edit("_Download failed!_", message.jid, downloadMsg.key);
+    } else {
+      await message.sendReply("_Download failed. Please try again._");
+    }
+  }
+}
+
+// one platform per message, in this order; for most only the first link is taken
+async function downloadLinks(message, text, platformGroups) {
+  try {
+    if (platformGroups.youtube) {
+      return await downloadYoutube(message, text, platformGroups.youtube[0]);
+    }
+    if (platformGroups.instagram) {
+      return await downloadInstagram(message, platformGroups.instagram);
+    }
+    if (platformGroups.tiktok) {
+      try {
+        const downloadResult = await tiktok(platformGroups.tiktok[0]);
+        await message.sendReply(downloadResult, "video");
+      } catch (err) {
+        if (config.DEBUG) console.error("[AutoDL TikTok]", err?.message || err);
+        await message.react("❌");
+      }
+      return;
+    }
+    if (platformGroups.pinterest) {
+      return await downloadPinterest(message, platformGroups.pinterest);
+    }
+    if (platformGroups.facebook) {
+      try {
+        const result = await fb(platformGroups.facebook[0]);
+        await message.sendReply({ url: result.url }, "video");
+      } catch (err) {
+        if (config.DEBUG) console.error("[AutoDL FB]", err?.message || err);
+        await message.react("❌");
+      }
+      return;
+    }
+    if (platformGroups.spotify) {
+      return await downloadSpotify(message, platformGroups.spotify[0]);
+    }
+  } catch (err) {
+    if (config.DEBUG) console.error("[AutoDL]", err?.message || err);
+    await message.react("❌");
+  }
 }
 
 Module({ on: "text" }, async (message) => {
@@ -67,410 +242,31 @@ Module({ on: "text" }, async (message) => {
     if (message.fromBot) return;
     const chatJid = message.jid;
     const isGroup = chatJid.includes("@g.us");
-    const autodlEnabledForChat = (() => {
-      try {
-        const enabledList = config.AUTODL || "";
-        const enabled = enabledList
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        if (enabled.includes(chatJid)) return true;
-        if (isGroup && config.AUTODL_ALL_GROUPS === "true") return true;
-        if (!isGroup && config.AUTODL_ALL_DMS === "true") return true;
-        return false;
-      } catch (e) {
-        return false;
-      }
-    })();
+    const enabled = String(config.AUTODL || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const autodlEnabledForChat =
+      enabled.includes(chatJid) ||
+      (isGroup && config.AUTODL_ALL_GROUPS === "true") ||
+      (!isGroup && config.AUTODL_ALL_DMS === "true");
     if (!autodlEnabledForChat) return;
-    let text = message.text || "";
+
+    const text = message.text || "";
     if (isAlreadyCommand(text)) return;
 
-    const urls = getAllUrls(text);
-    if (!urls.length) return;
-
-    // group urls by platform
     const platformGroups = {};
-    const unsupportedUrls = [];
-
-    for (const url of urls) {
+    for (const url of getAllUrls(text)) {
       const platform = detectPlatform(url);
-      if (!platform) {
-        unsupportedUrls.push(url);
-      } else {
-        if (!platformGroups[platform]) platformGroups[platform] = [];
-        platformGroups[platform].push(url);
-      }
+      if (platform) (platformGroups[platform] ||= []).push(url);
     }
-
     if (!Object.keys(platformGroups).length) return;
 
     await message.react("⬇️");
-
-    try {
-      // handle youtube separately (only process first url for yt)
-      if (platformGroups["youtube"]) {
-        let url = platformGroups["youtube"][0];
-
-        // Convert YouTube Shorts URL to regular watch URL if needed
-        if (url.includes("youtube.com/shorts/")) {
-          const shortId = url.match(
-            /youtube\.com\/shorts\/([A-Za-z0-9_-]+)/
-          )?.[1];
-          if (shortId) {
-            url = `https://www.youtube.com/watch?v=${shortId}`;
-          }
-        }
-
-        const lowerText = text.toLowerCase();
-        const isAudioMode =
-          /\baudio\b|\bmp3\b/.test(lowerText) && !isAlreadyCommand(text);
-
-        try {
-          // if message contains "audio" or "mp3", download as audio
-          if (isAudioMode) {
-            let downloadMsg;
-            let audioPath;
-
-            try {
-              downloadMsg = await message.sendReply("_Downloading audio..._");
-              const result = await downloadAudio(url);
-              audioPath = result.path;
-
-              const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
-              audioPath = mp3Path;
-
-              await message.edit(
-                "_Sending audio..._",
-                message.jid,
-                downloadMsg.key
-              );
-
-              const stream = fs.createReadStream(audioPath);
-              await message.sendMessage({ stream }, "document", {
-                fileName: `${result.title}.m4a`,
-                mimetype: "audio/mp4",
-                caption: `_*${result.title}*_`,
-              });
-              stream.destroy();
-
-              await message.edit(
-                "_Download complete!_",
-                message.jid,
-                downloadMsg.key
-              );
-
-              await new Promise((resolve) => setTimeout(resolve, 100));
-              if (fs.existsSync(audioPath)) {
-                fs.unlinkSync(audioPath);
-              }
-            } catch (error) {
-              if (config.DEBUG)
-                console.error("[AutoDL YT Audio]", error?.message || error);
-              if (downloadMsg) {
-                await message.edit(
-                  "_Download failed!_",
-                  message.jid,
-                  downloadMsg.key
-                );
-              } else {
-                await message.sendReply("_Download failed. Please try again._");
-              }
-
-              if (audioPath && fs.existsSync(audioPath)) {
-                fs.unlinkSync(audioPath);
-              }
-            }
-            return;
-          }
-
-          // else download video with quality selection
-          const info = await getVideoInfo(url);
-          const videoFormats = info.formats
-            .filter((f) => f.type === "video" && f.quality)
-            .sort((a, b) => {
-              const getRes = (q) => {
-                const match = q.match(/(\d+)/);
-                return match ? parseInt(match[1]) : 0;
-              };
-              return getRes(b.quality) - getRes(a.quality);
-            });
-
-          const uniqueQualities = [
-            ...new Set(videoFormats.map((f) => f.quality)),
-          ];
-
-          const videoIdMatch = url.match(
-            /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&\s/?]+)/
-          );
-          const videoId = videoIdMatch ? videoIdMatch[1] : info.videoId || "";
-
-          let qualityText = "_*Select Video Quality*_\n\n";
-          qualityText += `_*${info.title}*_\n\n(${videoId})\n\n`;
-
-          if (uniqueQualities.length === 0) {
-            await message.react("❌");
-            return;
-          }
-
-          uniqueQualities.forEach((quality, index) => {
-            const format = videoFormats.find((f) => f.quality === quality);
-            const audioFormat = info.formats.find((f) => f.type === "audio");
-
-            let sizeInfo = "";
-            if (format.size && audioFormat?.size) {
-              const parseSize = (sizeStr) => {
-                const match = sizeStr.match(/([\d.]+)\s*(KB|MB|GB)/i);
-                if (!match) return 0;
-                const value = parseFloat(match[1]);
-                const unit = match[2].toUpperCase();
-                if (unit === "KB") return value * 1024;
-                if (unit === "MB") return value * 1024 * 1024;
-                if (unit === "GB") return value * 1024 * 1024 * 1024;
-                return value;
-              };
-
-              const videoSize = parseSize(format.size);
-              const audioSize = parseSize(audioFormat.size);
-              const totalSize = videoSize + audioSize;
-
-              if (totalSize > 0) {
-                sizeInfo = ` ~ _${formatBytes(totalSize)}_`;
-              }
-            }
-
-            qualityText += `*${index + 1}.* _*${quality}*_${sizeInfo}\n`;
-          });
-
-          const audioFormat = info.formats.find((f) => f.type === "audio");
-          if (audioFormat) {
-            let audioSizeInfo = "";
-            if (audioFormat.size) {
-              const parseSize = (sizeStr) => {
-                const match = sizeStr.match(/([\d.]+)\s*(KB|MB|GB)/i);
-                if (!match) return 0;
-                const value = parseFloat(match[1]);
-                const unit = match[2].toUpperCase();
-                if (unit === "KB") return value * 1024;
-                if (unit === "MB") return value * 1024 * 1024;
-                if (unit === "GB") return value * 1024 * 1024 * 1024;
-                return value;
-              };
-              const audioSize = parseSize(audioFormat.size);
-              if (audioSize > 0) {
-                audioSizeInfo = ` ~ _${formatBytes(audioSize)}_`;
-              }
-            }
-            qualityText += `*${uniqueQualities.length + 1}.* _*Audio Only*_${audioSizeInfo}\n`;
-          }
-
-          qualityText += "\n_Reply with a number to download_";
-          await message.sendReply(qualityText);
-        } catch (err) {
-          if (config.DEBUG) console.error("[AutoDL YT]", err?.message || err);
-          await message.react("❌");
-        }
-        return;
-      }
-
-      // handle instagram (multiple urls support)
-      if (platformGroups["instagram"]) {
-        const allMediaUrls = [];
-        const quotedMessage = message.reply_message
-          ? message.quoted
-          : message.data;
-
-        for (const url of platformGroups["instagram"]) {
-          try {
-            const downloadResult = await downloadGram(url);
-            if (downloadResult && downloadResult.length) {
-              allMediaUrls.push(...downloadResult);
-            }
-          } catch (err) {
-            if (config.DEBUG) console.error("[AutoDL IG]", err?.message || err);
-          }
-        }
-
-        if (!allMediaUrls.length) {
-          await message.react("❌");
-          return;
-        }
-
-        if (allMediaUrls.length === 1) {
-          await message.sendMessage(
-            { url: allMediaUrls[0] },
-            /\.(jpg|jpeg|png|webp|heic)(\?|$)/i.test(allMediaUrls[0])
-              ? "image"
-              : "video",
-            { quoted: quotedMessage }
-          );
-        } else {
-          const albumObject = allMediaUrls.map((mediaUrl) => {
-            return /\.(jpg|jpeg|png|webp|heic)(\?|$)/i.test(mediaUrl)
-              ? { image: mediaUrl }
-              : { video: mediaUrl };
-          });
-          await message.client.albumMessage(
-            message.jid,
-            albumObject,
-            message.data
-          );
-        }
-        return;
-      }
-
-      // handle tiktok (only process first url for now - api limitation)
-      if (platformGroups["tiktok"]) {
-        try {
-          const downloadResult = await tiktok(platformGroups["tiktok"][0]);
-          await message.sendReply(downloadResult, "video");
-        } catch (err) {
-          if (config.DEBUG)
-            console.error("[AutoDL TikTok]", err?.message || err);
-          await message.react("❌");
-        }
-        return;
-      }
-
-      // handle pinterest (multiple urls support)
-      if (platformGroups["pinterest"]) {
-        const allMediaUrls = [];
-        const quotedMessage = message.reply_message
-          ? message.quoted
-          : message.data;
-
-        for (const url of platformGroups["pinterest"]) {
-          try {
-            const pinterestResult = await pinterestDl(url);
-            if (
-              pinterestResult &&
-              pinterestResult.status &&
-              pinterestResult.result
-            ) {
-              allMediaUrls.push(pinterestResult.result);
-            }
-          } catch (err) {
-            if (config.DEBUG)
-              console.error("[AutoDL Pinterest]", err?.message || err);
-          }
-        }
-
-        if (!allMediaUrls.length) {
-          await message.react("❌");
-          return;
-        }
-
-        if (allMediaUrls.length === 1) {
-          await message.sendMessage({ url: allMediaUrls[0] }, "video", {
-            quoted: quotedMessage,
-          });
-        } else {
-          const albumObject = allMediaUrls.map((mediaUrl) => {
-            return { video: mediaUrl };
-          });
-          await message.client.albumMessage(
-            message.jid,
-            albumObject,
-            message.data
-          );
-        }
-        return;
-      }
-
-      // handle facebook (only process first url for now)
-      if (platformGroups["facebook"]) {
-        try {
-          const result = await fb(platformGroups["facebook"][0]);
-          await message.sendReply({ url: result.url }, "video");
-        } catch (err) {
-          if (config.DEBUG) console.error("[AutoDL FB]", err?.message || err);
-          await message.react("❌");
-        }
-        return;
-      }
-
-      // handle spotify (only process first url for now)
-      if (platformGroups["spotify"]) {
-        let downloadMsg;
-        let audioPath;
-
-        try {
-          downloadMsg = await message.sendReply("_Fetching Spotify info..._");
-          const spotifyInfo = await spotifyTrack(platformGroups["spotify"][0]);
-          const { title, artist } = spotifyInfo;
-
-          await message.edit(
-            `_Downloading *${title}* by *${artist}*..._`,
-            message.jid,
-            downloadMsg.key
-          );
-
-          const query = `${title} ${artist}`;
-          const results = await searchYoutube(query, 1);
-
-          if (!results || results.length === 0) {
-            await message.edit(
-              "_No matching songs found on YouTube!_",
-              message.jid,
-              downloadMsg.key
-            );
-            return;
-          }
-
-          const video = results[0];
-          const result = await downloadAudio(video.url);
-          audioPath = result.path;
-
-          const mp3Path = await convertM4aToMp3(audioPath, { title: result?.title, artist: result?.info?.channel?.name, thumbnail: result?.info?.thumbnail });
-          audioPath = mp3Path;
-
-          await message.edit(
-            "_Sending audio..._",
-            message.jid,
-            downloadMsg.key
-          );
-
-          const stream = fs.createReadStream(audioPath);
-          await message.sendReply({ stream }, "audio", {
-            mimetype: "audio/mp4",
-          });
-          stream.destroy();
-
-          await message.edit(
-            "_Download complete!_",
-            message.jid,
-            downloadMsg.key
-          );
-
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          if (fs.existsSync(audioPath)) {
-            fs.unlinkSync(audioPath);
-          }
-        } catch (err) {
-          if (config.DEBUG)
-            console.error("[AutoDL Spotify]", err?.message || err);
-          if (downloadMsg) {
-            await message.edit("_Download failed!_", message.jid, downloadMsg.key);
-          } else {
-            await message.sendReply("_Download failed. Please try again._");
-          }
-
-          if (audioPath && fs.existsSync(audioPath)) {
-            fs.unlinkSync(audioPath);
-          }
-        }
-        return;
-      }
-
-      // handle twitter
-      if (platformGroups["twitter"]) {
-        await message.react("❌");
-        return;
-      }
-    } catch (err) {
-      if (config.DEBUG) console.error("[AutoDL]", err?.message || err);
-      await message.react("❌");
-    }
+    await queue(accountKey(chatJid), () => downloadLinks(message, text, platformGroups), {
+      name: "autodl",
+      jid: chatJid,
+    });
   } catch (err) {
     if (config.DEBUG) console.error("[AutoDL]", err?.message || err);
   }
@@ -482,7 +278,7 @@ Module(
     fromMe: true,
     desc: "Auto-download URL watcher - enable in chats or globally",
     usage:
-      ".autodl - show menu\n.autodl on/off - enable/disable in current chat\n.autodl on/off groups - enable/disable in all groups\n.autodl on/off dms - enable/disable in all DMs\n.autodl status - show current status",
+      ".autodl - show menu\n.autodl on/off - enable/disable in current chat\n.autodl on/off groups - enable/disable in all groups\n.autodl on/off dms - enable/disable in all DMs\n.autodl status - show current status\nLinks are downloaded for whoever MODE allows: only the owner's links in private mode, everyone's in public mode",
   },
   async (message, match) => {
     const input = match[1]?.trim();
@@ -515,11 +311,12 @@ Module(
           }\n` +
           `- _Global DMs:_ ${globalDMs ? "Enabled ✅" : "Disabled ❌"}\n\n` +
           `_Commands:_\n` +
-          `- \`${handlerPrefix()}autodl on/off\` - Sets in current chat\n` +
-          `- \`${handlerPrefix()}autodl on/off groups\` - Sets in all groups\n` +
-          `- \`${handlerPrefix()}autodl on dms\` - Sets in all DMs\n` +
-          `- \`${handlerPrefix()}autodl off dms\` - Sets in all DMs\n` +
-          `- \`${handlerPrefix()}autodl status\` - Show detailed status`
+          `- \`${helpPrefix()}autodl on/off\` - Sets in current chat\n` +
+          `- \`${helpPrefix()}autodl on/off groups\` - Sets in all groups\n` +
+          `- \`${helpPrefix()}autodl on dms\` - Sets in all DMs\n` +
+          `- \`${helpPrefix()}autodl off dms\` - Sets in all DMs\n` +
+          `- \`${helpPrefix()}autodl status\` - Show detailed status\n\n` +
+          `_Links are downloaded for whoever MODE allows: only the owner's in private mode, everyone's in public mode._`
       );
     }
 
@@ -531,12 +328,12 @@ Module(
       if (target === "groups") {
         await setVar("AUTODL_ALL_GROUPS", "true");
         return await message.sendReply(
-          "_AutoDL enabled for all groups ✅_\n_Use .autodl off groups to disable_"
+          `_AutoDL enabled for all groups ✅_\n_Use ${helpPrefix()}autodl off groups to disable_`
         );
       } else if (target === "dms") {
         await setVar("AUTODL_ALL_DMS", "true");
         return await message.sendReply(
-          "_AutoDL enabled for all DMs ✅_\n_Use .autodl off dms to disable_"
+          `_AutoDL enabled for all DMs ✅_\n_Use ${helpPrefix()}autodl off dms to disable_`
         );
       } else {
         const enabledList = readList();
@@ -552,18 +349,18 @@ Module(
       if (target === "groups") {
         await setVar("AUTODL_ALL_GROUPS", "false");
         return await message.sendReply(
-          "_AutoDL disabled for all groups ❌_\n_Use .autodl on groups to enable_"
+          `_AutoDL disabled for all groups ❌_\n_Use ${helpPrefix()}autodl on groups to enable_`
         );
       } else if (target === "dms") {
         await setVar("AUTODL_ALL_DMS", "false");
         return await message.sendReply(
-          "_AutoDL disabled for all DMs ❌_\n_Use .autodl on dms to enable_"
+          `_AutoDL disabled for all DMs ❌_\n_Use ${helpPrefix()}autodl on dms to enable_`
         );
       } else {
         const enabledList = readList().filter((x) => x !== chatJid);
         await setVar("AUTODL", enabledList.join(","));
         return await message.sendReply(
-          "_AutoDL disabled in this chat ❌_\n_Use .autodl on to re-enable_"
+          `_AutoDL disabled in this chat ❌_\n_Use ${helpPrefix()}autodl on to re-enable_`
         );
       }
     }

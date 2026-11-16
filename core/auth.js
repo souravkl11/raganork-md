@@ -11,8 +11,8 @@ loadBaileys()
     ({ WAProto } = baileys);
   })
   .catch((err) => {
+    // boot() awaits loadBaileys() itself and fails there, so this is only the log
     console.error("Failed to load baileys:", err.message);
-    process.exit(1);
   });
 
 const STORAGE_VERSION = 3;

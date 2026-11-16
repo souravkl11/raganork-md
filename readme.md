@@ -64,7 +64,7 @@ yarn install
 
 ### Configuration
 
-Create a `.env` file in the root directory:
+Create a `config.env` file in the root directory (on hosting platforms, set the same names as environment variables):
 
 #### Session Configuration
 
@@ -119,12 +119,34 @@ MAX_HEAP=512              # V8 heap cap in MB used by npm start (lower = earlier
 FFMPEG_CONCURRENCY=2      # max ffmpeg jobs at once
 FFMPEG_TIMEOUT=600        # seconds before a stuck ffmpeg job is killed
 MAX_RECONNECT_ATTEMPTS=10 # fast reconnects (with backoff) before switching to one retry every ~10 min
+CMD_CONCURRENCY=8         # chats that may run a command at the same time (commands of one chat run in order)
+CMD_TIMEOUT=300           # seconds before a running command stops holding its queue slot (it is not killed)
 LOG_LEVEL=warn            # bot log level (silent|error|warn|info|debug), default warn
 BAILEYS_LOG_LEVEL=silent  # WhatsApp library log level, separate from LOG_LEVEL, default silent
+SELF_RESTART=false        # without pm2 or a hosting platform, true makes .restart/.update start a new copy itself
 WA_VERSION=2.3000.x       # pin a WhatsApp web version (default: latest published)
 ```
 
+#### Other optional settings
+
+```
+DATABASE_SSL=true         # set false for a PostgreSQL server without SSL (default true)
+SQLITE_PATH=./bot.db      # where the SQLite file lives when DATABASE_URL is not set
+PLUGIN_FETCH_TIMEOUT=15000 # milliseconds to wait for each `.install`ed plugin download at start
+TEMP_DIR=temp             # folder for temporary files (default: a raganork folder in the system temp dir)
+USE_SERVER=true           # set false to skip the built-in web server (health and status pages)
+PORT=3000                 # port of that web server
+RENDER_API_KEY=           # Render only: lets `.update` redeploy the service
+```
+
 Use `.mem` to see the bot's memory usage. On container platforms where every MB counts, running `node --max-old-space-size=384 index.js` directly instead of `npm start` skips the PM2 daemon (~50-70 MB).
+
+## Health and status
+
+The built-in web server answers on `PORT`:
+
+- `/health` always returns `OK` (liveness probe for hosting platforms).
+- `/status` returns JSON with each session's state (`connected`, `lastOpenAt`, `reconnectAttempts`, `loggedOut`), uptime, memory and the message queue length. It shows no phone numbers and no session ids.
 
 ## Commands
 
@@ -140,19 +162,31 @@ Default prefix: `.`
 
 ```
 raganork-md/
-├── plugins/     # Bot plugins
-├── core/        # Core libraries
-├── output/      # Operational outputs
-├── temp/        # Temporary files
-├── config.js    # Configuration handler
-├── index.js     # Main entry point
-└── package.json # Dependencies
+├── plugins/          # Bot commands, one file each (also where `.install` puts plugins)
+│   ├── utils/        # Helpers plugins share (media, downloads, language files)
+│   └── sql/          # Plugin installer table
+├── core/             # Everything the plugins run on
+│   ├── app.js        # Boot sequence and the /health and /status server
+│   ├── handler.js    # Entry point for incoming messages
+│   ├── pipeline/     # Message pipeline: middleware (antibot, antispam, filters, ...) and the command dispatcher
+│   ├── session/      # One WhatsApp session: socket, reconnects, manager, features (albums, anti-delete, calls)
+│   ├── plugins/      # Command registry and plugin loader
+│   ├── db/           # Sequelize setup, models, migrations and per-session scoping
+│   ├── config/       # Typed settings: schema, store, derived values
+│   ├── services/     # Updater and the Render API client
+│   ├── constructors/ # Message objects handed to plugins
+│   └── private.js    # Private service layer (obfuscated on deploy)
+├── config.js         # Settings object plugins read (config.X)
+├── main.js           # Module() and commands, for plugins
+├── index.js          # Main entry point
+├── temp/             # Temporary files (when TEMP_DIR=temp)
+└── package.json      # Dependencies
 ```
 
 ## Support
 
 - [Telegram Group](https://t.me/raganork_in)
-- [Official Website](https://raganork.live)
+- [Official Website](https://raganork.site)
 
 ## Legal Notice
 

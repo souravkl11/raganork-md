@@ -4,14 +4,15 @@ const { DataTypes } = require("sequelize");
 const { sequelize } = require("../core/database");
 const { setVar, delVar } = require("./manage");
 const context = require("../core/context");
+const { patternFor } = require("../core/plugins/registry");
 
 /**
  * Auto anti view-once.
  *
- * Whenever anyone (including the owner) replies to a view once message in any
- * chat, the media is forwarded (as a normal message) to the chat configured in
- * VV_AUTO_JID. Every view once message is forwarded at most once, tracked by
- * its message id in the database so restarts don't cause duplicates.
+ * A view once message that arrives in any chat, or that anyone replies to, is
+ * forwarded (as a normal message) to the chat configured in VV_AUTO_JID. Every view
+ * once message is forwarded at most once, tracked by its message id in the database
+ * so restarts don't cause duplicates.
  */
 
 const VV_WRAPPERS = [
@@ -20,6 +21,10 @@ const VV_WRAPPERS = [
   "viewOnceMessageV2Extension",
 ];
 const MEDIA_TYPES = ["imageMessage", "videoMessage", "audioMessage"];
+
+const isAndroid = () => String(config.WA_BROWSER || "").toLowerCase() === "android";
+const ANDROID_NOTICE =
+  "_To catch view once messages the moment they arrive, set the browser to android first:_\n`.setvar WA_BROWSER=android`\n_then restart and link the number again. Until then only view once messages that someone replies to are saved._";
 
 const VVSent = sequelize.define(
   "autovv_sent",
@@ -33,20 +38,24 @@ const tableReady = VVSent.sync().catch((e) =>
   console.error("autovv: failed to sync table:", e.message)
 );
 
-// the .vv command pattern, looked up lazily because plugins load alphabetically
-let vvPattern;
+// the .vv command, looked up lazily because plugins load alphabetically. its pattern is
+// taken per call (patternFor) so it follows the session's current prefix
+let vvCommand;
 function isVVCommand(text) {
   if (!text) return false;
-  if (vvPattern === undefined) {
-    vvPattern =
+  if (vvCommand === undefined) {
+    vvCommand =
       commands.find(
         (c) =>
           c.pattern &&
           c.pattern.source.endsWith("vv ?(.*)") &&
           !c.pattern.source.endsWith("autovv ?(.*)")
-      )?.pattern || null;
+      ) || null;
   }
-  return Boolean(vvPattern) && vvPattern.test(text.charAt(0).toLowerCase() + text.slice(1));
+  return (
+    Boolean(vvCommand) &&
+    patternFor(vvCommand).test(text.charAt(0).toLowerCase() + text.slice(1))
+  );
 }
 
 // <account>:<id> currently being forwarded (guards against concurrent duplicate replies)
@@ -73,13 +82,11 @@ function getReplyContext(message) {
   return null;
 }
 
-// returns a clean (non view once) copy of the quoted message, or null
-function extractViewOnce(quotedMessage) {
-  if (!quotedMessage) return null;
-  const copy = JSON.parse(JSON.stringify(quotedMessage));
-  // the quoted payload may itself be ephemeral wrapped
-  const root = copy.ephemeralMessage?.message || copy;
-
+// returns a clean (non view once) copy of a view once message, or null. covers the wrapped
+// forms and a bare media message carrying viewOnce: true (what an Android companion receives)
+function extractViewOnce(message) {
+  if (!message) return null;
+  const root = message.ephemeralMessage?.message || message;
   const wrapperKey = VV_WRAPPERS.find((key) => root[key]);
   const inner = wrapperKey ? root[wrapperKey].message : root;
   if (!inner) return null;
@@ -88,8 +95,9 @@ function extractViewOnce(quotedMessage) {
   if (!type) return null;
   if (!wrapperKey && !inner[type].viewOnce) return null;
 
-  delete inner[type].viewOnce;
-  return { type, message: inner };
+  const media = { ...inner[type] };
+  delete media.viewOnce;
+  return { type, message: { ...inner, [type]: media } };
 }
 
 function normalizeJid(input, current) {
@@ -119,7 +127,7 @@ Module(
       return await m.sendReply(
         `_*Auto view once*_\n\n_Whenever someone replies to a view once message, the media is sent to a chosen chat (once per message)._\n\n_Status: ${
           current ? `on ✅ → ${current}` : "off ❌"
-        }_\n\n_Usage:_\n\`.autovv here\` - _use this chat_\n\`.autovv <jid/number>\` - _use a custom chat_\n\`.autovv off\` - _disable_`
+        }_\n_Browser: ${isAndroid() ? "android ✅" : "not android ⚠️"}_\n\n_Usage:_\n\`.autovv here\` - _use this chat_\n\`.autovv <jid/number>\` - _use a custom chat_\n\`.autovv off\` - _disable_`
       );
     }
 
@@ -136,38 +144,24 @@ Module(
     }
     await setVar("VV_AUTO_JID", target);
     return await m.sendReply(
-      `_Auto view once activated ✅_\n\n_View once media from replies will be sent to:_ ${target}`
+      `_Auto view once activated ✅_\n\n_View once media will be sent to:_ ${target}${
+        isAndroid() ? "" : `\n\n⚠️ ${ANDROID_NOTICE}`
+      }`
     );
   }
 );
 
-Module({ on: "message", fromMe: false }, async (m) => {
-  const target = config.VV_AUTO_JID;
-  if (!target || typeof target !== "string") return;
-
-  // an explicit .vv reply already handles the message itself
-  if (isVVCommand(m.text)) return;
-
-  const ctx = getReplyContext(m.data?.message);
-  if (!ctx) return;
-
-  const quotedId = ctx.stanzaId;
-  if (!quotedId) return;
-
-  const vv = extractViewOnce(ctx.quotedMessage);
-  if (!vv) return;
-
+async function forwardOnce(m, target, vv, msgId, origSender) {
   // once per message and per session: two sessions in the same chat each forward to their own target.
   // rows written before accounts exist are the bare message id and still count for every session
-  const sentKey = `${context.accountId() || "_"}:${quotedId}`;
+  const sentKey = `${context.accountId() || "_"}:${msgId}`;
   if (inFlight.has(sentKey)) return;
   inFlight.add(sentKey);
   try {
     await tableReady;
-    if ((await VVSent.findByPk(sentKey)) || (await VVSent.findByPk(quotedId))) return;
+    if ((await VVSent.findByPk(sentKey)) || (await VVSent.findByPk(msgId))) return;
 
     const sourceChat = m.jid;
-    const origSender = ctx.participant || sourceChat;
     const info = `_Auto view once_\n_From:_ @${origSender.split("@")[0]}\n_Chat:_ ${
       sourceChat.endsWith("@g.us") ? "group " : ""
     }${sourceChat.split("@")[0]}`;
@@ -175,7 +169,7 @@ Module({ on: "message", fromMe: false }, async (m) => {
     const options = {
       contextInfo: { isForwarded: false, mentionedJid: [origSender] },
     };
-    const fake = { key: { remoteJid: sourceChat, id: quotedId }, message: vv.message };
+    const fake = { key: { remoteJid: sourceChat, id: msgId }, message: vv.message };
 
     if (vv.type === "audioMessage") {
       await m.client.sendMessage(target, {
@@ -195,4 +189,29 @@ Module({ on: "message", fromMe: false }, async (m) => {
   } finally {
     inFlight.delete(sentKey);
   }
+}
+
+Module({ on: "message", fromMe: false }, async (m) => {
+  const target = config.VV_AUTO_JID;
+  if (!target || typeof target !== "string") return;
+
+  const message = m.data?.message;
+
+  // the message itself is view once
+  const direct = extractViewOnce(message);
+  if (direct) {
+    const id = m.data.key?.id;
+    if (!id || m.jid === target) return;
+    return await forwardOnce(m, target, direct, id, m.data.key.participant || m.sender || m.jid);
+  }
+
+  // an explicit .vv reply already handles the message itself
+  if (isVVCommand(m.text)) return;
+
+  // someone replied to a view once message
+  const ctx = getReplyContext(message);
+  if (!ctx?.stanzaId) return;
+  const vv = extractViewOnce(ctx.quotedMessage);
+  if (!vv) return;
+  await forwardOnce(m, target, vv, ctx.stanzaId, ctx.participant || m.jid);
 });

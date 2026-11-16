@@ -1,18 +1,18 @@
 const config = require("../config");
 const context = require("./context");
-const axios = require("axios");
+const events = require("./events");
+const lifecycle = require("./lifecycle");
+const platform = require("./platform");
+const { ownerTarget } = require("./identity");
 const cron = require("node-cron");
-const simpleGit = require("simple-git");
-const git = simpleGit();
 
 const {
   automute,
   autounmute,
   scheduledMessages,
-} = require("../plugins/utils/db/schedulers");
+} = require("./db/models/schedules");
 const localPackageJson = require("../package.json");
-const renderDeploy = require("../plugins/utils/render-api");
-const { spawn } = require("child_process");
+const { updater } = require("./services/updater");
 
 const PRESENCE_INTERVAL = 10000;
 const UPDATE_INTERVAL = 120000;
@@ -69,184 +69,174 @@ function trackTask(sessionId, task) {
 async function notifyOwners(text) {
   const sent = new Set();
   for (const { client, session } of sessions.values()) {
-    const me = client.user?.id?.split(":")[0];
     // SUDO is per session, so read it as that session
-    const sudo = session ? context.run(session, () => config.SUDO) : config.SUDO;
-    const owner = (sudo || "").split(",")[0].trim() || me;
-    if (!owner || sent.has(owner)) continue;
+    const target = () => ownerTarget(client, { map: false, self: "pn" });
+    const owner = session ? context.run(session, target) : target();
+    if (sent.has(owner)) continue;
     sent.add(owner);
     try {
-      await client.sendMessage(owner + "@s.whatsapp.net", { text });
+      await client.sendMessage(owner, { text });
     } catch (_) {}
   }
 }
 
-async function buildTasks(client, session, sessionId) {
-// timer callbacks run as the session that built the tasks
-const inSession = (fn) => (session ? context.run(session, fn) : fn());
-const setupMuteSchedules = async () => {
-  const autoMutes = await automute.get();
-  const muteTaskPromises = [];
-
-  if (!autoMutes || autoMutes.length === 0) {
-    return;
-  }
-
-  for (const record of autoMutes) {
-    const [hours, mins] = record.dataValues.time.split(" ");
-    const jid = record.dataValues.chat;
-    const row = record.dataValues;
-
-    muteTaskPromises.push(
-      new Promise((resolve) => {
-        const task = cron.schedule(
-          `${mins} ${hours} * * *`,
-          () =>
-            inSession(async () => {
-              if (!mayHandle(sessionId, row)) return;
-              try {
-                await client.groupSettingUpdate(jid, "announcement");
-                await client.sendMessage(jid, { text: config.AUTOMUTE_MSG });
-              } catch (error) {
-                console.error(`Error in automute task for ${jid}:`, error);
-              }
-            }),
-          {
-            scheduled: false,
-          }
-        );
-
-        trackTask(sessionId, task);
-
-        // Use setImmediate to defer the start to next event loop tick
-        setImmediate(() => {
-          task.start();
-          resolve();
-        });
-      })
-    );
-  }
-
-  const autoUnMutes = await autounmute.get();
-
-  if (!autoUnMutes || autoUnMutes.length === 0) {
-    await Promise.all(muteTaskPromises);
-    return;
-  }
-
-  for (const record of autoUnMutes) {
-    const [hours, mins] = record.dataValues.time.split(" ");
-    const jid = record.dataValues.chat;
-    const row = record.dataValues;
-
-    muteTaskPromises.push(
-      new Promise((resolve) => {
-        const task = cron.schedule(
-          `${mins} ${hours} * * *`,
-          () =>
-            inSession(async () => {
-              if (!mayHandle(sessionId, row)) return;
-              try {
-                await client.groupSettingUpdate(jid, "not_announcement");
-                await client.sendMessage(jid, { text: config.AUTOUNMUTE_MSG });
-              } catch (error) {
-                console.error(`Error in autounmute task for ${jid}:`, error);
-              }
-            }),
-          {
-            scheduled: false,
-          }
-        );
-
-        trackTask(sessionId, task);
-
-        // Use setImmediate to defer the start to next event loop tick
-        setImmediate(() => {
-          task.start();
-          resolve();
-        });
-      })
-    );
-  }
-
-  // Wait for all mute tasks to be set up (but not necessarily started)
-  await Promise.all(muteTaskPromises);
-};
-
-const setupScheduledMessages = async () => {
-  const pendingMessages = await scheduledMessages.getAllPending();
-
-  if (!pendingMessages || pendingMessages.length === 0) {
-    return;
-  }
-
+// start() is deferred a tick so a burst of rows does not block the loop
+function startTask(sessionId, expression, run) {
+  const task = cron.schedule(expression, run, { scheduled: false });
+  trackTask(sessionId, task);
   return new Promise((resolve) => {
-    const task = cron.schedule(
-      "* * * * *",
-      () => inSession(async () => {
-        try {
-          const messagesToSend = await scheduledMessages.getDueForSending();
-          for (const msg of messagesToSend) {
-            if (!mayHandle(sessionId, msg.dataValues)) continue;
-            try {
-              const jid = msg.dataValues.jid;
-              let messageData;
-
-              try {
-                messageData = JSON.parse(msg.dataValues.message);
-                if (messageData._mediaType) {
-                  const mediaType = messageData._mediaType;
-                  const base64Data = messageData[mediaType];
-
-                  if (base64Data) {
-                    const buffer = Buffer.from(base64Data, "base64");
-                    messageData[mediaType] = buffer;
-                    delete messageData._mediaType;
-                  }
-                }
-              } catch (parseError) {
-                messageData = { text: msg.dataValues.message };
-              }
-
-              await client.sendMessage(jid, messageData);
-              await scheduledMessages.markAsSent(msg.dataValues.id);
-              console.log(`✅ Sent scheduled message to ${jid}`);
-            } catch (error) {
-              console.error(
-                `❌ Failed to send scheduled message to ${msg.dataValues.jid}:`,
-                error
-              );
-            }
-          }
-        } catch (error) {
-          console.error("Error in scheduled messages task:", error);
-        }
-      }),
-      {
-        scheduled: false,
-      }
-    );
-
-    trackTask(sessionId, task);
-
-    // Use setImmediate to defer the start to next event loop tick
     setImmediate(() => {
       task.start();
       resolve();
     });
   });
-};
-
-  await Promise.all([setupMuteSchedules(), setupScheduledMessages()]);
 }
 
-function detectPlatform() {
-  if (process.env.RENDER_SERVICE_ID) return "render";
-  if (process.env.RAILWAY_SERVICE_ID) return "railway";
-  if (process.env.KOYEB_SERVICE_ID) return "koyeb";
-  if (process.env.DYNO) return "heroku";
-  return "local";
+function muteTask(client, jid, row, sessionId, inSession, setting, text) {
+  return () =>
+    inSession(async () => {
+      if (!mayHandle(sessionId, row)) return;
+      try {
+        await client.groupSettingUpdate(jid, setting);
+        await client.sendMessage(jid, { text: text() });
+      } catch (error) {
+        console.error(`Error in ${setting === "announcement" ? "automute" : "autounmute"} task for ${jid}:`, error);
+      }
+    });
 }
+
+async function sendDueMessages(client, sessionId) {
+  try {
+    const messagesToSend = await scheduledMessages.getDueForSending();
+    for (const msg of messagesToSend) {
+      if (!mayHandle(sessionId, msg.dataValues)) continue;
+      try {
+        const jid = msg.dataValues.jid;
+        let messageData;
+
+        try {
+          messageData = JSON.parse(msg.dataValues.message);
+          if (messageData._mediaType) {
+            const mediaType = messageData._mediaType;
+            const base64Data = messageData[mediaType];
+
+            if (base64Data) {
+              const buffer = Buffer.from(base64Data, "base64");
+              messageData[mediaType] = buffer;
+              delete messageData._mediaType;
+            }
+          }
+        } catch (parseError) {
+          messageData = { text: msg.dataValues.message };
+        }
+
+        await client.sendMessage(jid, messageData);
+        await scheduledMessages.markAsSent(msg.dataValues.id);
+        console.log(`✅ Sent scheduled message to ${jid}`);
+      } catch (error) {
+        console.error(
+          `❌ Failed to send scheduled message to ${msg.dataValues.jid}:`,
+          error
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error in scheduled messages task:", error);
+  }
+}
+
+// what the session's cron jobs depend on. the minute task reads its rows when it fires,
+// so only whether any are pending matters here
+const signatures = new Map();
+
+function signatureOf(mutes, unmutes, pending) {
+  const rows = (list) => list.map((r) => [r.dataValues.id, r.dataValues.chat, r.dataValues.time]);
+  return JSON.stringify([rows(mutes), rows(unmutes), pending.length > 0]);
+}
+
+// force: the socket changed (reconnect), so the old tasks are dropped before anything is read.
+// otherwise the tasks are replaced only when the rows changed
+async function buildTasks(client, session, sessionId, { force = false } = {}) {
+  // timer callbacks run as the session that built the tasks
+  const inSession = (fn) => (session ? context.run(session, fn) : fn());
+  if (force) {
+    destroyTasks(sessionId);
+    signatures.delete(sessionId);
+  }
+
+  const [mutes, unmutes, pending] = await inSession(() =>
+    Promise.all([automute.get(), autounmute.get(), scheduledMessages.getAllPending()])
+  );
+  // the session left or reconnected while we were reading
+  if (sessions.get(sessionId)?.client !== client) return false;
+
+  const signature = signatureOf(mutes || [], unmutes || [], pending || []);
+  if (!force && signatures.get(sessionId) === signature) return false;
+
+  destroyTasks(sessionId);
+  signatures.set(sessionId, signature);
+
+  const started = [];
+  const add = (expression, run, label) => {
+    try {
+      started.push(startTask(sessionId, expression, run));
+    } catch (error) {
+      console.error(`Could not schedule ${label}:`, error.message);
+    }
+  };
+
+  for (const [list, setting, text] of [
+    [mutes || [], "announcement", () => config.AUTOMUTE_MSG],
+    [unmutes || [], "not_announcement", () => config.AUTOUNMUTE_MSG],
+  ]) {
+    for (const record of list) {
+      const row = record.dataValues;
+      const [hours, mins] = row.time.split(" ");
+      add(`${mins} ${hours} * * *`, muteTask(client, row.chat, row, sessionId, inSession, setting, text), `${setting} for ${row.chat}`);
+    }
+  }
+
+  if (pending && pending.length > 0) {
+    add("* * * * *", () => inSession(() => sendDueMessages(client, sessionId)), "scheduled messages");
+  }
+
+  await Promise.all(started);
+  return true;
+}
+
+// one build at a time per session, so a reconnect and a schedule change cannot interleave
+const builds = new Map();
+
+function enqueue(sessionId, fn) {
+  const next = (builds.get(sessionId) || Promise.resolve()).catch(() => {}).then(fn);
+  builds.set(sessionId, next);
+  const clear = () => {
+    if (builds.get(sessionId) === next) builds.delete(sessionId);
+  };
+  next.then(clear, clear);
+  return next;
+}
+
+function rebuild(sessionId, options) {
+  return enqueue(sessionId, async () => {
+    const entry = sessions.get(sessionId);
+    if (entry) await buildTasks(entry.client, entry.session, sessionId, options);
+  });
+}
+
+// a setter (.automute, .schedule, ...) changed rows: rebuild the session that wrote them.
+// a write with no session context concerns everyone. the first session also acts on rows
+// that have no account, so it checks too (nothing is replaced if its rows are the same)
+events.on("schedule:changed", ({ accountId } = {}) => {
+  const first = sessions.keys().next().value;
+  for (const [sessionId, entry] of sessions) {
+    const concerned = accountId == null || entry.session?.accountId === accountId || sessionId === first;
+    if (!concerned) continue;
+    rebuild(sessionId).catch((error) => console.error("Could not rebuild schedules:", error.message));
+  }
+});
+
+const detectPlatform = () => platform.detect();
 
 function supportsAutoUpdate() {
   return (
@@ -259,21 +249,11 @@ async function performAutoUpdate() {
   if (!config.AUTO_UPDATE || isAutoUpdating) return;
 
   try {
-    const isRepo = await git.checkIsRepo();
-    if (!isRepo) return;
+    if (!(await updater.isGitRepo())) return;
 
-    await git.fetch();
-    const commits = await git.log(["main..origin/main"]);
-    const localVersion = localPackageJson.version;
-    const remotePackageJsonUrl = `https://raw.githubusercontent.com/souravkl11/raganork-md/main/package.json`;
-    const response = await axios.get(remotePackageJsonUrl);
-    const remoteVersion = response.data.version;
-
-    const hasCommits = commits.total > 0;
-    const versionChanged = remoteVersion !== localVersion;
-    const isStableUpdate = hasCommits && versionChanged;
-
-    if (!isStableUpdate) return;
+    const info = await updater.check();
+    if (!info.isStable) return;
+    const { localVersion, remoteVersion } = info;
 
     isAutoUpdating = true;
     const platform = detectPlatform();
@@ -283,17 +263,13 @@ async function performAutoUpdate() {
     );
 
     if (platform === "render") {
-      if (!config.RENDER_API_KEY) {
-        console.error("❌ Auto-update failed: RENDER_API_KEY not set");
-        isAutoUpdating = false;
-        return;
-      }
-
       try {
-        await renderDeploy(
-          process.env.RENDER_SERVICE_ID,
-          config.RENDER_API_KEY
-        );
+        const result = await updater.deployOnRender();
+        if (!result.started) {
+          console.error("❌ Auto-update failed: RENDER_API_KEY not set");
+          isAutoUpdating = false;
+          return;
+        }
         console.log("✅ Auto-update: Render deploy initiated");
       } catch (err) {
         console.error("❌ Auto-update failed on Render:", err.message);
@@ -304,44 +280,32 @@ async function performAutoUpdate() {
 
     if (platform === "local") {
       try {
-        await git.reset("hard", ["HEAD"]);
-        await git.pull();
-
-        try {
-          const diff = await git.diff(["HEAD~1", "HEAD", "--name-only"]);
-          if (diff.includes("yarn.lock")) {
-            console.log("📦 yarn.lock changed, running yarn install...");
-
-            await new Promise((resolve, reject) => {
-              const yarnProcess = spawn("yarn", ["install"], {
-                cwd: process.cwd(),
-                stdio: "inherit",
-              });
-
-              yarnProcess.on("close", (code) => {
-                if (code !== 0) {
-                  reject(new Error(`yarn install exited with code ${code}`));
-                } else {
-                  resolve();
-                }
-              });
-
-              yarnProcess.on("error", reject);
-            });
-
-            console.log("✅ yarn install completed");
-          }
-        } catch (yarnErr) {
-          console.error(
-            "⚠️  Could not check yarn.lock diff:",
-            yarnErr.message
+        const result = await updater.applyLocal();
+        if (!result.updated) {
+          isAutoUpdating = false;
+          console.error("❌ Auto-update skipped: local changes outside plugins/", result.dirty);
+          await notifyOwners(
+            `*_AUTO-UPDATE SKIPPED_*\n\nThese files were changed here and an update would overwrite them:\n${updater.describeDirty(result.dirty)}\n\n_Revert them, or send "${(config.HANDLERS || ".").split("")[0]}update start force" to update anyway._`
           );
+          return;
         }
 
         console.log(
           `✅ Auto-update completed: ${localVersion} → ${remoteVersion}`
         );
-        process.exit(0);
+        if (result.installError) {
+          isAutoUpdating = false;
+          await notifyOwners(
+            `*_AUTO-UPDATE_*\n\nUpdated to ${remoteVersion}, but installing modules failed: ${result.installError}\n\n_Run "yarn install" in the bot folder, then restart the bot. It was not restarted._`
+          );
+          return;
+        }
+        if (result.moved?.length) {
+          await notifyOwners(
+            `*_AUTO-UPDATE_*\n\nThe bot now ships these files, so your copies were renamed to <name>.bak:\n${result.moved.map((f) => `• ${f}`).join("\n")}`
+          );
+        }
+        await lifecycle.restart("auto-update");
       } catch (updateErr) {
         console.error("❌ Auto-update failed:", updateErr.message);
         isAutoUpdating = false;
@@ -357,11 +321,8 @@ async function checkUpdates() {
   if (updaterNotified) return;
 
   try {
-    const remotePackageJsonUrl = `https://raw.githubusercontent.com/souravkl11/raganork-md/main/package.json`;
-    const response = await axios.get(remotePackageJsonUrl);
-    const remotePackageJson = response.data;
     const localVersion = localPackageJson.version;
-    const remoteVersion = remotePackageJson.version;
+    const remoteVersion = await updater.getRemoteVersion();
 
     if (isNewerVersion(remoteVersion, localVersion)) {
       const platform = detectPlatform();
@@ -371,10 +332,8 @@ async function checkUpdates() {
 
       let fetchedGitChangelog = false;
       try {
-        const isRepo = await git.checkIsRepo();
-        if (isRepo) {
-          await git.fetch();
-          const commits = await git.log(["main..origin/main"]);
+        if (await updater.isGitRepo()) {
+          const commits = await updater.fetchCommits();
 
           if (commits.total > 0) {
             changelog += `*_CHANGELOG:_*\n\n`;
@@ -450,9 +409,7 @@ const Schedule = async (client, sessionId = client?.user?.id || "default") => {
   sessions.set(sessionId, { client, presenceTimer, session });
 
   // rebuild this session's cron jobs when it (re)connects so they bind to the live socket
-  // and pick up rows added since the last connect
-  destroyTasks(sessionId);
-  await buildTasks(client, session, sessionId);
+  await rebuild(sessionId, { force: true });
 
   startUpdateChecker();
 };
@@ -463,6 +420,7 @@ Schedule.cleanup = async (sessionId) => {
     const entry = sessions.get(sessionId);
     if (entry?.presenceTimer) clearInterval(entry.presenceTimer);
     sessions.delete(sessionId);
+    signatures.delete(sessionId);
     destroyTasks(sessionId);
     return;
   }
@@ -470,11 +428,15 @@ Schedule.cleanup = async (sessionId) => {
     if (entry.presenceTimer) clearInterval(entry.presenceTimer);
   }
   sessions.clear();
+  signatures.clear();
   destroyAllTasks();
   if (updateTimer) clearInterval(updateTimer);
   updateTimer = null;
 };
 
+// resolves when every queued build has finished (tests wait on it)
+Schedule.settled = () => Promise.all([...builds.values()].map((p) => p.catch(() => {})));
 Schedule.isNewerVersion = isNewerVersion;
+Schedule.performAutoUpdate = performAutoUpdate;
 
 module.exports = Schedule;

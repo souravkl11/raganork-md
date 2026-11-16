@@ -25,9 +25,10 @@ async function gis(searchTerm, limit, options = {}) {
         tbm: "isch",
         q: searchTerm,
       })}`,
-      { headers: { "User-Agent": userAgent } }
+      { headers: { "User-Agent": userAgent }, signal: AbortSignal.timeout(30000) }
     ).then((res) => res.text()),
     content = body; //.slice(body.lastIndexOf("ds:1"), body.lastIndexOf("sideChannel"));
+  REGEX.lastIndex = 0;
   let result;
   let urls = [];
   let i = 0;
@@ -58,13 +59,14 @@ async function pinterestSearch(searchTerm, limit, options = {}) {
         tbm: "isch",
         q: searchTerm,
       })}`,
-      { headers: { "User-Agent": userAgent } }
+      { headers: { "User-Agent": userAgent }, signal: AbortSignal.timeout(30000) }
     ).then((res) => res.text()),
     content = body.slice(
       body.lastIndexOf("ds:1"),
       body.lastIndexOf("sideChannel")
     );
 
+  REGEX.lastIndex = 0;
   let result;
   let urls = [];
   let i = 0;

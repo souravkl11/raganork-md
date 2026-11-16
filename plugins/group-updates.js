@@ -8,6 +8,7 @@ const {
   antidemote,
   welcome,
   goodbye,
+  groupAdminGuard,
 } = require("./utils");
 const { automute, autounmute, stickcmd } = require("./utils/db/schedulers");
 const {
@@ -24,6 +25,15 @@ async function isSuperAdmin(message, user = message.client.user.id) {
 const { Module } = require("../main");
 const config = require("../config");
 const { helpPrefix } = require("../core/plugins/registry");
+const { isBot } = require("../core/identity");
+const { isSudo } = require("../core/sudo");
+
+function parseTime(input) {
+  const m = String(input)
+    .trim()
+    .match(/^([01]?\d|2[0-3])[\s:]([0-5]\d)$/);
+  return m ? `${m[1].padStart(2, "0")} ${m[2]}` : null;
+}
 
 function tConvert(time) {
   time = time.toString().match(/^([01]\d|2[0-3])( )([0-5]\d)(:[0-5]\d)?$/) || [
@@ -52,7 +62,7 @@ Module(
   async (message, match) => {
     if (!match[1] || !message.reply_message || !message.reply_message.sticker)
       return await message.sendReply(
-        "_Reply to a sticker_\n_Ex: *.stickcmd kick*_"
+        `_Reply to a sticker_\n_Ex: *${helpPrefix()}stickcmd kick*_`
       );
     try {
       await stickcmd.set(match[1], await extractData(message));
@@ -62,7 +72,7 @@ Module(
     await message.client.sendMessage(
       message.jid,
       {
-        text: `_Sticked command ${match[1]} to this sticker! Reconnecting..._`,
+        text: `_Sticked command ${match[1]} to this sticker!_`,
       },
       {
         quoted: message.quoted,
@@ -113,7 +123,7 @@ Module(
         return await message.sendReply("_No such command was found!_");
     } else
       return await message.sendReply(
-        "_Need command or reply to a sticker!_\n_Ex: *.unstick kick*_"
+        `_Need command or reply to a sticker!_\n_Ex: *${helpPrefix()}unstick kick*_`
       );
   }
 );
@@ -129,7 +139,7 @@ Module(
     var all = await stickcmd.get();
     var commands = all.map((element) => element.dataValues.command);
     var msg = commands.join("_\n_");
-    message.sendReply("_*Stickified commands:*_\n\n_" + msg + "_");
+    await message.sendReply("_*Stickified commands:*_\n\n_" + msg + "_");
   }
 );
 
@@ -141,40 +151,27 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (message.fromOwner || adminAccesValidated) {
-      match = match[1]?.toLowerCase();
-      if (!match)
-        return await message.sendReply(
-          "*Wrong format!*\n*.automute 22 00 (For 10 PM)*\n*.automute 06 00 (For 6 AM)*\n*.automute off*"
-        );
-      if (match.includes("am") || match.includes("pm"))
-        return await message.sendReply(
-          "_Time must be in HH MM format (24 hour)_"
-        );
-      if (match == "off") {
-        await automute.delete(message.jid);
-        return await message.sendReply(
-          "*Automute has been disabled in this group ❗*"
-        );
-      }
-      var mregex = /[0-2][0-9] [0-5][0-9]/;
-      if (mregex.test(match?.match(/(\d+)/g)?.join(" ")) === false)
-        return await message.sendReply(
-          "*_Wrong format!_\n_.automute 22 00 (For 10 PM)_\n_.automute 06 00 (For 6 AM)_*"
-        );
-      var admin = await isAdmin(message);
-      if (!admin) return await message.sendReply("_I'm not an admin_");
-      await automute.set(message.jid, match.match(/(\d+)/g)?.join(" "));
-      await message.sendReply(
-        `*_Group will auto mute at ${tConvert(
-          match.match(/(\d+)/g).join(" ")
-        )}, rebooting.._*`
+    if (!(await groupAdminGuard(message))) return;
+    const input = match[1]?.trim().toLowerCase();
+    if (!input)
+      return await message.sendReply(
+        `*Wrong format!*\n*${helpPrefix()}automute 22 00 (For 10 PM)*\n*${helpPrefix()}automute 06 00 (For 6 AM)*\n*${helpPrefix()}automute off*`
       );
-      process.exit(0);
+    if (input === "off") {
+      await automute.delete(message.jid);
+      return await message.sendReply(
+        "*Automute has been disabled in this group ❗*"
+      );
     }
+    const time = parseTime(input);
+    if (!time)
+      return await message.sendReply(
+        `_Time must be in HH MM format (24 hour)_\n_${helpPrefix()}automute 22 00 (For 10 PM)_\n_${helpPrefix()}automute 06 00 (For 6 AM)_`
+      );
+    var admin = await isAdmin(message);
+    if (!admin) return await message.sendReply("_I'm not an admin_");
+    await automute.set(message.jid, time);
+    await message.sendReply(`*_Group will auto mute at ${tConvert(time)}_*`);
   }
 );
 
@@ -186,38 +183,27 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (message.fromOwner || adminAccesValidated) {
-      match = match[1]?.toLowerCase();
-      if (!match)
-        return await message.sendReply(
-          "*_Wrong format!_*\n*_.autounmute 22 00 (For 10 PM)_*\n*_.autounmute 06 00 (For 6 AM)_*\n*_.autounmute off_*"
-        );
-      if (match.includes("am") || match.includes("pm"))
-        return await message.sendReply(
-          "_Time must be in HH MM format (24 hour)_"
-        );
-      if (match === "off") {
-        await autounmute.delete(message.jid);
-        return await message.sendReply(
-          "*_Auto unmute has been disabled in this group ❗_*"
-        );
-      }
-      var mregex = /[0-2][0-9] [0-5][0-9]/;
-      if (mregex.test(match?.match(/(\d+)/g)?.join(" ")) === false)
-        return await message.sendReply(
-          "*_Wrong format_!\n_.autounmute 22 00 (For 10 PM)_\n_.autounmute 06 00 (For 6 AM)_*"
-        );
-      var admin = await isAdmin(message);
-      if (!admin) return await message.sendReply("*I'm not admin*");
-      await autounmute.set(message.jid, match?.match(/(\d+)/g)?.join(" "));
-      await message.sendReply(
-        `*_Group will auto open at ${tConvert(match)}, rebooting.._*`
+    if (!(await groupAdminGuard(message))) return;
+    const input = match[1]?.trim().toLowerCase();
+    if (!input)
+      return await message.sendReply(
+        `*_Wrong format!_*\n*_${helpPrefix()}autounmute 22 00 (For 10 PM)_*\n*_${helpPrefix()}autounmute 06 00 (For 6 AM)_*\n*_${helpPrefix()}autounmute off_*`
       );
-      process.exit(0);
+    if (input === "off") {
+      await autounmute.delete(message.jid);
+      return await message.sendReply(
+        "*_Auto unmute has been disabled in this group ❗_*"
+      );
     }
+    const time = parseTime(input);
+    if (!time)
+      return await message.sendReply(
+        `_Time must be in HH MM format (24 hour)_\n_${helpPrefix()}autounmute 22 00 (For 10 PM)_\n_${helpPrefix()}autounmute 06 00 (For 6 AM)_`
+      );
+    var admin = await isAdmin(message);
+    if (!admin) return await message.sendReply("*I'm not admin*");
+    await autounmute.set(message.jid, time);
+    await message.sendReply(`*_Group will auto open at ${tConvert(time)}_*`);
   }
 );
 
@@ -228,28 +214,28 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (message.fromOwner || adminAccesValidated) {
-      var mute = await automute.get();
-      var unmute = await autounmute.get();
-      var msg = "";
-      for (e in mute) {
-        let temp = unmute.find((element) => element.chat === mute[e].chat);
-        if (temp && temp.time) {
-          mute[e].unmute = temp.time;
-        }
-        msg +=
-          `*${Math.floor(parseInt(e) + 1)}. Group:* ${
-            (await message.client.groupMetadata(mute[e].chat)).subject
-          }
-*➥ Mute:* ${tConvert(mute[e].time)}
-*➥ Unmute:* ${tConvert(mute[e].unmute || "Not set")}` + "\n\n";
-      }
-      if (!msg) return await message.sendReply("_No mutes/unmutes found!_");
-      message.sendReply("*Scheduled Mutes/Unmutes*\n\n" + msg);
+    const adminAccess =
+      message.isGroup &&
+      config.ADMIN_ACCESS &&
+      (await isAdmin(message, message.sender));
+    if (!message.fromOwner && !adminAccess) return;
+    let mute = await automute.get();
+    const unmute = await autounmute.get();
+    if (!message.fromOwner) mute = mute.filter((m) => m.chat === message.jid);
+    let msg = "";
+    for (const [index, row] of mute.entries()) {
+      const temp = unmute.find((element) => element.chat === row.chat);
+      let subject = "Unknown group";
+      try {
+        subject = (await message.client.groupMetadata(row.chat)).subject;
+      } catch {}
+      msg +=
+        `*${index + 1}. Group:* ${subject}
+*➥ Mute:* ${tConvert(row.time)}
+*➥ Unmute:* ${tConvert(temp?.time || "Not set")}` + "\n\n";
     }
+    if (!msg) return await message.sendReply("_No mutes/unmutes found!_");
+    await message.sendReply("*Scheduled Mutes/Unmutes*\n\n" + msg);
   }
 );
 
@@ -260,59 +246,30 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    let adminAccesValidated = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (message.fromOwner || adminAccesValidated) {
-      var admin = await isAdmin(message);
-      if (!admin) return await message.sendReply("_I'm not admin!_");
-      if (match[1] === "on") {
-        await antifake.set(message.jid);
-        return await message.sendReply("_Antifake enabled!_");
-      }
-      if (match[1] === "allow") {
-        return await message.sendReply(
-          `_Allowed prefixes are: ${config.ALLOWED} (applies to all groups)_`
-        );
-      }
-      if (match[1] === "off") {
-        await antifake.delete(message.jid);
-        return await message.sendReply("_Antifake disabled!_");
-      }
-      const buttons = [
-        {
-          buttonId: helpPrefix() + "antifake on",
-          buttonText: {
-            displayText: "On",
-          },
-          type: 1,
-        },
-        {
-          buttonId: helpPrefix() + "antifake off",
-          buttonText: {
-            displayText: "Off",
-          },
-          type: 1,
-        },
-        {
-          buttonId: helpPrefix() + "antifake allow",
-          buttonText: {
-            displayText: "Allowed prefixes",
-          },
-          type: 1,
-        },
-      ];
-
-      const buttonMessage = {
-        text: "Antifake control menu",
-        footer: "",
-        buttons: buttons,
-        headerType: 1,
-      };
-      await message.client.sendMessage(message.jid, buttonMessage, {
-        quoted: message.data,
-      });
+    if (!(await groupAdminGuard(message))) return;
+    const input = match[1]?.trim().toLowerCase();
+    if (input === "on") {
+      if (!(await isAdmin(message)))
+        return await message.sendReply("_I'm not admin!_");
+      await antifake.set(message.jid);
+      return await message.sendReply("_Antifake enabled!_");
     }
+    if (input === "allow") {
+      return await message.sendReply(
+        `_Allowed prefixes are: ${config.ALLOWED} (applies to all groups)_`
+      );
+    }
+    if (input === "off") {
+      await antifake.delete(message.jid);
+      return await message.sendReply("_Antifake disabled!_");
+    }
+    const prefix = helpPrefix();
+    await message.sendReply(
+      "*Antifake control*\n\n" +
+        `• \`${prefix}antifake on\` - Remove members whose number does not start with an allowed prefix\n` +
+        `• \`${prefix}antifake off\` - Disable\n` +
+        `• \`${prefix}antifake allow\` - Show the allowed prefixes`
+    );
   }
 );
 
@@ -322,114 +279,70 @@ Module(
     fromMe: false,
   },
   async (message, match) => {
-    message.myjid = message.client.user.lid.split(":")[0];
-    var db = await antifake.get();
-    let sudos = config.SUDO.split(",");
-    const jids = [];
-    db.map((data) => {
-      jids.push(data.jid);
-    });
-    var pdmdb = await pdm.get();
-    const pdmjids = [];
-    pdmdb.map((data) => {
-      pdmjids.push(data.jid);
-    });
-    var apdb = await antipromote.get();
-    const apjids = [];
-    apdb.map((data) => {
-      apjids.push(data.jid);
-    });
-    var addb = await antidemote.get();
-    const adjids = [];
-    addb.map((data) => {
-      adjids.push(data.jid);
-    });
-    var admin_jids = [];
-    var admins = (await message.client.groupMetadata(message.jid)).participants
-      .filter((v) => v.admin !== null)
-      .map((x) => x.id);
-    admins.map(async (user) => {
-      admin_jids.push(user.replace("c.us", "s.whatsapp.net"));
-    });
-    if (
-      (message.action == "promote" || message.action == "demote") &&
-      pdmjids.includes(message.jid)
-    ) {
-      if (message.from.split("@")[0] == message.myjid) return;
-      if (message.action == "demote") admin_jids.push(message.participant[0].id);
-      await message.client.sendMessage(message.jid, {
-        text: `_*[${
-          message.action == "promote" ? "Promote detected" : "Demote detected"
-        }]*_\n\n@${message.from.split("@")[0]} ${message.action}d @${
-          message.participant[0].id.split("@")[0]
-        }`,
-        mentions: admin_jids,
-      });
-    }
-    if (message.action == "promote" && apjids.includes(message.jid)) {
-      if (
-        message.from.split("@")[0] == message.myjid ||
-        sudos.includes(message.from.split("@")[0]) ||
-        message.participant[0].id.split("@")[0] == message.myjid ||
-        (await isSuperAdmin(message, message.from))
-      )
-        return;
-      var admin = await isAdmin(message);
-      if (!admin) return;
-      await message.client.groupParticipantsUpdate(
-        message.jid,
-        [message.from],
-        "demote"
-      );
-      return await message.client.groupParticipantsUpdate(
-        message.jid,
-        [message.participant[0].id],
-        "demote"
-      );
-    }
-    if (message.action == "demote" && adjids.includes(message.jid)) {
-      if (
-        message.from.split("@")[0] == message.myjid ||
-        sudos.includes(message.from.split("@")[0]) ||
-        (await isSuperAdmin(message, message.from))
-      )
-        return;
-      if (message.participant[0].id.split("@")[0] == message.myjid) {
-        return await message.client.sendMessage(message.jid, {
-          text: `_*Bot number was demoted, I'm unable to execute anti-demote* [Demoted by @${
-            message.from.split("@")[0]
-          }]_`,
-          mentions: admin_jids,
+    const { action, jid, client } = message;
+    const target = message.participant?.[0];
+    const listed = async (store) =>
+      (await store.get()).some((data) => data.jid === jid);
+    const adminJids = async () =>
+      (await client.groupMetadata(jid)).participants
+        .filter((v) => v.admin !== null)
+        .map((x) => x.id.replace("c.us", "s.whatsapp.net"));
+
+    if ((action === "promote" || action === "demote") && message.from && target) {
+      const byBot = isBot(message.from, client);
+      if (!byBot && (await listed(pdm))) {
+        const mentions = await adminJids();
+        if (action === "demote") mentions.push(target.id);
+        await client.sendMessage(jid, {
+          text: `_*[${
+            action === "promote" ? "Promote detected" : "Demote detected"
+          }]*_\n\n@${message.from.split("@")[0]} ${action}d @${
+            target.id.split("@")[0]
+          }`,
+          mentions,
         });
       }
-      var admin = await isAdmin(message);
-      if (!admin) return;
-      await message.client.groupParticipantsUpdate(
-        message.jid,
-        [message.from],
-        "demote"
-      );
-      return await message.client.groupParticipantsUpdate(
-        message.jid,
-        [message.participant[0].id],
-        "promote"
-      );
-    }
-    if (message.action === "add" && jids.includes(message.jid)) {
-      var allowed = config.ALLOWED.split(",");
-      if (isFake(message.participant[0].id, allowed)) {
-        var admin = await isAdmin(message);
-        if (!admin) return;
-        return await message.client.groupParticipantsUpdate(
-          message.jid,
-          [message.participant[0].id],
-          "remove"
-        );
+      const exempt = byBot || isSudo(message.from);
+      if (action === "promote" && (await listed(antipromote))) {
+        if (
+          exempt ||
+          isBot(target.id, client) ||
+          (await isSuperAdmin(message, message.from))
+        )
+          return;
+        if (!(await isAdmin(message))) return;
+        await client.groupParticipantsUpdate(jid, [message.from], "demote");
+        return await client.groupParticipantsUpdate(jid, [target.id], "demote");
+      }
+      if (action === "demote" && (await listed(antidemote))) {
+        if (exempt || (await isSuperAdmin(message, message.from))) return;
+        if (isBot(target.id, client)) {
+          return await client.sendMessage(jid, {
+            text: `_*Bot number was demoted, I'm unable to execute anti-demote* [Demoted by @${
+              message.from.split("@")[0]
+            }]_`,
+            mentions: await adminJids(),
+          });
+        }
+        if (!(await isAdmin(message))) return;
+        await client.groupParticipantsUpdate(jid, [message.from], "demote");
+        return await client.groupParticipantsUpdate(jid, [target.id], "promote");
       }
     }
 
-    if (message.action === "add") {
-      const welcomeData = await welcome.get(message.jid);
+    if (action === "add" && target && (await listed(antifake))) {
+      const phone =
+        target.phoneNumber ||
+        (target.id.endsWith("@s.whatsapp.net") ? target.id : "");
+      const number = phone.split("@")[0].split(":")[0];
+      if (number && isFake(number, (config.ALLOWED || "").split(","))) {
+        if (!(await isAdmin(message))) return;
+        return await client.groupParticipantsUpdate(jid, [target.id], "remove");
+      }
+    }
+
+    if (action === "add") {
+      const welcomeData = await welcome.get(jid);
       if (welcomeData && welcomeData.enabled) {
         try {
           const parsedMessage = await parseWelcomeMessage(
@@ -446,8 +359,8 @@ Module(
       }
     }
 
-    if (message.action === "remove") {
-      const goodbyeData = await goodbye.get(message.jid);
+    if (action === "remove") {
+      const goodbyeData = await goodbye.get(jid);
       if (goodbyeData && goodbyeData.enabled) {
         try {
           const parsedMessage = await parseWelcomeMessage(

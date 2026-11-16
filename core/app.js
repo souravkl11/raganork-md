@@ -4,7 +4,7 @@ const lifecycle = require("./lifecycle");
 const config = require("../config");
 const { SESSION, logger } = config;
 const { initializeDatabase } = require("./database");
-const { BotManager } = require("./manager");
+const { BotManager } = require("./session/manager");
 const { getQueueLength } = require("./store");
 const {
   ensureTempDir,

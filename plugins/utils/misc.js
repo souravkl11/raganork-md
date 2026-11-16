@@ -176,11 +176,7 @@ const tiktok = (url) => priv.tiktok(url);
 const spotifyTrack = (url) => priv.spotifyTrack(url);
 const story = (user) => priv.instagramStory(user);
 
-async function getBuffer(url) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return Buffer.from(await response.arrayBuffer());
-}
+const { getBuffer } = require("../../core/net");
 
 // Google TTS
 async function gtts(text, lang) {

@@ -43,6 +43,57 @@ function withTimeout(promise, ms) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+// a process manager brings the bot back after an exit. pm2 sets pm_id; the others are
+// container platforms that restart a service whose process ended
+const SUPERVISOR_ENV = ["pm_id", "KOYEB_SERVICE_ID", "RENDER_SERVICE_ID", "RAILWAY_SERVICE_ID", "DYNO"];
+
+function isSupervised(env = process.env) {
+  return SUPERVISOR_ENV.some((key) => env[key] !== undefined && env[key] !== "");
+}
+
+let restarting = null;
+
+// stop cleanly (shutdown tasks flush the message queue and auth keys), then come back:
+// under a supervisor just exit 0 and let it start us again. without a known one we also
+// just exit 0 (as the bot always did): panels, nodemon, forever or a shell loop restart
+// us themselves, and a self-started copy next to theirs would run one whatsapp session
+// twice. SELF_RESTART=true opts in to starting a detached copy for a plain `node index.js`. exit and spawn can be replaced in tests. a second call while one is
+// running joins it, so two .restart commands cannot start two copies
+function restart(
+  reason = "restart",
+  {
+    exit = (code) => process.exit(code),
+    spawn = (...args) => require("child_process").spawn(...args),
+    env = process.env,
+    shutdownTimeoutMs = 10000,
+  } = {},
+) {
+  if (!restarting) {
+    restarting = (async () => {
+      await withTimeout(shutdown(reason), shutdownTimeoutMs);
+      let code = 0;
+      if (!isSupervised(env) && env.SELF_RESTART !== "true") {
+        console.log("Exiting. Start the bot again (or set SELF_RESTART=true to restart in place).");
+      } else if (!isSupervised(env)) {
+        try {
+          const child = spawn(process.execPath, [...process.execArgv, ...process.argv.slice(1)], {
+            detached: true,
+            stdio: "inherit",
+            env,
+          });
+          child?.unref?.();
+        } catch (err) {
+          logger.error({ err }, "Could not start a new process, exiting");
+          console.error("Could not start a new process:", err?.message || err);
+          code = 1;
+        }
+      }
+      exit(code);
+    })();
+  }
+  return restarting;
+}
+
 function handleUnhandledRejection(reason) {
   stats.unhandledRejections++;
   logger.error({ err: reason }, "Unhandled promise rejection");
@@ -75,4 +126,4 @@ function install({ exit = (code) => process.exit(code), shutdownTimeoutMs = 1000
   });
 }
 
-module.exports = { install, shutdown, onShutdown, stats, handleUnhandledRejection };
+module.exports = { install, shutdown, restart, isSupervised, onShutdown, stats, handleUnhandledRejection };

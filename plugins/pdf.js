@@ -1,13 +1,15 @@
 const { Module } = require("../main");
-const { convert: imageToPdf, sizes } = require("image-to-pdf");
 const fileSystem = require("node:fs/promises");
-const fileType = require("file-type");
 const path = require("path");
 const fs = require("fs");
-const { getTempSubdir, getTempPath } = require("../core/helpers");
+const { uniqueTempPath } = require("../core/helpers");
+const { helpPrefix } = require("../core/plugins/registry");
+const { accountKey } = require("./utils");
+const { stagingDir, removeDir } = require("./utils/mediaProcessors");
 
 const getFileType = async (buffer) => {
   try {
+    const fileType = require("file-type");
     if (fileType.fileTypeFromBuffer) {
       return await fileType.fileTypeFromBuffer(buffer);
     }
@@ -23,8 +25,23 @@ const getFileType = async (buffer) => {
   }
 };
 
-const imageInputDirectory = getTempSubdir("pdf");
-const finalPdfOutputPath = getTempPath("converted.pdf");
+const imageFiles = async (directory) =>
+  (await fileSystem.readdir(directory)).filter((fileName) => fileName.includes("topdf")).sort();
+
+// numbered after the images already staged; "wx" keeps two quick additions from overwriting each other
+async function saveImage(directory, buffer) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const index = (await imageFiles(directory)).length + attempt;
+    const target = path.join(directory, `topdf_${String(index).padStart(4, "0")}.jpg`);
+    try {
+      await fileSystem.writeFile(target, buffer, { flag: "wx" });
+      return index + 1;
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+    }
+  }
+  throw new Error("could not save the image");
+}
 
 Module(
   {
@@ -35,41 +52,48 @@ Module(
   },
   async (message, commandArguments) => {
     const subCommand = commandArguments[1]?.toLowerCase();
+    const prefix = helpPrefix();
 
     if (subCommand === "help") {
-      await message.sendReply(
-        `_1. Input images using .pdf_\n_2. Get output pdf using .pdf get_\n_3. Added images by mistake? then delete all inputted images using .pdf delete_\n_4. All files will be auto deleted after the output is produced_`
+      return await message.sendReply(
+        `_1. Input images using ${prefix}pdf_\n_2. Get output pdf using ${prefix}pdf get_\n_3. Added images by mistake? then delete all inputted images using ${prefix}pdf delete_\n_4. All files will be auto deleted after the output is produced_`
       );
-    } else if (subCommand === "delete") {
-      const currentFiles = await fileSystem.readdir(imageInputDirectory);
-      const filesToDelete = currentFiles.map((fileName) =>
-        path.join(imageInputDirectory, fileName)
-      );
+    }
 
-      await Promise.all(
-        filesToDelete.map((filePath) => fileSystem.unlink(filePath))
-      );
+    const imageInputDirectory = await stagingDir(
+      "pdf",
+      accountKey(message.jid, message.sender)
+    );
 
-      try {
-        await fileSystem.unlink(finalPdfOutputPath);
-      } catch (error) {}
+    if (subCommand === "delete") {
+      await removeDir(imageInputDirectory);
       await message.sendReply(`_Successfully cleared all files!_`);
     } else if (subCommand === "get") {
-      const allStoredFiles = await fileSystem.readdir(imageInputDirectory);
-      const imageFilePaths = allStoredFiles
-        .filter((fileName) => fileName.includes("topdf"))
-        .map((fileName) => path.join(imageInputDirectory, fileName));
+      const imageFilePaths = (await imageFiles(imageInputDirectory)).map(
+        (fileName) => path.join(imageInputDirectory, fileName)
+      );
 
       if (!imageFilePaths.length) {
         return await message.sendReply("_No files inputted_");
       }
 
-      const pdfGenerationStream = imageToPdf(imageFilePaths, sizes.A4);
-      const pdfWriteStream = fs.createWriteStream(finalPdfOutputPath);
-
-      pdfGenerationStream.pipe(pdfWriteStream);
-
-      pdfWriteStream.on("finish", async () => {
+      // pdfkit is heavy, only load it when a pdf is actually built
+      const { convert: imageToPdf, sizes } = require("image-to-pdf");
+      const finalPdfOutputPath = uniqueTempPath("converted.pdf");
+      try {
+        await new Promise((resolve, reject) => {
+          const pdfGenerationStream = imageToPdf(imageFilePaths, sizes.A4);
+          const pdfWriteStream = fs.createWriteStream(finalPdfOutputPath);
+          pdfGenerationStream.on("error", reject);
+          pdfWriteStream.on("error", reject);
+          pdfWriteStream.on("finish", resolve);
+          pdfGenerationStream.pipe(pdfWriteStream);
+        });
+      } catch (error) {
+        await fileSystem.unlink(finalPdfOutputPath).catch(() => {});
+        return await message.sendReply(`_PDF conversion failed: ${error.message}_`);
+      }
+      try {
         await message.client.sendMessage(
           message.jid,
           {
@@ -79,54 +103,48 @@ Module(
           },
           { quoted: message.data }
         );
-
-        const filesToCleanUp = await fileSystem.readdir(imageInputDirectory);
-        const tempFilesForDeletion = filesToCleanUp.map((fileName) =>
-          path.join(imageInputDirectory, fileName)
-        );
-        await Promise.all(
-          tempFilesForDeletion.map((filePath) => fileSystem.unlink(filePath))
-        );
-        await fileSystem.unlink(finalPdfOutputPath);
-      });
-
-      pdfWriteStream.on("error", async (error) => {
-        await message.sendReply(`_PDF conversion failed: ${error.message}_`);
-      });
+      } finally {
+        await fileSystem.unlink(finalPdfOutputPath).catch(() => {});
+        await removeDir(imageInputDirectory);
+      }
     } else if (message.reply_message && message.reply_message.album) {
       // handle album
       const albumData = await message.reply_message.download();
       const allImages = albumData.images || [];
 
-      if (allImages.length === 0)
-        return await message.sendReply("_No images in album (videos can't be converted to PDF)_");
+      try {
+        if (allImages.length === 0)
+          return await message.sendReply("_No images in album (videos can't be converted to PDF)_");
 
-      await message.send(
-        `_Adding ${allImages.length} album images to PDF..._`
-      );
+        await message.send(
+          `_Adding ${allImages.length} album images to PDF..._`
+        );
 
-      for (let i = 0; i < allImages.length; i++) {
-        try {
-          const file = allImages[i];
-          const detectedFileType = await getFileType(
-            fs.readFileSync(file)
-          );
+        let added = 0;
+        for (const file of allImages) {
+          try {
+            const imageBuffer = await fileSystem.readFile(file);
+            const detectedFileType = await getFileType(imageBuffer);
 
-          if (detectedFileType && detectedFileType.mime.startsWith("image")) {
-            const newImagePath = path.join(
-              imageInputDirectory,
-              `topdf_album_${i}.jpg`
-            );
-            fs.copyFileSync(file, newImagePath);
+            if (detectedFileType && detectedFileType.mime.startsWith("image")) {
+              await saveImage(imageInputDirectory, imageBuffer);
+              added++;
+            }
+          } catch (err) {
+            console.error("Failed to add album image to PDF:", err);
           }
-        } catch (err) {
-          console.error("Failed to add album image to PDF:", err);
         }
-      }
 
-      await message.sendReply(
-        `_*Successfully saved ${allImages.length} album images*_\n_*Total images ready. Use '.pdf get' to generate PDF!*_`
-      );
+        await message.sendReply(
+          `_*Successfully saved ${added} album images*_\n_*Total images ready. Use '${prefix}pdf get' to generate PDF!*_`
+        );
+      } finally {
+        await Promise.all(
+          [...allImages, ...(albumData.videos || [])].map((file) =>
+            fileSystem.unlink(file).catch(() => {})
+          )
+        );
+      }
     } else if (message.reply_message) {
       const repliedMessageBuffer = await message.reply_message.download(
         "buffer"
@@ -134,20 +152,9 @@ Module(
       const detectedFileType = await getFileType(repliedMessageBuffer);
 
       if (detectedFileType && detectedFileType.mime.startsWith("image")) {
-        const existingImageFiles = (
-          await fileSystem.readdir(imageInputDirectory)
-        ).filter((fileName) => fileName.includes("topdf"));
-        const nextImageIndex = existingImageFiles.length;
-        const newImagePath = path.join(
-          imageInputDirectory,
-          `topdf_${nextImageIndex}.jpg`
-        );
-
-        await fileSystem.writeFile(newImagePath, repliedMessageBuffer);
+        const total = await saveImage(imageInputDirectory, repliedMessageBuffer);
         return await message.sendReply(
-          `*_Successfully saved image_*\n_*Total saved images: ${
-            nextImageIndex + 1
-          }*_\n*_After saving all images, use '.pdf get' to get the result. Images will be deleted after conversion!_*`
+          `*_Successfully saved image_*\n_*Total saved images: ${total}*_\n*_After saving all images, use '${prefix}pdf get' to get the result. Images will be deleted after conversion!_*`
         );
       } else {
         return await message.sendReply(
@@ -156,7 +163,7 @@ Module(
       }
     } else {
       return await message.sendReply(
-        '_Reply to an image, or use ".pdf help" for more information._'
+        `_Reply to an image, or use "${prefix}pdf help" for more information._`
       );
     }
   }

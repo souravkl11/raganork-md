@@ -1,18 +1,20 @@
 const { Module } = require("../main");
-const { isAdmin } = require("./utils");
+const { cooldown, accountKey, timeSince } = require("./utils");
 const config = require("../config");
-const { setVar, getVar, delVar } = require("./manage");
-const context = require("../core/context");
+const { setVar } = require("./manage");
 
-const afkCache = new Map();
+const NOTICE_COOLDOWN_MS = 5 * 60 * 1000;
 
-async function initAFKCache() {
+// one cache per account. a session's AFK_DATA is its own row; until it saves one, it
+// reads the shared row the single-number versions wrote, so existing entries survive
+const afkCaches = new Map();
+
+function loadAFKCache() {
+  const cache = new Map();
   try {
-    const afkData = config.AFK_DATA || "{}";
-    const afkUsers = JSON.parse(afkData);
-
+    const afkUsers = JSON.parse(config.AFK_DATA || "{}");
     for (const [userJid, userData] of Object.entries(afkUsers)) {
-      afkCache.set(userJid, {
+      cache.set(userJid, {
         reason: userData.reason,
         setAt: new Date(userData.setAt),
         lastSeen: new Date(userData.lastSeen),
@@ -21,69 +23,18 @@ async function initAFKCache() {
     }
   } catch (error) {
     console.error("Error initializing AFK cache:", error);
-
-    if (!config.AFK_DATA) {
-      await setVar("AFK_DATA", "{}");
-    }
   }
+  return cache;
 }
 
-initAFKCache();
-
-function timeSince(date) {
-  if (!date) return "Never";
-  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-  let interval = seconds / 31536000;
-  if (interval > 1) {
-    return (
-      Math.floor(interval) +
-      " year" +
-      (Math.floor(interval) > 1 ? "s" : "") +
-      " ago"
-    );
+function afkCache() {
+  const key = accountKey();
+  let cache = afkCaches.get(key);
+  if (!cache) {
+    cache = loadAFKCache();
+    afkCaches.set(key, cache);
   }
-  interval = seconds / 2592000;
-  if (interval > 1) {
-    return (
-      Math.floor(interval) +
-      " month" +
-      (Math.floor(interval) > 1 ? "s" : "") +
-      " ago"
-    );
-  }
-  interval = seconds / 86400;
-  if (interval > 1) {
-    return (
-      Math.floor(interval) +
-      " day" +
-      (Math.floor(interval) > 1 ? "s" : "") +
-      " ago"
-    );
-  }
-  interval = seconds / 3600;
-  if (interval > 1) {
-    return (
-      Math.floor(interval) +
-      " hour" +
-      (Math.floor(interval) > 1 ? "s" : "") +
-      " ago"
-    );
-  }
-  interval = seconds / 60;
-  if (interval > 1) {
-    return (
-      Math.floor(interval) +
-      " minute" +
-      (Math.floor(interval) > 1 ? "s" : "") +
-      " ago"
-    );
-  }
-  return (
-    Math.floor(seconds) +
-    " second" +
-    (Math.floor(seconds) > 1 ? "s" : "") +
-    " ago"
-  );
+  return cache;
 }
 
 function formatDuration(ms) {
@@ -106,7 +57,7 @@ function formatDuration(ms) {
 async function saveAFKData() {
   try {
     const afkData = {};
-    for (const [userJid, userData] of afkCache.entries()) {
+    for (const [userJid, userData] of afkCache().entries()) {
       afkData[userJid] = {
         reason: userData.reason,
         setAt: userData.setAt.toISOString(),
@@ -114,9 +65,7 @@ async function saveAFKData() {
         messageCount: userData.messageCount,
       };
     }
-    // afkCache is one per process and is loaded from the global row at startup,
-    // so it is saved there too, whichever session triggered the save
-    await context.runUnscoped(() => setVar("AFK_DATA", JSON.stringify(afkData)));
+    await setVar("AFK_DATA", JSON.stringify(afkData));
   } catch (error) {
     console.error("Error saving AFK data:", error);
   }
@@ -131,14 +80,15 @@ async function setAFK(userJid, reason = "I am currently away from keyboard") {
     messageCount: 0,
   };
 
-  afkCache.set(userJid, afkData);
+  afkCache().set(userJid, afkData);
 
   await saveAFKData();
 }
 
 async function removeAFK(userJid) {
-  const afkData = afkCache.get(userJid);
-  afkCache.delete(userJid);
+  const cache = afkCache();
+  const afkData = cache.get(userJid);
+  cache.delete(userJid);
 
   await saveAFKData();
 
@@ -146,18 +96,21 @@ async function removeAFK(userJid) {
 }
 
 // counters and last-seen change on every message; batch those writes
-let afkSaveTimer = null;
+// each account has its own timer, created inside that account's context
+const afkSaveTimers = new Map();
 function scheduleAFKSave() {
-  if (afkSaveTimer) return;
-  afkSaveTimer = setTimeout(() => {
-    afkSaveTimer = null;
+  const key = accountKey();
+  if (afkSaveTimers.has(key)) return;
+  const timer = setTimeout(() => {
+    afkSaveTimers.delete(key);
     saveAFKData();
   }, 30000);
-  afkSaveTimer.unref?.();
+  timer.unref?.();
+  afkSaveTimers.set(key, timer);
 }
 
 async function updateLastSeen(userJid) {
-  const afkData = afkCache.get(userJid);
+  const afkData = afkCache().get(userJid);
   if (afkData) {
     afkData.lastSeen = new Date();
     scheduleAFKSave();
@@ -165,19 +118,23 @@ async function updateLastSeen(userJid) {
 }
 
 async function incrementMessageCount(userJid) {
-  const afkData = afkCache.get(userJid);
+  const afkData = afkCache().get(userJid);
   if (afkData) {
     afkData.messageCount++;
     scheduleAFKSave();
   }
 }
 
+function shouldNotify(chatJid, afkJid) {
+  return cooldown(accountKey("afk", chatJid, afkJid), NOTICE_COOLDOWN_MS);
+}
+
 function isAFK(userJid) {
-  return afkCache.has(userJid);
+  return afkCache().has(userJid);
 }
 
 function getAFKData(userJid) {
-  return afkCache.get(userJid);
+  return afkCache().get(userJid);
 }
 
 Module(
@@ -193,14 +150,15 @@ Module(
     const input = match[1]?.trim();
 
     if (input?.toLowerCase() === "list") {
-      if (afkCache.size === 0) {
+      const cache = afkCache();
+      if (cache.size === 0) {
         return await message.sendReply("_No users are currently AFK._");
       }
 
-      let afkList = `*_🌙 AFK Users List (${afkCache.size})_*\n\n`;
+      let afkList = `*_🌙 AFK Users List (${cache.size})_*\n\n`;
       let count = 1;
 
-      for (const [jid, data] of afkCache.entries()) {
+      for (const [jid, data] of cache.entries()) {
         const timeAFK = formatDuration(
           Date.now() - new Date(data.setAt).getTime()
         );
@@ -214,7 +172,7 @@ Module(
       }
 
       return await message.sendMessage(afkList, "text", {
-        mentions: Array.from(afkCache.keys()),
+        mentions: Array.from(cache.keys()),
       });
     }
 
@@ -264,6 +222,7 @@ Module(
   },
   async (message) => {
     try {
+      if (message.fromBot) return;
       const senderJid = message.sender;
       const chatJid = message.jid;
       const isGroup = message.isGroup;
@@ -300,19 +259,19 @@ Module(
         for (const mentionedJid of message.mention) {
           if (isAFK(mentionedJid)) {
             const afkData = getAFKData(mentionedJid);
+            await incrementMessageCount(mentionedJid);
+            if (!shouldNotify(chatJid, mentionedJid)) continue;
             const timeAFK = formatDuration(
               Date.now() - new Date(afkData.setAt).getTime()
             );
             const lastSeen = timeSince(afkData.lastSeen);
-
-            await incrementMessageCount(mentionedJid);
 
             const afkReply =
               `*_🌙 @${mentionedJid.split("@")[0]} is currently AFK_*\n\n` +
               `📝 _Reason:_ \`${afkData.reason}\`\n` +
               `⏰ _AFK for:_ \`${timeAFK}\`\n` +
               `👁️ _Last seen:_ \`${lastSeen}\`\n` +
-              `💬 _Messages received:_ \`${afkData.messageCount + 1}\``;
+              `💬 _Messages received:_ \`${afkData.messageCount}\``;
 
             await message.sendMessage(afkReply, "text", {
               quoted: message.data,
@@ -326,19 +285,19 @@ Module(
         const botOwnerJid = message.client.user?.lid?.split(":")[0] + "@lid";
         if (botOwnerJid && isAFK(botOwnerJid)) {
           const afkData = getAFKData(botOwnerJid);
+          await incrementMessageCount(botOwnerJid);
+          if (!shouldNotify(chatJid, botOwnerJid)) return;
           const timeAFK = formatDuration(
             Date.now() - new Date(afkData.setAt).getTime()
           );
           const lastSeen = timeSince(afkData.lastSeen);
-
-          await incrementMessageCount(botOwnerJid);
 
           const afkReply =
             `*_🌙 Bot owner is currently AFK_*\n\n` +
             `📝 _Reason:_ \`${afkData.reason}\`\n` +
             `⏰ _AFK for:_ \`${timeAFK}\`\n` +
             `👁️ _Last seen:_ \`${lastSeen}\`\n` +
-            `💬 _Messages received:_ \`${afkData.messageCount + 1}\`\n\n` +
+            `💬 _Messages received:_ \`${afkData.messageCount}\`\n\n` +
             `_Your message has been noted. They'll get back to you when available._`;
 
           await message.sendReply(afkReply);
@@ -349,19 +308,19 @@ Module(
         const repliedToJid = message.reply_message.jid;
         if (isAFK(repliedToJid)) {
           const afkData = getAFKData(repliedToJid);
+          await incrementMessageCount(repliedToJid);
+          if (!shouldNotify(chatJid, repliedToJid)) return;
           const timeAFK = formatDuration(
             Date.now() - new Date(afkData.setAt).getTime()
           );
           const lastSeen = timeSince(afkData.lastSeen);
-
-          await incrementMessageCount(repliedToJid);
 
           const afkReply =
             `*_🌙 @${repliedToJid.split("@")[0]} is currently AFK_*\n\n` +
             `📝 _Reason:_ \`${afkData.reason}\`\n` +
             `⏰ _AFK for:_ \`${timeAFK}\`\n` +
             `👁️ _Last seen:_ \`${lastSeen}\`\n` +
-            `💬 _Messages received:_ \`${afkData.messageCount + 1}\``;
+            `💬 _Messages received:_ \`${afkData.messageCount}\``;
 
           await message.sendMessage(afkReply, "text", {
             quoted: message.data,
@@ -371,24 +330,6 @@ Module(
       }
     } catch (error) {
       console.error("Error in AFK auto-reply handler:", error);
-    }
-  }
-);
-
-Module(
-  {
-    on: "message",
-    fromMe: false,
-  },
-  async (message) => {
-    try {
-      const senderJid = message.sender;
-
-      if (isAFK(senderJid)) {
-        await updateLastSeen(senderJid);
-      }
-    } catch (error) {
-      console.error("Error updating AFK last seen:", error);
     }
   }
 );

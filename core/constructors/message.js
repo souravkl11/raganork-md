@@ -6,7 +6,7 @@ let generateWAMessageFromContent,
   getContentType,
   downloadMediaMessage;
 const { loadBaileys } = require("../helpers");
-const { isSudo } = require("../sudo");
+const identity = require("../identity");
 const baileysPromise = loadBaileys()
   .then((baileys) => {
     ({
@@ -20,15 +20,16 @@ const baileysPromise = loadBaileys()
     } = baileys);
   })
   .catch((err) => {
+    // boot() awaits loadBaileys() itself and fails there, so this is only the log
     console.error("Failed to load baileys:", err.message);
-    process.exit(1);
   });
 const Base = require("./base");
 let config = require("../../config");
 const ReplyMessage = require("./reply-message");
 const fs = require("fs");
 const { genThumb } = require("../helpers");
-const { getTempPath } = require("../helpers");
+const { forwardMessage } = require("../session/features/forward");
+const { uniqueTempPath } = require("../helpers");
 
 class Message extends Base {
   constructor(client, data) {
@@ -38,26 +39,16 @@ class Message extends Base {
   _patch(data) {
     this.id = data.key.id === undefined ? undefined : data.key.id;
     this.jid = data.key.remoteJid;
-    this.isGroup = data.key.remoteJid.endsWith("@g.us");
+    this.isGroup = identity.isGroup(data.key.remoteJid);
     this.fromMe = data.key.fromMe;
     this.fromBot = data.key.id?.startsWith("3EB0");
 
-    if (this.isGroup) {
-      this.sender = data.key.participant || data.key.participantAlt;
-    } else {
-      this.sender = data.key.remoteJid.endsWith("lid")
-        ? data.key.remoteJid
-        : data.key.remoteJidAlt;
-    }
+    this.sender = identity.messageSender(data.key);
 
-    const botNumeric = this.client.user?.lid?.split(":")[0] + "@lid";
-    const senderNumeric = this.sender?.split("@")[0];
+    const botNumeric = identity.botIds(this.client).lid;
 
-    // check if sender is sudo using SUDO_MAP
-    const isSudoUser = isSudo(this.sender);
-
-    this.fromOwner =
-      data.key.fromMe || senderNumeric === botNumeric || isSudoUser;
+    // sudo users come from SUDO_MAP (the current session's)
+    this.fromOwner = data.key.fromMe || identity.isSudo(this.sender);
 
     this.senderName = data.pushName;
     this.myjid = botNumeric;
@@ -409,7 +400,7 @@ class Message extends Base {
       this.data.message[Object.keys(this.data.message)[0]].mimetype?.split(
         "/"
       )[1];
-    const filename = getTempPath(`temp.${ext}`);
+    const filename = uniqueTempPath(`temp.${ext}`);
 
     if (type === "buffer") {
       const buffer = await downloadMediaMessage(this.data, "buffer");
@@ -643,79 +634,7 @@ class Message extends Base {
 
   // @deprecated
   async forwardMessage(jid, message, options = {}) {
-    let vtype;
-    let mtype = getContentType(message.message);
-    if (options.readViewOnce) {
-      message.message =
-        message.message &&
-        message.message.ephemeralMessage &&
-        message.message.ephemeralMessage.message
-          ? message.message.ephemeralMessage.message
-          : message.message || undefined;
-      vtype = Object.keys(message.message.viewOnceMessage.message)[0];
-      delete (message.message && message.message.ignore
-        ? message.message.ignore
-        : message.message || undefined);
-      delete message.message.viewOnceMessage.message[vtype].viewOnce;
-      message.message = {
-        ...message.message.viewOnceMessage.message,
-      };
-    }
-
-    if (options.mentions) {
-      message.message[mtype].contextInfo.mentionedJid = options.mentions;
-    }
-    let content = generateForwardMessageContent(message, false);
-    let content_type = getContentType(content);
-    if (options.ptt) {
-      content[content_type].ptt = options.ptt;
-    }
-    if (options.audiowave) {
-      content[content_type].waveform = options.audiowave;
-    }
-    if (options.seconds) {
-      content[content_type].seconds = options.seconds;
-    }
-    if (options.fileLength) {
-      content[content_type].fileLength = options.fileLength;
-    }
-    if (options.caption) {
-      content[content_type].caption = options.caption;
-    }
-    if (options.contextInfo) {
-      content[content_type].contextInfo = options.contextInfo;
-    }
-    if (options.mentions) {
-      content[content_type].contextInfo.mentionedJid = options.mentions;
-    }
-    let context = {};
-    if (mtype != "conversation") context = message.message[mtype].contextInfo;
-    content[content_type].contextInfo = {
-      ...context,
-      ...content[content_type].contextInfo,
-    };
-    var waMessage = generateWAMessageFromContent(
-      jid,
-      content,
-      options
-        ? {
-            ...content[content_type],
-            ...options,
-            ...(options.contextInfo
-              ? {
-                  contextInfo: {
-                    ...content[content_type].contextInfo,
-                    ...options.contextInfo,
-                  },
-                }
-              : {}),
-          }
-        : {}
-    );
-    await this.client.relayMessage(jid, waMessage.message, {
-      messageId: waMessage.key.id,
-    });
-    return waMessage;
+    return forwardMessage(this.client, jid, message, options, { legacy: true });
   }
 
   /**

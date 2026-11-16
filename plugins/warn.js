@@ -8,35 +8,195 @@ const {
   decrementWarn,
   getWarnCount,
   getAllWarns,
+  groupAdminGuard,
 } = require("./utils");
+const { setVar } = require("./manage");
+const { isSudo } = require("../core/sudo");
+const { isBot } = require("../core/identity");
 
 const { helpPrefix } = require("../core/plugins/registry");
 const getWarnLimit = () => parseInt(config.WARN || 4);
-const getSudoUsers = () => (config.SUDO || "").split(",");
+
+async function checkWarnings(message, targetUser) {
+  const targetNumericId = targetUser?.split("@")[0];
+
+  try {
+    const warnings = await getWarn(message.jid, targetUser);
+
+    if (!warnings || warnings.length === 0) {
+      return await message.client.sendMessage(message.jid, {
+        text:
+          `✓ *No Warnings*\n\n` +
+          `- User: \`@${targetNumericId}\`\n` +
+          `- Status: \`Clean record\`\n` +
+          `- Warnings: \`0/${getWarnLimit()}\``,
+        mentions: [targetUser],
+      });
+    }
+
+    const currentWarns = warnings.length;
+    const remaining = getWarnLimit() - currentWarns;
+
+    let warningsList = `📋 *Warning History*\n\n`;
+    warningsList += `- User: \`@${targetNumericId}\`\n`;
+    warningsList += `- Total Warnings: \`${currentWarns}/${getWarnLimit()}\`\n`;
+    warningsList += `- Remaining: \`${remaining > 0 ? remaining : 0}\`\n\n`;
+
+    warnings.slice(0, 5).forEach((warn, index) => {
+      const date = new Date(warn.timestamp).toLocaleString();
+      const warnedByNumeric = warn.warnedBy?.split("@")[0];
+      warningsList += `*${index + 1}.* ${warn.reason}\n`;
+      warningsList += `   _By: @${warnedByNumeric}_\n`;
+      warningsList += `   _Date: ${date}_\n\n`;
+    });
+
+    if (warnings.length > 5) {
+      warningsList += `_... and ${warnings.length - 5} more warnings_\n\n`;
+    }
+
+    if (remaining <= 0) {
+      warningsList += `⚠ _User has exceeded the warning limit!_`;
+    } else if (remaining === 1) {
+      warningsList += `⚠ _Next warning will result in a kick!_`;
+    }
+
+    await message.client.sendMessage(message.jid, {
+      text: warningsList,
+      mentions: [targetUser, ...warnings.slice(0, 5).map((w) => w.warnedBy)],
+    });
+  } catch (error) {
+    console.error("Warning check error:", error);
+    await message.sendReply("_Failed to retrieve warnings!_");
+  }
+}
+
+async function listWarnings(message) {
+  try {
+    const allWarnings = await getAllWarns(message.jid);
+
+    if (Object.keys(allWarnings).length === 0) {
+      return await message.sendReply(
+        `✓ *Clean Group!*\n\n` +
+          `- No users have warnings in this group.\n` +
+          `_Everyone is following the rules!_`
+      );
+    }
+
+    let warnList = `📋 *Group Warning List*\n\n`;
+    warnList += `- Warning Limit: \`${getWarnLimit()}\`\n\n`;
+
+    const sortedUsers = Object.entries(allWarnings).sort(
+      ([, a], [, b]) => b.length - a.length
+    );
+
+    let mentions = [];
+
+    sortedUsers.forEach(([userJid, userWarnings], index) => {
+      const userNumericId = userJid?.split("@")[0];
+      const warnCount = userWarnings.length;
+      const remaining = getWarnLimit() - warnCount;
+      const status =
+        remaining <= 0
+          ? "⚠ LIMIT EXCEEDED"
+          : remaining === 1
+          ? "⚠ FINAL WARNING"
+          : `✓ ${remaining} remaining`;
+
+      warnList += `*${index + 1}.* @${userNumericId}\n`;
+      warnList += `   _Warnings: \`${warnCount}/${getWarnLimit()}\`_\n`;
+      warnList += `   _Status: \`${status}\`_\n`;
+
+      if (userWarnings.length > 0) {
+        const latestWarning = userWarnings[0];
+        warnList += `   _Latest: \`${latestWarning.reason.substring(0, 30)}${
+          latestWarning.reason.length > 30 ? "..." : ""
+        }\`_\n`;
+      }
+      warnList += "\n";
+
+      mentions.push(userJid);
+    });
+
+    warnList += `_Total warned users: ${sortedUsers.length}_\n`;
+    warnList += `_Use ${helpPrefix()}warn check @user for detailed history_`;
+
+    await message.client.sendMessage(message.jid, {
+      text: warnList,
+      mentions,
+    });
+  } catch (error) {
+    console.error("Warning list error:", error);
+    await message.sendReply("_Failed to retrieve warning list!_");
+  }
+}
+
+async function warnStats(message) {
+  try {
+    const allWarnings = await getAllWarns(message.jid);
+
+    const totalUsers = Object.keys(allWarnings).length;
+    const totalWarnings = Object.values(allWarnings).reduce(
+      (sum, warnings) => sum + warnings.length,
+      0
+    );
+
+    let atLimit = 0;
+    let nearLimit = 0;
+    let safe = 0;
+
+    Object.values(allWarnings).forEach((userWarnings) => {
+      const count = userWarnings.length;
+      if (count >= getWarnLimit()) atLimit++;
+      else if (count >= getWarnLimit() - 1) nearLimit++;
+      else safe++;
+    });
+
+    const stats =
+      `📊 *Group Warning Statistics*\n\n` +
+      `- Warning Limit: \`${getWarnLimit()}\`\n` +
+      `- Total Warned Users: \`${totalUsers}\`\n` +
+      `- Total Warnings Issued: \`${totalWarnings}\`\n\n` +
+      `*User Status:*\n` +
+      `- ⚠ At Limit: \`${atLimit}\`\n` +
+      `- ⚠ Near Limit: \`${nearLimit}\`\n` +
+      `- ✓ Safe: \`${safe}\`\n\n` +
+      `_Use ${helpPrefix()}warn list to see detailed list_`;
+
+    await message.sendReply(stats);
+  } catch (error) {
+    console.error("Warning stats error:", error);
+    await message.sendReply("_Failed to retrieve warning statistics!_");
+  }
+}
 
 Module(
   {
-    pattern: "warn ?(.*)",
+    pattern: "warn(ings|list|stats)?(?:\\s+(.*))?$",
     fromMe: false,
     desc: "Warn a user in the group. After reaching the limit, user will be kicked.",
-    usage: ".warn @user reason\n.warn reply reason",
+    usage:
+      ".warn @user reason\n.warn reply reason\n.warn check @user\n.warn list\n.warn stats",
     use: "group",
   },
   async (message, match) => {
-    if (!match[0].split(" ")[0]?.toLowerCase().endsWith("warn")) return;
-    if (!message.isGroup)
-      return await message.sendReply("_This is a group-only command!_");
+    let sub = match[1] === "ings" ? "check" : match[1] || null;
+    const args = match[2]?.trim() || "";
+    if (!sub) {
+      const [first, ...others] = args.split(/\s+/);
+      const word = first.toLowerCase();
+      const rest = others.join(" ");
+      if ((word === "list" || word === "stats") && !rest) sub = word;
+      else if (word === "check" && (!rest || rest.startsWith("@"))) sub = word;
+    }
 
-    let adminAccess = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (!message.fromOwner && !adminAccess) return;
+    if (!(await groupAdminGuard(message, { botAdmin: !sub }))) return;
 
-    const botIsAdmin = await isAdmin(message);
-    if (!botIsAdmin) {
-      return await message.sendReply(
-        "_I need admin privileges to manage warnings!_"
-      );
+    if (sub === "list") return await listWarnings(message);
+    if (sub === "stats") return await warnStats(message);
+    if (sub === "check") {
+      const user =
+        message.mention?.[0] || message.reply_message?.jid || message.sender;
+      return await checkWarnings(message, user);
     }
 
     const targetUser = message.mention?.[0] || message.reply_message?.jid;
@@ -46,10 +206,11 @@ Module(
           `*Usage:*\n` +
           `• \`${helpPrefix()}warn @user reason\`\n` +
           `• \`${helpPrefix()}warn reply reason\`\n` +
-          `• \`${helpPrefix()}warnings @user\` - Check warnings\n` +
+          `• \`${helpPrefix()}warn check @user\` - Check warnings\n` +
           `• \`${helpPrefix()}rmwarn @user\` - Remove one warning\n` +
           `• \`${helpPrefix()}resetwarn @user\` - Remove all warnings\n` +
-          `• \`${helpPrefix()}warnlist\` - List all warned users`
+          `• \`${helpPrefix()}warn list\` - List all warned users\n` +
+          `• \`${helpPrefix()}warn stats\` - Warning statistics`
       );
     }
 
@@ -58,12 +219,12 @@ Module(
       return await message.sendReply("_Cannot warn group admins!_");
     }
 
-    const targetNumericId = targetUser?.split("@")[0];
-    if (getSudoUsers().includes(targetNumericId)) {
-      return await message.sendReply("_Cannot warn bot owners/sudo users!_");
+    if (isSudo(targetUser) || isBot(targetUser, message.client)) {
+      return await message.sendReply("_Cannot warn the bot or its owners!_");
     }
 
-    let rawReason = match[1] || "No reason provided";
+    const targetNumericId = targetUser?.split("@")[0];
+    let rawReason = args || "No reason provided";
     const mentionRegex = new RegExp(`@${targetNumericId}\\s*`, "g");
     const reason =
       rawReason.replace(mentionRegex, "").trim() || "No reason provided";
@@ -123,78 +284,6 @@ Module(
     } catch (error) {
       console.error("Warning error:", error);
       await message.sendReply("_Failed to add warning! Please try again._");
-    }
-  }
-);
-
-Module(
-  {
-    pattern: "warnings ?(.*)",
-    fromMe: false,
-    desc: "Check warnings for a user",
-    usage: ".warnings @user\n.warnings reply",
-    use: "group",
-  },
-  async (message, match) => {
-    if (!message.isGroup)
-      return await message.sendReply("_This is a group-only command!_");
-
-    let adminAccess = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (!message.fromOwner && !adminAccess) return;
-
-    const targetUser =
-      message.mention?.[0] || message.reply_message?.jid || message.sender;
-    const targetNumericId = targetUser?.split("@")[0];
-
-    try {
-      const warnings = await getWarn(message.jid, targetUser);
-
-      if (!warnings || warnings.length === 0) {
-        return await message.client.sendMessage(message.jid, {
-          text:
-            `✓ *No Warnings*\n\n` +
-            `- User: \`@${targetNumericId}\`\n` +
-            `- Status: \`Clean record\`\n` +
-            `- Warnings: \`0/${getWarnLimit()}\``,
-          mentions: [targetUser],
-        });
-      }
-
-      const currentWarns = warnings.length;
-      const remaining = getWarnLimit() - currentWarns;
-
-      let warningsList = `📋 *Warning History*\n\n`;
-      warningsList += `- User: \`@${targetNumericId}\`\n`;
-      warningsList += `- Total Warnings: \`${currentWarns}/${getWarnLimit()}\`\n`;
-      warningsList += `- Remaining: \`${remaining > 0 ? remaining : 0}\`\n\n`;
-
-      warnings.slice(0, 5).forEach((warn, index) => {
-        const date = new Date(warn.timestamp).toLocaleString();
-        const warnedByNumeric = warn.warnedBy?.split("@")[0];
-        warningsList += `*${index + 1}.* ${warn.reason}\n`;
-        warningsList += `   _By: @${warnedByNumeric}_\n`;
-        warningsList += `   _Date: ${date}_\n\n`;
-      });
-
-      if (warnings.length > 5) {
-        warningsList += `_... and ${warnings.length - 5} more warnings_\n\n`;
-      }
-
-      if (remaining <= 0) {
-        warningsList += `⚠ _User has exceeded the warning limit!_`;
-      } else if (remaining === 1) {
-        warningsList += `⚠ _Next warning will result in a kick!_`;
-      }
-
-      await message.client.sendMessage(message.jid, {
-        text: warningsList,
-        mentions: [targetUser, ...warnings.slice(0, 5).map((w) => w.warnedBy)],
-      });
-    } catch (error) {
-      console.error("Warning check error:", error);
-      await message.sendReply("_Failed to retrieve warnings!_");
     }
   }
 );
@@ -341,90 +430,9 @@ Module(
 
 Module(
   {
-    pattern: "warnlist",
-    fromMe: false,
-    desc: "List all warned users in the group",
-    usage: ".warnlist",
-    use: "group",
-  },
-  async (message) => {
-    if (!message.isGroup)
-      return await message.sendReply("_This is a group-only command!_");
-
-    let adminAccess = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (!message.fromOwner && !adminAccess) {
-      return await message.sendReply(
-        "_You need admin privileges to view the warning list!_"
-      );
-    }
-
-    try {
-      const allWarnings = await getAllWarns(message.jid);
-
-      if (Object.keys(allWarnings).length === 0) {
-        return await message.sendReply(
-          `✓ *Clean Group!*\n\n` +
-            `- No users have warnings in this group.\n` +
-            `_Everyone is following the rules!_`
-        );
-      }
-
-      let warnList = `📋 *Group Warning List*\n\n`;
-      warnList += `- Warning Limit: \`${getWarnLimit()}\`\n\n`;
-
-      const sortedUsers = Object.entries(allWarnings).sort(
-        ([, a], [, b]) => b.length - a.length
-      );
-
-      let mentions = [];
-
-      sortedUsers.forEach(([userJid, userWarnings], index) => {
-        const userNumericId = userJid?.split("@")[0];
-        const warnCount = userWarnings.length;
-        const remaining = getWarnLimit() - warnCount;
-        const status =
-          remaining <= 0
-            ? "⚠ LIMIT EXCEEDED"
-            : remaining === 1
-            ? "⚠ FINAL WARNING"
-            : `✓ ${remaining} remaining`;
-
-        warnList += `*${index + 1}.* @${userNumericId}\n`;
-        warnList += `   _Warnings: \`${warnCount}/${getWarnLimit()}\`_\n`;
-        warnList += `   _Status: \`${status}\`_\n`;
-
-        if (userWarnings.length > 0) {
-          const latestWarning = userWarnings[0];
-          warnList += `   _Latest: \`${latestWarning.reason.substring(0, 30)}${
-            latestWarning.reason.length > 30 ? "..." : ""
-          }\`_\n`;
-        }
-        warnList += "\n";
-
-        mentions.push(userJid);
-      });
-
-      warnList += `_Total warned users: ${sortedUsers.length}_\n`;
-      warnList += `_Use ${helpPrefix()}warnings @user for detailed history_`;
-
-      await message.client.sendMessage(message.jid, {
-        text: warnList,
-        mentions,
-      });
-    } catch (error) {
-      console.error("Warning list error:", error);
-      await message.sendReply("_Failed to retrieve warning list!_");
-    }
-  }
-);
-
-Module(
-  {
     pattern: "setwarnlimit ?(.*)",
     fromMe: true,
-    desc: "Set the warning limit for the group",
+    desc: "Set the warning limit",
     usage: ".setwarnlimit 5",
     use: "group",
   },
@@ -441,75 +449,17 @@ Module(
     }
 
     try {
+      const previous = getWarnLimit();
+      await setVar("WARN", String(newLimit));
       await message.sendReply(
         `✓ *Warning Limit Updated!*\n\n` +
           `- New limit: \`${newLimit} warnings\`\n` +
-          `- Previous limit: \`${getWarnLimit()}\`\n\n` +
+          `- Previous limit: \`${previous}\`\n\n` +
           `_Users will now be kicked after ${newLimit} warnings._`
       );
     } catch (error) {
       console.error("Set warn limit error:", error);
       await message.sendReply("_Failed to update warning limit!_");
-    }
-  }
-);
-
-Module(
-  {
-    pattern: "warnstats",
-    fromMe: false,
-    desc: "Show warning statistics for the group",
-    usage: ".warnstats",
-    use: "group",
-  },
-  async (message) => {
-    if (!message.isGroup)
-      return await message.sendReply("_This is a group-only command!_");
-
-    let adminAccess = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (!message.fromOwner && !adminAccess) {
-      return await message.sendReply(
-        "_You need admin privileges to view warning statistics!_"
-      );
-    }
-
-    try {
-      const allWarnings = await getAllWarns(message.jid);
-
-      const totalUsers = Object.keys(allWarnings).length;
-      const totalWarnings = Object.values(allWarnings).reduce(
-        (sum, warnings) => sum + warnings.length,
-        0
-      );
-
-      let atLimit = 0;
-      let nearLimit = 0;
-      let safe = 0;
-
-      Object.values(allWarnings).forEach((userWarnings) => {
-        const count = userWarnings.length;
-        if (count >= getWarnLimit()) atLimit++;
-        else if (count >= getWarnLimit() - 1) nearLimit++;
-        else safe++;
-      });
-
-      const stats =
-        `📊 *Group Warning Statistics*\n\n` +
-        `- Warning Limit: \`${getWarnLimit()}\`\n` +
-        `- Total Warned Users: \`${totalUsers}\`\n` +
-        `- Total Warnings Issued: \`${totalWarnings}\`\n\n` +
-        `*User Status:*\n` +
-        `- ⚠ At Limit: \`${atLimit}\`\n` +
-        `- ⚠ Near Limit: \`${nearLimit}\`\n` +
-        `- ✓ Safe: \`${safe}\`\n\n` +
-        `_Use ${helpPrefix()}warnlist to see detailed list_`;
-
-      await message.sendReply(stats);
-    } catch (error) {
-      console.error("Warning stats error:", error);
-      await message.sendReply("_Failed to retrieve warning statistics!_");
     }
   }
 );

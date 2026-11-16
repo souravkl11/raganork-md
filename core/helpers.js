@@ -172,11 +172,9 @@ function suppressLibsignalLogs() {
   } catch {}
 }
 
-const jimp = require("jimp");
-
 async function genThumb(url) {
   try {
-    const img = await jimp.read(url);
+    const img = await require("jimp").read(url);
     const { width, height } = img.bitmap;
     // fit inside 300x300, never upscale
     const scale = Math.min(1, 300 / Math.max(width, height));
@@ -265,7 +263,7 @@ async function toBuffer(input) {
   if (input && input.url) {
     const url = input.url;
     if (typeof url === "string" && /^https?:\/\//i.test(url)) {
-      return await require("../plugins/utils").getBuffer(url);
+      return await require("./net").getBuffer(url);
     }
     if (typeof url === "string" && fs.existsSync(url))
       return fs.readFileSync(url);

@@ -1,37 +1,12 @@
-const { isAdmin, mentionjid } = require("./utils");
-const config = require("../config");
+const { isAdmin, timeSince } = require("./utils");
 const { Module } = require("../main");
+const { isOwner } = require("../core/identity");
+const { helpPrefix } = require("../core/plugins/registry");
 const {
   fetchFromStore,
   getTopUsers,
   getGlobalTopUsers,
 } = require("../core/store");
-
-function timeSince(date) {
-  if (!date) return "Never";
-  var seconds = Math.floor((new Date() - new Date(date)) / 1000);
-  var interval = seconds / 31536000;
-  if (interval > 1) {
-    return Math.floor(interval) + " years ago";
-  }
-  interval = seconds / 2592000;
-  if (interval > 1) {
-    return Math.floor(interval) + " months ago";
-  }
-  interval = seconds / 86400;
-  if (interval > 1) {
-    return Math.floor(interval) + " days ago";
-  }
-  interval = seconds / 3600;
-  if (interval > 1) {
-    return Math.floor(interval) + " hours ago";
-  }
-  interval = seconds / 60;
-  if (interval > 1) {
-    return Math.floor(interval) + " minutes ago";
-  }
-  return Math.floor(seconds) + " seconds ago";
-}
 
 function parseDuration(duration) {
   const regex = /^(\d+)([dwmy])$/i;
@@ -69,15 +44,12 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group command!_");
 
-    let adminAccesValidated = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (message.fromOwner || adminAccesValidated) {
+    if (message.fromOwner) {
       var users = (
         await message.client.groupMetadata(message.jid)
       ).participants.map((e) => e.id);
       if (message.mention?.[0]) users = message.mention;
-      if (message.reply_message && !message.mention.length)
+      if (message.reply_message && !message.mention?.length)
         users = [message.reply_message?.jid];
 
       let userStats = await fetchFromStore(message.jid);
@@ -147,24 +119,23 @@ Module(
     if (!message.isGroup)
       return await message.sendReply("_This is a group command!_");
 
-    let adminAccesValidated = config.ADMIN_ACCESS
-      ? await isAdmin(message, message.sender)
-      : false;
-    if (message.fromOwner || adminAccesValidated) {
+    if (message.fromOwner) {
       if (!match[1]) {
         return await message.sendReply(
           "_Usage:_\n" +
-            "• `.inactive 30d` - Show members inactive for 30+ days\n" +
-            "• `.inactive 10d kick` - Kick members inactive for 10+ days\n" +
-            "• `.inactive 2w` - Show members inactive for 2+ weeks\n" +
-            "• `.inactive 3m kick` - Kick members inactive for 3+ months\n\n" +
+            `• \`${helpPrefix()}inactive 30d\` - Show members inactive for 30+ days\n` +
+            `• \`${helpPrefix()}inactive 10d kick\` - Kick members inactive for 10+ days\n` +
+            `• \`${helpPrefix()}inactive 2w\` - Show members inactive for 2+ weeks\n` +
+            `• \`${helpPrefix()}inactive 3m kick\` - Kick members inactive for 3+ months\n\n` +
             "_Supported units:_ d (days), w (weeks), m (months), y (years)"
         );
       }
 
-      const args = match[1].trim().split(" ");
+      const args = match[1].trim().split(/\s+/);
       const durationStr = args[0];
-      const shouldKick = args[1]?.toLowerCase() === "kick";
+      const flags = args.slice(1).map((arg) => arg.toLowerCase());
+      const shouldKick = flags.includes("kick");
+      const force = flags.includes("force");
 
       const cutoffDate = parseDuration(durationStr);
       if (!cutoffDate) {
@@ -185,21 +156,21 @@ Module(
       const participants = groupMetadata.participants.map((e) => e.id);
       const userStats = await fetchFromStore(message.jid);
 
-      let oldestMessageDate = null;
-      if (userStats.length > 0) {
-        const oldestStat = userStats.reduce((oldest, current) => {
-          const currentDate = new Date(
-            current.lastMessageAt || current.createdAt
-          );
-          const oldestDate = new Date(oldest.lastMessageAt || oldest.createdAt);
-          return currentDate < oldestDate ? current : oldest;
-        });
-        oldestMessageDate = new Date(
-          oldestStat.lastMessageAt || oldestStat.createdAt
+      let dataStart = null;
+      for (const stat of userStats) {
+        const date = new Date(stat.createdAt || stat.lastMessageAt);
+        if (!dataStart || date < dataStart) dataStart = date;
+      }
+      const dataWarning = !dataStart || cutoffDate < dataStart;
+
+      if (shouldKick && dataWarning && !force) {
+        return await message.sendReply(
+          `_Not kicking: my message data for this group ${
+            dataStart ? `only goes back ${timeSince(dataStart)}` : "is empty"
+          }, which is shorter than ${durationStr}. Members who were active before that would count as inactive._\n` +
+            `_Use \`${helpPrefix()}inactive ${durationStr} kick force\` to kick anyway._`
         );
       }
-
-      const dataWarning = oldestMessageDate && cutoffDate < oldestMessageDate;
 
       let inactiveMembers = [];
       for (let user of participants) {
@@ -226,14 +197,11 @@ Module(
       }
 
       if (shouldKick) {
-        const botId =
-          message.client.user?.lid?.split(":")[0] + "@lid" ||
-          message.client.user.id.split(":")[0] + "@s.whatsapp.net";
         inactiveMembers = inactiveMembers.filter((member) => {
           const participant = groupMetadata.participants.find(
             (p) => p.id === member.jid
           );
-          return !participant?.admin && member.jid !== botId;
+          return !participant?.admin && !isOwner(member.jid, message.client);
         });
       }
 
@@ -246,9 +214,9 @@ Module(
       let responseMsg = `_Inactive members (${durationStr}+):_ *${inactiveMembers.length}*\n\n`;
 
       if (dataWarning) {
-        responseMsg += `⚠️ _Warning: Database only has data from ${timeSince(
-          oldestMessageDate
-        )}. Members who were active before this time may appear as inactive._\n\n`;
+        responseMsg += `⚠️ _Warning: Database ${
+          dataStart ? `only has data from ${timeSince(dataStart)}` : "has no data for this group"
+        }. Members who were active before this time may appear as inactive._\n\n`;
       }
 
       if (shouldKick) {
@@ -307,7 +275,7 @@ Module(
           responseMsg += `   _Total msgs:_ ${member.totalMessages}\n\n`;
         }
 
-        responseMsg += `_Use \`.inactive ${durationStr} kick\` to remove these members._`;
+        responseMsg += `_Use \`${helpPrefix()}inactive ${durationStr} kick\` to remove these members._`;
 
         return await message.client.sendMessage(message.jid, {
           text: responseMsg,
@@ -328,11 +296,7 @@ Module(
     use: "utility",
   },
   async (message, match) => {
-    let adminAccesValidated =
-      config.ADMIN_ACCESS && message.isGroup
-        ? await isAdmin(message, message.sender)
-        : false;
-    if (message.fromOwner || adminAccesValidated) {
+    if (message.fromOwner) {
       let limit = 10;
       let isGlobal = false;
 
@@ -406,9 +370,9 @@ Module(
         }
 
         if (isGlobal) {
-          responseMsg += `\n_💡 Tip: Use \`.users chat\` for current chat stats only._`;
+          responseMsg += `\n_💡 Tip: Use \`${helpPrefix()}users chat\` for current chat stats only._`;
         } else if (message.isGroup) {
-          responseMsg += `\n_💡 Tip: Use \`.users global\` for global stats across all chats._`;
+          responseMsg += `\n_💡 Tip: Use \`${helpPrefix()}users global\` for global stats across all chats._`;
         }
 
         const mentions = topUsers.map((user) => user.jid);

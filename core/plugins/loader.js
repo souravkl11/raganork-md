@@ -53,7 +53,7 @@ async function syncTables() {
     AutoUnMuteDB,
     StickyCmdDB,
     ScheduledMessageDB,
-  } = require("../../plugins/utils/db/schedulers");
+  } = require("../db/models/schedules");
 
   await Chat.sync();
   await User.sync();
@@ -71,10 +71,15 @@ async function syncTables() {
 // re-downloads external plugins that are recorded in the db but missing on disk
 // (fresh container, redeploy). one slow or broken url must not block boot.
 async function restoreExternalPlugins() {
-  const { PluginDB } = require("../../plugins/sql/plugin");
+  const { PluginDB } = require("../db/models/plugin");
   const plugins = await PluginDB.findAll();
   for (const plugin of plugins) {
     const pluginPath = `${PLUGIN_DIR}/${plugin.dataValues.name}.js`;
+    // the name comes from the db: never write outside plugins/
+    if (path.dirname(path.resolve(pluginPath)) !== path.resolve(PLUGIN_DIR)) {
+      console.error(`Skipping plugin with an unsafe name: ${plugin.dataValues.name}`);
+      continue;
+    }
     if (fs.existsSync(pluginPath)) continue;
     try {
       const response = await axios(plugin.dataValues.url, {
