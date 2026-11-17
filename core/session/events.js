@@ -4,10 +4,12 @@ const { groupUpdate, handler } = require("../handler");
 const { handleCall } = require("./features/calls");
 const { ANTI_DELETE_MODES } = require("./features/antidelete");
 const { readEncryptedEdit } = require("./features/message-edit");
+const { bridgeStatusStanzas } = require("./features/status-stanza");
 
 // the socket listeners besides connection.update and the cache ones. every one goes through
 // bot._on, so it runs in the session context
 function wireEvents(bot) {
+  bridgeStatusStanzas(bot.sock);
   bot._on("creds.update", async (newCreds) => {
     try {
       logger.info(
@@ -53,6 +55,16 @@ function wireEvents(bot) {
       if (message.key && message.key.id && message.key.remoteJid) {
         const cacheKey = `${message.key.remoteJid}_${message.key.id}`;
         bot.messageCache.set(cacheKey, message);
+      }
+    }
+    // DEBUG: every status the socket hands over, before anything can drop it. a status
+    // that could not be decrypted has no content and never reaches the [msg] log
+    if (config.DEBUG === true || config.DEBUG === "true") {
+      for (const m of upsert.messages) {
+        if (m.key?.remoteJid !== "status@broadcast") continue;
+        const content = m.message ? Object.keys(m.message).join(",") : "no content";
+        const stub = m.messageStubType ? ` stub ${m.messageStubType}: ${(m.messageStubParameters || []).join(", ")}` : "";
+        console.log(`[status] ${upsert.type} ${m.key.participant || "?"} ${m.key.id} | ${content}${stub}`);
       }
     }
     if (upsert.type === "notify") {

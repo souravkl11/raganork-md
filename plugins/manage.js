@@ -298,14 +298,14 @@ Module(
         selectedOption <= configs.length
       ) {
         const setting = configs[selectedOption - 1];
-        let msg = `_*${setting.title}*_\n\n1. ON\n2. OFF`;
+        let msg = `_*${setting.title}*_\n_Now:_ ${config[setting.env_var] ? "ON ✅" : "OFF ❌"}\n\n1. ON\n2. OFF`;
         return await message.sendReply(msg);
       }
     }
     let msg =
       "*_Settings configuration menu_*\n\n_Select an option by number:_\n\n";
     configs.forEach((e, index) => {
-      msg += `_${index + 1}. ${e.title}_\n`;
+      msg += `_${index + 1}. ${e.title}_ ${config[e.env_var] ? "✅" : "❌"}\n`;
     });
     return await message.sendReply(msg);
   }
@@ -673,7 +673,9 @@ async function handleSettingsReply(message) {
     const optionNumber = parseInt(sMatch[0]);
     if (optionNumber > 0 && optionNumber <= configs.length) {
       const setting = configs[optionNumber - 1];
-      await message.sendReply(`*_${setting.title}_*\n1. ON\n2. OFF`);
+      await message.sendReply(
+        `*_${setting.title}_*\n_Now:_ ${config[setting.env_var] ? "ON ✅" : "OFF ❌"}\n1. ON\n2. OFF`
+      );
       return true;
     }
   } else if (

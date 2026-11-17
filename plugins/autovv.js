@@ -1,18 +1,16 @@
-const { Module, commands } = require("../main");
+const { Module } = require("../main");
 const config = require("../config");
-const { DataTypes } = require("sequelize");
-const { sequelize } = require("../core/database");
 const { setVar, delVar } = require("./manage");
 const context = require("../core/context");
-const { patternFor } = require("../core/plugins/registry");
+const { isAndroidBrowser } = require("../core/session/socket-options");
 
 /**
  * Auto anti view-once.
  *
- * A view once message that arrives in any chat, or that anyone replies to, is
- * forwarded (as a normal message) to the chat configured in VV_AUTO_JID. Every view
- * once message is forwarded at most once, tracked by its message id in the database
- * so restarts don't cause duplicates.
+ * Every view once message the bot's number receives is forwarded, as a normal message,
+ * to the chat set in VV_AUTO_JID the moment it arrives. This needs the android browser
+ * (the default; not WA_BROWSER=chrome): a browser companion is never sent view once media. Messages the
+ * bot's own number sends are not forwarded.
  */
 
 const VV_WRAPPERS = [
@@ -22,64 +20,22 @@ const VV_WRAPPERS = [
 ];
 const MEDIA_TYPES = ["imageMessage", "videoMessage", "audioMessage"];
 
-const isAndroid = () => String(config.WA_BROWSER || "").toLowerCase() === "android";
+// android is the default; only WA_BROWSER=chrome turns it off
+const isAndroid = isAndroidBrowser;
+// the reply listener below finds the prompt by this phrase
+const ANDROID_PROMPT_MARK = "reply *yes* to this message";
 const ANDROID_NOTICE =
-  "_To catch view once messages the moment they arrive, set the browser to android first:_\n`.setvar WA_BROWSER=android`\n_then restart and link the number again. Until then only view once messages that someone replies to are saved._";
+  `_Auto view once only works with the android browser, and it is not set now, so nothing will be saved yet._\n\n_To switch, ${ANDROID_PROMPT_MARK}, then restart the bot._`;
 
-const VVSent = sequelize.define(
-  "autovv_sent",
-  {
-    msgId: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
-    chat: { type: DataTypes.STRING, allowNull: true },
-  },
-  { tableName: "autovv_sent", timestamps: true }
-);
-const tableReady = VVSent.sync().catch((e) =>
-  console.error("autovv: failed to sync table:", e.message)
-);
-
-// the .vv command, looked up lazily because plugins load alphabetically. its pattern is
-// taken per call (patternFor) so it follows the session's current prefix
-let vvCommand;
-function isVVCommand(text) {
-  if (!text) return false;
-  if (vvCommand === undefined) {
-    vvCommand =
-      commands.find(
-        (c) =>
-          c.pattern &&
-          c.pattern.source.endsWith("vv ?(.*)") &&
-          !c.pattern.source.endsWith("autovv ?(.*)")
-      ) || null;
-  }
-  return (
-    Boolean(vvCommand) &&
-    patternFor(vvCommand).test(text.charAt(0).toLowerCase() + text.slice(1))
-  );
-}
-
-// <account>:<id> currently being forwarded (guards against concurrent duplicate replies)
-const inFlight = new Set();
-
-function getReplyContext(message) {
-  if (!message) return null;
-  // unwrap ephemeral / view once wrappers around the reply itself
-  let content = message;
-  for (let i = 0; i < 3; i++) {
-    const inner =
-      content.ephemeralMessage?.message ||
-      content.viewOnceMessage?.message ||
-      content.viewOnceMessageV2?.message ||
-      content.viewOnceMessageV2Extension?.message ||
-      content.documentWithCaptionMessage?.message;
-    if (!inner) break;
-    content = inner;
-  }
-  for (const value of Object.values(content)) {
-    if (value && typeof value === "object" && value.contextInfo?.quotedMessage)
-      return value.contextInfo;
-  }
-  return null;
+// <account>:<id> of recently forwarded messages, so a message delivered twice (a retry,
+// a reconnect) is forwarded once. in memory only: oldest entries go first
+const recent = new Set();
+const RECENT_MAX = 2000;
+function firstTime(key) {
+  if (recent.has(key)) return false;
+  recent.add(key);
+  if (recent.size > RECENT_MAX) recent.delete(recent.values().next().value);
+  return true;
 }
 
 // returns a clean (non view once) copy of a view once message, or null. covers the wrapped
@@ -115,7 +71,7 @@ Module(
   {
     pattern: "autovv ?(.*)",
     fromMe: true,
-    desc: "Auto-saves replied view once media to a chosen chat",
+    desc: "Saves every view once message the moment it arrives, to a chosen chat",
     usage: ".autovv here | <jid/number> | off | status",
     use: "utility",
   },
@@ -125,9 +81,9 @@ Module(
 
     if (!arg || arg.toLowerCase() === "status") {
       return await m.sendReply(
-        `_*Auto view once*_\n\n_Whenever someone replies to a view once message, the media is sent to a chosen chat (once per message)._\n\n_Status: ${
+        `_*Auto view once*_\n\n_Every view once message you receive is sent to a chosen chat the moment it arrives. This needs the android browser._\n\n_Status: ${
           current ? `on ✅ → ${current}` : "off ❌"
-        }_\n_Browser: ${isAndroid() ? "android ✅" : "not android ⚠️"}_\n\n_Usage:_\n\`.autovv here\` - _use this chat_\n\`.autovv <jid/number>\` - _use a custom chat_\n\`.autovv off\` - _disable_`
+        }_\n_Browser: ${isAndroid() ? "android ✅" : "not android ⚠️ (nothing is saved)"}_\n\n_Usage:_\n\`.autovv here\` - _use this chat_\n\`.autovv <jid/number>\` - _use a custom chat_\n\`.autovv off\` - _disable_`
       );
     }
 
@@ -151,67 +107,56 @@ Module(
   }
 );
 
-async function forwardOnce(m, target, vv, msgId, origSender) {
-  // once per message and per session: two sessions in the same chat each forward to their own target.
-  // rows written before accounts exist are the bare message id and still count for every session
-  const sentKey = `${context.accountId() || "_"}:${msgId}`;
-  if (inFlight.has(sentKey)) return;
-  inFlight.add(sentKey);
-  try {
-    await tableReady;
-    if ((await VVSent.findByPk(sentKey)) || (await VVSent.findByPk(msgId))) return;
+// "yes" to the prompt above sets the browser to android for this session
+Module({ on: "text", fromMe: true }, async (m) => {
+  if (!m.fromOwner || !/^(yes|y)$/i.test((m.text || "").trim())) return;
+  if (!m.quoted?.key?.fromMe) return;
+  if (!String(m.reply_message?.text || "").toLowerCase().includes(ANDROID_PROMPT_MARK)) return;
+  if (isAndroid()) return await m.sendReply("_The browser is already set to android ✅_");
+  await setVar("WA_BROWSER", "android");
+  return await m.sendReply(
+    "_Browser set to android ✅_\n_Restart the bot to apply it (_`.restart`_). No need to link the number again._"
+  );
+});
 
-    const sourceChat = m.jid;
-    const info = `_Auto view once_\n_From:_ @${origSender.split("@")[0]}\n_Chat:_ ${
-      sourceChat.endsWith("@g.us") ? "group " : ""
-    }${sourceChat.split("@")[0]}`;
+async function forward(m, target, vv, msgId, origSender) {
+  const sourceChat = m.jid;
+  const info = `_Auto view once_\n_From:_ @${origSender.split("@")[0]}\n_Chat:_ ${
+    sourceChat.endsWith("@g.us") ? "group " : ""
+  }${sourceChat.split("@")[0]}`;
 
-    const options = {
-      contextInfo: { isForwarded: false, mentionedJid: [origSender] },
-    };
-    const fake = { key: { remoteJid: sourceChat, id: msgId }, message: vv.message };
+  const options = {
+    contextInfo: { isForwarded: false, mentionedJid: [origSender] },
+  };
+  const fake = { key: { remoteJid: sourceChat, id: msgId }, message: vv.message };
 
-    if (vv.type === "audioMessage") {
-      await m.client.sendMessage(target, {
-        text: info,
-        mentions: [origSender],
-      });
-    } else {
-      const original = vv.message[vv.type].caption;
-      options.caption = original ? `${original}\n\n${info}` : info;
-    }
-
-    await m.forwardMessage(target, fake, options);
-    // mark as sent only after a successful forward so failures can be retried
-    await VVSent.create({ msgId: sentKey, chat: sourceChat });
-  } catch (e) {
-    if (config.DEBUG) console.error("autovv error:", e);
-  } finally {
-    inFlight.delete(sentKey);
+  if (vv.type === "audioMessage") {
+    await m.client.sendMessage(target, { text: info, mentions: [origSender] });
+  } else {
+    const original = vv.message[vv.type].caption;
+    options.caption = original ? `${original}\n\n${info}` : info;
   }
+  await m.forwardMessage(target, fake, options);
 }
 
 Module({ on: "message", fromMe: false }, async (m) => {
   const target = config.VV_AUTO_JID;
   if (!target || typeof target !== "string") return;
 
-  const message = m.data?.message;
-
-  // the message itself is view once
-  const direct = extractViewOnce(message);
-  if (direct) {
-    const id = m.data.key?.id;
-    if (!id || m.jid === target) return;
-    return await forwardOnce(m, target, direct, id, m.data.key.participant || m.sender || m.jid);
-  }
-
-  // an explicit .vv reply already handles the message itself
-  if (isVVCommand(m.text)) return;
-
-  // someone replied to a view once message
-  const ctx = getReplyContext(message);
-  if (!ctx?.stanzaId) return;
-  const vv = extractViewOnce(ctx.quotedMessage);
+  const key = m.data?.key;
+  // the bot's own view once messages (sent from this number) are not saved
+  if (!key?.id || key.fromMe) return;
+  const vv = extractViewOnce(m.data.message);
   if (!vv) return;
-  await forwardOnce(m, target, vv, ctx.stanzaId, ctx.participant || m.jid);
+
+  // two sessions in the same chat each forward to their own target
+  const sentKey = `${context.accountId() || "_"}:${key.id}`;
+  if (!firstTime(sentKey)) return;
+  try {
+    await forward(m, target, vv, key.id, key.participant || m.sender || m.jid);
+  } catch (e) {
+    recent.delete(sentKey); // a later delivery of the same message may try again
+    console.warn(`autovv: could not forward ${key.id} to ${target}: ${e?.message || e}`);
+    if (config.DEBUG) console.error(e);
+  }
 });

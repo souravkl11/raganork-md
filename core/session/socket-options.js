@@ -2,12 +2,12 @@ const config = require("../../config");
 
 const { logger, baileysLogger } = config;
 
-// WA_BROWSER=android registers the session as an Android companion (experimental,
-// the only mode that receives view-once). anything else keeps the Chrome identity.
-const browserFor = () =>
-  String(config.WA_BROWSER || "").toLowerCase() === "android"
-    ? ["13", "Android", ""]
-    : ["Raganork", "Chrome", "1.0.0"];
+// sessions register as an Android companion by default: the only identity that is sent
+// view once media (Baileys calls it experimental). WA_BROWSER=chrome (or web) keeps the
+// old Chrome identity. read inside the session, so a .setvar value counts
+const CHROME_VALUES = new Set(["chrome", "web", "browser"]);
+const isAndroidBrowser = () => !CHROME_VALUES.has(String(config.WA_BROWSER || "").trim().toLowerCase());
+const browserFor = () => (isAndroidBrowser() ? ["13", "Android", ""] : ["Raganork", "Chrome", "1.0.0"]);
 
 // what baileys gets when a session opens its socket. the cache lookups read the bot's
 // caches at call time
@@ -69,4 +69,4 @@ function buildSocketOptions(bot, version) {
   };
 }
 
-module.exports = { buildSocketOptions, browserFor };
+module.exports = { buildSocketOptions, browserFor, isAndroidBrowser };

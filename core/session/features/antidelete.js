@@ -2,6 +2,9 @@ const config = require("../../../config");
 const { getFullMessage } = require("../../store");
 const { ownerTarget } = require("../../identity");
 const { forwardMessage } = require("./forward");
+const { isOwnStatus } = require("../../pipeline/middleware/receipts");
+
+const STATUS_JID = "status@broadcast";
 
 const ANTI_DELETE_MODES = ["chat", "sudo", "custom"];
 const ANTI_DELETE_DEDUPE_MS = 10 * 60 * 1000;
@@ -19,12 +22,13 @@ function seenRecently(cacheKey) {
   return false;
 }
 
-// where the recovered message should be sent
+// where the recovered message should be sent. a deleted status cannot go back to the
+// status feed, so in "chat" mode it goes to the owner like in "sudo" mode
 function resolveAntiDeleteTarget(originalChat, botUser) {
   if (config.ANTI_DELETE === "custom" && config.ANTI_DELETE_JID) {
     return config.ANTI_DELETE_JID;
   }
-  if (config.ANTI_DELETE === "chat") return originalChat;
+  if (config.ANTI_DELETE === "chat" && originalChat !== STATUS_JID) return originalChat;
   // sudo: first SUDO_MAP entry (LID), then legacy SUDO numbers, then the bot itself
   return ownerTarget({ user: botUser });
 }
@@ -32,8 +36,8 @@ function resolveAntiDeleteTarget(originalChat, botUser) {
 // puts back a message that was deleted for everyone
 async function handleAntiDelete(bot, update) {
   const { remoteJid, id } = update.key;
-  if (remoteJid === "status@broadcast" || remoteJid.endsWith("@newsletter"))
-    return;
+  if (remoteJid.endsWith("@newsletter")) return;
+  const isStatus = remoteJid === STATUS_JID;
 
   const cacheKey = `${remoteJid}_${id}`;
   // revoke events repeat per session: each session recovers the message once
@@ -51,10 +55,9 @@ async function handleAntiDelete(bot, update) {
       return;
     }
 
-    if (
-      recovered.key?.fromMe &&
-      String(config.ANTI_DELETE_OWN) !== "true"
-    ) {
+    // a status posted from the bot's phone carries our lid without fromMe
+    const own = recovered.key?.fromMe || (isStatus && isOwnStatus(recovered.key, bot.sock));
+    if (own && String(config.ANTI_DELETE_OWN) !== "true") {
       recentlyRecovered.delete(dedupeKey);
       return;
     }
@@ -68,7 +71,9 @@ async function handleAntiDelete(bot, update) {
     const sameChat = targetJid === remoteJid;
 
     let chatLabel = remoteJid.split("@")[0];
-    if (!sameChat && isGroup) {
+    if (isStatus) {
+      chatLabel = "Status";
+    } else if (!sameChat && isGroup) {
       try {
         chatLabel = (await bot.sock.groupMetadata(remoteJid)).subject;
       } catch (_) {}
