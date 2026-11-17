@@ -3,6 +3,7 @@ const { logger } = config;
 const { groupUpdate, handler } = require("../handler");
 const { handleCall } = require("./features/calls");
 const { ANTI_DELETE_MODES } = require("./features/antidelete");
+const { readEncryptedEdit } = require("./features/message-edit");
 
 // the socket listeners besides connection.update and the cache ones. every one goes through
 // bot._on, so it runs in the session context
@@ -58,7 +59,14 @@ function wireEvents(bot) {
       // the handler only looks at messages[0], so give it one message at a time
       for (const m of upsert.messages) {
         try {
-          await handler({ messages: [m], type: upsert.type }, bot.sock, this);
+          // an encrypted edit is handled as the new message it carries, never as the empty envelope
+          const encrypted = await readEncryptedEdit(bot, m);
+          const incoming = encrypted ? encrypted.edited : m;
+          if (!incoming) {
+            logger.debug({ session: bot.sessionId, reason: encrypted.reason }, `Encrypted edit skipped`);
+            continue;
+          }
+          await handler({ messages: [incoming], type: upsert.type }, bot.sock, this);
         } catch (e) {
           logger.error(
             { session: bot.sessionId, err: e },
