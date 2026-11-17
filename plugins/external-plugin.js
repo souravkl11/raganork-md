@@ -214,7 +214,13 @@ Module(
   async (message, match) => {
     if (match[1] === "") return await message.send(Lang.NEED_PLUGIN);
     if (await isShippedFile(match[1])) {
-      return await message.sendReply(protectedReply(match[1]));
+      await PluginDB.sync();
+      const stale = await PluginDB.findAll({ where: { name: match[1] } });
+      if (!stale.length) return await message.sendReply(protectedReply(match[1]));
+      await stale[0].destroy();
+      return await message.sendReply(
+        `_Removed the old install record for '${match[1]}'. The built-in plugin file was kept._`
+      );
     }
     var plugin = await PluginDB.findAll({
       where: {

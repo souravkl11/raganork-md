@@ -19,7 +19,8 @@ function buildSocketOptions(bot, version) {
     },
     ...(version ? { version } : {}),
     logger: baileysLogger.child({ session: bot.sessionId }),
-    browser: browserFor(),
+    // read inside the session: a .setvar value is only visible there
+    browser: bot.inSession(browserFor),
     cachedGroupMetadata: (jid) => {
       const cached = bot.groupCache.get(jid);
       if (cached) {
