@@ -4,7 +4,7 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
-const { withSource, unload } = require("../core/plugins/registry");
+const { commands, commandName, withSource, unload } = require("../core/plugins/registry");
 const { PluginDB, installPlugin } = require("./sql/plugin");
 let { getString } = require("./utils/lang");
 let Lang = getString("external_plugin");
@@ -91,6 +91,44 @@ function loadPlugin(file, previous) {
   }
 }
 
+// a plugin can name itself with `name: "my-plugin",` on its own line in a Module() call.
+// the name is the file name and what .plugin, .remove and .pupdate use
+const EXPLICIT_NAME_RE = /^[ \t]*name:[ \t]*(["'])([^"'\r\n]*)\1[ \t]*,/m;
+const explicitName = (source) => EXPLICIT_NAME_RE.exec(source)?.[2].trim() || null;
+
+// first word of the first `pattern: "..."` line, when it is a plain word
+function scrapedName(source) {
+  const first = /pattern: ["'](.*)["'],/.exec(source)?.[1].split(" ")[0];
+  return first && NAME_RE.test(first) ? first : null;
+}
+
+// last resort for patterns that are regexes or built at run time: load the plugin once
+// under a throwaway file name and take the first word of the first command it registers
+function nameFromLoad(source) {
+  const probe = path.join(__dirname, `zz-probe-${process.pid}-${Date.now()}.js`);
+  fs.writeFileSync(probe, source);
+  try {
+    withSource(probe, () => require(probe));
+    const first = commands.find((cmd) => cmd.source === probe && cmd.pattern !== undefined);
+    return { name: first ? commandName(first) || null : null };
+  } catch (error) {
+    return { error };
+  } finally {
+    unload(probe);
+    fs.rmSync(probe, { force: true });
+  }
+}
+
+// name for a downloaded plugin: its own name:, else the first plain word of its pattern
+// (what installs have always used), else what it registers when loaded
+function pluginNameOf(source) {
+  const own = explicitName(source);
+  if (own !== null) return { name: own };
+  const scraped = scrapedName(source);
+  if (scraped) return { name: scraped };
+  return nameFromLoad(source);
+}
+
 function readIfExists(file) {
   return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
 }
@@ -128,17 +166,17 @@ Module(
       } catch {
         return await message.send(Lang.INVALID_URL);
       }
-      let plugin_name = /pattern: ["'](.*)["'],/g.exec(response.data);
-      var plugin_name_temp = response.data.match(/pattern: ["'](.*)["'],/g)
-        ? response.data
-            .match(/pattern: ["'](.*)["'],/g)
-            .map((e) => e.replace("pattern", "").replace(/[^a-zA-Z]/g, ""))
-        : "temp";
-      try {
-        plugin_name = plugin_name[1].split(" ")[0];
-      } catch {
+      var plugin_name_temp = (response.data.match(/pattern: ["'](.*)["'],/g) || []).map(
+        (e) => e.replace("pattern", "").replace(/[^a-zA-Z]/g, "")
+      );
+      const found = pluginNameOf(response.data);
+      if (found.error) {
+        return await message.sendReply(Lang.INVALID_PLUGIN + found.error);
+      }
+      const plugin_name = found.name;
+      if (!plugin_name) {
         return await message.sendReply(
-          "_Invalid plugin. No plugin name found!_"
+          '_Invalid plugin. No plugin name found! Add a line like_ `name: "my-plugin",` _to the plugin._'
         );
       }
       if (!NAME_RE.test(plugin_name)) {

@@ -128,6 +128,7 @@ function Module(info, func) {
   const hidden = (name, value) =>
     Object.defineProperty(commandInfo, name, { value, enumerable: false, writable: true });
   hidden("source", currentSource);
+  if (typeof info.name === "string" && info.name.trim()) hidden("name", info.name.trim());
   if (commandInfo.pattern !== undefined) {
     hidden("rawPattern", info.pattern);
     hidden("useHandler", info.handler ?? true);
