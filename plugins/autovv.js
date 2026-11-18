@@ -3,6 +3,7 @@ const config = require("../config");
 const { setVar, delVar } = require("./manage");
 const context = require("../core/context");
 const { isAndroidBrowser } = require("../core/session/socket-options");
+const { extractViewOnce } = require("./utils/viewonce");
 
 /**
  * Auto anti view-once.
@@ -12,13 +13,6 @@ const { isAndroidBrowser } = require("../core/session/socket-options");
  * (the default; not WA_BROWSER=chrome): a browser companion is never sent view once media. Messages the
  * bot's own number sends are not forwarded.
  */
-
-const VV_WRAPPERS = [
-  "viewOnceMessage",
-  "viewOnceMessageV2",
-  "viewOnceMessageV2Extension",
-];
-const MEDIA_TYPES = ["imageMessage", "videoMessage", "audioMessage"];
 
 // android is the default; only WA_BROWSER=chrome turns it off
 const isAndroid = isAndroidBrowser;
@@ -36,24 +30,6 @@ function firstTime(key) {
   recent.add(key);
   if (recent.size > RECENT_MAX) recent.delete(recent.values().next().value);
   return true;
-}
-
-// returns a clean (non view once) copy of a view once message, or null. covers the wrapped
-// forms and a bare media message carrying viewOnce: true (what an Android companion receives)
-function extractViewOnce(message) {
-  if (!message) return null;
-  const root = message.ephemeralMessage?.message || message;
-  const wrapperKey = VV_WRAPPERS.find((key) => root[key]);
-  const inner = wrapperKey ? root[wrapperKey].message : root;
-  if (!inner) return null;
-
-  const type = MEDIA_TYPES.find((t) => inner[t]);
-  if (!type) return null;
-  if (!wrapperKey && !inner[type].viewOnce) return null;
-
-  const media = { ...inner[type] };
-  delete media.viewOnce;
-  return { type, message: { ...inner, [type]: media } };
 }
 
 function normalizeJid(input, current) {

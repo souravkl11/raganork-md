@@ -224,6 +224,18 @@ const STAT_FIELDS = [
 let flushing = false;
 let statsUpsertSupported = true;
 
+// fullContent is JSON, so every Buffer (mediaKey, fileSha256, ...) comes back as
+// { type: "Buffer", data: [...] }. protobuf encodes that shape as 0 bytes, which sends media
+// nobody can download. turn them back into Buffers before anything forwards a stored message
+function reviveBuffers(value) {
+  if (Array.isArray(value)) return value.map(reviveBuffers);
+  if (!value || typeof value !== "object" || Buffer.isBuffer(value)) return value;
+  if (value.type === "Buffer" && Array.isArray(value.data)) return Buffer.from(value.data);
+  const out = {};
+  for (const k of Object.keys(value)) out[k] = reviveBuffers(value[k]);
+  return out;
+}
+
 // thumbnails are the bulk of a stored message and nothing reads them back
 function stripForStorage(key, value) {
   if (key === "jpegThumbnail" || key === "_mappedType" || key === "_accountId") return undefined;
@@ -636,7 +648,7 @@ async function getFullMessage(messageKeyIdOnly) {
     if (message) {
       return {
         found: true,
-        messageData: message.fullContent,
+        messageData: reviveBuffers(message.fullContent),
         storedAt: message.timestamp,
         sender: message.senderJid,
         chat: message.chatJid,
@@ -874,10 +886,14 @@ module.exports = {
   getGlobalTopUsers,
   ensureFullContentColumnExists,
   getFullMessage,
+  reviveBuffers,
   fetchRecentChats,
   flushQueueOnShutdown,
   stopFlushTimer,
   getQueueLength: () => messageQueue.length,
+  // true while a stored message may still be waiting to be written (queued or mid-flush)
+  hasPendingWrites: () => flushing || messageQueue.length > 0,
+  flushPendingWrites: () => flushMessageQueue(),
   fetchFromStore: async (chat) => {
     const stats = await UserStats.findAll({
       where: { chatJid: chat },

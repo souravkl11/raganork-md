@@ -1,5 +1,5 @@
 const { logger } = require("../../../config");
-const { getFullMessage, AntiDeleteCache } = require("../../store");
+const { getFullMessage, AntiDeleteCache, reviveBuffers } = require("../../store");
 
 // collects the children of an album from the message cache, then the database
 async function getAlbumMessages(bot, albumMessageId) {
@@ -90,7 +90,7 @@ async function getAlbumMessages(bot, albumMessageId) {
         order: [["timestamp", "ASC"]],
       });
       for (const dbMsg of dbMessages) {
-        const fullContent = dbMsg.fullContent;
+        const fullContent = reviveBuffers(dbMsg.fullContent);
         // primary method: check messageContextInfo association
         if (
           fullContent?.message?.messageContextInfo?.messageAssociation
@@ -177,7 +177,7 @@ async function getAlbumMessages(bot, albumMessageId) {
         });
 
         for (const dbMsg of dbMessages) {
-          const fullContent = dbMsg.fullContent;
+          const fullContent = reviveBuffers(dbMsg.fullContent);
           if (
             fullContent &&
             fullContent.key?.id !== albumMessageId &&

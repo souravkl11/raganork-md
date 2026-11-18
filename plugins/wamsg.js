@@ -1,6 +1,8 @@
 const { Module } = require("../main");
 const { isAdmin } = require("./utils");
 const { ownerTarget } = require("../core/identity");
+const { getFullMessage, hasPendingWrites, flushPendingWrites } = require("../core/store");
+const { extractViewOnce } = require("./utils/viewonce");
 
 // newer WhatsApp versions quote a view once message as a stub ({ mimetype, viewOnce }),
 // without the key and link the media needs. there is nothing to download from that
@@ -19,8 +21,33 @@ async function reportVVFailure(m, reason) {
   }
 }
 
+// the quote is only a stub, but the message itself was stored when it arrived (the same
+// store anti-delete reads, kept ~48h). pull the real media details from there.
+// storing is batched, so a message that just arrived may still be queued: when it is not
+// found and writes are pending, write them now and look again instead of giving up
+const STORE_WAIT_MS = 6000;
+async function recoverFromStore(id) {
+  if (!id) return null;
+  const deadline = Date.now() + STORE_WAIT_MS;
+  try {
+    while (true) {
+      const full = await getFullMessage(id);
+      if (full?.found) {
+        const vv = extractViewOnce(full.messageData?.message);
+        return vv && hasMediaDetails(vv.message[vv.type]) ? vv : null;
+      }
+      // nothing pending means it was never stored: no reason to wait
+      if (!hasPendingWrites() || Date.now() >= deadline) return null;
+      await flushPendingWrites();
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  } catch (_) {
+    return null;
+  }
+}
+
 const STUB_REASON =
-  "WhatsApp quoted the message without its media details, so there is nothing to download. Replies to view once messages cannot be saved this way any more. Set the browser to android (`.autovv here` offers to do it), and the message is saved as soon as it arrives.";
+  "WhatsApp quoted the message without its media details, and the original was not found in the saved messages (it may be older than 48 hours, or it never arrived with its media). Set the browser to android (`.autovv here` offers to do it), and view once messages are saved as soon as they arrive.";
 Module(
   {
     pattern: "react ?(.*)",
@@ -129,9 +156,14 @@ Module(
     ].find((key) => quoted.hasOwnProperty(key));
 
     const forward = async (node) => {
-      if (!hasMediaDetails(node)) return await reportVVFailure(m, STUB_REASON);
+      let source = m.quoted;
+      if (!hasMediaDetails(node)) {
+        const stored = await recoverFromStore(m.quoted?.key?.id);
+        if (!stored) return await reportVVFailure(m, STUB_REASON);
+        source = { key: m.quoted.key, message: stored.message };
+      }
       try {
-        return await m.forwardMessage(m.jid, m.quoted, {
+        return await m.forwardMessage(m.jid, source, {
           contextInfo: { isForwarded: false },
         });
       } catch (error) {
