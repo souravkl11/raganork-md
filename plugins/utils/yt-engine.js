@@ -7,7 +7,7 @@ const config = require("../../config");
 const { getTempSubdir } = require("../../core/helpers");
 const auth = require("./yt-auth");
 
-const TEMP_DIR = getTempSubdir("yt");
+const tempDir = () => getTempSubdir("yt");
 const BOTGUARD_REQUEST_KEY = "O43z0dpjhgX20SCx4KAo";
 const ANON_CLIENTS = ["WEB", "MWEB", "YTMUSIC"];
 const DEVICE_FIELDS = ["deviceMake", "deviceModel", "osName", "osVersion"];
@@ -469,7 +469,7 @@ async function sabrDownload({ client, credentials, profile }, videoId, kind, qua
     }
   });
 
-  const base = path.join(TEMP_DIR, `${videoId}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`);
+  const base = path.join(tempDir(), `${videoId}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`);
   const audioPath = `${base}_a.${extOf(audioFormat.mimeType)}`;
   const videoPath = videoFormat ? `${base}_v.${extOf(videoFormat.mimeType)}` : null;
   try {
@@ -529,7 +529,9 @@ module.exports = {
   login: auth.login,
   logout: auth.logout,
   isLoggedIn: async () => !!(await auth.getCredentials()),
-  TEMP_DIR,
+  get TEMP_DIR() {
+    return tempDir();
+  },
   _internals: {
     pickVideo,
     pickAudio,

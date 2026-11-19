@@ -16,7 +16,7 @@ const { getTempSubdir, uniqueTempPath, runFfmpeg } = require("../../core/helpers
 const { isPublicHttpUrl } = require("./guards");
 const engine = require("./yt-engine");
 
-const TEMP_DIR = getTempSubdir("yt");
+const tempDir = () => getTempSubdir("yt");
 const VIDEO_SIZE_LIMIT = 150 * 1024 * 1024;
 const DEFAULT_MAX_DURATION_MIN = 30;
 const DEFAULT_MAX_SIZE_MB = 150;
@@ -172,7 +172,7 @@ async function downloadVideo(url, quality = "360p") {
   ]);
 
   const dl = await engine.download(info.videoId, "video", target);
-  const output = path.join(TEMP_DIR, `video_${stamp()}.mp4`);
+  const output = path.join(tempDir(), `video_${stamp()}.mp4`);
   try {
     await muxTracks(dl, output);
   } catch (err) {
@@ -197,7 +197,7 @@ async function convertM4aToMp3(m4aPath, meta = null) {
   }
 
   const timestamp = stamp();
-  const taggedM4a = path.join(TEMP_DIR, `audio_${timestamp}.m4a`);
+  const taggedM4a = path.join(tempDir(), `audio_${timestamp}.m4a`);
 
   return new Promise((resolve, reject) => {
     let ffmpegProcess = ffmpeg(m4aPath).outputOptions(["-c copy", "-map 0:a"]);
@@ -220,11 +220,11 @@ async function convertM4aToMp3(m4aPath, meta = null) {
             const response = await fetch(meta.thumbnail);
             if (response.ok) {
               const coverBuffer = await response.arrayBuffer();
-              const coverPath = path.join(TEMP_DIR, `cover_${timestamp}.jpg`);
+              const coverPath = path.join(tempDir(), `cover_${timestamp}.jpg`);
               fs.writeFileSync(coverPath, Buffer.from(coverBuffer));
 
               const finalM4a = path.join(
-                TEMP_DIR,
+                tempDir(),
                 `audio_final_${timestamp}.m4a`,
               );
 
