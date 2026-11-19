@@ -12,7 +12,6 @@ const { attachSocketFeatures } = require("./features");
 const { handleAntiDelete } = require("./features/antidelete");
 
 class WhatsAppBot {
-  // follows MAX_RECONNECT_ATTEMPTS live unless a value is assigned to this session
   get maxReconnectAttempts() {
     return this._maxReconnectAttempts ?? config.MAX_RECONNECT_ATTEMPTS;
   }
@@ -23,9 +22,7 @@ class WhatsAppBot {
 
   constructor(sessionId) {
     this.sessionId = sessionId;
-    // the phone number once auth is loaded; until then the session id
     this.accountId = sessionId;
-    // false while accountId is only the session id (no login yet)
     this.accountResolved = false;
     this.sock = null;
     this.authState = null;
@@ -35,10 +32,9 @@ class WhatsAppBot {
     this.reconnectTimer = null;
     this.stableTimer = null;
     this.stopped = false;
-    // read by the /status endpoint
     this.lastOpenAt = null;
     this.loggedOut = false;
-    this.stopReason = null; // "logged_out" | "replaced" | null
+    this.stopReason = null;
     this.lastSlowRetryLogAt = 0;
 
     const caches = createSessionCaches();
@@ -47,7 +43,6 @@ class WhatsAppBot {
     this.messageCache = caches.messageCache;
   }
 
-  // drop every listener and close the old socket so it can be garbage collected
   _teardownSocket() {
     const sock = this.sock;
     if (!sock) return;
@@ -101,18 +96,14 @@ class WhatsAppBot {
       });
     }, delay);
   }
-  // a fresh start or a reconnect: auth, then socket
   async initialize() {
     await this.loadAuth();
     await this.connect();
   }
 
-  // reads the session from the database (or the session backend) and works out the
-  // account id. no socket yet: the boot sequence runs the data migrations between
-  // loadAuth() and connect(), once every account id is known
+  // no socket yet: data migrations run between loadAuth() and connect()
   async loadAuth() {
     try {
-      // Wait for baileys to be loaded first
       await baileysPromise;
 
       logger.info(
@@ -124,7 +115,6 @@ class WhatsAppBot {
       }
       this.authState = new CustomAuthState(this.sessionId);
       let sessionLoaded = false;
-      // Only try DB/backup, never file
       try {
         await this.authState.loadSession();
         sessionLoaded = Object.keys(this.authState.creds).length > 0;
@@ -157,7 +147,6 @@ class WhatsAppBot {
     }
   }
 
-  // opens the socket with the auth that loadAuth() read
   async connect() {
     try {
       await baileysPromise;
@@ -182,7 +171,6 @@ class WhatsAppBot {
     }
   }
 
-  // what every socket event and timer of this session runs inside of
   _sessionContext() {
     this.accountId = this.authState?.getAccountId?.() || this.accountId;
     return { sessionId: this.sessionId, accountId: this.accountId, bot: this };
@@ -192,7 +180,6 @@ class WhatsAppBot {
     return context.run(this._sessionContext(), fn);
   }
 
-  // like sock.ev.on, but the listener runs in this session's context
   _on(event, listener) {
     this.sock.ev.on(event, (...args) => this.inSession(() => listener(...args)));
   }
@@ -207,7 +194,6 @@ class WhatsAppBot {
     return handleAntiDelete(this, update);
   }
 
-  // Utility methods with better error handling
   async getGroupMetadata(jid) {
     try {
       return await this.sock.groupMetadata(jid);
@@ -285,7 +271,6 @@ class WhatsAppBot {
       logger.info({ session: this.sessionId, to: jid }, `Sending message`);
       const result = await this.sock.sendMessage(jid, message);
 
-      // Cache the sent message
       if (result && result.key && result.key.id && result.key.remoteJid) {
         const cacheKey = `${result.key.remoteJid}_${result.key.id}`;
         this.messageCache.set(cacheKey, {
@@ -359,7 +344,6 @@ class WhatsAppBot {
       );
       throw error;
     } finally {
-      // Ensure these are always reset
       this.sock = null;
       this.isConnected = false;
     }

@@ -23,6 +23,7 @@
     "audio-decode": "^2.2.3",
     "axios": "^1.9.0",
     "baileys": "7.0.0-rc14",
+    "bgutils-js": "^4.0.3",
     "browser-id3-writer": "^6.2.0",
     "cheerio": "^1.0.0",
     "dotenv": "^16.5.0",
@@ -30,8 +31,10 @@
     "file-type": "^21.0.0",
     "fluent-ffmpeg": "^2.1.3",
     "google-tts-api": "^2.0.2",
+    "googlevideo": "^5.0.1",
     "image-to-pdf": "^3.0.2",
     "jimp": "0.16.0",
+    "jsdom": "^31.0.1",
     "node-cache": "^5.1.2",
     "node-cron": "^4.1.1",
     "node-webpmux": "^3.2.1",
@@ -41,6 +44,10 @@
     "sequelize": "^6.37.7",
     "simple-git": "^3.27.0",
     "sqlite3": "^5.1.7",
-    "youtube-sr": "^4.3.11"
+    "youtube-sr": "^4.3.12",
+    "youtubei.js": "^18.3.0"
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   }
 }

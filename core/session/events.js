@@ -6,8 +6,6 @@ const { ANTI_DELETE_MODES } = require("./features/antidelete");
 const { readEncryptedEdit } = require("./features/message-edit");
 const { bridgeStatusStanzas } = require("./features/status-stanza");
 
-// the socket listeners besides connection.update and the cache ones. every one goes through
-// bot._on, so it runs in the session context
 function wireEvents(bot) {
   bridgeStatusStanzas(bot.sock);
   bot._on("creds.update", async (newCreds) => {
@@ -50,15 +48,13 @@ function wireEvents(bot) {
   });
 
   bot._on("messages.upsert", async (upsert) => {
-    // Cache messages with better validation
     for (const message of upsert.messages) {
       if (message.key && message.key.id && message.key.remoteJid) {
         const cacheKey = `${message.key.remoteJid}_${message.key.id}`;
         bot.messageCache.set(cacheKey, message);
       }
     }
-    // DEBUG: every status the socket hands over, before anything can drop it. a status
-    // that could not be decrypted has no content and never reaches the [msg] log
+    // DEBUG: log statuses before anything drops them; undecryptable ones never reach [msg]
     if (config.DEBUG === true || config.DEBUG === "true") {
       for (const m of upsert.messages) {
         if (m.key?.remoteJid !== "status@broadcast") continue;
@@ -68,7 +64,7 @@ function wireEvents(bot) {
       }
     }
     if (upsert.type === "notify") {
-      // the handler only looks at messages[0], so give it one message at a time
+      // the handler only reads messages[0]
       for (const m of upsert.messages) {
         try {
           // an encrypted edit is handled as the new message it carries, never as the empty envelope
@@ -96,11 +92,10 @@ function wireEvents(bot) {
   bot._on("messages.update", async (updates) => {
     for (const update of updates) {
       if (!update.key || !update.key.remoteJid || !update.key.id) {
-        continue; // Skip invalid updates
+        continue;
       }
 
       try {
-        // Handle message edits
         if (update.update?.message?.editedMessage) {
           const newMessageObject = {
             key: update.key,
@@ -113,7 +108,6 @@ function wireEvents(bot) {
           continue;
         }
 
-        // Handle anti-delete functionality
         if (
           ANTI_DELETE_MODES.includes(config.ANTI_DELETE) &&
           !update.update.message &&

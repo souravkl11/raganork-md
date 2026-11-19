@@ -7,7 +7,7 @@ const als = new AsyncLocalStorage();
 module.exports = {
   // session = { sessionId, accountId, bot }
   run: (session, fn) => als.run(session, fn),
-  // flush timers, cleanup jobs, migrations: no session, no scoping
+  // flush timers, cleanup jobs: no session, no scoping
   runUnscoped: (fn) => als.run({ unscoped: true }, fn),
   // run fn with no session, whatever context the caller is in (queue workers use this)
   exit: (fn) => als.exit(fn),

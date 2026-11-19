@@ -1,9 +1,5 @@
-// the message pipeline: normalize a raw upsert, run it through the middleware chain,
-// then hand it to the dispatcher. a middleware is `async (env, next)`; not calling
-// next() ends the message. errors thrown by a middleware reject handle(), as they
-// rejected the old handler.
+// normalize -> middleware chain (`async (env, next)`; skipping next() drops the message) -> dispatcher
 
-// koa-style composition of `async (env, next)` functions; `last` runs after the final one
 function compose(stack) {
   return (env, last) => {
     let called = -1;
@@ -25,8 +21,6 @@ function compose(stack) {
 const { normalize } = require("./normalize");
 const { dispatch } = require("./dispatcher");
 
-// the chain, in the order a message goes through it. to add a stage, write
-// `async (env, next)` in ./middleware and put it here
 const middleware = [
   require("./middleware/receipts"),
   require("./middleware/blocklist"),
@@ -41,8 +35,6 @@ const middleware = [
 ];
 const chain = compose(middleware);
 
-// one messages.upsert batch: resolves when the middleware are done and the commands are
-// started (not finished: see dispatcher)
 async function handle(raw, sock) {
   const env = normalize(raw, sock);
   if (!env) return;

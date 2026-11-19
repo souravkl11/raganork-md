@@ -5,7 +5,6 @@ const googleTTS = require("google-tts-api");
 const priv = require("../../core/private");
 const apiCall = priv.apiCall;
 
-// Parse uptime to human readable format
 function parseUptime(seconds) {
   function pad(s) {
     return (s < 10 ? "0" : "") + s;
@@ -18,7 +17,6 @@ function parseUptime(seconds) {
   return `${pad(hours)} hours ${pad(minutes)} minutes ${pad(secs)} seconds`;
 }
 
-// Check if value is numeric
 function isNumeric(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
@@ -36,19 +34,16 @@ async function isAdmin(message, user = null) {
   return admins.filter((s) => s.includes(me)).length > 0;
 }
 
-// Create mention from JID
 function mentionjid(jid) {
   return "@" + jid.split("@")[0].split(":")[0] + " ";
 }
 
-// Fetch JSON from URL
 async function getJson(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return await response.json();
 }
 
-// Convert bytes to human readable size
 function bytesToSize(bytes) {
   const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
   if (bytes == 0) return "0 Byte";
@@ -56,11 +51,9 @@ function bytesToSize(bytes) {
   return Math.round(bytes / Math.pow(1024, i), 2) + " " + sizes[i];
 }
 
-// Check if participant is fake
 function isFake(participant, allowed) {
   return !allowed.some((prefix) => participant.startsWith(prefix));
 }
-// Process WhatsApp number lookup
 async function processOnwa(message, match) {
   try {
     const readMore = String.fromCharCode(8206).repeat(4001);
@@ -164,7 +157,6 @@ async function processOnwa(message, match) {
   }
 }
 
-// thin wrappers so existing plugin imports keep working
 const findMusic = (file) => priv.identifyMusic(file);
 const downloadGram = (url) => priv.instagram(url);
 const pinterestDl = (url) => priv.pinterestDl(url);
@@ -178,7 +170,6 @@ const story = (user) => priv.instagramStory(user);
 
 const { getBuffer } = require("../../core/net");
 
-// Google TTS
 async function gtts(text, lang) {
   const results = googleTTS
     .getAllAudioUrls(text, {
@@ -191,7 +182,6 @@ async function gtts(text, lang) {
 
   if (results.length === 1) return await getBuffer(results[0]);
 
-  // unique dir per call so parallel requests don't clobber each other
   const jobDir = getTempSubdir(
     `tts/${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
   );

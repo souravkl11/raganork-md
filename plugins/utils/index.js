@@ -1,10 +1,8 @@
-// Import all modules
 const dbOperations = require("./db/functions");
 const mediaProcessing = require("./mediaProcessors");
 const utils = require("./misc");
 const language = require("./manglish");
 
-// Grouped database operations
 const {
   getWarn,
   setWarn,
@@ -13,6 +11,7 @@ const {
   getWarnCount,
   getAllWarns,
   antilinkConfig,
+  antiStatusMention,
   antiword,
   antifake,
   antipromote,
@@ -25,7 +24,6 @@ const {
   filter,
 } = dbOperations;
 
-// Media processing functions
 const {
   addExif,
   bass,
@@ -40,7 +38,6 @@ const {
   trim,
 } = mediaProcessing;
 
-// Utility functions
 const {
   parseUptime,
   isNumeric,
@@ -63,7 +60,6 @@ const {
   pinterestSearch,
 } = utils;
 
-// Language functions
 const { malayalamToManglish, manglishToMalayalam } = language;
 
 const aiTTS = require("./ai-tts");
@@ -79,7 +75,6 @@ const fancy = require("./fancy");
 const guards = require("./guards");
 
 module.exports = {
-  // Database Operations
   getWarn,
   setWarn,
   fancy,
@@ -88,6 +83,7 @@ module.exports = {
   getWarnCount,
   getAllWarns,
   antilinkConfig,
+  antiStatusMention,
   antiword,
   antifake,
   antipromote,
@@ -99,7 +95,6 @@ module.exports = {
   goodbye,
   filter,
 
-  // Media Processing
   addExif,
   bass,
   circle,
@@ -112,7 +107,6 @@ module.exports = {
   addID3,
   trim,
 
-  // Utilities
   parseUptime,
   isNumeric,
   isAdmin,
@@ -133,21 +127,16 @@ module.exports = {
   getBuffer,
   pinterestSearch,
 
-  // Language
   malayalamToManglish,
   manglishToMalayalam,
 
-  // GIS
   gis,
 
-  // File Upload
   uploadToImgbb,
   uploadToCatbox,
 
-  // Link Detection
   linkDetector,
   lyrics,
 
-  // Guards and helpers
   ...guards,
 };

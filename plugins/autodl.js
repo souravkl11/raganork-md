@@ -13,6 +13,7 @@ const {
   videoIdOf,
   assertWithinLimits,
   qualityMenuText,
+  failureText,
 } = require("./utils/yt");
 
 const URL_PATTERNS = {
@@ -94,7 +95,7 @@ async function downloadYoutube(message, text, link) {
     await message.sendReply(menu);
   } catch (err) {
     if (config.DEBUG) console.error("[AutoDL YT]", err?.message || err);
-    if (err.code === "YT_LIMIT") await message.sendReply(`_${err.message}_`);
+    if (err.code === "YT_LIMIT" || err.code === "YT_LOGIN_REQUIRED") await message.sendReply(failureText(err));
     else await message.react("❌");
   }
 }

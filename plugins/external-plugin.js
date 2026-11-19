@@ -9,7 +9,7 @@ const { PluginDB, installPlugin } = require("./sql/plugin");
 let { getString } = require("./utils/lang");
 let Lang = getString("external_plugin");
 
-// the name becomes a file name, so nothing that could leave plugins/ gets through
+// the name becomes a file name, so block anything that could leave plugins/
 const NAME_RE = /^[a-z0-9_-]+$/i;
 const INVALID_NAME =
   "_Invalid plugin name. Use only letters, numbers, - and _ in the name._";
@@ -34,8 +34,6 @@ const jsNames = (files) =>
       .map((f) => f.slice(0, -3).toLowerCase())
   );
 
-// files that ship with the bot, built once when this plugin loads. git knows exactly;
-// without it the files on disk are used, minus the ones PluginDB records as installed
 function readShippedFiles() {
   try {
     const out = execFileSync("git", ["ls-files", "--", "plugins/*.js"], {
@@ -49,7 +47,6 @@ function readShippedFiles() {
     );
     if (names.size) return { names, tracked: true };
   } catch (_) {
-    // no git here: fall back to the directory listing
   }
   return { names: jsNames(fs.readdirSync(__dirname)), tracked: false };
 }
@@ -67,9 +64,7 @@ async function isShippedFile(name) {
 const protectedReply = (name) =>
   `_'${name}' is a built-in plugin file and cannot be installed over, updated or removed._`;
 
-// runs the plugin file now, so its commands work without a restart. a file that
-// fails to load leaves nothing behind: the previous version (if there was one) is
-// put back and loaded again. returns the error, or null on success
+// loads the plugin now; on failure the previous version is restored
 function loadPlugin(file, previous) {
   unload(file);
   try {
@@ -91,19 +86,15 @@ function loadPlugin(file, previous) {
   }
 }
 
-// a plugin can name itself with `name: "my-plugin",` on its own line in a Module() call.
-// the name is the file name and what .plugin, .remove and .pupdate use
 const EXPLICIT_NAME_RE = /^[ \t]*name:[ \t]*(["'])([^"'\r\n]*)\1[ \t]*,/m;
 const explicitName = (source) => EXPLICIT_NAME_RE.exec(source)?.[2].trim() || null;
 
-// first word of the first `pattern: "..."` line, when it is a plain word
 function scrapedName(source) {
   const first = /pattern: ["'](.*)["'],/.exec(source)?.[1].split(" ")[0];
   return first && NAME_RE.test(first) ? first : null;
 }
 
-// last resort for patterns that are regexes or built at run time: load the plugin once
-// under a throwaway file name and take the first word of the first command it registers
+// for regex/runtime patterns: load under a throwaway name and read what it registers
 function nameFromLoad(source) {
   const probe = path.join(__dirname, `zz-probe-${process.pid}-${Date.now()}.js`);
   fs.writeFileSync(probe, source);
@@ -119,8 +110,6 @@ function nameFromLoad(source) {
   }
 }
 
-// name for a downloaded plugin: its own name:, else the first plain word of its pattern
-// (what installs have always used), else what it registers when loaded
 function pluginNameOf(source) {
   const own = explicitName(source);
   if (own !== null) return { name: own };
@@ -269,7 +258,6 @@ Module(
       return await message.send(Lang.NO_PLUGIN);
     } else {
       await plugin[0].destroy();
-      // old records may hold odd names; delete only a file directly inside plugins/
       const file = fileOf(match[1]);
       if (path.dirname(file) === __dirname && !/[\\/]/.test(match[1])) {
         unload(file);

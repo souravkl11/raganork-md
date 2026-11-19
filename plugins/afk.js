@@ -5,8 +5,7 @@ const { setVar } = require("./manage");
 
 const NOTICE_COOLDOWN_MS = 5 * 60 * 1000;
 
-// one cache per account. a session's AFK_DATA is its own row; until it saves one, it
-// reads the shared row the single-number versions wrote, so existing entries survive
+// per account; falls back to the shared pre-multi-session row until the session saves its own
 const afkCaches = new Map();
 
 function loadAFKCache() {
@@ -95,8 +94,7 @@ async function removeAFK(userJid) {
   return afkData;
 }
 
-// counters and last-seen change on every message; batch those writes
-// each account has its own timer, created inside that account's context
+// batch counter/last-seen writes, one timer per account
 const afkSaveTimers = new Map();
 function scheduleAFKSave() {
   const key = accountKey();

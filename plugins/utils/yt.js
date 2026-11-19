@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { Readable } = require("stream");
 
 let ffmpeg;
 try {
@@ -14,8 +13,8 @@ try {
 
 const config = require("../../config");
 const { getTempSubdir, uniqueTempPath, runFfmpeg } = require("../../core/helpers");
-const priv = require("../../core/private");
 const { isPublicHttpUrl } = require("./guards");
+const engine = require("./yt-engine");
 
 const TEMP_DIR = getTempSubdir("yt");
 const VIDEO_SIZE_LIMIT = 150 * 1024 * 1024;
@@ -52,7 +51,6 @@ function parseSize(size) {
   return value;
 }
 
-// first YouTube link in the text as a watch URL; the host is parsed, not searched for
 function youtubeUrlFrom(text) {
   const raw = String(text ?? "").match(/\bhttps?:\/\/\S+/i)?.[0];
   if (!raw) return null;
@@ -73,10 +71,17 @@ function youtubeUrlFrom(text) {
 }
 
 function videoIdOf(url) {
-  return url.match(/[?&]v=([\w-]{11})/)?.[1] ?? null;
+  return String(url ?? "").match(/[?&]v=([\w-]{11})/)?.[1] ?? null;
 }
 
-// seconds, or null when the API gave no usable duration
+function idFrom(input) {
+  const text = String(input ?? "").trim();
+  if (/^[\w-]{11}$/.test(text)) return text;
+  const id = videoIdOf(youtubeUrlFrom(text) || text);
+  if (!id) throw new Error("Not a YouTube video link");
+  return id;
+}
+
 function durationSeconds(info) {
   for (const value of [info?.lengthSeconds, info?.durationSeconds, info?.duration]) {
     if (typeof value === "number" && value > 0) return value;
@@ -93,7 +98,6 @@ function limitError(message) {
   return error;
 }
 
-// throws YT_LIMIT above MAX_YT_DURATION (minutes) or MAX_YT_SIZE (MB); unreported values pass
 function assertWithinLimits(info, formats = []) {
   const maxMinutes = parseInt(config.MAX_YT_DURATION, 10) > 0 ? parseInt(config.MAX_YT_DURATION, 10) : DEFAULT_MAX_DURATION_MIN;
   const maxMb = parseInt(config.MAX_YT_SIZE, 10) > 0 ? parseInt(config.MAX_YT_SIZE, 10) : DEFAULT_MAX_SIZE_MB;
@@ -107,424 +111,86 @@ function assertWithinLimits(info, formats = []) {
   }
 }
 
-/**
- * Checks if a video is subject to geo/IP restriction (e.g. licensed music videos).
- * @param {Object} info - Video info object
- * @returns {boolean}
- */
 function isRestrictedVideo(info) {
-  if (!info) return false;
-  if (info.isRestricted) return true;
-
-  const allFormats = [
-    ...(info.formats || []),
-    ...(info.audio || []),
-    ...(info.video || []),
-  ];
-
-  return allFormats.some(
-    (f) =>
-      f.requiresExternalDownload ||
-      (f.url && (f.url.includes("gcr=") || f.url.includes("ip=187.15.135.201")))
-  );
+  return Boolean(info?.isRestricted);
 }
 
-/**
- * Fetches video details and formats from the API server.
- * @param {string} url - YouTube URL or Video ID
- * @returns {Promise<Object>}
- */
+async function downloadFromAPI(url, type, quality) {
+  return (type === "audio" ? await downloadAudio(url) : await downloadVideo(url, quality)).path;
+}
+
+function downloadFromExternalAPI(url, quality = "360p") {
+  return downloadFromAPI(url, ["audio", "mp3", "m4a"].includes(quality) ? "audio" : "video", quality);
+}
+
+const heightOf = (quality) => parseInt(quality.match(/(\d+)p/)?.[1] || 0, 10);
+
 async function getVideoInfo(url) {
-  const info = await priv.ytInfo(url);
+  const videoId = idFrom(url);
+  const info = await engine.getInfo(videoId);
+  const { pickVideo, pickAudio, labelOf } = engine._internals;
 
-  const isRestricted = Boolean(info.isRestricted || isRestrictedVideo(info));
-  const formats = [];
-
-  if (info.audio && Array.isArray(info.audio)) {
-    info.audio.forEach((audio) => {
-      formats.push({
-        type: "audio",
-        quality: audio.quality,
-        url: audio.url,
-        hasAudio: audio.hasAudio,
-        size: audio.size,
-        requiresExternalDownload: isRestricted || audio.requiresExternalDownload || false,
-      });
-    });
-  }
-
-  if (info.video && Array.isArray(info.video)) {
-    info.video.forEach((video) => {
-      formats.push({
-        type: "video",
-        quality: video.quality,
-        url: video.url,
-        hasAudio: video.hasAudio,
-        size: video.size,
-        requiresExternalDownload: isRestricted || !video.hasAudio || video.requiresExternalDownload || false,
-      });
-    });
-  }
-
-  if (
-    (!formats || formats.length === 0) &&
-    info.formats &&
-    Array.isArray(info.formats)
-  ) {
-    return { ...info, isRestricted };
-  }
+  const labels = [...new Set(info.formats.filter((f) => f.hasVideo).map(labelOf).filter(Boolean))];
+  const formats = labels
+    .sort((a, b) => heightOf(b) - heightOf(a))
+    .map((quality) => ({ type: "video", quality, size: pickVideo(info.formats, quality)?.size || 0, hasAudio: false }));
+  const audio = pickAudio(info.formats);
+  if (audio) formats.push({ type: "audio", quality: audio.audioQuality, size: audio.size, hasAudio: true });
 
   return {
-    ...info,
-    isRestricted,
+    videoId,
+    title: info.title,
+    lengthSeconds: info.duration || null,
+    views: info.views,
+    isLive: info.isLive,
+    thumbnail: info.thumbnail,
+    channel: { name: info.author },
     formats,
   };
 }
 
-/**
- * Downloads a file in parallel HTTP Range chunks.
- * Fails fast if the server returns HTTP errors (e.g. 403 Forbidden).
- * @param {string} url 
- * @param {string} filepath 
- * @param {number} chunks 
- */
-async function downloadFileInChunks(url, filepath, chunks = 8) {
-  try {
-    const headRes = await fetch(url, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!headRes.ok) {
-      throw new Error(`HEAD request failed with HTTP ${headRes.status}`);
-    }
-
-    const contentLength = parseInt(headRes.headers.get("content-length"));
-
-    if (!contentLength || contentLength < 1024 * 1024) {
-      const res = await fetch(url, {
-        signal: AbortSignal.timeout(30000),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const writer = fs.createWriteStream(filepath);
-      const nodeStream = Readable.fromWeb(res.body);
-      await new Promise((resolve, reject) => {
-        nodeStream.pipe(writer);
-        nodeStream.on("error", reject);
-        writer.on("finish", resolve);
-        writer.on("error", reject);
-      });
-      return;
-    }
-
-    const chunkSize = Math.ceil(contentLength / chunks);
-    const chunkPromises = [];
-
-    for (let i = 0; i < chunks; i++) {
-      const start = i * chunkSize;
-      const end = Math.min(start + chunkSize - 1, contentLength - 1);
-      const chunkPath = `${filepath}.part${i}`;
-
-      const promise = (async () => {
-        const res = await fetch(url, {
-          headers: {
-            Range: `bytes=${start}-${end}`,
-          },
-          signal: AbortSignal.timeout(30000),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const writer = fs.createWriteStream(chunkPath);
-        const nodeStream = Readable.fromWeb(res.body);
-        return new Promise((resolve, reject) => {
-          nodeStream.pipe(writer);
-          nodeStream.on("error", reject);
-          writer.on("finish", resolve);
-          writer.on("error", reject);
-        });
-      })();
-
-      chunkPromises.push(promise);
-    }
-
-    await Promise.all(chunkPromises);
-
-    const writeStream = fs.createWriteStream(filepath);
-    for (let i = 0; i < chunks; i++) {
-      const chunkPath = `${filepath}.part${i}`;
-      const readStream = fs.createReadStream(chunkPath);
-      await new Promise((resolve, reject) => {
-        readStream.pipe(writeStream, { end: false });
-        readStream.on("end", () => {
-          try {
-            fs.unlinkSync(chunkPath);
-          } catch (_) {}
-          resolve();
-        });
-        readStream.on("error", reject);
-      });
-    }
-    writeStream.end();
-    await new Promise((resolve, reject) => {
-      writeStream.on("finish", resolve);
-      writeStream.on("error", reject);
-    });
-  } catch (error) {
-    for (let i = 0; i < chunks; i++) {
-      const chunkPath = `${filepath}.part${i}`;
-      if (fs.existsSync(chunkPath)) {
-        try {
-          fs.unlinkSync(chunkPath);
-        } catch (_) {}
-      }
-    }
-    throw error;
-  }
+function muxTracks(dl, output) {
+  const command = ffmpeg()
+    .input(dl.videoPath)
+    .input(dl.audioPath)
+    .outputOptions(["-map", "0:v:0", "-map", "1:a:0", "-movflags", "+faststart"]);
+  if (dl.videoMime?.includes("avc1")) command.outputOptions(["-c:v", "copy"]);
+  else command.outputOptions(["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p"]);
+  if (dl.audioMime?.includes("mp4a")) command.outputOptions(["-c:a", "copy"]);
+  else command.outputOptions(["-c:a", "aac", "-b:a", "128k"]);
+  return runFfmpeg(command, output);
 }
 
-/**
- * Downloads a video or audio stream directly through the API server's streaming proxy.
- * @param {string} youtubeUrl 
- * @param {string} type - 'video' | 'audio'
- * @param {string} quality - e.g. '360p', '720p'
- * @returns {Promise<string>} Path to the downloaded file
- */
-async function downloadFromAPI(youtubeUrl, type, quality) {
-  const res = await priv.ytStream(youtubeUrl, type, quality);
-
-  const ext = type === "audio" ? "m4a" : "mp4";
-  const filepath = path.join(TEMP_DIR, `${stamp()}.${ext}`);
-  const writer = fs.createWriteStream(filepath);
-  const nodeStream = Readable.fromWeb(res.body);
-
-  return new Promise((resolve, reject) => {
-    nodeStream.pipe(writer);
-    writer.on("finish", () => resolve(filepath));
-    writer.on("error", reject);
-    nodeStream.on("error", reject);
-  });
-}
-
-/**
- * Requests an audio-merged or geo-unblocked direct download from the external downloader endpoint.
- * Bypasses 403 Forbidden on geo/IP-restricted videos and provides ready-to-use MP4/M4A files.
- * 
- * @param {string} youtubeUrl 
- * @param {string} quality - e.g. '360p', '720p', '1080p', 'audio'
- * @returns {Promise<string>} Path to the downloaded file
- */
-async function downloadFromExternalAPI(youtubeUrl, quality = "360p") {
-  const isAudio = quality === "audio" || quality === "mp3" || quality === "m4a";
-  const targetQuality = isAudio ? "audio" : quality;
-
-  const downloadUrl = await priv.ytExternalDownloadUrl(youtubeUrl, targetQuality);
-
-  const ext = isAudio ? "m4a" : "mp4";
-  const filepath = path.join(TEMP_DIR, `${stamp()}_ext.${ext}`);
-
-  await downloadFileInChunks(downloadUrl, filepath, 5);
-  return filepath;
-}
-
-/**
- * Downloads a YouTube video at the requested quality.
- * Seamlessly differentiates between:
- *  - Geo/IP-restricted videos (routes through external cloud renderer)
- *  - Formats with integrated audio (e.g. 360p, directly streams without redundant ffmpeg muxing)
- *  - High-res formats without audio (downloads tracks and muxes locally, with cloud fallback)
- * 
- * @param {string} url - YouTube URL or Video ID
- * @param {string} quality - Target resolution (default '360p')
- * @returns {Promise<{ path: string, title: string }>}
- */
 async function downloadVideo(url, quality = "360p") {
+  if (!ffmpeg) throw new Error("ffmpeg is required to download videos");
   const info = await getVideoInfo(url);
-  const restricted = isRestrictedVideo(info);
-  const normQuality = quality.toLowerCase().trim();
-  const targetQ = normQuality.endsWith("p") ? normQuality : `${normQuality}p`;
-  const videos = info.formats?.filter((f) => f.type === "video") ?? [];
+  const target = /p$/i.test(quality) ? quality.toLowerCase() : `${quality}p`;
+  const videos = info.formats.filter((f) => f.type === "video");
   assertWithinLimits(info, [
-    videos.find((f) => f.quality?.toLowerCase() === targetQ) || videos[0],
-    info.formats?.find((f) => f.type === "audio"),
+    videos.find((f) => f.quality === target) || videos.at(-1),
+    info.formats.find((f) => f.type === "audio"),
   ]);
 
-  // If the video is geo-locked or IP-bound (e.g. licensed music videos),
-  // Google CDN returns 403 on direct access. Route directly to external cloud downloader!
-  if (restricted) {
-    const externalFile = await downloadFromExternalAPI(url, quality);
-    return { path: externalFile, title: info.title };
-  }
-
-  const videoFormat =
-    info.formats.find((f) => f.type === "video" && f.quality.toLowerCase() === targetQ) ||
-    info.formats.find((f) => f.type === "video");
-  const audioFormat = info.formats.find((f) => f.type === "audio");
-
-  if (!videoFormat) {
-    throw new Error(`Requested video format ${quality} not available`);
-  }
-
-  // If the format already includes audio (e.g. standard 360p), download directly!
-  if (videoFormat.hasAudio) {
-    const timestamp = stamp();
-    const outputPath = path.join(TEMP_DIR, `output_${timestamp}.mp4`);
-    try {
-      await downloadFileInChunks(videoFormat.url, outputPath, 5);
-      return { path: outputPath, title: info.title };
-    } catch (_) {
-      try {
-        const tempVideo = await downloadFromAPI(url, "video", quality);
-        return { path: tempVideo, title: info.title };
-      } catch (__) {
-        const extVideo = await downloadFromExternalAPI(url, quality);
-        return { path: extVideo, title: info.title };
-      }
-    }
-  }
-
-  // Format lacks audio (e.g. 720p, 1080p).
-  // If ffmpeg is not available, delegate directly to external cloud merger:
-  if (!ffmpeg) {
-    const extVideo = await downloadFromExternalAPI(url, quality);
-    return { path: extVideo, title: info.title };
-  }
-
-  // Download video and audio tracks, then mux with ffmpeg:
-  const timestamp = stamp();
-  const videoPath = path.join(TEMP_DIR, `video_${timestamp}.mp4`);
-  const audioPath = path.join(TEMP_DIR, `audio_${timestamp}.m4a`);
-  const outputPath = path.join(TEMP_DIR, `output_${timestamp}.mp4`);
-
+  const dl = await engine.download(info.videoId, "video", target);
+  const output = path.join(TEMP_DIR, `video_${stamp()}.mp4`);
   try {
-    // 1. Download Video Track
-    try {
-      await downloadFileInChunks(videoFormat.url, videoPath, 5);
-    } catch (_) {
-      try {
-        const tempVideo = await downloadFromAPI(url, "video", quality);
-        fs.renameSync(tempVideo, videoPath);
-      } catch (apiError) {
-        // Fallback directly to external cloud merger
-        const extVideo = await downloadFromExternalAPI(url, quality);
-        return { path: extVideo, title: info.title };
-      }
-    }
-
-    if (!audioFormat) {
-      return { path: videoPath, title: info.title };
-    }
-
-    // 2. Download Audio Track
-    try {
-      await downloadFileInChunks(audioFormat.url, audioPath, 8);
-    } catch (_) {
-      try {
-        const tempAudio = await downloadFromAPI(url, "audio");
-        fs.renameSync(tempAudio, audioPath);
-      } catch (apiError) {
-        if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-        const extVideo = await downloadFromExternalAPI(url, quality);
-        return { path: extVideo, title: info.title };
-      }
-    }
-
-    // 3. Mux Video + Audio
-    return await new Promise((resolve, reject) => {
-      let ffmpegProcess = ffmpeg()
-        .input(videoPath)
-        .input(audioPath)
-        .outputOptions([
-          "-c copy",
-          "-map 0:v:0",
-          "-map 1:a:0",
-          "-movflags",
-          "+faststart",
-        ])
-        .output(outputPath)
-        .on("end", () => {
-          ffmpegProcess = null;
-          if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-          if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
-          resolve({ path: outputPath, title: info.title });
-        })
-        .on("error", async (err) => {
-          ffmpegProcess = null;
-          if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-          if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
-          if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-
-          // If local ffmpeg fails, fallback to cloud merger
-          try {
-            const extVideo = await downloadFromExternalAPI(url, quality);
-            resolve({ path: extVideo, title: info.title });
-          } catch (extErr) {
-            reject(err);
-          }
-        });
-
-      ffmpegProcess.run();
-    });
+    await muxTracks(dl, output);
   } catch (err) {
-    try {
-      const extVideo = await downloadFromExternalAPI(url, quality);
-      return { path: extVideo, title: info.title };
-    } catch (_) {
-      throw err;
-    }
+    await fs.promises.unlink(output).catch(() => {});
+    throw err;
+  } finally {
+    await Promise.all([dl.videoPath, dl.audioPath].map((f) => fs.promises.unlink(f).catch(() => {})));
   }
+  return { path: output, title: info.title, quality: dl.quality || target };
 }
 
-/**
- * Downloads audio track for a YouTube video.
- * Routes through external downloader for geo/IP-restricted music videos.
- * 
- * @param {string} url 
- * @returns {Promise<{ path: string, title: string, info: Object }>}
- */
 async function downloadAudio(url) {
   const info = await getVideoInfo(url);
-  const restricted = isRestrictedVideo(info);
-  assertWithinLimits(info, [info.formats?.find((f) => f.type === "audio")]);
-
-  if (restricted) {
-    const audioPath = await downloadFromExternalAPI(url, "audio");
-    return { path: audioPath, title: info.title, info };
-  }
-
-  const audioFormat = info.formats.find((f) => f.type === "audio");
-  if (!audioFormat) {
-    throw new Error("Audio format not available");
-  }
-
-  const timestamp = stamp();
-  const audioPath = path.join(TEMP_DIR, `audio_${timestamp}.m4a`);
-
-  try {
-    await downloadFileInChunks(audioFormat.url, audioPath, 8);
-  } catch (error) {
-    try {
-      const tempAudio = await downloadFromAPI(url, "audio");
-      fs.renameSync(tempAudio, audioPath);
-    } catch (apiError) {
-      try {
-        const extAudio = await downloadFromExternalAPI(url, "audio");
-        return { path: extAudio, title: info.title, info };
-      } catch (_) {
-        throw error;
-      }
-    }
-  }
-
-  return { path: audioPath, title: info.title, info };
+  assertWithinLimits(info, [info.formats.find((f) => f.type === "audio")]);
+  const dl = await engine.download(info.videoId, "audio");
+  return { path: dl.audioPath, title: info.title, info };
 }
 
-/**
- * Adds metadata tags and optional thumbnail artwork to an audio file.
- * @param {string} m4aPath 
- * @param {Object|null} meta 
- * @returns {Promise<string>} Path to tagged audio file
- */
 async function convertM4aToMp3(m4aPath, meta = null) {
   if (!ffmpeg) {
     return m4aPath;
@@ -617,20 +283,16 @@ async function convertM4aToMp3(m4aPath, meta = null) {
   });
 }
 
-/**
- * Searches YouTube for video query.
- * @param {string} query 
- * @param {number} limit 
- * @returns {Promise<Array>}
- */
 async function searchYoutube(query, limit = 10) {
-  if (!youtube) {
-    throw new Error("youtube-sr is not installed");
+  let results = [];
+  if (youtube) {
+    try {
+      results = await youtube.search(query, { limit, type: "video" });
+    } catch (err) {
+      console.error("youtube-sr search failed, using Innertube:", err.message);
+    }
   }
-  const results = await youtube.search(query, {
-    limit,
-    type: "video",
-  });
+  if (!results?.length) return engine.search(query, limit);
   return results.map((video) => ({
     id: video.id,
     title: video.title,
@@ -683,9 +345,10 @@ async function fetchCover(thumbnail, files) {
   }
 }
 
-// without ffmpeg, or when it fails, the m4a is sent as it is and named for what it is
 async function toMp3(input, tags, files) {
-  const original = { path: input, ext: "m4a", mimetype: "audio/mp4" };
+  const original = input.endsWith(".webm")
+    ? { path: input, ext: "webm", mimetype: "audio/webm" }
+    : { path: input, ext: "m4a", mimetype: "audio/mp4" };
   if (!ffmpeg) return original;
   const cover = tags.thumbnail ? await fetchCover(tags.thumbnail, files) : null;
   for (const withCover of cover ? [true, false] : [false]) {
@@ -730,6 +393,19 @@ function removeFiles(files) {
   return Promise.all(files.map((file) => fs.promises.unlink(file).catch(() => {})));
 }
 
+function failureText(error) {
+  if (error.code === "YT_LIMIT") return `_${error.message}_`;
+  if (error.code === "YT_LOGIN_REQUIRED") {
+    return "_YouTube is asking this server to sign in. The owner can fix this with the *ytlogin* command._";
+  }
+  const message = error.primary || error.message || "";
+  if (/LOGIN_REQUIRED|not a bot/i.test(message)) return "_YouTube refused the download (sign-in check). Try *ytlogin* again later._";
+  if (/AGE_CHECK_REQUIRED|AGE_VERIFICATION_REQUIRED|confirm your age/i.test(message)) return "_This video is age-restricted._";
+  if (/needs to be reloaded/i.test(message)) return "_YouTube rejected the request. Try again later._";
+  if (/private video|video unavailable|has been removed|ERROR \(/i.test(message)) return "_This video is unavailable._";
+  return "_Download failed!_";
+}
+
 const safeFileName = (title) => String(title || "audio").replace(/[\\/:*?"<>|\r\n]+/g, "_").trim().slice(0, 100) || "audio";
 
 async function sendYoutubeAudio(message, url, { asDocument = false, meta = {}, status = null } = {}) {
@@ -766,7 +442,7 @@ async function sendYoutubeAudio(message, url, { asDocument = false, meta = {}, s
     return true;
   } catch (error) {
     console.error("YouTube audio error:", error.message);
-    await say(error.code === "YT_LIMIT" ? `_${error.message}_` : "_Download failed!_");
+    await say(failureText(error));
     return false;
   } finally {
     await removeFiles(files);
@@ -780,6 +456,7 @@ async function sendYoutubeVideo(message, url, quality = "360p", { status = null 
     await say(`_Downloading video at *${quality}*..._`);
     const result = await downloadVideo(url, quality);
     files.push(result.path);
+    quality = result.quality || quality;
     await say("_Uploading video..._");
     const { size } = await fs.promises.stat(result.path);
     const stream = fs.createReadStream(result.path);
@@ -803,7 +480,7 @@ async function sendYoutubeVideo(message, url, quality = "360p", { status = null 
     return true;
   } catch (error) {
     console.error("YouTube video error:", error.message);
-    await say(error.code === "YT_LIMIT" ? `_${error.message}_` : "_Download failed!_");
+    await say(failureText(error));
     return false;
   } finally {
     await removeFiles(files);
@@ -827,4 +504,5 @@ module.exports = {
   qualityMenuText,
   formatBytes,
   parseSize,
+  failureText,
 };

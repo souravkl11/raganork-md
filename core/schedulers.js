@@ -17,15 +17,11 @@ const { updater } = require("./services/updater");
 const PRESENCE_INTERVAL = 10000;
 const UPDATE_INTERVAL = 120000;
 
-// cron jobs (automute, scheduled messages) per session: sessionId -> [task].
-// each session builds its tasks from its own rows, inside its own context
 const activeTasks = new Map();
 
-// sessionId -> { client, presenceTimer, session }
 const sessions = new Map();
 
-// rows with no account yet (before the backfill) are visible to every session, so only
-// one of them, the first to connect, may act on them or each would fire them
+// unbackfilled rows are visible to every session, so only the first one acts on them
 function mayHandle(sessionId, row) {
   if (row.accountId != null) return true;
   return sessions.keys().next().value === sessionId;
@@ -69,7 +65,6 @@ function trackTask(sessionId, task) {
 async function notifyOwners(text) {
   const sent = new Set();
   for (const { client, session } of sessions.values()) {
-    // SUDO is per session, so read it as that session
     const target = () => ownerTarget(client, { map: false, self: "pn" });
     const owner = session ? context.run(session, target) : target();
     if (sent.has(owner)) continue;
@@ -80,7 +75,6 @@ async function notifyOwners(text) {
   }
 }
 
-// start() is deferred a tick so a burst of rows does not block the loop
 function startTask(sessionId, expression, run) {
   const task = cron.schedule(expression, run, { scheduled: false });
   trackTask(sessionId, task);
@@ -145,8 +139,6 @@ async function sendDueMessages(client, sessionId) {
   }
 }
 
-// what the session's cron jobs depend on. the minute task reads its rows when it fires,
-// so only whether any are pending matters here
 const signatures = new Map();
 
 function signatureOf(mutes, unmutes, pending) {
@@ -154,10 +146,7 @@ function signatureOf(mutes, unmutes, pending) {
   return JSON.stringify([rows(mutes), rows(unmutes), pending.length > 0]);
 }
 
-// force: the socket changed (reconnect), so the old tasks are dropped before anything is read.
-// otherwise the tasks are replaced only when the rows changed
 async function buildTasks(client, session, sessionId, { force = false } = {}) {
-  // timer callbacks run as the session that built the tasks
   const inSession = (fn) => (session ? context.run(session, fn) : fn());
   if (force) {
     destroyTasks(sessionId);
@@ -167,7 +156,6 @@ async function buildTasks(client, session, sessionId, { force = false } = {}) {
   const [mutes, unmutes, pending] = await inSession(() =>
     Promise.all([automute.get(), autounmute.get(), scheduledMessages.getAllPending()])
   );
-  // the session left or reconnected while we were reading
   if (sessions.get(sessionId)?.client !== client) return false;
 
   const signature = signatureOf(mutes || [], unmutes || [], pending || []);
@@ -204,7 +192,7 @@ async function buildTasks(client, session, sessionId, { force = false } = {}) {
   return true;
 }
 
-// one build at a time per session, so a reconnect and a schedule change cannot interleave
+// one build at a time per session so reconnects and edits cannot interleave
 const builds = new Map();
 
 function enqueue(sessionId, fn) {
@@ -224,9 +212,6 @@ function rebuild(sessionId, options) {
   });
 }
 
-// a setter (.automute, .schedule, ...) changed rows: rebuild the session that wrote them.
-// a write with no session context concerns everyone. the first session also acts on rows
-// that have no account, so it checks too (nothing is replaced if its rows are the same)
 events.on("schedule:changed", ({ accountId } = {}) => {
   const first = sessions.keys().next().value;
   for (const [sessionId, entry] of sessions) {
@@ -368,11 +353,10 @@ async function checkUpdates() {
         changelog += `\n\n_⚠️ Auto-update not supported on ${platformName}. Please update manually._\n_For help, join: ${config.SUPPORT_GROUP}_`;
       }
 
-      // mark first so a failing socket cannot make us re-run git fetch forever
+      // mark first so a failing socket cannot loop git fetch forever
       updaterNotified = true;
       await notifyOwners(changelog.trim());
 
-      // trigger auto-update if supported and enabled
       if (autoUpdateSupported) {
         await performAutoUpdate();
       }
@@ -399,7 +383,6 @@ const Schedule = async (client, sessionId = client?.user?.id || "default") => {
   const existing = sessions.get(sessionId);
   if (existing?.presenceTimer) clearInterval(existing.presenceTimer);
 
-  // Schedule runs inside the session's connection.update; keep that context for the timers
   const session = context.current();
   const presenceTimer = setInterval(
     () => (session ? context.run(session, () => sendOfflinePresence(sessionId)) : sendOfflinePresence(sessionId)),
@@ -408,13 +391,11 @@ const Schedule = async (client, sessionId = client?.user?.id || "default") => {
   presenceTimer.unref?.();
   sessions.set(sessionId, { client, presenceTimer, session });
 
-  // rebuild this session's cron jobs when it (re)connects so they bind to the live socket
   await rebuild(sessionId, { force: true });
 
   startUpdateChecker();
 };
 
-// with a sessionId: drop only that session's timers. without: tear everything down.
 Schedule.cleanup = async (sessionId) => {
   if (sessionId !== undefined) {
     const entry = sessions.get(sessionId);
@@ -434,7 +415,6 @@ Schedule.cleanup = async (sessionId) => {
   updateTimer = null;
 };
 
-// resolves when every queued build has finished (tests wait on it)
 Schedule.settled = () => Promise.all([...builds.values()].map((p) => p.catch(() => {})));
 Schedule.isNewerVersion = isNewerVersion;
 Schedule.performAutoUpdate = performAutoUpdate;

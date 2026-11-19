@@ -1,7 +1,5 @@
 const escapeRegex = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-// the first listed word found in str, or undefined. custom words are patterns
-// (a broken one falls back to plain text); the built-in list matches whole words only
 function containsDisallowedWords(str, disallowedWords, { wholeWord = false } = {}) {
   const text = String(str || "").toLowerCase();
   for (const raw of disallowedWords) {
@@ -32,7 +30,6 @@ const { needsRestart } = require("../core/config/schema");
 
 const { helpPrefix, commandName } = require("../core/plugins/registry");
 
-// only keys the schema marks restart: true (LANGUAGE) are not live
 function restartNote(key) {
   return needsRestart(key) ? "\n_Restart needed for this to take effect._" : "";
 }
@@ -44,7 +41,6 @@ const isSecretKey = (key) => {
   return PROTECTED_KEYS.includes(name) || /_(KEY|TOKEN|SECRET)$/.test(name);
 };
 
-// the only chat that is safe for a secret: the owner's chat with themselves
 function inOwnChat(message) {
   const ids = identity.botIds(message.client);
   return message.jid === ids.lid || message.jid === ids.pn;
@@ -54,7 +50,6 @@ const showValue = (key, value, message) =>
   isSecretKey(key) && !inOwnChat(message) ? "[hidden, ask in your own chat]" : value;
 
 async function setVar(key, value, message = false) {
-  // saves to the database, then applies live and emits config:changed
   await configStore.set(key.trim(), value, { persist: true });
   if (message) {
     await message.sendReply(
@@ -66,8 +61,7 @@ async function setVar(key, value, message = false) {
 
 async function delVar(key, message = false) {
   const name = key.trim();
-  // inside a session this removes the session's own value first; when it has none,
-  // the global value is the one the owner means, so delete that instead
+  // inside a session, fall back to deleting the global value when there's no session one
   let removed = await configStore.unset(name, { persist: true });
   if (!removed && context.accountId()) {
     removed = await context.runUnscoped(() => configStore.unset(name, { persist: true }));
@@ -414,9 +408,7 @@ Module(
     var m = message;
     let targetLid;
 
-    // determine target based on context
     if (m.isGroup) {
-      // in groups: check mention first, then reply
       if (m.mention && m.mention.length > 0) {
         targetLid = m.mention[0];
       } else if (m.reply_message) {
@@ -425,14 +417,12 @@ Module(
         return await m.sendReply("_Need reply or mention in groups_");
       }
     } else {
-      // in DM: use sender
       targetLid = m.sender;
     }
 
     if (!targetLid) return await m.sendReply("_Could not determine target_");
 
     try {
-      // get current SUDO_MAP
       let sudoMap = [];
       if (config.SUDO_MAP) {
         try {
@@ -443,16 +433,13 @@ Module(
         }
       }
 
-      // check if already sudo
       if (sudoMap.includes(targetLid)) {
         return await m.sendReply("_User is already a sudo_");
       }
 
-      // add to sudo map
       sudoMap.push(targetLid);
       await setVar("SUDO_MAP", JSON.stringify(sudoMap));
 
-      // format for display
       const displayId = targetLid.split("@")[0];
 
       await m.sendMessage(`_Added @${displayId} as sudo_`, "text", {
@@ -508,9 +495,7 @@ Module(
   async (m, mm) => {
     let targetLid;
 
-    // determine target based on context
     if (m.isGroup) {
-      // in groups: check mention first, then reply
       if (m.mention && m.mention.length > 0) {
         targetLid = m.mention[0];
       } else if (m.reply_message) {
@@ -519,14 +504,12 @@ Module(
         return await m.sendReply("_Need reply or mention in groups_");
       }
     } else {
-      // in DM: use sender
       targetLid = m.sender;
     }
 
     if (!targetLid) return await m.sendReply("_Could not determine target_");
 
     try {
-      // get current SUDO_MAP
       let sudoMap = [];
       if (config.SUDO_MAP) {
         try {
@@ -537,16 +520,13 @@ Module(
         }
       }
 
-      // check if user is sudo
       if (!sudoMap.includes(targetLid)) {
         return await m.sendReply("_User is not a sudo_");
       }
 
-      // remove from sudo map
       sudoMap = sudoMap.filter((lid) => lid !== targetLid);
       await setVar("SUDO_MAP", JSON.stringify(sudoMap));
 
-      // format for display
       const displayId = targetLid.split("@")[0];
 
       await m.sendMessage(`_Removed @${displayId} from sudo!_`, "text", {
@@ -569,7 +549,6 @@ const listOf = (raw) =>
         .filter((x) => x && x !== "null")
     : [];
 
-// `.toggle filter <trigger> [scope]`, which is also what `.togglefilter ...` arrives as
 async function toggleFilter(message, input) {
   if (!message.fromOwner) {
     if (!message.isGroup || !(await groupAdminGuard(message))) return;
@@ -618,7 +597,7 @@ Module(
     const input = match[1]?.trim();
     const filterArgs = input?.match(/^filter(?:\s+(.*))?$/is);
     if (filterArgs) return await toggleFilter(message, filterArgs[1]?.trim());
-    // the registration is open to everyone so admins reach the filter branch above
+    // open to everyone so admins reach the filter branch above
     if (!message.fromOwner) return;
     if (!input) {
       return await message.sendReply(
@@ -657,7 +636,6 @@ Module(
   }
 );
 
-// the replies to the .settings menu. true when the message was one of them
 async function handleSettingsReply(message) {
   if (!message.fromOwner) return false;
   const configs = settingsMenu;

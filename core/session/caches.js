@@ -1,15 +1,7 @@
 const NodeCache = require("node-cache");
 const { logger } = require("../../config");
 
-/**
- * Enhanced caching setup for Baileys
- *
- * SafeNodeCache extends NodeCache to prevent fatal ECACHEFULL errors.
- * Standard node-cache throws Error("ECACHEFULL: Cache max keys amount exceeded")
- * when maxKeys is reached instead of evicting. SafeNodeCache sets maxKeys to -1
- * natively (no throwing), while enforcing an optional maxLimit through graceful
- * batch FIFO eviction of the oldest keys, and wrapping .set() in safe error handling.
- */
+// node-cache throws ECACHEFULL at maxKeys instead of evicting; this evicts oldest keys instead
 class SafeNodeCache extends NodeCache {
   constructor(options = {}) {
     const { maxLimit, ...nodeCacheOptions } = options;
@@ -17,14 +9,13 @@ class SafeNodeCache extends NodeCache {
       useClones: false,
       deleteOnExpire: true,
       ...nodeCacheOptions,
-      maxKeys: -1, // Ensure node-cache never throws ECACHEFULL natively
+      maxKeys: -1,
     });
     this.maxLimit = typeof maxLimit === "number" ? maxLimit : -1;
   }
 
   set(key, val, ttl) {
     try {
-      // Proactively evict oldest keys if maxLimit is reached
       if (this.maxLimit > 0 && this.getStats().keys >= this.maxLimit) {
         this.evictOldest(Math.max(1, Math.floor(this.maxLimit * 0.1)));
       }
@@ -63,18 +54,16 @@ class SafeNodeCache extends NodeCache {
         this.del(keys[i]);
       }
     } catch (e) {
-      // Ignore eviction errors
     }
   }
 }
 
-// per session: two sessions can share a group or a contact, and their metadata and
-// push names are not the same
+// per session: two sessions sharing a group or contact see different metadata/push names
 function createSessionCaches() {
   return {
     groupCache: new SafeNodeCache({
       stdTTL: 5 * 60,
-      maxLimit: 2000, // soft limit with graceful batch FIFO eviction
+      maxLimit: 2000,
       useClones: false,
       checkperiod: 60,
       deleteOnExpire: true,
@@ -86,7 +75,6 @@ function createSessionCaches() {
       checkperiod: 60,
       deleteOnExpire: true,
     }),
-    // short ttl cache used by getMessage retries, anti-delete and albums
     messageCache: new SafeNodeCache({
       stdTTL: 2 * 60,
       maxLimit: 3000,
@@ -97,7 +85,6 @@ function createSessionCaches() {
   };
 }
 
-// keeps groupCache and contactCache fresh from socket events
 function wireCacheEvents(bot) {
   bot._on("groups.update", (updates) => {
     for (const update of updates) {

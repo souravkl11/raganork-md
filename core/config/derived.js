@@ -1,6 +1,4 @@
-// a value derived from a config key (a split list, parsed limits), parsed again
-// only when the raw value changes. same idea as core/sudo.js: no cache to invalidate,
-// so there is nothing for a config:changed listener to forget.
+// re-parses a config value only when the raw value changes; nothing to invalidate
 const config = require("../../config");
 
 function derived(key, parse) {

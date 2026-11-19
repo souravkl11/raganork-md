@@ -3,6 +3,7 @@ const {
   warnDB,
   FakeDB,
   AntilinkConfigDB,
+  AntiStatusMentionDB,
   antiSpamDB,
   PDMDB,
   antiDemote,
@@ -132,7 +133,6 @@ async function resetAntifake() {
   return await FakeDB.destroy({ where: {}, truncate: true });
 }
 
-// New advanced antilink functions
 async function getAntilinkConfig(jid = null) {
   if (!jid) {
     return await AntilinkConfigDB.findAll();
@@ -188,7 +188,6 @@ async function resetAntilinkConfig() {
 function parseAntilinkPattern(pattern) {
   if (!pattern || typeof pattern !== "string") return null;
 
-  // Handle negation pattern !(domain1,domain2)
   const negationMatch = pattern.match(/^!\(([^)]+)\)$/);
   if (negationMatch) {
     return {
@@ -200,7 +199,6 @@ function parseAntilinkPattern(pattern) {
     };
   }
 
-  // Handle regular pattern (domain1,domain2)
   return {
     isWhitelist: true,
     domains: pattern
@@ -213,10 +211,8 @@ function parseAntilinkPattern(pattern) {
 function checkLinkAllowed(url, config) {
   if (!config || !config.enabled) return true;
 
-  // Normalize the URL for checking
   let normalizedUrl = url.toLowerCase();
 
-  // Remove protocol if present to standardize checking
   normalizedUrl = normalizedUrl.replace(/^https?:\/\//, "");
   normalizedUrl = normalizedUrl.replace(/^www\./, "");
 
@@ -233,7 +229,6 @@ function checkLinkAllowed(url, config) {
         .filter((d) => d)
     : [];
 
-  // Check if URL contains any blocked domains
   if (blockedDomains.length > 0) {
     for (const domain of blockedDomains) {
       const normalizedDomain = domain
@@ -245,7 +240,6 @@ function checkLinkAllowed(url, config) {
     }
   }
 
-  // If whitelist mode and allowed domains exist
   if (config.isWhitelist && allowedDomains.length > 0) {
     for (const domain of allowedDomains) {
       const normalizedDomain = domain
@@ -255,14 +249,13 @@ function checkLinkAllowed(url, config) {
         return true;
       }
     }
-    return false; // Not in whitelist
+    return false;
   }
 
-  // If blacklist mode, allow unless explicitly blocked
   return true;
 }
 
-// read on every group message, so keep it in memory
+// cached: read on every group message
 const antiSpamList = cachedList(() => antiSpamDB.findAll());
 
 async function getAntiSpam() {
@@ -371,7 +364,35 @@ async function resetAntiBot() {
   }
 }
 
-// checked on every group message by the antiword plugin
+// cached: checked on every message
+const antiStatusMentionList = cachedList(() => AntiStatusMentionDB.findAll());
+
+async function getAntiStatusMention(jid = null) {
+  const rows = await antiStatusMentionList();
+  if (!jid) return rows;
+  return rows.find((row) => row.jid === jid) || null;
+}
+
+async function setAntiStatusMention(jid, fields = {}) {
+  if (!jid) return false;
+  try {
+    // upsert, not create: scoping stamps accountId on upsert before validation
+    await AntiStatusMentionDB.upsert({ ...fields, jid });
+    return await AntiStatusMentionDB.findOne({ where: { jid } });
+  } finally {
+    antiStatusMentionList.invalidate();
+  }
+}
+
+async function delAntiStatusMention(jid = null) {
+  if (!jid) return false;
+  try {
+    return await AntiStatusMentionDB.destroy({ where: { jid } });
+  } finally {
+    antiStatusMentionList.invalidate();
+  }
+}
+
 const antiWordList = cachedList(() => antiWordDB.findAll());
 
 async function getAntiWord() {
@@ -491,7 +512,7 @@ async function getFilter(jid = null, trigger = null) {
   }
 }
 
-// every text message is checked against filters, keep the enabled ones in memory
+// cached: every text message is checked against filters
 const enabledFilters = cachedList(() =>
   FilterDB.findAll({ where: { enabled: true } }),
 );
@@ -558,7 +579,6 @@ async function toggleFilter(trigger, jid = null, scope = "chat", enabled) {
   });
 
   if (filter) {
-    // no explicit state: flip whatever is stored
     await filter.update({ enabled: enabled === undefined ? !filter.enabled : enabled });
     enabledFilters.invalidate();
     return filter;
@@ -580,7 +600,6 @@ async function getFiltersByScope(scope, jid = null) {
 async function checkFilterMatch(text, jid) {
   if (!text) return null;
 
-  // same scope rules as getFilter(jid), evaluated in memory
   const dmOrGroup = jid.includes("@g.us") ? "group" : "dm";
   const filters = (await enabledFilters()).filter(
     (f) =>
@@ -610,7 +629,6 @@ async function checkFilterMatch(text, jid) {
   return null;
 }
 
-// New antilink system
 const antilinkConfig = {
   get: getAntilinkConfig,
   set: setAntilinkConfig,
@@ -619,6 +637,11 @@ const antilinkConfig = {
   reset: resetAntilinkConfig,
   parsePattern: parseAntilinkPattern,
   checkAllowed: checkLinkAllowed,
+};
+const antiStatusMention = {
+  get: getAntiStatusMention,
+  set: setAntiStatusMention,
+  delete: delAntiStatusMention,
 };
 const antiword = {
   set: setAntiWord,
@@ -686,6 +709,7 @@ module.exports = {
   decrementWarn,
   getAllWarns,
   antilinkConfig,
+  antiStatusMention,
   antiword,
   antifake,
   antipromote,

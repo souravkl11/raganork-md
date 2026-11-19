@@ -1,21 +1,5 @@
-// finds the commands a message triggers and runs them.
-//
-// every matching command runs (not just the first). what changed from the old handler:
-//
-//  - lanes. a command with a pattern and no `on` is a user command (".ping", ".yt ..."):
-//    those go through the command queue, one at a time per chat in arrival order, with a
-//    global cap (CMD_CONCURRENCY, default 8) and a timeout (CMD_TIMEOUT seconds, default
-//    300) that logs and frees the slot but never kills the command. everything with an
-//    `on` event (afk, chatbot, mention, listeners that watch every text) runs at once,
-//    outside the queue and the cap, exactly as before. otherwise one slow download would
-//    delay the next message's listeners in that chat, and eight downloads in other chats
-//    would stop every listener in the bot.
-//  - the read receipt, the disabled notice and the loading reaction still happen the moment
-//    the message arrives; only the command's own function waits its turn.
-//  - errors go through the policy in ./errors.
-//
-// dispatch() returns as soon as the commands are started, so the message loop in core/bot.js
-// never waits for a command.
+// runs every command a message matches. user commands (pattern, no `on`) go through a
+// per-chat queue with a global cap; `on` listeners run immediately outside it.
 const config = require("../../config");
 const context = require("../context");
 const { Message, Image, Video } = require("../constructors");
@@ -42,9 +26,6 @@ const queue = createQueue({
     console.warn(`[dispatcher] ${name} in ${jid} is still running after the command timeout`),
 });
 
-// does this command want this message? `pattern` is the command's regex for the session
-// (cmd.pattern unless the registry says otherwise). the pattern is tested against
-// parsedText even when it is null, as the old handler did.
 function matches(cmd, env, pattern = cmd.pattern) {
   const { msg, text, parsedText } = env;
   const patternOk = pattern === undefined || pattern.test(parsedText);
@@ -63,8 +44,6 @@ function matches(cmd, env, pattern = cmd.pattern) {
   );
 }
 
-// may this sender run it? owner-only commands (fromMe) need the bot's own account, a
-// message sent from it, or a sudo. group-update events are never gated.
 const isOwnerMessage = (env) => Boolean(env.fromMe) || isOwner(env.sender, env.sock);
 
 function permitted(cmd, env) {
@@ -73,7 +52,6 @@ function permitted(cmd, env) {
   return isOwnerMessage(env);
 }
 
-// the command name the disabled list is checked against, independent of anyone's prefix
 const nameOf = commandName;
 
 const isUserCommand = (cmd) => Boolean(cmd.pattern && !cmd.on);
@@ -86,12 +64,29 @@ async function react(env, cmd, emoji) {
   }
 }
 
-// reply and reaction for a failed command, as POLICY says for its class
+// DB errors repeat on every message while it's down: log at most once a minute
+const INFRA_LOG_INTERVAL = 60_000;
+let infraLoggedAt = 0;
+let infraSkipped = 0;
+function logInfra(cmd, error) {
+  const now = Date.now();
+  if (now - infraLoggedAt < INFRA_LOG_INTERVAL) {
+    infraSkipped++;
+    return;
+  }
+  const skipped = infraSkipped ? ` (${infraSkipped} more since the last log)` : "";
+  infraLoggedAt = now;
+  infraSkipped = 0;
+  console.error(`[dispatcher] database error in ${cmd.pattern || cmd.on}${skipped}:`, error?.message || error);
+}
+
 async function handleError(cmd, env, error) {
   if (config.NOLOG === "true") return;
   const kind = classify(error);
   const policy = POLICY[kind];
-  if (policy.log === "error") {
+  if (policy.log === "infra") {
+    logInfra(cmd, error);
+  } else if (policy.log === "error") {
     console.error(`[dispatcher] ${cmd.pattern || cmd.on} failed in ${env.jid}:`, error?.stack || error);
   } else if (policy.log === "warn") {
     console.warn(`[dispatcher] ${cmd.pattern || cmd.on} was rate limited in ${env.jid}: ${error?.message}`);
@@ -99,10 +94,10 @@ async function handleError(cmd, env, error) {
     config.logger?.debug?.({ err: error?.message }, "command failed on a connection error");
   }
   if (config.DEBUG) console.log(error);
-  // the owner (or a sudo) still sees bug and rate-limit text in the chat: that is how
-  // owners debug a plugin. everyone else only gets the reaction
+  // owners see bug/rate-limit text so they can debug plugins
   const ownerSees = (kind === "bug" || kind === "rate-limit") && isOwnerMessage(env);
-  if ((policy.reply || ownerSees) && error?.message?.trim()) {
+  // listeners run on messages not addressed to the bot, so never post their errors
+  if (isUserCommand(cmd) && (policy.reply || ownerSees) && error?.message?.trim()) {
     try {
       await env.sock.sendMessage(
         env.jid,
@@ -124,9 +119,6 @@ function build(cmd, env) {
   return new Message(env.sock, env.msg);
 }
 
-// the steps that happen the moment the message arrives: the command read, the disabled
-// notice, the loading reaction and building the message object. resolves to the function
-// that runs the command, or null when there is nothing to run
 async function prepare(cmd, env, disabled, pattern) {
   const { msg, sock, jid } = env;
   if (!config.READ_MESSAGES && config.READ_COMMAND && cmd.on === undefined) {
@@ -147,8 +139,7 @@ async function prepare(cmd, env, disabled, pattern) {
   try {
     whats = build(cmd, env);
   } catch (error) {
-    // a listener whose event does not fit this message (an on: image listener without a
-    // pattern is matched by every message). log it once per command, not per message
+    // e.g. an on:image listener without a pattern matches every message; log once
     if (!brokenConstructors.has(cmd.function)) {
       brokenConstructors.add(cmd.function);
       console.error(`[dispatcher] cannot build the message object for ${cmd.on}:`, error?.stack || error);
@@ -166,13 +157,11 @@ async function prepare(cmd, env, disabled, pattern) {
   };
 }
 
-// starts one command. a user command takes its place in its chat's queue right here,
-// before any await, so the queue order is the order messages arrived in and not the order
-// their read receipts came back; the preparation runs alongside and the job waits for it
+// enqueue before any await so queue order is arrival order, not receipt-ack order
 function runCommand(cmd, env, disabled, pattern) {
   const prepared = prepare(cmd, env, disabled, pattern);
   if (!isUserCommand(cmd)) return prepared.then((run) => run?.());
-  prepared.catch(() => {}); // a failure is reported through the queued job below
+  prepared.catch(() => {});
   return queue(
     `${context.accountId() || "_"}:${env.jid}`,
     async () => {
@@ -183,7 +172,6 @@ function runCommand(cmd, env, disabled, pattern) {
   );
 }
 
-// start every command this message triggers; resolves once they are started
 function dispatch(env) {
   env.parsedText = parseText(env.text);
   const disabled = disabledCommandList();

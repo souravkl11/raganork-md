@@ -1,28 +1,6 @@
-// typed registry of every config key the bot itself knows about.
-// keys that are not listed here (gist plugin keys, AFK_DATA, SUDO_MAP, ...) are
-// treated as { type: "string", scope: "session" }: stored and returned untouched.
-//
-// type decisions. a type is only non-string where today's code already treats the
-// value as a boolean or number; every other key is compared as a string somewhere
-// (or may hold a string from the db) and stays a raw string:
-//
-//   bool    PM_ANTISPAM ALWAYS_ONLINE MANGLISH_CHATBOT ADMIN_ACCESS MULTI_HANDLERS
-//           DISABLE_START_MESSAGE AUTO_READ_STATUS READ_MESSAGES PMB_VAR DIS_PM
-//           REJECT_CALLS READ_COMMAND  (every settingsMenu key, plus MANGLISH_CHATBOT:
-//           these were already turned into booleans when loaded from the db)
-//           AUTO_UPDATE  (new: a db "false" used to stay a truthy string)
-//   int     MAX_RECONNECT_ATTEMPTS CMD_CONCURRENCY CMD_TIMEOUT
-//   string  everything else, notably:
-//     ANTI_DELETE        "chat" | "sudo" | "custom" | "off" or false; compared as a string in core/bot.js
-//     CMD_REACTION       bool from env, raw string from the db today; only truthiness is read, but a
-//                        db "false" is truthy, so making it bool would change what a live bot does
-//     DEBUG              true from env, string from the db; core/handler.js checks === true || "true"
-//     NOLOG              compared with === "true"
-//     DISABLED_COMMANDS  array from env, comma string from the db; core/handler.js only honours the string
-//     MODE               compared with === "private" / !== "public"; lowercased so ".mode Private" works
-//     WARN, ANTISPAM_COUNT, BLOCK_CHAT, ALLOWED, HANDLERS, ...  split or parsed by their readers
-//   csv and json exist as types but no key uses them yet: consumers parse those strings lazily
-//   (core/sudo.js), and changing the stored shape would break gist plugins that split them.
+// typed registry of known config keys; unknown keys are treated as session-scoped strings.
+// only keys already used as booleans/numbers are typed; the rest stay raw strings because
+// their readers (and gist plugins) compare or split them as strings.
 
 const legacyBool = (raw) => raw === "true" || raw === "on";
 
@@ -64,7 +42,6 @@ const entries = {
   ALLOWED: { type: "string", default: "91,94,2" },
   NOT_ALLOWED: { type: "string", default: "852" },
   CHATBOT: { type: "string", default: "off" },
-  // live and per session: the dispatcher builds each command's regex from the session's own value
   HANDLERS: { type: "string", default: ".," },
   STICKER_DATA: { type: "string", default: "Raganork" },
   BOT_NAME: { type: "string", default: "Raganork" },
@@ -84,16 +61,13 @@ const entries = {
   AUTO_UPDATE: { type: "bool", default: true, scope: "global" },
   SUPPORT_GROUP: { type: "string", default: "https://t.me/raganork_in" },
   MAX_RECONNECT_ATTEMPTS: { type: "int", default: 10, scope: "global" },
-  // command queue (core/pipeline/dispatcher.js): chats running a command at once, and seconds
-  // before a running command stops holding its slot
   CMD_CONCURRENCY: { type: "int", default: 8, scope: "global" },
   CMD_TIMEOUT: { type: "int", default: 300, scope: "global" },
 
-  // built in config.js (they are needed before the config object exists)
+  // built in config.js / read straight from env by their consumers
   DEBUG: { type: "string", default: false, scope: "global", env: legacyBool, external: true },
   DATABASE_URL: { type: "string", scope: "global", external: true },
   SESSION: { type: "string", scope: "global", external: true },
-  // read straight from the environment by their consumers; never materialised
   LOG_LEVEL: { type: "string", default: "warn", scope: "global", external: true },
   RENDER_API_KEY: { type: "string", default: "", scope: "global", external: true },
 };

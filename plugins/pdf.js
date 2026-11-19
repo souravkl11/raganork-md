@@ -108,7 +108,6 @@ Module(
         await removeDir(imageInputDirectory);
       }
     } else if (message.reply_message && message.reply_message.album) {
-      // handle album
       const albumData = await message.reply_message.download();
       const allImages = albumData.images || [];
 

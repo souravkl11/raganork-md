@@ -4,12 +4,9 @@ const { ownerTarget } = require("../core/identity");
 const { getFullMessage, hasPendingWrites, flushPendingWrites } = require("../core/store");
 const { extractViewOnce } = require("./utils/viewonce");
 
-// newer WhatsApp versions quote a view once message as a stub ({ mimetype, viewOnce }),
-// without the key and link the media needs. there is nothing to download from that
+// newer WhatsApp quotes view-once as a stub with no key/link to download from
 const hasMediaDetails = (node) => Boolean(node && (node.mediaKey || node.url || node.directPath));
 
-// .vv failures go to the bot's own number (where the start message goes), not the chat
-// the command was typed in, which may be a group
 async function reportVVFailure(m, reason) {
   const where = m.isGroup ? `group ${m.jid.split("@")[0]}` : m.jid.split("@")[0];
   try {
@@ -17,14 +14,10 @@ async function reportVVFailure(m, reason) {
       text: `*_.vv could not save a view once message_*\n\n_Chat:_ ${where}\n_Reason:_ ${reason}`,
     });
   } catch (_) {
-    // nowhere left to report to
   }
 }
 
-// the quote is only a stub, but the message itself was stored when it arrived (the same
-// store anti-delete reads, kept ~48h). pull the real media details from there.
-// storing is batched, so a message that just arrived may still be queued: when it is not
-// found and writes are pending, write them now and look again instead of giving up
+// the stub has no media, so look the message up in the store, flushing pending writes once
 const STORE_WAIT_MS = 6000;
 async function recoverFromStore(id) {
   if (!id) return null;
@@ -36,7 +29,6 @@ async function recoverFromStore(id) {
         const vv = extractViewOnce(full.messageData?.message);
         return vv && hasMediaDetails(vv.message[vv.type]) ? vv : null;
       }
-      // nothing pending means it was never stored: no reason to wait
       if (!hasPendingWrites() || Date.now() >= deadline) return null;
       await flushPendingWrites();
       await new Promise((r) => setTimeout(r, 300));

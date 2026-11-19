@@ -4,8 +4,7 @@ const os = require("os");
 const { Readable } = require("stream");
 const ffmpeg = require("fluent-ffmpeg");
 
-// process-wide ffmpeg guard: every save()/pipe() goes through run(), so patching it
-// caps concurrent encodes and gives every job a kill timeout, whatever plugin started it
+// process-wide ffmpeg guard: caps concurrent encodes and adds a kill timeout
 const FFMPEG_CONCURRENCY = Math.max(1, parseInt(process.env.FFMPEG_CONCURRENCY || "2", 10) || 2);
 const FFMPEG_TIMEOUT_S = Math.max(30, parseInt(process.env.FFMPEG_TIMEOUT || "600", 10) || 600);
 (function limitFfmpeg() {
@@ -55,7 +54,6 @@ const FFMPEG_TIMEOUT_S = Math.max(30, parseInt(process.env.FFMPEG_TIMEOUT || "60
   };
 })();
 
-// temp file name that can't collide with a parallel job
 function uniqueTempPath(name) {
   const ext = path.extname(name);
   const base = path.basename(name, ext);
@@ -64,7 +62,6 @@ function uniqueTempPath(name) {
   );
 }
 
-// promise wrapper for a fluent-ffmpeg command writing to a file
 function runFfmpeg(command, output) {
   return new Promise((resolve, reject) => {
     command
@@ -102,7 +99,6 @@ function getTempSubdir(subdir) {
   return subdirPath;
 }
 
-// temp files get unique names now, so sweep old ones instead of relying on overwrites
 let tempSweepTimer = null;
 async function sweepTempDir(dir = TEMP_DIR, maxAgeMs = 30 * 60 * 1000) {
   let entries;
@@ -176,7 +172,6 @@ async function genThumb(url) {
   try {
     const img = await require("jimp").read(url);
     const { width, height } = img.bitmap;
-    // fit inside 300x300, never upscale
     const scale = Math.min(1, 300 / Math.max(width, height));
     const w = Math.max(1, Math.round(width * scale));
     const h = Math.max(1, Math.round(height * scale));
@@ -278,10 +273,6 @@ async function toBuffer(input) {
 
   return null;
 }
-
-// ============================================
-// BUTTON/INTERACTIVE MESSAGE HELPERS
-// ============================================
 
 function buildInteractiveButtons(buttons = []) {
   return buttons.map((b, i) => {

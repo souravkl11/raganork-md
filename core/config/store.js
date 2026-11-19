@@ -1,11 +1,5 @@
-// resolution and storage behind the config proxy in config.js.
-// lookup order: the current session's override (session-scoped keys only, when the code
-// runs inside a session context), then the global runtime/db override, then the base
-// values built from env at load, then process.env (so keys nobody registered still work).
-// writes inside a session context go to that session (session_variables); writes outside
-// one, and writes of global-scope keys, go to bot_variables.
-// this file must not require config.js or core/database at load time: config.js
-// requires it first. persisting loads the database lazily.
+// resolution and storage behind the config proxy. lookup order: session override,
+// global override, env-built base, process.env. must not require config.js at load (circular).
 const schema = require("./schema");
 const events = require("../events");
 const context = require("../context");
@@ -15,16 +9,13 @@ const FALSE_WORDS = new Set(["false", "off", "0", "no"]);
 
 let base = {};
 const overrides = new Map();
-// accountId -> Map(key -> coerced value)
 let sessionOverrides = new Map();
 
 function attachBase(values) {
   base = values;
 }
 
-// true / false for a recognised word, undefined for anything else.
-// case matters on purpose: "True" has always read as false for a db value, and
-// flipping stored values on a live bot would be a surprise
+// case-sensitive on purpose: "True" has always read as false from the db
 function parseBool(raw) {
   if (typeof raw === "boolean") return raw;
   if (typeof raw === "number") raw = String(raw);
@@ -41,7 +32,6 @@ function parseInteger(raw) {
   return Number.isNaN(n) ? undefined : n;
 }
 
-// the account whose overrides apply to this key right now, or null for the global ones
 function sessionAccount(key) {
   const accountId = context.accountId();
   return accountId && schema.scopeOf(key) === "session" ? accountId : null;
@@ -56,8 +46,7 @@ function sessionValues(accountId, create = false) {
   return values;
 }
 
-// a listener that throws must not make `config.X = v` throw inside a plugin.
-// session writes carry the session; sessionId and accountId are null for a global write
+// a throwing listener must not make `config.X = v` throw in a plugin
 function notify(key, value, accountId = null) {
   const sessionId = accountId ? context.current()?.sessionId ?? null : null;
   try {
@@ -75,8 +64,6 @@ function normalize(entry, value) {
   return entry.normalize && typeof value === "string" ? entry.normalize(value) : value;
 }
 
-// value coming from the db or a runtime write. an unrecognised word on a bool key is
-// false (what db loading has always done); undefined means "no value" and gives the default
 function coerce(key, raw) {
   const entry = schema.entryFor(key);
   if (raw === undefined) return defaultOf(entry);
@@ -92,8 +79,6 @@ function coerce(key, raw) {
   }
 }
 
-// value for a key from the environment, used once when config.js builds the base values.
-// unset, empty and unrecognised values all give the default
 function fromEnv(key, env = process.env) {
   const entry = schema.entryFor(key);
   const raw = env[key];
@@ -125,9 +110,7 @@ function has(key) {
   return isOverridden(key) || key in base || (typeof key === "string" && key in process.env);
 }
 
-// sync unless persist is set, then a promise that resolves after the database write
-// (database first, memory second: a failed write leaves the live value alone).
-// the database keeps the raw value; only the in-memory one is coerced
+// db first, memory second: a failed write leaves the live value alone
 function set(key, value, { persist = false } = {}) {
   const accountId = sessionAccount(key);
   const apply = () => {
@@ -146,9 +129,6 @@ function set(key, value, { persist = false } = {}) {
   return BotVariable.upsert({ key, value }).then(apply);
 }
 
-// drops the override only: inside a session that is the session's override (the global
-// value shows again), otherwise the global one (the env or default value shows again).
-// the event carries the value readers see afterwards (undefined if there is none)
 function unset(key, { persist = false } = {}) {
   const accountId = sessionAccount(key);
   const apply = () => {
@@ -165,8 +145,6 @@ function unset(key, { persist = false } = {}) {
   return BotVariable.destroy({ where: { key } }).then(apply);
 }
 
-// bulk load of bot_variables rows at boot. returns how many were applied.
-// no events: nothing is subscribed yet and the values are not changes
 function loadAll(dbValues = {}) {
   let count = 0;
   for (const [key, value] of Object.entries(dbValues)) {
@@ -177,14 +155,12 @@ function loadAll(dbValues = {}) {
   return count;
 }
 
-// replaces every session override with these session_variables rows
-// ({ accountId, key, value }). like loadAll it is silent
 function loadSessions(rows = []) {
   const next = new Map();
   let count = 0;
   for (const { accountId, key, value } of rows) {
     if (!accountId || value === undefined || value === null) continue;
-    if (schema.scopeOf(key) !== "session") continue; // global keys have no per-session value
+    if (schema.scopeOf(key) !== "session") continue;
     if (!next.has(accountId)) next.set(accountId, new Map());
     next.get(accountId).set(key, coerce(key, value));
     count++;
@@ -193,14 +169,12 @@ function loadSessions(rows = []) {
   return count;
 }
 
-// boot step after the data migrations: read every session's overrides into memory
 async function reloadSessions() {
   const { SessionVariable } = require("../database");
   const rows = await SessionVariable.findAll({ attributes: ["accountId", "key", "value"], raw: true });
   return loadSessions(rows);
 }
 
-// forgets the in-memory session overrides (the rows stay in the database)
 function clearSessions() {
   sessionOverrides = new Map();
 }

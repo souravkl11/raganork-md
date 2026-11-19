@@ -55,7 +55,6 @@ const stickerExif = (message) => ({
   ios: "https://github.com/souravkl11/Raganork-md/",
 });
 
-// sticker bytes with the pack info written in; the intermediate files are removed
 async function withExif(media, exif) {
   const out = await addExif(media, exif);
   if (Buffer.isBuffer(out)) return out;
@@ -91,7 +90,6 @@ Module(
     let results = await gis(splitInput[0], count + buffer);
     if (results.length < 1) return await message.send("*_No results found!_*");
 
-    // buffer and send with success tracking since many URLs have access issues
     let successCount = 0;
     let i = 0;
     const imagesToSend = [];
@@ -164,7 +162,6 @@ Module(
 
     const exif = stickerExif(message);
 
-    // handle album
     if (message.reply_message.album) {
       const albumData = await message.reply_message.download();
       const allFiles = [...(albumData.images || []), ...(albumData.videos || [])];
@@ -219,7 +216,6 @@ Module(
     )
       return await message.sendReply(Lang.MP3_NEED_REPLY);
 
-    // handle album
     if (message.reply_message.album) {
       const albumData = await message.reply_message.download();
       const videoFiles = albumData.videos || [];
@@ -291,7 +287,6 @@ async function changeRate(message, rate, { label, progress }) {
       return fs.readFileSync(out);
     });
 
-  // handle album
   if (reply.album) {
     const albumData = await reply.download();
     const videoFiles = albumData.videos || [];
@@ -397,7 +392,6 @@ Module(
     if (!reply || (!reply.audio && !reply.video && !reply.album))
       return await message.sendReply(Lang.BASS_NEED_REPLY);
 
-    // handle album
     if (reply.album) {
       const albumData = await reply.download();
       const videoFiles = albumData.videos || [];
@@ -566,7 +560,6 @@ Module(
       );
     }
 
-    // handle album
     if (message.reply_message.album) {
       const albumData = await message.reply_message.download();
       const allFiles = [...(albumData.images || []), ...(albumData.videos || [])];
@@ -747,7 +740,6 @@ Module(
   }
 );
 
-// re-encodes the replied video or image through ffmpeg and sends the result
 async function convertMedia(message, { name, startText, failText, configure, caption, doneText }) {
   const isVideo = Boolean(message.reply_message.video);
   let processed = false;

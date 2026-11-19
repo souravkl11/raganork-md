@@ -73,7 +73,6 @@ const StickyCmdDB = sequelize.define("stickcmd", {
   file: { type: DataTypes.STRING(1000), allowNull: false },
 }, accountOptions("stickcmds"));
 
-// looked up for every sticker message
 const stickcmdList = cachedList(() => StickyCmdDB.findAll());
 
 const stickcmd = {

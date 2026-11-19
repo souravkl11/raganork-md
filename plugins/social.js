@@ -49,12 +49,10 @@ Module(
     if (!mediaLinks)
       return await message.sendReply("_*Need Instagram link(s)*_");
 
-    // extract all urls from the text
     const allUrls = mediaLinks.match(/\bhttps?:\/\/\S+/gi) || [];
     if (!allUrls.length)
       return await message.sendReply("_*Need Instagram link(s)*_");
 
-    // filter and validate instagram urls
     const instagramUrls = [];
     const instagramRegex =
       /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|s|reel|tv)\/[\w-]+/i;
@@ -70,7 +68,7 @@ Module(
 
       if (instagramRegex.test(url)) {
         const mediaId = url.match(/\/([\w-]+)\/?$/)?.[1];
-        if (mediaId && mediaId.length > 20) continue; // skip private accounts
+        if (mediaId && mediaId.length > 20) continue;
 
         instagramUrls.push(url);
       }
@@ -85,7 +83,6 @@ Module(
         ? message.quoted
         : message.data;
 
-      // download from all urls
       for (const url of instagramUrls) {
         try {
           const downloadResult = await downloadGram(url);
@@ -102,7 +99,6 @@ Module(
           "_Something went wrong, Please try again!_"
         );
 
-      // send as single media or album
       if (allMediaUrls.length === 1) {
         return await message.sendMessage(
           { url: allMediaUrls[0] },
@@ -115,7 +111,6 @@ Module(
         );
       }
 
-      // send as album
       const albumObject = allMediaUrls.map((mediaUrl) => {
         return /\.(jpg|jpeg|png|webp|heic)(\?|$)/i.test(mediaUrl)
           ? { image: mediaUrl }

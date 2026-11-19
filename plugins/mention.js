@@ -12,7 +12,6 @@ const { helpPrefix } = require("../core/plugins/registry");
 
 const { setVar, delVar } = require("./manage");
 
-// parsed once per distinct config value, this runs on every mention
 let lastMentionRaw;
 let lastMentionParsed = null;
 function getMentionReply() {

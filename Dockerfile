@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:26-alpine
 RUN apk add --no-cache \
     git \
     ffmpeg \
@@ -6,7 +6,7 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++
-ADD https://api.github.com/repos/souravkl11/raganork-md/git/refs/heads/main version.json
+ADD https://codeload.github.com/souravkl11/raganork-md/tar.gz/refs/heads/main /tmp/main.tar.gz
 RUN git clone -b main https://github.com/souravkl11/raganork-md /rgnk
 WORKDIR /rgnk
 RUN mkdir -p temp

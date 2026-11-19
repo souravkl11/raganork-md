@@ -1,12 +1,5 @@
 const { getBuffer } = require("./misc");
 
-/**
- * Parse welcome/goodbye message with placeholders
- * @param {string} template - Message template with placeholders
- * @param {Object} messageObject - WhatsApp message object
- * @param {Array} participants - Array of participants (for join/leave events)
- * @returns {Object} - Parsed message with text and media
- */
 async function parseWelcomeMessage(template, messageObject, participants = []) {
   if (!template || !messageObject) return null;
   try {
@@ -84,11 +77,6 @@ async function parseWelcomeMessage(template, messageObject, participants = []) {
     return null;
   }
 }
-/**
- * Send parsed welcome/goodbye message
- * @param {Object} messageObject - WhatsApp message object
- * @param {Object} parsedMessage - Parsed message object
- */
 async function sendWelcomeMessage(messageObject, parsedMessage) {
   if (!parsedMessage) return;
   try {

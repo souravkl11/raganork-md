@@ -7,7 +7,6 @@ const baileysPromise = loadBaileys()
     ({ downloadMediaMessage } = baileys);
   })
   .catch((err) => {
-    // boot() awaits loadBaileys() itself and fails there, so this is only the log
     console.error("Failed to load baileys:", err.message);
   });
 const fs = require("fs");

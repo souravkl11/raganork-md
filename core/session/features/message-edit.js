@@ -1,9 +1,8 @@
 const crypto = require("crypto");
 const { loadBaileys } = require("../../helpers");
 
-// newer WhatsApp clients send an edit as a secretEncryptedMessage (MESSAGE_EDIT) sealed with
-// the original message's messageSecret, which baileys leaves undecoded. same key derivation as
-// poll votes with the "Message Edit" label, and no additional data
+// newer clients send edits as secretEncryptedMessage sealed with the original's
+// messageSecret, which baileys leaves undecoded. same derivation as poll votes ("Message Edit")
 const LABEL = "Message Edit";
 const WRAPPERS = ["ephemeralMessage", "viewOnceMessage", "viewOnceMessageV2", "deviceSentMessage", "documentWithCaptionMessage"];
 
@@ -42,8 +41,6 @@ function decryptEdit({ encPayload, encIv }, { origId, origSender, editor, secret
   return Buffer.concat([decipher.update(payload.subarray(0, payload.length - 16)), decipher.final()]);
 }
 
-// the jids the author of the original may have used: only the author can edit, so the
-// original's sender and the editor are the same account (its lid or its phone jid)
 function authorCandidates(key, sock) {
   const raw = key.fromMe
     ? [sock?.user?.id, sock?.user?.lid]
@@ -51,9 +48,6 @@ function authorCandidates(key, sock) {
   return [...new Set(raw.filter(Boolean).map(withoutDevice))];
 }
 
-// null when msg is not an encrypted edit. otherwise { edited }: the edited message as a
-// fresh message object, or null when it could not be decrypted (the original is not cached,
-// or the secret does not fit)
 async function readEncryptedEdit(bot, msg) {
   const envelope = unwrap(msg?.message)?.secretEncryptedMessage;
   if (!envelope) return null;
@@ -83,7 +77,6 @@ async function readEncryptedEdit(bot, msg) {
         },
       };
     } catch (_) {
-      // wrong identity form: the authentication tag rejects it, try the next one
     }
   }
   return { edited: null, reason: "could not decrypt" };

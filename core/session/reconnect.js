@@ -8,8 +8,6 @@ const SLOW_RETRY_MS = 10 * 60 * 1000;
 const SLOW_RETRY_JITTER = 0.2;
 const SLOW_RETRY_LOG_EVERY_MS = 60 * 60 * 1000;
 
-// the next reconnect: how long to wait, whether it is a slow retry, and the attempt
-// count afterwards. nothing is scheduled here
 function planReconnect({ statusCode, attempts, maxAttempts }) {
   const { DisconnectReason } = bindings;
   let delay;

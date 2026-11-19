@@ -61,7 +61,7 @@ const User = config.sequelize.define(
   },
 );
 
-// Temporary storage for anti-delete functionality (2 days only)
+// anti-delete cache, kept 48h
 const AntiDeleteCache = config.sequelize.define(
   "AntiDeleteCache",
   {
@@ -164,7 +164,7 @@ const UserStats = config.sequelize.define(
   {
     timestamps: true,
     indexes: [
-      // the name is the one the two-column index always had (see migration 004)
+      // the name is the one the two-column index always had
       { name: "user_stats_user_jid_chat_jid", fields: ["accountId", "userJid", "chatJid"], unique: true },
       { fields: ["chatJid"] },
       { fields: ["totalMessages"] },
@@ -176,7 +176,6 @@ const UserStats = config.sequelize.define(
 scoped(UserStats);
 scoped(AntiDeleteCache);
 
-// SpamTracker is now in-memory
 const SpamTracker = null;
 
 Chat.hasMany(AntiDeleteCache, { foreignKey: "chatJid" });
@@ -206,13 +205,11 @@ const messageTypeMap = {
   albumMessage: "album",
 };
 
-// NEW: Queue system
 const messageQueue = [];
-const FLUSH_INTERVAL = 5000; // 5 seconds
+const FLUSH_INTERVAL = 5000;
 let flushTimer = null;
 
-// NEW: In-memory SpamTracker
-const spamTracker = new Map(); // Key: 'accountId:userJid_chatJid', Value: Array of timestamps
+const spamTracker = new Map();
 
 const STAT_FIELDS = [
   "textMessages",
@@ -224,9 +221,8 @@ const STAT_FIELDS = [
 let flushing = false;
 let statsUpsertSupported = true;
 
-// fullContent is JSON, so every Buffer (mediaKey, fileSha256, ...) comes back as
-// { type: "Buffer", data: [...] }. protobuf encodes that shape as 0 bytes, which sends media
-// nobody can download. turn them back into Buffers before anything forwards a stored message
+// fullContent is JSON, so Buffers come back as { type, data } which protobuf encodes as
+// 0 bytes (undownloadable media). revive them before forwarding
 function reviveBuffers(value) {
   if (Array.isArray(value)) return value.map(reviveBuffers);
   if (!value || typeof value !== "object" || Buffer.isBuffer(value)) return value;
@@ -236,13 +232,11 @@ function reviveBuffers(value) {
   return out;
 }
 
-// thumbnails are the bulk of a stored message and nothing reads them back
 function stripForStorage(key, value) {
   if (key === "jpegThumbnail" || key === "_mappedType" || key === "_accountId") return undefined;
   return value;
 }
 
-// folds a batch of messages into one row set per table
 function aggregateBatch(batch) {
   const chats = new Map();
   const users = new Map();
@@ -270,7 +264,6 @@ function aggregateBatch(batch) {
       });
     }
 
-    // the primary key stays unique per account: two sessions in one group both store the message
     const accountId = msgData._accountId || null;
     const messageId = (accountId ? accountId + ":" : "") + id + "_" + ts.getTime();
     if (!cacheRows.has(messageId)) {
@@ -285,7 +278,6 @@ function aggregateBatch(batch) {
       });
     }
 
-    // the same user in the same group counts once per account that received the message
     const statKey = (accountId || "") + "\u0000" + sender + "\u0000" + remoteJid;
     let stat = stats.get(statKey);
     if (!stat) {
@@ -308,8 +300,7 @@ function aggregateBatch(batch) {
   };
 }
 
-// one multi-row INSERT ... ON CONFLICT DO UPDATE (sqlite >= 3.24 and postgres).
-// every row needs an accountId: a NULL never conflicts, so it would insert again on every flush
+// needs accountId on every row: NULL never conflicts, so it would re-insert each flush
 async function upsertStats(stats, transaction) {
   const qg = config.sequelize.getQueryInterface().queryGenerator;
   const q = (name) => qg.quoteIdentifier(name);
@@ -334,9 +325,7 @@ async function upsertStats(stats, transaction) {
   );
 }
 
-// fallback for databases without the unique index, and the path for rows with no account
-// (a message stored outside any session): those are the legacy NULL rows. the flush runs
-// unscoped, so the account goes into the where clause by hand
+// fallback without the unique index, and for legacy rows with no account
 async function upsertStatsSlow(stats, transaction) {
   for (const s of stats) {
     const [row] = await UserStats.findOrCreate({
@@ -367,7 +356,7 @@ async function persistBatch(batch) {
           if (!/ON CONFLICT|conflict|unique|constraint/i.test(err.message || "")) throw err;
           statsUpsertSupported = false;
           logger.warn({ err: err.message }, "UserStats upsert unsupported, using slow path");
-          throw err; // abort this transaction; the retry below runs the slow path
+          throw err;
         }
       } else {
         await upsertStatsSlow(withAccount, transaction);
@@ -377,13 +366,12 @@ async function persistBatch(batch) {
   });
 }
 
-// runs for every account's messages at once, so never as one session
 function flushMessageQueue() {
   return context.runUnscoped(flushQueued);
 }
 
 async function flushQueued() {
-  // never run two flushes at once: overlapping transactions fight over the sqlite lock
+  // no overlapping flushes: transactions fight over the sqlite lock
   if (flushing || messageQueue.length === 0) return;
   flushing = true;
   try {
@@ -420,7 +408,7 @@ if (!flushTimer) {
 
 async function storeMessage(msgData) {
   if (!msgData || !msgData.key || !msgData.message) return;
-  const { id, remoteJid, messageTimestamp } = msgData.key; // Fixed destructuring
+  const { id, remoteJid, messageTimestamp } = msgData.key;
   if (
     !msgData.key.id ||
     !msgData.key.remoteJid ||
@@ -430,7 +418,6 @@ async function storeMessage(msgData) {
   if (msgData.key.remoteJid === "status@broadcast") return;
 
   const knownMessageTypes = Object.keys(messageTypeMap);
-  // disappearing-chat and view once messages wrap the real content
   let content = msgData.message;
   for (let i = 0; i < 3; i++) {
     const inner =
@@ -447,12 +434,10 @@ async function storeMessage(msgData) {
   const mappedType = messageType ? messageTypeMap[messageType] : "unknown";
   if (mappedType === "unknown") return;
 
-  // Add mappedType to msgData for use in saveMessageToDB
   msgData._mappedType = mappedType;
-  // the flush runs outside any session, so remember whose message this is now
+  // the flush runs outside any session, so record the account now
   msgData._accountId = context.accountId();
 
-  // Safety bound: prevent unbounded memory growth if database writes are delayed
   if (messageQueue.length > 5000) {
     messageQueue.splice(0, messageQueue.length - 5000);
   }
@@ -460,7 +445,6 @@ async function storeMessage(msgData) {
   messageQueue.push(msgData);
 }
 
-// per account: the same user in the same group is tracked separately for each session
 const spamKey = (userJid, chatJid) => `${context.accountId() || "_"}:${userJid}_${chatJid}`;
 
 async function trackSpamMessage(userJid, chatJid, messageId) {
@@ -506,10 +490,8 @@ async function cleanupAntiDeleteCache(olderThanMs = 48 * 60 * 60 * 1000) {
   }
 }
 
-// getChatStats functionality replaced with UserStats-based implementation
 async function getChatStats(chatJid, days = 7) {
   try {
-    // Get stats from UserStats table instead of Messages table
     const userStats = await UserStats.findAll({
       where: { chatJid },
     });
@@ -518,7 +500,6 @@ async function getChatStats(chatJid, days = 7) {
       return [];
     }
 
-    // Aggregate message types from all users in the chat
     const stats = {};
     userStats.forEach((stat) => {
       if (stat.textMessages > 0) {
@@ -576,7 +557,6 @@ async function getTopUsers(chatJid, limit = 10) {
   }
 }
 
-// users this account has seen (Users itself is shared by every account)
 async function getTotalUserCount() {
   try {
     const count = await UserStats.count({ distinct: true, col: "userJid" });
@@ -664,7 +644,6 @@ async function getFullMessage(messageKeyIdOnly) {
 
 async function fetchRecentChats(limit = 10) {
   try {
-    // Get recent chats based on UserStats lastMessageAt instead of Messages table
     const recentChats = await UserStats.findAll({
       attributes: [
         "chatJid",
@@ -680,9 +659,9 @@ async function fetchRecentChats(limit = 10) {
         },
       ],
       where: {
-        "$Chat.isActive$": true, // Only include active chats
+        "$Chat.isActive$": true,
         lastMessageAt: {
-          [Op.ne]: null, // Only chats with actual messages
+          [Op.ne]: null,
         },
       },
       group: ["chatJid", "Chat.jid", "Chat.type", "Chat.name", "Chat.isActive"],
@@ -699,12 +678,10 @@ async function fetchRecentChats(limit = 10) {
       return [];
     }
 
-    // Get all private chat JIDs that need user name lookup
     const privateChatJids = recentChats
       .filter((chat) => chat.Chat?.type === "private" && !chat.Chat?.name)
       .map((chat) => chat.chatJid);
 
-    // Load all users at once (single query instead of N queries)
     let usersMap = new Map();
     if (privateChatJids.length > 0) {
       try {
@@ -717,7 +694,6 @@ async function fetchRecentChats(limit = 10) {
           attributes: ["jid", "name"],
         });
 
-        // Create a Map for O(1) lookup
         users.forEach((user) => {
           usersMap.set(user.jid, user.name);
         });
@@ -726,12 +702,10 @@ async function fetchRecentChats(limit = 10) {
       }
     }
 
-    // Process results using the loaded users map
     const processedChats = [];
     for (const chat of recentChats) {
       let chatName = chat.Chat?.name;
 
-      // If it's a private chat and no name is stored in Chat table, get from users map
       if (chat.Chat?.type === "private" && !chatName) {
         chatName = usersMap.get(chat.chatJid) || null;
       }
@@ -761,7 +735,7 @@ async function ensureFullContentColumnExists() {
     try {
       tableDescription = await queryInterface.describeTable(tableName);
     } catch (_) {
-      return; // fresh install, sync() creates the table with every column
+      return;
     }
 
     if (!tableDescription.fullContent) {
@@ -789,13 +763,11 @@ async function ensureFullContentColumnExists() {
   }
 }
 
-// Global variables to prevent duplicate intervals
 let cleanupIntervals = {
   spamTracker: null,
   antiDeleteCache: null,
 };
 
-// Graceful shutdown handler
 async function flushQueueOnShutdown() {
   if (messageQueue.length === 0) {
     logger.debug("Queue is empty during shutdown flush; nothing to persist.");
@@ -829,14 +801,11 @@ function stopFlushTimer() {
   }
 }
 
-// Initialize cleanup intervals only once
 function initializeCleanupIntervals() {
-  // Clear existing intervals if they exist
   if (cleanupIntervals.spamTracker) clearInterval(cleanupIntervals.spamTracker);
   if (cleanupIntervals.antiDeleteCache)
     clearInterval(cleanupIntervals.antiDeleteCache);
 
-  // prune spam tracker keys every 5 minutes (entries older than 5 min are useless)
   cleanupIntervals.spamTracker = setInterval(
     async () => {
       try {
@@ -849,11 +818,9 @@ function initializeCleanupIntervals() {
   );
   cleanupIntervals.spamTracker.unref?.();
 
-  // Cleanup anti-delete cache every 6 hours (keep for 48 hours)
   cleanupIntervals.antiDeleteCache = setInterval(
     async () => {
       try {
-        // expires every account's rows
         await context.runUnscoped(() => cleanupAntiDeleteCache());
       } catch (error) {
         console.error("Error in anti-delete cache cleanup interval:", error);
@@ -863,7 +830,6 @@ function initializeCleanupIntervals() {
   );
 }
 
-// Initialize intervals only once when module is first loaded
 if (!global.storeIntervalsInitialized) {
   initializeCleanupIntervals();
   global.storeIntervalsInitialized = true;
@@ -891,7 +857,6 @@ module.exports = {
   flushQueueOnShutdown,
   stopFlushTimer,
   getQueueLength: () => messageQueue.length,
-  // true while a stored message may still be waiting to be written (queued or mid-flush)
   hasPendingWrites: () => flushing || messageQueue.length > 0,
   flushPendingWrites: () => flushMessageQueue(),
   fetchFromStore: async (chat) => {
@@ -902,7 +867,6 @@ module.exports = {
     return stats;
   },
   storeToDB: storeMessage,
-  // Cleanup function for store intervals
   cleanup: () => {
     if (cleanupIntervals.spamTracker) {
       clearInterval(cleanupIntervals.spamTracker);

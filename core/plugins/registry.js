@@ -1,5 +1,3 @@
-// the command registry. main.js re-exports Module and commands from here, so
-// `require("../main")` in plugins keeps working unchanged.
 const path = require("path");
 const config = require("../../config");
 
@@ -36,13 +34,12 @@ function buildHandlerPrefix(rawHandlers, allowNoPrefix) {
   return allowNoPrefix ? `${group}?` : group;
 }
 
-// read at call time, not at require time: plugins must see db-loaded HANDLERS
+// read at call time so plugins see db-loaded HANDLERS
 function currentHandlerPrefix() {
   const raw = config.HANDLERS === "false" ? "^" : config.HANDLERS;
   return buildHandlerPrefix(raw, Boolean(config.MULTI_HANDLERS));
 }
 
-// first handler character for help text (".ping" -> "."), read when the text is built
 function helpPrefix() {
   return config.HANDLERS !== "false" ? config.HANDLERS.split("")[0] : "";
 }
@@ -52,15 +49,10 @@ function compilePattern(info) {
   return new RegExp(`${prefix}${info.pattern}`, "s");
 }
 
-// one compiled regex per (prefix, raw pattern). a session whose HANDLERS differs from
-// the boot-time value gets its own set, built the first time it needs one. the regexes
-// have no g flag, so sharing them between sessions is safe
+// cached per (prefix, pattern); no g flag so sharing across sessions is safe
 const MAX_CACHED_PREFIXES = 16;
 const patternCache = new Map();
 
-// the pattern of a command for the session running now. cmd.pattern stays what it was
-// built as at load (for plugins that read it); this follows the session's current
-// HANDLERS and MULTI_HANDLERS
 function patternFor(cmd) {
   if (cmd.rawPattern === undefined || cmd.useHandler === false) return cmd.pattern;
   const prefix = currentHandlerPrefix();
@@ -80,8 +72,6 @@ function patternFor(cmd) {
   return pattern;
 }
 
-// the first word of a command's pattern as the disabled list and per-command settings
-// spell it: lowercase letters and digits, "" when it has none
 function commandName(cmd) {
   let source = cmd.rawPattern;
   if (source === undefined) {
@@ -94,9 +84,8 @@ function commandName(cmd) {
 }
 
 function Module(info, func) {
-  // an explicit fromMe is kept. without one the command follows MODE at dispatch
-  // time instead of whatever MODE was when the plugin loaded. an enumerable accessor
-  // keeps `fromMe` in Object.keys and reading as a boolean for plugins that list commands
+  // without an explicit fromMe, follow MODE at dispatch time (enumerable getter so plugins
+  // listing commands still see it)
   let explicitFromMe = info.fromMe;
   const commandInfo = {
     get fromMe() {
@@ -123,8 +112,7 @@ function Module(info, func) {
     commandInfo.pattern = compilePattern(info);
   }
 
-  // non-enumerable, so the command's Object.keys shape stays what plugins have always seen:
-  // which file registered it, and what patternFor needs to rebuild its pattern per session
+  // non-enumerable to keep the Object.keys shape plugins expect
   const hidden = (name, value) =>
     Object.defineProperty(commandInfo, name, { value, enumerable: false, writable: true });
   hidden("source", currentSource);
@@ -138,7 +126,6 @@ function Module(info, func) {
   return commandInfo;
 }
 
-// the loader sets this around each plugin require (requires are synchronous)
 function setCurrentSource(file) {
   currentSource = file;
 }
@@ -153,9 +140,6 @@ function withSource(file, fn) {
   }
 }
 
-// forget a plugin file: its commands leave the live list (in place, plugins hold a
-// reference to it) and the next require() of the file runs it again. returns how many
-// commands went. `file` is the absolute path the loader recorded as `source`
 function unload(file) {
   const abs = path.resolve(file);
   let removed = 0;
@@ -168,7 +152,6 @@ function unload(file) {
   try {
     delete require.cache[require.resolve(abs)];
   } catch (_) {
-    // the file is gone already; nothing cached under a path that no longer resolves
     delete require.cache[abs];
   }
   return removed;

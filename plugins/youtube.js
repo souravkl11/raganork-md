@@ -11,7 +11,9 @@ const {
   videoIdOf,
   assertWithinLimits,
   qualityMenuText,
+  failureText,
 } = require("./utils/yt");
+const ytEngine = require("./utils/yt-engine");
 const { spotifyTrack } = require("./utils/misc");
 const { accountKey } = require("./utils");
 
@@ -42,8 +44,7 @@ function searchResultText(query, results, footer) {
   return text + footer;
 }
 
-// the video behind line `n` of a search list. the id printed in the line is used, so the video
-// is the one that was listed; lists sent before ids were added are searched again
+// uses the id printed in the line; older lists without ids are searched again
 async function listedVideo(repliedText, n) {
   const lines = repliedText.split("\n");
   const at = lines.findIndex((line) => line.startsWith(`*${n}.*`));
@@ -156,10 +157,9 @@ Module(
       );
     } catch (error) {
       console.error("YTV info error:", error);
+      const text = failureText(error);
       await message.sendReply(
-        error.code === "YT_LIMIT"
-          ? `_${error.message}_`
-          : "_Failed to fetch video info. Please check the link._"
+        text === "_Download failed!_" ? "_Failed to fetch video info. Please check the link._" : text
       );
     }
   }
@@ -369,6 +369,57 @@ Module(
         await inChatQueue(message, "ytv-video", () => sendYoutubeVideo(message, url, quality));
       }
     }
+  }
+);
+
+Module(
+  {
+    pattern: "ytlogin ?(.*)",
+    fromMe: true,
+    desc: "Sign in to YouTube, for servers YouTube asks to confirm they're not a bot",
+    usage: ".ytlogin | .ytlogin status | .ytlogin force",
+    use: "owner",
+  },
+  async (message, match) => {
+    const arg = match[1]?.trim().toLowerCase();
+    const loggedIn = await ytEngine.isLoggedIn();
+    if (arg === "status") {
+      return await message.sendReply(loggedIn ? "_Signed in to YouTube._" : "_Not signed in to YouTube._");
+    }
+    if (loggedIn && arg !== "force") {
+      return await message.sendReply(
+        `_Already signed in._\n_${helpPrefix()}ytlogout to sign out, ${helpPrefix()}ytlogin force to sign in again._`
+      );
+    }
+    // return once the code is out: waiting for approval would hold the chat's queue
+    await new Promise((codeSent) => {
+      ytEngine
+        .login(async ({ verification_url, user_code, expires_in }) => {
+          await message
+            .sendReply(
+              `*YouTube login*\n\n1. Open ${verification_url}\n2. Enter *${user_code}*\n3. Choose an account and allow access\n\n_Use a spare account. The code expires in ${Math.round(expires_in / 60)} minutes._`
+            )
+            .catch(() => {});
+          codeSent();
+        })
+        .then(() => message.sendReply("_Signed in to YouTube._"))
+        .catch((error) => message.sendReply(`_YouTube login failed: ${error.message}_`))
+        .catch(() => {})
+        .finally(codeSent);
+    });
+  }
+);
+
+Module(
+  {
+    pattern: "ytlogout",
+    fromMe: true,
+    desc: "Sign out of YouTube",
+    use: "owner",
+  },
+  async (message) => {
+    await ytEngine.logout();
+    await message.sendReply("_Signed out of YouTube._");
   }
 );
 

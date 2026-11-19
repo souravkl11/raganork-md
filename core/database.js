@@ -28,7 +28,6 @@ const WhatsappSession = sequelize.define('WhatsappSession', {
             }
         }
     },
-    // v3 layout: creds live here, keys live in WhatsappSessionKeys (one row each)
     creds: {
         type: DataTypes.TEXT,
         allowNull: true
@@ -59,7 +58,7 @@ const WhatsappSessionKey = sequelize.define('WhatsappSessionKey', {
     indexes: [{ fields: ['sessionId'] }]
 });
 
-// adds columns introduced after a table was first created (sync() never alters)
+// sync() never alters, so add newer columns by hand
 async function ensureColumns(model, columns) {
     const queryInterface = sequelize.getQueryInterface();
     const tableName = model.getTableName();
@@ -91,8 +90,6 @@ const BotVariable = sequelize.define('BotVariable', {
     timestamps: true
 });
 
-// per-session overrides of bot_variables, keyed by account (phone number).
-// the table is created by migration 001-session-variables
 const SessionVariable = sequelize.define('SessionVariable', {
     accountId: {
         type: DataTypes.STRING,
@@ -113,8 +110,7 @@ const SessionVariable = sequelize.define('SessionVariable', {
     timestamps: true
 });
 
-// memoized: index.js and the plugin loader both call it, and every table sync must
-// wait for the schema migrations (they add columns that model indexes refer to)
+// memoized: plugin table syncs wait on this single run
 let initializing = null;
 function initializeDatabase() {
     if (!initializing) initializing = runInitializeDatabase();
@@ -125,7 +121,6 @@ async function runInitializeDatabase() {
     try {
         await sequelize.authenticate();
         logger.info('Database connection established.');
-        await require('./db/migrator').runStage('schema');
         await WhatsappSession.sync();
         await ensureColumns(WhatsappSession, {
             creds: { type: DataTypes.TEXT, allowNull: true },
@@ -170,7 +165,6 @@ async function migrateSudoToLID(client) {
             }
             
             if (lids.length > 0) {
-                // inside a session this becomes that session's SUDO_MAP, outside it the global one
                 await require('./config/store').set('SUDO_MAP', JSON.stringify(lids), { persist: true });
                 logger.info(`Successfully migrated ${lids.length} SUDO entries to SUDO_MAP`);
             }

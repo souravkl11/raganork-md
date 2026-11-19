@@ -1,7 +1,6 @@
 const { loadBaileys } = require("../helpers");
 
-// makeWASocket, DisconnectReason and fetchLatestBaileysVersion, filled in once baileys has
-// loaded. read them at call time, never at require time
+// filled in once baileys loads: read at call time, never at require time
 const bindings = {};
 
 const ready = loadBaileys()
@@ -11,7 +10,6 @@ const ready = loadBaileys()
     bindings.fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
   })
   .catch((err) => {
-    // boot() awaits loadBaileys() itself and fails there, so this is only the log
     console.error("Failed to load baileys:", err.message);
   });
 

@@ -35,7 +35,6 @@ const FakeDB = sequelize.define("fake", {
   },
 }, accountOptions("fakes"));
 
-// Legacy antilink table - will be removed
 const antilinkDB = sequelize.define("antilink", {
   accountId,
   jid: {
@@ -44,8 +43,7 @@ const antilinkDB = sequelize.define("antilink", {
   },
 }, accountOptions("antilinks"));
 
-// New advanced antilink system
-// one row per (account, group): the old antilink_configs table is keyed by jid alone
+// keyed by (account, group); the legacy table is keyed by jid alone
 const AntilinkConfigDB = sequelize.define("antilink_config", {
   accountId: {
     type: DataTypes.STRING,
@@ -95,6 +93,40 @@ const AntilinkConfigDB = sequelize.define("antilink_config", {
     defaultValue: DataTypes.NOW,
   },
 }, { tableName: "account_antilink_configs" });
+
+const AntiStatusMentionDB = sequelize.define("anti_status_mention", {
+  accountId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    primaryKey: true,
+  },
+  jid: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    primaryKey: true,
+  },
+  enabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  action: {
+    type: DataTypes.ENUM("delete", "kick", "both"),
+    defaultValue: "delete",
+    allowNull: false,
+  },
+  replyEnabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  customMessage: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  updatedBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+}, { tableName: "account_anti_status_mentions" });
 
 const antiSpamDB = sequelize.define("antispam", {
   accountId,
@@ -217,6 +249,7 @@ const FilterDB = sequelize.define("filter", {
   FakeDB,
   antilinkDB,
   AntilinkConfigDB,
+  AntiStatusMentionDB,
   antiSpamDB,
   PDMDB,
   antiDemote,
@@ -231,8 +264,9 @@ const FilterDB = sequelize.define("filter", {
 module.exports = {
   warnDB,
   FakeDB,
-  antilinkDB, // Legacy - will be removed
+  antilinkDB,
   AntilinkConfigDB,
+  AntiStatusMentionDB,
   antiSpamDB,
   PDMDB,
   antiDemote,

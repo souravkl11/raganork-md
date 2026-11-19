@@ -1,21 +1,6 @@
-// turns a raw messages.upsert batch into the envelope every pipeline stage works on.
-// the envelope is a plain object; stages add their own fields to it.
-//
-//   raw         the upsert payload as Baileys delivered it
-//   msg         raw.messages[0] (the pipeline reads only the first message, as it always has)
-//   sock        the Baileys socket of the session this message arrived on
-//   jid         chat jid
-//   sender      who sent it, as permissions see it (identity.senderOf)
-//   botNumber   digits of the bot's own lid
-//   isGroup     group chat
-//   isPM        a private chat (not a group, not the status feed)
-//   fromMe      sent from the bot's own account
-//   type        first key of msg.message
-//   text        the message text, "" or false when there is none; filled in by extractText
-//   parsedText  text with the command's first characters normalised (see parseText)
+// builds the envelope object every pipeline stage works on from a messages.upsert batch.
 const { isGroup, isStatus, senderOf, botIds } = require("../identity");
 
-// null when the batch has nothing the bot can act on
 function normalize(raw, sock) {
   const msg = raw?.messages?.[0];
   if (!msg || !msg.key.remoteJid || !msg.message) return null;
@@ -38,9 +23,7 @@ function normalize(raw, sock) {
   };
 }
 
-// text of the message, or the id of a button the bot itself sent. a sticker has no text:
-// `sticker: true` tells the sticker-cmd stage to look it up. the order of the branches
-// is the order the old handler checked them in, and the first one present wins.
+// branch order matches the old handler; first match wins
 function extractText(env) {
   const { msg, botNumber } = env;
   const m = msg.message;
@@ -64,8 +47,7 @@ function extractText(env) {
   return { text: false };
 }
 
-// lower-cases the first character and removes a space after it (so "A ping" and
-// "a ping" match the same pattern); the second character is lower-cased too
+// "A ping" / "a ping" / ".Ping" all normalise to the same prefix
 function parseText(text) {
   if (!text) return null;
   const splitText = text.charAt(0).toLowerCase() + text.slice(1);

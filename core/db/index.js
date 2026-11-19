@@ -1,8 +1,7 @@
 const { Sequelize } = require("sequelize");
 const store = require("../config/store");
 
-// the one Sequelize instance. config.sequelize points at it. this file must not require
-// config.js or any model at load: config.js requires it while it is still being built
+// must not require config.js or any model at load: config.js requires this file
 
 function applySQLiteResilience(sequelizeInstance) {
   if (!sequelizeInstance || sequelizeInstance.__sqliteGuardsApplied) {
@@ -10,7 +9,7 @@ function applySQLiteResilience(sequelizeInstance) {
   }
 
   sequelizeInstance.__sqliteGuardsApplied = true;
-  const busyTimeoutMs = parseInt(process.env.SQLITE_BUSY_TIMEOUT || "15000", 10); // modifiable
+  const busyTimeoutMs = parseInt(process.env.SQLITE_BUSY_TIMEOUT || "15000", 10);
   const pragmas = [
     "PRAGMA journal_mode=WAL;",
     "PRAGMA synchronous=NORMAL;",
@@ -31,7 +30,6 @@ function applySQLiteResilience(sequelizeInstance) {
         });
       }
     } catch (error) {
-      // config is required here, not at load: it requires this file
       require("../../config").logger.warn({ err: error }, "failed to apply sqlite pragmas");
     }
   });
@@ -61,7 +59,7 @@ function applySQLiteResilience(sequelizeInstance) {
   };
 
   const isWriteQuery = (sql) => {
-    if (!sql || typeof sql !== "string") return true; // default to safe mode
+    if (!sql || typeof sql !== "string") return true;
     const normalizedSql = sql.trim().toUpperCase();
     return (
       normalizedSql.startsWith("INSERT") ||
@@ -75,9 +73,8 @@ function applySQLiteResilience(sequelizeInstance) {
   };
 
   sequelizeInstance.query = function serializedQuery(sql, ...rest) {
-    // only queue writes; reads can run concurrently. queries bound to a transaction
-    // skip the queue: the transaction already holds the lock, and queueing them behind
-    // a writer that is waiting on that lock stalls everything until busy_timeout
+    // only writes are queued. transaction-bound queries skip it: the transaction already holds
+    // the lock, and queueing behind a writer waiting on it stalls until busy_timeout
     if (!isWriteQuery(sql) || rest[0]?.transaction) {
       return originalQuery(sql, ...rest);
     }
@@ -140,7 +137,6 @@ const sequelize = (() => {
     return sqliteInstance;
   }
 
-  // ssl stays on unless DATABASE_SSL says otherwise (a plain postgres service in ci has none)
   const useSsl = !["false", "0", "off", "no"].includes(
     String(process.env.DATABASE_SSL ?? "true").trim().toLowerCase(),
   );

@@ -8,7 +8,6 @@ async function handleCall(bot, callUpdate) {
     if (config.REJECT_CALLS === true) {
       const _call = callUpdate[0];
       if (_call && _call.status === "offer") {
-        // Check if caller is in allowed list
         const allowedCallers = config.ALLOWED_CALLS
           ? config.ALLOWED_CALLS.split(",").map((num) => num.trim())
           : [];
@@ -29,7 +28,6 @@ async function handleCall(bot, callUpdate) {
             `Call rejected from non-allowed caller`,
           );
 
-          // Send rejection message if configured
           if (
             config.CALL_REJECT_MESSAGE &&
             config.CALL_REJECT_MESSAGE.trim()

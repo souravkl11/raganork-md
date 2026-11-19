@@ -11,14 +11,12 @@ const { commands } = require("./plugins/registry");
 const { loadAll } = require("./plugins/loader");
 const { handle } = require("./pipeline");
 
-// resolves once db config is loaded, every plugin is registered and tables are synced.
-// started on first require (as before); every entry point waits for it.
+// resolves once db config, plugins and table sync are done; entry points wait on it
 const ready = loadAll();
 ready.catch((error) => {
   console.error("Failed to load plugins:", error);
 });
 
-// one messages.upsert batch: wait for boot, then run the pipeline (core/pipeline)
 const handler = async (message, client) => {
   await ready;
   await handle(message, client);

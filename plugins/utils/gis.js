@@ -1,15 +1,6 @@
 const REGEX = /\["(\bhttps?:\/\/[^"]+)",(\d+),(\d+)\],null/g;
 
-/**
- *
- * Async version of g-i-s module, source: npm
- * @async
- * @param {String} searchTerm Search term to search
- * @param {Object} options Options for search
- * @param {Object} options.query You can use a custom query
- * @param {String} options.userAgent User agent for request
- * @returns {Promise<[{url: string, height: number, width: number }]>} Array of results
- */
+// async port of the g-i-s npm module
 async function gis(searchTerm, limit, options = {}) {
   if (!searchTerm || typeof searchTerm !== "string") return [];
   if (typeof options !== "object") return [];
@@ -27,7 +18,7 @@ async function gis(searchTerm, limit, options = {}) {
       })}`,
       { headers: { "User-Agent": userAgent }, signal: AbortSignal.timeout(30000) }
     ).then((res) => res.text()),
-    content = body; //.slice(body.lastIndexOf("ds:1"), body.lastIndexOf("sideChannel"));
+    content = body;
   REGEX.lastIndex = 0;
   let result;
   let urls = [];

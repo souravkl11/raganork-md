@@ -1,5 +1,4 @@
-// loads db config, then every plugin, then syncs tables, then restores external
-// plugins. order matters: plugins read config (HANDLERS, MODE, LANGUAGE) when they load.
+// order matters: plugins read config (HANDLERS, MODE, LANGUAGE) when they load
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
@@ -68,8 +67,6 @@ async function syncTables() {
   await config.sequelize.sync();
 }
 
-// re-downloads external plugins that are recorded in the db but missing on disk
-// (fresh container, redeploy). one slow or broken url must not block boot.
 async function restoreExternalPlugins() {
   const { PluginDB } = require("../db/models/plugin");
   const plugins = await PluginDB.findAll();

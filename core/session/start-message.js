@@ -29,7 +29,6 @@ function convertToNumberEmoji(n) {
   return result;
 }
 
-// the owner notice sent once, when a session first connects
 function buildStartMessage(config) {
   const readMore = String.fromCharCode(8206).repeat(4001);
   const check = "✅";

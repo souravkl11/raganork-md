@@ -39,7 +39,7 @@ A lightweight WhatsApp bot framework with multi-session support and extensive co
 
 ## Prerequisites
 
-- Node.js (version 20 or higher)
+- Node.js (version 24 or higher)
 - Git
 - FFmpeg
 - Yarn package manager
@@ -171,7 +171,7 @@ raganork-md/
 │   ├── pipeline/     # Message pipeline: middleware (antibot, antispam, filters, ...) and the command dispatcher
 │   ├── session/      # One WhatsApp session: socket, reconnects, manager, features (albums, anti-delete, calls)
 │   ├── plugins/      # Command registry and plugin loader
-│   ├── db/           # Sequelize setup, models, migrations and per-session scoping
+│   ├── db/           # Sequelize setup, models and per-session scoping
 │   ├── config/       # Typed settings: schema, store, derived values
 │   ├── services/     # Updater and the Render API client
 │   ├── constructors/ # Message objects handed to plugins

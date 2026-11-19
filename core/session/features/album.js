@@ -6,10 +6,8 @@ const { storeMessage } = require("../../store");
 const { getBuffer } = require("../../net");
 const { getAlbumMessages } = require("./album-lookup");
 
-// sends an album: the parent message first, then every image or video as a child of it
 async function albumMessage(bot, jid, array, quoted) {
   const { generateWAMessage, generateWAMessageFromContent } = await loadBaileys();
-  // Helper function to process media input
   const processMedia = async (media) => {
     if (typeof media === "string") {
       if (media.startsWith("http://") || media.startsWith("https://")) {
@@ -52,7 +50,6 @@ async function albumMessage(bot, jid, array, quoted) {
     messageId: album.key.id,
   });
 
-  // store album parent message to database using storeMessage
   try {
     const botJid = bot.sock.user.id.split(":")[0] + "@s.whatsapp.net";
     const albumParentCacheEntry = {
@@ -66,7 +63,6 @@ async function albumMessage(bot, jid, array, quoted) {
       pushName: null,
     };
     await storeMessage(albumParentCacheEntry);
-    // also cache in memory for immediate retrieval
     const cacheKey = `${album.key.remoteJid}_${album.key.id}`;
     bot.messageCache.set(cacheKey, albumParentCacheEntry);
 
@@ -86,7 +82,6 @@ async function albumMessage(bot, jid, array, quoted) {
   }
 
   for (let content of array) {
-    // Process media content
     const processedContent = { ...content };
     if (processedContent.image) {
       processedContent.image = await processMedia(
@@ -165,7 +160,6 @@ async function albumMessage(bot, jid, array, quoted) {
       },
     });
 
-    // store album child message to database using storeMessage
     try {
       const botJid =
         bot.sock.user.id.split(":")[0] + "@s.whatsapp.net";
@@ -180,7 +174,6 @@ async function albumMessage(bot, jid, array, quoted) {
         pushName: null,
       };
 
-      // remove relay-only fields before storing
       delete albumChildCacheEntry.message
         .forwardedNewsletterMessageInfo;
       delete albumChildCacheEntry.message.disappearingMode;

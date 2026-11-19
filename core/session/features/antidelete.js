@@ -10,37 +10,32 @@ const ANTI_DELETE_MODES = ["chat", "sudo", "custom"];
 const ANTI_DELETE_DEDUPE_MS = 10 * 60 * 1000;
 const recentlyRecovered = new Map();
 
-// true when the same deletion was already handled (revoke events can repeat)
 function seenRecently(cacheKey) {
   const now = Date.now();
   for (const [key, at] of recentlyRecovered) {
     if (now - at > ANTI_DELETE_DEDUPE_MS) recentlyRecovered.delete(key);
-    else break; // insertion ordered, the rest are newer
+    else break;
   }
   if (recentlyRecovered.has(cacheKey)) return true;
   recentlyRecovered.set(cacheKey, now);
   return false;
 }
 
-// where the recovered message should be sent. a deleted status cannot go back to the
-// status feed, so in "chat" mode it goes to the owner like in "sudo" mode
+// a deleted status can't go back to the feed, so "chat" mode sends it to the owner
 function resolveAntiDeleteTarget(originalChat, botUser) {
   if (config.ANTI_DELETE === "custom" && config.ANTI_DELETE_JID) {
     return config.ANTI_DELETE_JID;
   }
   if (config.ANTI_DELETE === "chat" && originalChat !== STATUS_JID) return originalChat;
-  // sudo: first SUDO_MAP entry (LID), then legacy SUDO numbers, then the bot itself
   return ownerTarget({ user: botUser });
 }
 
-// puts back a message that was deleted for everyone
 async function handleAntiDelete(bot, update) {
   const { remoteJid, id } = update.key;
   if (remoteJid.endsWith("@newsletter")) return;
   const isStatus = remoteJid === STATUS_JID;
 
   const cacheKey = `${remoteJid}_${id}`;
-  // revoke events repeat per session: each session recovers the message once
   const dedupeKey = `${bot.accountId}:${cacheKey}`;
   if (seenRecently(dedupeKey)) return;
 

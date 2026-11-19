@@ -1,5 +1,4 @@
-// updating the bot from its git remote. shared by the .update command and the
-// scheduler's auto-update. every dependency is on `deps`, so tests swap them for stubs
+// git updates for .update and auto-update. dependencies live on `deps` for test stubs.
 const fs = require("fs").promises;
 const path = require("path");
 const axios = require("axios");
@@ -12,10 +11,8 @@ const localPackageJson = require("../../package.json");
 const REMOTE_PACKAGE_URL =
   "https://raw.githubusercontent.com/souravkl11/raganork-md/main/package.json";
 
-// plugins/ holds installed gist plugins and hand edits, so changes there never block an update
+// plugins/ holds installed gist plugins and hand edits; never block an update on them
 const SAFE_DIR = "plugins/";
-// lockfiles are rewritten by a plain `yarn install`/`npm install`; reset restores them and
-// the update reinstalls when yarn.lock changed, so they never block either
 const GENERATED = new Set(["yarn.lock", "package-lock.json"]);
 
 function runYarnInstall() {
@@ -28,9 +25,6 @@ function runYarnInstall() {
   });
 }
 
-// every tracked path git reports as changed. untracked files are left out: reset --hard
-// cannot lose them. real simple-git reports everything in `files`; the other lists
-// are read too so a partial status still counts
 function changedPaths(status) {
   const out = new Set();
   for (const file of status?.files || []) {
@@ -77,8 +71,6 @@ function createUpdater(overrides = {}) {
     }
   }
 
-  // fetches and compares. throws "Failed to fetch remote version" when the version
-  // cannot be read; git errors pass through
   async function fetchCommits() {
     await deps.git.fetch();
     return deps.git.log(["main..origin/main"]);
@@ -101,14 +93,12 @@ function createUpdater(overrides = {}) {
     };
   }
 
-  // tracked files that differ from HEAD outside plugins/
   async function dirtyFiles() {
     const status = await deps.git.status();
     return changedPaths(status).filter((p) => !p.startsWith(SAFE_DIR) && !GENERATED.has(p));
   }
 
-  // untracked files the pull would overwrite (an installed plugin the bot now ships)
-  // make git abort; they are renamed to <name>.bak instead
+  // untracked files the pull would overwrite make git abort, so rename them to .bak
   async function clearCollisions() {
     const status = await deps.git.status();
     const untracked = (status?.files || [])
@@ -133,9 +123,7 @@ function createUpdater(overrides = {}) {
     return moved;
   }
 
-  // reset --hard throws local edits away, so refuse when it would: { updated: false, dirty }.
-  // force goes ahead anyway. when package.json or yarn.lock came in with the pull, modules are
-  // installed before returning; a failed install is reported in installError
+  // reset --hard drops local edits, so refuse unless forced
   async function applyLocal({ force = false } = {}) {
     const dirty = await dirtyFiles();
     if (dirty.length > 0 && !force) return { updated: false, dirty };
@@ -164,7 +152,6 @@ function createUpdater(overrides = {}) {
     return { updated: true, dirty, installed, installError, moved };
   }
 
-  // { started: false, reason: "no-key" } when RENDER_API_KEY is missing
   async function deployOnRender() {
     if (!deps.config.RENDER_API_KEY) return { started: false, reason: "no-key" };
     await deps.renderDeploy(process.env.RENDER_SERVICE_ID, deps.config.RENDER_API_KEY);

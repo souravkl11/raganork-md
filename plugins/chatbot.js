@@ -14,7 +14,6 @@ const DEFAULT_SYSTEM_PROMPT =
   "You are a helpful AI assistant named Raganork. Be concise, friendly, and informative.";
 const REPLY_COOLDOWN_MS = 2000;
 
-// history per (account, chat): two sessions in one chat do not share it
 const chatContexts = new Map();
 const chatQueues = new Map();
 
@@ -31,7 +30,6 @@ const enabledChats = derived(
     ),
 );
 
-// one call at a time per chat, in arrival order; a failed call does not block the next
 function inOrder(key, job) {
   const run = (chatQueues.get(key) || Promise.resolve()).then(job);
   const tail = run.catch(() => {});
@@ -42,7 +40,6 @@ function inOrder(key, job) {
   return run;
 }
 
-// true when the dispatcher would run a command for this text
 function looksLikeCommand(text) {
   const prefix = currentHandlerPrefix();
   if (prefix !== "^" && !config.MULTI_HANDLERS && new RegExp(prefix).test(text)) return true;
@@ -78,7 +75,6 @@ function extractResponseText(data) {
     return null;
   }
 
-  // Filter out thinking parts (where thought is true)
   const contentParts = parts.filter(
     (part) => !part.thought && typeof part.text === "string",
   );
@@ -89,7 +85,6 @@ function extractResponseText(data) {
       .trim();
   }
 
-  // Fallback to any part containing text
   const anyTextParts = parts.filter((part) => typeof part.text === "string");
   if (anyTextParts.length > 0) {
     return anyTextParts
@@ -201,7 +196,6 @@ async function getAIResponse(message, chatJid, imageBuffer = null) {
     const aiResponse = extractResponseText(response.data);
     if (aiResponse) {
       if (!chatContexts.has(accountKey(chatJid))) {
-        // Prevent unbounded memory growth if interacting across thousands of chats
         if (chatContexts.size >= 500) {
           const oldestChatKey = chatContexts.keys().next().value;
           if (oldestChatKey) chatContexts.delete(oldestChatKey);

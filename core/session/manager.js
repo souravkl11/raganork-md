@@ -2,7 +2,6 @@ const { WhatsAppBot } = require("./bot");
 const { logger, SESSION } = require('../../config');
 const { sequelize } = require("../database");
 const { CustomAuthState } = require("../auth");
-const migrator = require("../db/migrator");
 const configStore = require("../config/store");
 const { flushQueueOnShutdown, stopFlushTimer } = require("../store");
 const { ownerTarget } = require("../identity");
@@ -22,7 +21,6 @@ class BotManager {
         return [...this.bots.values()].filter((bot) => bot.isConnected && bot.sock);
     }
 
-    // called by bots on open/close; starts the shared feed and keeps its session count fresh
     onSessionStateChange() {
         if (!this.feed) {
             if (this.connectedBots().length === 0) return;
@@ -60,12 +58,7 @@ class BotManager {
     async initializeBots() {
         logger.info({ sessions: SESSION }, `Initializing all configured bots.`);
         await CustomAuthState.deleteGarbageSessions(SESSION);
-        // 1. every bot loads its auth, so the account ids are known
         const loaded = [];
-        // one entry per configured session, in SESSION order. `resolved` is true only when
-        // the account id came from the login (creds.me.id): a session that failed to load,
-        // or has not logged in yet, is unresolved and keeps data migrations from guessing
-        const accounts = [];
         for (const sessionId of SESSION) {
             try {
                 logger.info({ session: sessionId }, `Attempting to initialize bot for session.`);
@@ -73,19 +66,13 @@ class BotManager {
                 bot.manager = this;
                 await bot.loadAuth();
                 loaded.push(bot);
-                accounts.push({ sessionId, accountId: bot.accountId, resolved: Boolean(bot.accountResolved) });
             } catch (error) {
-                accounts.push({ sessionId, accountId: null, resolved: false });
                 logger.error({ session: sessionId, err: error }, `Overall failure to initialize bot in BotManager`);
             }
         }
 
-        // 2. data migrations and per-session settings, before any socket delivers a message.
-        // a failure here aborts boot (the error says which migration)
-        await migrator.runStage("data", { accounts });
         await configStore.reloadSessions();
 
-        // 3. connect
         for (const bot of loaded) {
             const sessionId = bot.sessionId;
             try {

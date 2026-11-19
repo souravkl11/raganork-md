@@ -11,9 +11,7 @@ const {
   uniqueTempPath,
   runFfmpeg,
 } = require("../../core/helpers");
-// Removed: const { ID3Writer } = require('browser-id3-writer');
 
-// Add EXIF data to stickers
 async function addExif(media, metadata) {
   if (!metadata.packname && !metadata.author) return media;
 
@@ -42,7 +40,6 @@ async function addExif(media, metadata) {
   return exifPath;
 }
 
-// runs fn with the replied media saved to a temp file, which is removed afterwards
 async function withDownload(replyMessage, fn) {
   const file = await replyMessage.download();
   try {
@@ -58,7 +55,6 @@ function clampInt(value, min, max, fallback) {
   return Math.min(max, Math.max(min, n));
 }
 
-// Apply bass boost to audio
 function bass(file, amount, callback) {
   const gain = clampInt(amount, 1, 50, 20);
   const bassPath = uniqueTempPath("bass.mp3");
@@ -78,7 +74,6 @@ function bass(file, amount, callback) {
 const STICKER_FILTER =
   "scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease,format=rgba,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000,setsar=1";
 
-// Create circular image/sticker
 async function circle(message) {
   if (!message.reply_message) {
     return await message.sendReply("Reply to a sticker or photo");
@@ -114,7 +109,6 @@ async function circle(message) {
   });
 }
 
-// Apply blur effect
 async function blur(file, count = 5) {
   const image = await require("jimp").read(file);
   image.blur(parseInt(count));
@@ -128,7 +122,6 @@ async function blur(file, count = 5) {
 
 const attp = (text) => require("../../core/private").attp(text);
 
-// Create sticker from media
 async function sticker(file, type = "image") {
   const opt =
     type === "video"
@@ -156,7 +149,6 @@ async function sticker(file, type = "image") {
   );
 }
 
-// Rotate video
 async function rotate(video, angle) {
   const rotated = await runFfmpeg(
     ffmpeg(video).withVideoFilter("transpose=" + angle),
@@ -173,7 +165,6 @@ async function rotate(video, angle) {
   }
 }
 
-// Mix audio and video
 async function avMix(video, audio) {
   const command = ffmpeg()
     .addInput(video)
@@ -253,7 +244,6 @@ function probeDuration(file) {
 
 const MAX_INTERP_SECONDS = 30;
 
-// a reply text when motion interpolation must not run on this video, null when it may
 async function interpolationLimit(file) {
   const seconds = await probeDuration(file).catch(() => null);
   if (seconds === null) return "_Could not read this video_";
@@ -279,7 +269,6 @@ function removeDir(dir) {
   return fs.promises.rm(dir, { recursive: true, force: true });
 }
 
-// one folder per (kind, key); folders left for more than 10 minutes are dropped first
 async function stagingDir(kind, key) {
   const root = getTempSubdir(kind);
   const cutoff = Date.now() - STAGING_MAX_AGE_MS;

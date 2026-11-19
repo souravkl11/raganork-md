@@ -1,13 +1,7 @@
 const { loadBaileys } = require("../../helpers");
 
-// re-sends a stored message to another chat.
-//
-// two callers keep their own old behaviour for contextInfo and mentions:
-//   default           anti-delete: merges options.contextInfo over the original one and
-//                     creates a contextInfo when mentions need one
-//   { legacy: true }  the deprecated Message#forwardMessage: options.contextInfo replaces the
-//                     generated one, mentions need an existing contextInfo (it throws without),
-//                     and the original contextInfo is merged underneath
+// re-sends a stored message. { legacy: true } keeps the deprecated Message#forwardMessage
+// contextInfo behaviour (options replace the generated contextInfo instead of merging).
 async function forwardMessage(client, jid, message, options = {}, { legacy = false } = {}) {
   const { generateForwardMessageContent, getContentType, generateWAMessageFromContent } =
     await loadBaileys();

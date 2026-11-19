@@ -1,7 +1,6 @@
 const { logger } = require("../../../config");
 const { getFullMessage, AntiDeleteCache, reviveBuffers } = require("../../store");
 
-// collects the children of an album from the message cache, then the database
 async function getAlbumMessages(bot, albumMessageId) {
   let expectedImageCount = 0;
   let expectedVideoCount = 0;
@@ -63,7 +62,7 @@ async function getAlbumMessages(bot, albumMessageId) {
   }
 
   const childMessages = [];
-  const TIMESTAMP_WINDOW = 5; // 3 seconds window for timestamp matching
+  const TIMESTAMP_WINDOW = 5;
 
   if (inCache) {
     const cacheKeys = bot.messageCache.keys
@@ -71,7 +70,6 @@ async function getAlbumMessages(bot, albumMessageId) {
       : Object.keys(bot.messageCache.data || {});
     for (const key of cacheKeys) {
       const msg = bot.messageCache.get(key);
-      // primary method: check messageContextInfo association
       if (
         msg?.message?.messageContextInfo?.messageAssociation
           ?.parentMessageKey?.id === albumMessageId
@@ -91,7 +89,6 @@ async function getAlbumMessages(bot, albumMessageId) {
       });
       for (const dbMsg of dbMessages) {
         const fullContent = reviveBuffers(dbMsg.fullContent);
-        // primary method: check messageContextInfo association
         if (
           fullContent?.message?.messageContextInfo?.messageAssociation
             ?.parentMessageKey?.id === albumMessageId &&
@@ -123,7 +120,6 @@ async function getAlbumMessages(bot, albumMessageId) {
     images.length === expectedImageCount &&
     videos.length === expectedVideoCount;
 
-  // fallback: if incomplete and we have parent metadata, try timestamp-based matching
   if (!complete && parentRemoteJid && albumTimestamp) {
     logger.debug(
       { session: bot.sessionId, albumId: albumMessageId },
@@ -204,7 +200,6 @@ async function getAlbumMessages(bot, albumMessageId) {
       }
     }
 
-    // sort by timestamp proximity and add to children
     fallbackCandidates.sort((a, b) => a.timeDiff - b.timeDiff);
 
     const neededImages = expectedImageCount - images.length;
@@ -234,7 +229,6 @@ async function getAlbumMessages(bot, albumMessageId) {
         );
       }
 
-      // stop if we found everything
       if (addedImages >= neededImages && addedVideos >= neededVideos) {
         break;
       }

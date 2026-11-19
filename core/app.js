@@ -1,4 +1,3 @@
-// explicit boot sequence. index.js loads env (dotenv) and then calls boot().
 const http = require("http");
 const lifecycle = require("./lifecycle");
 const config = require("../config");
@@ -17,12 +16,10 @@ const {
 
 const toMB = (bytes) => Math.round(bytes / 1024 / 1024);
 
-// no phone numbers in here: sessions are listed by their id only
 function buildStatus(manager) {
   const mem = process.memoryUsage();
   return {
-    // session ids are the keys the session backend hands out, so never publish them;
-    // the position in SESSION is enough to tell sessions apart
+    // session ids are backend keys: never publish them
     sessions: [...(manager?.bots?.values() || [])].map((bot, i) => ({
       session: i + 1,
       connected: Boolean(bot.isConnected),
@@ -39,8 +36,6 @@ function buildStatus(manager) {
   };
 }
 
-// /health is a plain liveness probe and must stay 200 whatever the sessions do;
-// /status is the one to look at for the real state
 function createServer(manager) {
   return http.createServer((req, res) => {
     const path = (req.url || "").split("?")[0];
@@ -91,7 +86,6 @@ async function boot() {
   }
 
   await loadBaileys();
-  // db config and plugins are loaded here, before any socket can deliver a message
   await require("./handler").ready;
 
   const manager = new BotManager();

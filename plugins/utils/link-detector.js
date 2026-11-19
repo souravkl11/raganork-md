@@ -1,7 +1,4 @@
-/**
- * Link Detection Utility
- * Detects URLs and domain names that WhatsApp recognizes as clickable links
- */
+// detects URLs and bare domains that WhatsApp renders as clickable links
 
 const validTLDs = [
   "com",
@@ -255,27 +252,14 @@ const validTLDs = [
   "in",
 ];
 
-/**
- * Check if a TLD is valid (recognized by WhatsApp as clickable)
- * @param {string} tld - The top-level domain to check
- * @returns {boolean} True if TLD is valid
- */
 function isValidTLD(tld) {
   return validTLDs.includes(tld.toLowerCase());
 }
 
-/**
- * Get all valid TLDs
- * @returns {string[]} Array of valid TLDs
- */
 function getValidTLDs() {
   return [...validTLDs];
 }
 
-/**
- * Create regex patterns for link detection
- * @returns {RegExp[]} Array of regex patterns
- */
 function createLinkPatterns() {
   const tldPattern = validTLDs.join("|");
 
@@ -293,11 +277,6 @@ function createLinkPatterns() {
   ];
 }
 
-/**
- * Filter detected links to remove false positives
- * @param {string} link - The link to validate
- * @returns {boolean} True if link should be kept
- */
 function isValidLink(link) {
   if (/^https?:\/\/$/.test(link)) {
     return false;
@@ -322,11 +301,6 @@ function isValidLink(link) {
   return true;
 }
 
-/**
- * Detect all links in a text message
- * @param {string} text - The text to scan for links
- * @returns {string[]} Array of detected links
- */
 function detectLinks(text) {
   if (!text || typeof text !== "string") {
     return [];
@@ -345,20 +319,10 @@ function detectLinks(text) {
   return [...new Set(foundLinks)].filter(isValidLink);
 }
 
-/**
- * Check if text contains any links
- * @param {string} text - The text to check
- * @returns {boolean} True if text contains links
- */
 function hasLinks(text) {
   return detectLinks(text).length > 0;
 }
 
-/**
- * Extract domain from a URL or link
- * @param {string} link - The link to extract domain from
- * @returns {string} The domain part of the link
- */
 function extractDomain(link) {
   try {
     if (!link.startsWith("http://") && !link.startsWith("https://")) {

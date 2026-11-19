@@ -1,7 +1,6 @@
 // chats the owner switched off (BLOCK_CHAT, RG): nothing after this runs for them
 const { derived } = require("../../config/derived");
 
-// parsed again only when the config value changes
 const blockedChatList = derived("BLOCK_CHAT", (raw) => (raw || "")?.split(","));
 const blockedJidList = derived("RG", (raw) => (raw || "")?.split(","));
 

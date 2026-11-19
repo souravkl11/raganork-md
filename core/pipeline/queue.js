@@ -1,15 +1,10 @@
-// the command queue: jobs for one chat run one at a time in arrival order, and a global
-// cap limits how many chats run a job at once. a job that runs past the timeout is
-// reported and stops holding its slots (it keeps running; nothing is killed), so a hung
-// download cannot block its chat or fill the cap forever.
-//
-// the queue is shared by every session. a job runs in the session context it was queued
-// from, not in the context of whichever job happened to finish before it.
+// per-chat FIFO with a global cap. timed-out jobs release their slot but keep running.
+// jobs run in the session context they were queued from.
 const context = require("../context");
 
 function createQueue({ limit = () => 8, timeout = () => 300000, onTimeout } = {}) {
-  const lanes = new Map(); // key -> { key, jobs: [], active }
-  const waiting = []; // lanes that have a job ready and wait for a global slot
+  const lanes = new Map();
+  const waiting = [];
   let running = 0;
 
   function pump() {
@@ -55,7 +50,6 @@ function createQueue({ limit = () => 8, timeout = () => 300000, onTimeout } = {}
       );
   }
 
-  // queue `job` behind earlier jobs with the same key. the promise settles with the job
   return function push(key, job, info) {
     return new Promise((resolve, reject) => {
       let lane = lanes.get(key);

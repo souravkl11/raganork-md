@@ -8,7 +8,6 @@ const { ownerTarget } = require("../../identity");
 const config = require("../../../config");
 const { inSpamScope } = require("./scope");
 
-// parsed again only when the config value changes
 const antispamLimits = derived("ANTISPAM_COUNT", (raw) => {
   const [count, seconds] = String(raw || "5/60").split("/");
   return { msgCount: parseInt(count), msgTime: parseInt(seconds + "000") };
@@ -29,7 +28,6 @@ const COUNTED_TYPES = [
   "audioMessage",
 ];
 
-// true when the message must not go any further
 async function check(env) {
   const { msg, sock, jid, isPM, isGroup, type } = env;
   const { msgCount, msgTime } = antispamLimits();

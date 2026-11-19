@@ -3,12 +3,6 @@ const { getTotalUserCount } = require("../../core/store");
 const config = require("../../config");
 const os = require("os");
 
-/**
- * Parse alive message with bot stats placeholders
- * @param {string} template - Message template with placeholders
- * @param {Object} messageObject - WhatsApp message object
- * @returns {Object} - Parsed message with text and media
- */
 async function parseAliveMessage(template, messageObject) {
   if (!template || !messageObject) return null;
 
@@ -99,11 +93,6 @@ async function parseAliveMessage(template, messageObject) {
   }
 }
 
-/**
- * Send parsed alive message
- * @param {Object} messageObject - WhatsApp message object
- * @param {Object} parsedMessage - Parsed message object
- */
 async function sendAliveMessage(messageObject, parsedMessage) {
   if (!parsedMessage) return;
 

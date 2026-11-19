@@ -20,7 +20,6 @@ const baileysPromise = loadBaileys()
     } = baileys);
   })
   .catch((err) => {
-    // boot() awaits loadBaileys() itself and fails there, so this is only the log
     console.error("Failed to load baileys:", err.message);
   });
 const Base = require("./base");
@@ -47,7 +46,6 @@ class Message extends Base {
 
     const botNumeric = identity.botIds(this.client).lid;
 
-    // sudo users come from SUDO_MAP (the current session's)
     this.fromOwner = data.key.fromMe || identity.isSudo(this.sender);
 
     this.senderName = data.pushName;
@@ -471,7 +469,6 @@ class Message extends Base {
       throw new Error("At least one button is required");
     }
 
-    // validate and clean buttons
     const { errors: btnErrors, warnings: btnWarnings, cleaned: cleanedButtons } = validateAuthoringButtons(buttons);
     if (btnErrors.length > 0) {
       throw new Error("Button validation failed: " + btnErrors.join("; "));
@@ -619,7 +616,6 @@ class Message extends Base {
       realOptions.ephemeralExpiration = ephemeralExpiration;
     }
 
-    // Get button args for proper relay
     const buttonType = getButtonType(messageContent);
     let additionalNodes = [];
     if (buttonType) {
@@ -637,10 +633,6 @@ class Message extends Base {
     return forwardMessage(this.client, jid, message, options, { legacy: true });
   }
 
-  /**
-   * Set ephemeral expiration for messages
-   * @param {number} expiration - Expiration time in seconds (e.g., 604800 for 7 days)
-   */
   setEphemeral(expiration) {
     this.ephemeral = {
       expiration: expiration,
@@ -653,18 +645,10 @@ class Message extends Base {
     };
   }
 
-  /**
-   * Check if the current chat has disappearing messages enabled
-   * @returns {boolean}
-   */
   hasEphemeralMessages() {
     return this.ephemeral !== null;
   }
 
-  /**
-   * Get ephemeral expiration time
-   * @returns {number|null} - Expiration time in seconds or null if not set
-   */
   getEphemeralExpiration() {
     return this.ephemeral ? this.ephemeral.expiration : null;
   }

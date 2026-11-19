@@ -5,24 +5,15 @@ const context = require("../core/context");
 const { isAndroidBrowser } = require("../core/session/socket-options");
 const { extractViewOnce } = require("./utils/viewonce");
 
-/**
- * Auto anti view-once.
- *
- * Every view once message the bot's number receives is forwarded, as a normal message,
- * to the chat set in VV_AUTO_JID the moment it arrives. This needs the android browser
- * (the default; not WA_BROWSER=chrome): a browser companion is never sent view once media. Messages the
- * bot's own number sends are not forwarded.
- */
+// forwards incoming view-once messages to VV_AUTO_JID. needs the android browser:
+// browser companions never receive view-once media.
 
-// android is the default; only WA_BROWSER=chrome turns it off
 const isAndroid = isAndroidBrowser;
-// the reply listener below finds the prompt by this phrase
 const ANDROID_PROMPT_MARK = "reply *yes* to this message";
 const ANDROID_NOTICE =
   `_Auto view once only works with the android browser, and it is not set now, so nothing will be saved yet._\n\n_To switch, ${ANDROID_PROMPT_MARK}, then restart the bot._`;
 
-// <account>:<id> of recently forwarded messages, so a message delivered twice (a retry,
-// a reconnect) is forwarded once. in memory only: oldest entries go first
+// dedupes retries/reconnect redeliveries
 const recent = new Set();
 const RECENT_MAX = 2000;
 function firstTime(key) {
@@ -83,7 +74,6 @@ Module(
   }
 );
 
-// "yes" to the prompt above sets the browser to android for this session
 Module({ on: "text", fromMe: true }, async (m) => {
   if (!m.fromOwner || !/^(yes|y)$/i.test((m.text || "").trim())) return;
   if (!m.quoted?.key?.fromMe) return;
@@ -120,18 +110,16 @@ Module({ on: "message", fromMe: false }, async (m) => {
   if (!target || typeof target !== "string") return;
 
   const key = m.data?.key;
-  // the bot's own view once messages (sent from this number) are not saved
   if (!key?.id || key.fromMe) return;
   const vv = extractViewOnce(m.data.message);
   if (!vv) return;
 
-  // two sessions in the same chat each forward to their own target
   const sentKey = `${context.accountId() || "_"}:${key.id}`;
   if (!firstTime(sentKey)) return;
   try {
     await forward(m, target, vv, key.id, key.participant || m.sender || m.jid);
   } catch (e) {
-    recent.delete(sentKey); // a later delivery of the same message may try again
+    recent.delete(sentKey);
     console.warn(`autovv: could not forward ${key.id} to ${target}: ${e?.message || e}`);
     if (config.DEBUG) console.error(e);
   }

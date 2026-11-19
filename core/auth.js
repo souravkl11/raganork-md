@@ -1,4 +1,4 @@
-// auth.js v4 - one db row per signal key, only changed keys get written
+// one db row per signal key; only changed keys are written
 const { WhatsappSession, WhatsappSessionKey, sequelize } = require("./database");
 const { logger } = require("../config");
 const { Op } = require("sequelize");
@@ -11,7 +11,6 @@ loadBaileys()
     ({ WAProto } = baileys);
   })
   .catch((err) => {
-    // boot() awaits loadBaileys() itself and fails there, so this is only the log
     console.error("Failed to load baileys:", err.message);
   });
 
@@ -19,12 +18,10 @@ const STORAGE_VERSION = 3;
 const FLUSH_INTERVAL = 3000;
 const WRITE_CHUNK = 300;
 
-// sessionId -> { creds, keys, dirtyKeys:Set, deletedKeys:Set, credsDirty }
 const sessionStore = new Map();
 let flushTimer = null;
 let flushing = false;
 
-// same wire format as baileys BufferJSON: buffers as base64
 function bufferReplacer(_, value) {
   if (
     Buffer.isBuffer(value) ||
@@ -39,7 +36,6 @@ function bufferReplacer(_, value) {
   return value;
 }
 
-// reads both base64 (new) and number-array (legacy blob) buffers
 function bufferReviver(_, value) {
   if (value && typeof value === "object" && value.type === "Buffer") {
     if (typeof value.data === "string") return Buffer.from(value.data, "base64");
@@ -69,7 +65,7 @@ function hasPendingWrites(entry) {
 async function flushSession(sessionId, entry) {
   if (!hasPendingWrites(entry)) return;
 
-  // take a snapshot of what changed and reset, so writes during the flush aren't lost
+  // snapshot and reset so writes during the flush aren't lost
   const dirty = [...entry.dirtyKeys];
   const deleted = [...entry.deletedKeys];
   const credsDirty = entry.credsDirty;
@@ -110,7 +106,6 @@ async function flushSession(sessionId, entry) {
       }
     });
   } catch (error) {
-    // put everything back so the next flush retries it
     for (const k of dirty) if (!entry.deletedKeys.has(k)) entry.dirtyKeys.add(k);
     for (const k of deleted) if (!entry.dirtyKeys.has(k)) entry.deletedKeys.add(k);
     if (credsDirty) entry.credsDirty = true;
@@ -142,9 +137,6 @@ function initPeriodicFlush() {
 
 initPeriodicFlush();
 
-/**
- * Creates a transaction-aware key store wrapper for better performance
- */
 function createTransactionalKeyStore(baseStore, logger) {
   let inTransaction = false;
   let transactionCache = {};
@@ -226,9 +218,6 @@ function createTransactionalKeyStore(baseStore, logger) {
   };
 }
 
-/**
- * CustomAuthState class to manage Baileys authentication state.
- */
 class CustomAuthState {
   constructor(sessionId) {
     this.sessionId = sessionId;
@@ -314,10 +303,7 @@ class CustomAuthState {
     this.sessionData.deletedKeys.add(keyName);
   }
 
-  /**
-   * Parses the legacy file-map format ({ "creds.json": "...", "<key>.json": "..." })
-   * used by the old blob column and by the session bootstrap backend.
-   */
+  // legacy file-map format ({ "creds.json": "...", "<key>.json": "..." })
   _parseLegacyFileMap(fileMap, source) {
     try {
       this.sessionData.creds = fileMap["creds.json"]
@@ -376,7 +362,6 @@ class CustomAuthState {
     return { found: true, legacy: false };
   }
 
-  // writes the whole in-memory session in the v3 layout. legacy blob is left untouched.
   async _writeFullV3() {
     const rows = Object.entries(this.sessionData.keys)
       .filter(([, value]) => value !== undefined && value !== null)
@@ -410,7 +395,6 @@ class CustomAuthState {
     return rows.length;
   }
 
-  // persist to v3; on failure keep running from memory and retry on next start
   async _migrateToV3(source) {
     try {
       const count = await this._writeFullV3();
@@ -432,7 +416,6 @@ class CustomAuthState {
       return;
     }
 
-    // 1. database (v3 rows, or the legacy blob which gets migrated)
     try {
       const v3 = await this._loadV3();
       if (v3.found && !v3.legacy && Object.keys(this.sessionData.creds).length) {
@@ -462,7 +445,6 @@ class CustomAuthState {
       );
     }
 
-    // 2. bootstrap from the session backend (first run with a session string)
     try {
       console.log(`- Fetching initial data for session ${this.sessionId}...`);
       const fileMap = await fetchInitialSession(this.sessionId);
@@ -512,14 +494,11 @@ class CustomAuthState {
     }
   }
 
-  // the phone number the session is logged in as. creds.me.id looks like
-  // "<digits>:<device>@s.whatsapp.net"; before the first login (or if it looks odd)
-  // the session id stands in
+  // creds.me.id is "<digits>:<device>@s.whatsapp.net"; falls back to the session id
   getAccountId() {
     return this._accountDigits() || this.sessionId;
   }
 
-  // false while getAccountId() is only the session id standing in
   hasAccountId() {
     return this._accountDigits() !== null;
   }
@@ -538,7 +517,7 @@ class CustomAuthState {
     return this.sessionData.creds;
   }
 
-  // mutate in place so baileys and the store keep sharing one creds object
+  // mutate in place so baileys and the store share one creds object
   async saveCredentials(newCreds) {
     Object.assign(this.sessionData.creds, newCreds);
     this.sessionData.credsDirty = true;
@@ -597,14 +576,11 @@ class CustomAuthState {
     }
   }
 
-  // flush pending key/creds writes now (graceful shutdown)
   static async saveAllSessions() {
-    // wait for an in-flight periodic flush, then flush whatever is left
     while (flushing) await new Promise((r) => setTimeout(r, 50));
     await flushAllSessions();
   }
 
-  // per-session key counts, used by the .mem diagnostics command
   static getStats() {
     const stats = {};
     for (const [sessionId, entry] of sessionStore.entries()) {
