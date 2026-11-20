@@ -155,11 +155,7 @@ function muxTracks(dl, output) {
   const command = ffmpeg()
     .input(dl.videoPath)
     .input(dl.audioPath)
-    .outputOptions(["-map", "0:v:0", "-map", "1:a:0", "-movflags", "+faststart"]);
-  if (dl.videoMime?.includes("avc1")) command.outputOptions(["-c:v", "copy"]);
-  else command.outputOptions(["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p"]);
-  if (dl.audioMime?.includes("mp4a")) command.outputOptions(["-c:a", "copy"]);
-  else command.outputOptions(["-c:a", "aac", "-b:a", "128k"]);
+    .outputOptions(["-map", "0:v:0", "-map", "1:a:0", "-c", "copy", "-movflags", "+faststart"]);
   return runFfmpeg(command, output);
 }
 
@@ -183,7 +179,7 @@ async function downloadVideo(url, quality = "360p") {
   } finally {
     await Promise.all([dl.videoPath, dl.audioPath].map((f) => fs.promises.unlink(f).catch(() => {})));
   }
-  return { path: output, title: info.title, quality: dl.quality || target };
+  return { path: output, title: info.title, quality: dl.quality || target, playable: Boolean(dl.videoMime?.includes("avc1")) };
 }
 
 async function downloadAudio(url) {
@@ -354,33 +350,35 @@ async function fetchCover(thumbnail, files) {
   }
 }
 
-async function toMp3(input, tags, files) {
-  const original = input.endsWith(".webm")
-    ? { path: input, ext: "webm", mimetype: "audio/webm" }
-    : { path: input, ext: "m4a", mimetype: "audio/mp4" };
+// aac is stream-copied into a tagged m4a; only other codecs (opus/webm) get encoded to mp3
+async function tagAudio(input, tags, files) {
+  const aac = !input.endsWith(".webm");
+  const original = aac
+    ? { path: input, ext: "m4a", mimetype: "audio/mp4" }
+    : { path: input, ext: "webm", mimetype: "audio/webm" };
   if (!ffmpeg) return original;
+  const result = aac ? { ext: "m4a", mimetype: "audio/mp4" } : { ext: "mp3", mimetype: "audio/mpeg" };
   const cover = tags.thumbnail ? await fetchCover(tags.thumbnail, files) : null;
   for (const withCover of cover ? [true, false] : [false]) {
-    const output = uniqueTempPath("yt_audio.mp3");
+    const output = uniqueTempPath(`yt_audio.${result.ext}`);
     files.push(output);
-    const command = ffmpeg(input).outputOption("-map", "0:a").outputOption("-c:a", "libmp3lame").outputOption("-q:a", "2");
+    const command = ffmpeg(input).outputOption("-map", "0:a");
+    if (aac) command.outputOption("-c:a", "copy");
+    else command.outputOption("-c:a", "libmp3lame").outputOption("-q:a", "2").outputOption("-id3v2_version", "3");
     if (withCover) {
-      command
-        .input(cover)
-        .outputOption("-map", "1:v")
-        .outputOption("-c:v", "mjpeg")
-        .outputOption("-metadata:s:v", "title=Album cover")
-        .outputOption("-metadata:s:v", "comment=Cover (front)");
+      command.input(cover).outputOption("-map", "1:v");
+      if (aac) command.outputOption("-c:v", "copy").outputOption("-disposition:v:0", "attached_pic");
+      else command.outputOption("-c:v", "mjpeg").outputOption("-metadata:s:v", "title=Album cover").outputOption("-metadata:s:v", "comment=Cover (front)");
     }
-    command.outputOption("-id3v2_version", "3");
+    if (aac) command.outputOption("-movflags", "+faststart");
     for (const key of ["title", "artist", "album"]) {
       if (tags[key]) command.outputOption("-metadata", `${key}=${tags[key]}`);
     }
     try {
       await runFfmpeg(command, output);
-      return { path: output, ext: "mp3", mimetype: "audio/mpeg" };
+      return { path: output, ...result };
     } catch (err) {
-      console.error("mp3 conversion failed:", err.message);
+      console.error("audio tagging failed:", err.message);
     }
   }
   return original;
@@ -430,7 +428,7 @@ async function sendYoutubeAudio(message, url, { asDocument = false, meta = {}, s
       album: meta.album,
       thumbnail: meta.thumbnail || result.info?.thumbnail,
     };
-    const audio = await toMp3(result.path, tags, files);
+    const audio = await tagAudio(result.path, tags, files);
     await say("_Sending audio..._");
     const stream = fs.createReadStream(audio.path);
     stream.on("error", () => {});
@@ -471,7 +469,7 @@ async function sendYoutubeVideo(message, url, quality = "360p", { status = null 
     const stream = fs.createReadStream(result.path);
     stream.on("error", () => {});
     try {
-      if (size > VIDEO_SIZE_LIMIT) {
+      if (size > VIDEO_SIZE_LIMIT || !result.playable) {
         await message.sendMessage({ stream }, "document", {
           fileName: `${safeFileName(result.title)}.mp4`,
           mimetype: "video/mp4",
