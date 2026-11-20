@@ -64,11 +64,22 @@ function createUpdater(overrides = {}) {
 
   async function getRemoteVersion() {
     try {
-      const response = await deps.axios.get(REMOTE_PACKAGE_URL);
+      const response = await deps.axios.get(`${REMOTE_PACKAGE_URL}?t=${Date.now()}`, {
+        headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+      });
       return response.data.version;
     } catch (error) {
       throw new Error("Failed to fetch remote version");
     }
+  }
+
+  async function getFetchedVersion() {
+    try {
+      const raw = await deps.git.show(["origin/main:package.json"]);
+      const version = JSON.parse(String(raw)).version;
+      if (version) return version;
+    } catch (_) {}
+    return getRemoteVersion();
   }
 
   async function fetchCommits() {
@@ -78,7 +89,7 @@ function createUpdater(overrides = {}) {
 
   async function check() {
     const commits = await fetchCommits();
-    const remoteVersion = await getRemoteVersion();
+    const remoteVersion = await getFetchedVersion();
     const localVersion = deps.localVersion;
     const hasCommits = commits.total > 0;
     const versionChanged = remoteVersion !== localVersion;
