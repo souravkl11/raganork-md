@@ -450,24 +450,34 @@ const spamKey = (userJid, chatJid) => `${context.accountId() || "_"}:${userJid}_
 async function trackSpamMessage(userJid, chatJid, messageId) {
   if (!userJid || !chatJid || !messageId) return;
   const key = spamKey(userJid, chatJid);
-  const now = Date.now();
   if (!spamTracker.has(key)) spamTracker.set(key, []);
   const entries = spamTracker.get(key);
-  entries.push(now);
+  entries.push({ ts: Date.now(), id: messageId });
   if (entries.length > 100) entries.shift();
 }
 
-async function getRecentMessageCount(userJid, chatJid, timeWindowMs) {
-  const key = spamKey(userJid, chatJid);
+function recentSpamEntries(userJid, chatJid, timeWindowMs) {
   const cutoff = Date.now() - timeWindowMs;
-  const entries = spamTracker.get(key) || [];
-  return entries.filter((ts) => ts >= cutoff).length;
+  return (spamTracker.get(spamKey(userJid, chatJid)) || []).filter((e) => e.ts >= cutoff);
+}
+
+async function getRecentMessageCount(userJid, chatJid, timeWindowMs) {
+  return recentSpamEntries(userJid, chatJid, timeWindowMs).length;
+}
+
+// message ids inside the window, so antispam can delete what triggered it
+async function getRecentSpamIds(userJid, chatJid, timeWindowMs) {
+  return recentSpamEntries(userJid, chatJid, timeWindowMs).map((e) => e.id);
+}
+
+function clearSpamTracker(userJid, chatJid) {
+  spamTracker.delete(spamKey(userJid, chatJid));
 }
 
 async function cleanupSpamTracker(olderThanMs = 5 * 60 * 1000) {
   const cutoff = Date.now() - olderThanMs;
-  for (const [key, timestamps] of spamTracker.entries()) {
-    const filtered = timestamps.filter((ts) => ts >= cutoff);
+  for (const [key, entries] of spamTracker.entries()) {
+    const filtered = entries.filter((e) => e.ts >= cutoff);
     if (filtered.length === 0) spamTracker.delete(key);
     else spamTracker.set(key, filtered);
   }
@@ -844,6 +854,8 @@ module.exports = {
   storeMessage,
   trackSpamMessage,
   getRecentMessageCount,
+  getRecentSpamIds,
+  clearSpamTracker,
   cleanupSpamTracker,
   cleanupAntiDeleteCache,
   getChatStats,

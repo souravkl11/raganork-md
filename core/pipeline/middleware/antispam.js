@@ -1,8 +1,15 @@
 // counts messages per user and chat; at the limit a PM sender is blocked, a group
-// member is kicked (admins only get a notice). a blocked PM ends the message. a failing
-// check is logged and the message carries on.
+// member's messages in the window are deleted and they are kicked (admins only get a
+// notice). stragglers from the same burst are deleted without a second kick. a blocked
+// PM ends the message; group messages carry on. a failing check is logged and the
+// message carries on.
 const { antispam } = require("../../db/functions");
-const { trackSpamMessage, getRecentMessageCount } = require("../../store");
+const {
+  trackSpamMessage,
+  getRecentMessageCount,
+  getRecentSpamIds,
+  clearSpamTracker,
+} = require("../../store");
 const { derived } = require("../../config/derived");
 const { ownerTarget } = require("../../identity");
 const config = require("../../../config");
@@ -28,6 +35,19 @@ const COUNTED_TYPES = [
   "audioMessage",
 ];
 
+// "chat|user" -> expiry; set once a member is punished so the rest of the burst is just deleted
+const punished = new Map();
+
+async function deleteMessages(sock, jid, participant, ids) {
+  await Promise.all(
+    ids.map((id) =>
+      sock
+        .sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id, participant } })
+        .catch(() => {}),
+    ),
+  );
+}
+
 async function check(env) {
   const { msg, sock, jid, isPM, isGroup, type } = env;
   const { msgCount, msgTime } = antispamLimits();
@@ -38,6 +58,16 @@ async function check(env) {
     if (!COUNTED_TYPES.includes(type)) return false;
 
     const userJid = isGroup ? msg.key.participant || msg.key.participantAlt : jid;
+
+    const punishKey = `${jid}|${userJid}`;
+    if (isGroup && punished.has(punishKey)) {
+      if (punished.get(punishKey) > Date.now()) {
+        await deleteMessages(sock, jid, userJid, [msg.key.id]);
+        return false;
+      }
+      punished.delete(punishKey);
+    }
+
     await trackSpamMessage(userJid, jid, msg.key.id);
     const recentCount = await getRecentMessageCount(userJid, jid, msgTime);
     if (recentCount < msgCount) return false;
@@ -64,10 +94,13 @@ async function check(env) {
     const metadata = await sock.groupMetadata(jid);
     const admins = metadata.participants.filter((v) => v.admin).map((x) => x.id);
     if (!admins.includes(userJid)) {
+      punished.set(punishKey, Date.now() + msgTime);
+      const ids = await getRecentSpamIds(userJid, jid, msgTime);
+      clearSpamTracker(userJid, jid);
+      await deleteMessages(sock, jid, userJid, ids);
       await sock.sendMessage(
         jid,
         { text: `_Spam detected! @${userJid?.split("@")[0]} kicked!_`, mentions: [userJid] },
-        { quoted: msg },
       );
       await sock.groupParticipantsUpdate(jid, [userJid], "remove");
     } else {
