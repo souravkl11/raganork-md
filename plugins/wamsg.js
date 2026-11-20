@@ -10,7 +10,7 @@ const hasMediaDetails = (node) => Boolean(node && (node.mediaKey || node.url || 
 async function reportVVFailure(m, reason) {
   const where = m.isGroup ? `group ${m.jid.split("@")[0]}` : m.jid.split("@")[0];
   try {
-    await m.client.sendMessage(ownerTarget(m.client, { map: false, self: "pn" }), {
+    await m.client.sendMessage(ownerTarget(m.client), {
       text: `*_.vv could not save a view once message_*\n\n_Chat:_ ${where}\n_Reason:_ ${reason}`,
     });
   } catch (_) {

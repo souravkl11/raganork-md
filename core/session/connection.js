@@ -92,6 +92,17 @@ async function handleConnectionUpdate(bot, update) {
     }, STABLE_CONNECTION_MS);
     bot.stableTimer.unref?.();
 
+    // before any owner notice, so legacy SUDO numbers already resolve to lids
+    try {
+      const { migrateSudoToLID } = require("../database");
+      await migrateSudoToLID(bot.sock);
+    } catch (error) {
+      logger.error(
+        { session: bot.sessionId, err: error },
+        `Failed to migrate SUDO to LIDs`,
+      );
+    }
+
     if (!bot.initialConnectMessageSent) {
       console.log(
         `- ✅ [${bot.sessionId}] Bot started: +${
@@ -123,16 +134,6 @@ async function handleConnectionUpdate(bot, update) {
       logger.error(
         { session: bot.sessionId, err: error },
         `Failed to execute start event handlers`,
-      );
-    }
-
-    try {
-      const { migrateSudoToLID } = require("../database");
-      await migrateSudoToLID(bot.sock);
-    } catch (error) {
-      logger.error(
-        { session: bot.sessionId, err: error },
-        `Failed to migrate SUDO to LIDs`,
       );
     }
 

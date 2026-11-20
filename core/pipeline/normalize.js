@@ -42,6 +42,14 @@ function extractText(env) {
   if (fromBotButton(m?.templateButtonReplyMessage)) {
     return { text: m.templateButtonReplyMessage.selectedId };
   }
+  // iOS answers a native quick_reply tap with buttonsResponseMessage, Android with templateButtonReplyMessage
+  if (fromBotButton(m?.buttonsResponseMessage) && m.buttonsResponseMessage.selectedButtonId) {
+    return { text: m.buttonsResponseMessage.selectedButtonId };
+  }
+  if (fromBotButton(m?.listResponseMessage)) {
+    const id = m.listResponseMessage.singleSelectReply?.selectedRowId;
+    if (id) return { text: id };
+  }
   if (m?.videoMessage?.caption) return { text: m.videoMessage.caption };
   if (m?.stickerMessage) return { text: false, sticker: true };
   return { text: false };

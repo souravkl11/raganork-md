@@ -308,24 +308,31 @@ async function searchYoutube(query, limit = 10) {
   }));
 }
 
-function qualityMenuText(info, videoId) {
+// [{ quality, size }] best first, plus { audio: true, size } when an audio stream exists
+function qualityOptions(info) {
   const videoFormats = (info.formats || [])
     .filter((f) => f.type === "video" && f.quality)
     .sort((a, b) => parseInt(b.quality.match(/(\d+)/)?.[1] || 0) - parseInt(a.quality.match(/(\d+)/)?.[1] || 0));
   const qualities = [...new Set(videoFormats.map((f) => f.quality))];
   if (!qualities.length) return null;
-
-  const audioFormat = info.formats.find((f) => f.type === "audio");
+  const audioFormat = (info.formats || []).find((f) => f.type === "audio");
   const audioSize = parseSize(audioFormat?.size);
-  let text = `_*Select Video Quality*_\n\n_*${info.title}*_\n\n(${videoId})\n\n`;
-  qualities.forEach((quality, index) => {
+  const options = qualities.map((quality) => {
     const videoSize = parseSize(videoFormats.find((f) => f.quality === quality).size);
-    const total = videoSize && audioSize ? videoSize + audioSize : 0;
-    text += `*${index + 1}.* _*${quality}*_${total ? ` ~ _${formatBytes(total)}_` : ""}\n`;
+    return { quality, size: videoSize && audioSize ? videoSize + audioSize : 0 };
   });
-  if (audioFormat) {
-    text += `*${qualities.length + 1}.* _*Audio Only*_${audioSize ? ` ~ _${formatBytes(audioSize)}_` : ""}\n`;
-  }
+  if (audioFormat) options.push({ audio: true, size: audioSize || 0 });
+  return options;
+}
+
+function qualityMenuText(info, videoId) {
+  const options = qualityOptions(info);
+  if (!options) return null;
+  let text = `_*Select Video Quality*_\n\n_*${info.title}*_\n\n(${videoId})\n\n`;
+  options.forEach((o, index) => {
+    const label = o.audio ? "Audio Only" : o.quality;
+    text += `*${index + 1}.* _*${label}*_${o.size ? ` ~ _${formatBytes(o.size)}_` : ""}\n`;
+  });
   return `${text}\n_Reply with a number to download_`;
 }
 
@@ -502,6 +509,7 @@ module.exports = {
   videoIdOf,
   assertWithinLimits,
   qualityMenuText,
+  qualityOptions,
   formatBytes,
   parseSize,
   failureText,

@@ -92,11 +92,17 @@ class Message extends Base {
         data.message.interactiveResponseMessage.contextInfo.participant.split(
           "@"
         )[0] === this.myjid;
+    } else if (data.message.listResponseMessage?.singleSelectReply?.selectedRowId) {
+      this.list = data.message.listResponseMessage.singleSelectReply.selectedRowId;
+      this.isOwnResponse =
+        data.message.listResponseMessage.contextInfo?.participant?.split("@")[0] === this.myjid;
     } else {
       this.list = null;
     }
     if (data.message.hasOwnProperty("templateButtonReplyMessage")) {
       this.button = data.message.templateButtonReplyMessage.selectedId;
+    } else if (data.message.buttonsResponseMessage?.selectedButtonId) {
+      this.button = data.message.buttonsResponseMessage.selectedButtonId;
     } else {
       this.button = null;
     }
@@ -437,195 +443,27 @@ class Message extends Base {
     return null;
   }
 
+  // raw native-flow sender (always interactive, throws on failure)
   async sendButtonMessage(content, options = {}) {
     await baileysPromise;
-    const { toBuffer } = require("../helpers");
-    const {
-      buildInteractiveButtons,
-      validateAuthoringButtons,
-      validateInteractiveMessageContent,
-      getButtonType,
-      getButtonArgs,
-    } = require("../helpers");
-
-    const {
-      title = "",
-      footer = "",
-      header = "",
-      buttons = [],
-      image = null,
-      video = null,
-      document = null,
-      fileName = null,
-      mimetype = null,
-      jpegThumbnail = null,
-      contextInfo = {},
-      externalAdReply = null,
-      quoted = null,
-      ephemeralExpiration = null,
-    } = content;
-
-    if (!buttons || buttons.length === 0) {
-      throw new Error("At least one button is required");
-    }
-
-    const { errors: btnErrors, warnings: btnWarnings, cleaned: cleanedButtons } = validateAuthoringButtons(buttons);
-    if (btnErrors.length > 0) {
-      throw new Error("Button validation failed: " + btnErrors.join("; "));
-    }
-    if (btnWarnings.length > 0) {
-      console.warn("Button warnings:", btnWarnings);
-    }
-
-    const interactiveButtons = buildInteractiveButtons(cleanedButtons);
-
-    let mediaPayload = null;
-
-    try {
-      if (image) {
-        if (typeof image === "string" && (image.startsWith("http://") || image.startsWith("https://"))) {
-          mediaPayload = { image: { url: image } };
-        } else {
-          const imageBuffer = await toBuffer(image);
-          mediaPayload = { image: imageBuffer };
-        }
-
-        const prepared = await prepareWAMessageMedia(
-          mediaPayload,
-          { upload: this.client.waUploadToServer }
-        );
-        if (prepared.imageMessage) {
-          mediaPayload = prepared;
-        }
-      } else if (video) {
-        if (typeof video === "string" && (video.startsWith("http://") || video.startsWith("https://"))) {
-          mediaPayload = { video: { url: video } };
-        } else {
-          const videoBuffer = await toBuffer(video);
-          mediaPayload = { video: videoBuffer };
-        }
-
-        const prepared = await prepareWAMessageMedia(
-          mediaPayload,
-          { upload: this.client.waUploadToServer }
-        );
-        if (prepared.videoMessage) {
-          mediaPayload = prepared;
-        }
-      } else if (document) {
-        let docPayload;
-        if (typeof document === "string" && (document.startsWith("http://") || document.startsWith("https://"))) {
-          docPayload = { document: { url: document } };
-        } else {
-          const docBuffer = await toBuffer(document);
-          docPayload = { document: docBuffer };
-        }
-
-        if (jpegThumbnail) {
-          docPayload.jpegThumbnail = jpegThumbnail;
-        }
-
-        const prepared = await prepareWAMessageMedia(
-          docPayload,
-          { upload: this.client.waUploadToServer }
-        );
-        if (prepared.documentMessage) {
-          if (fileName) {
-            prepared.documentMessage.fileName = fileName;
-          }
-          if (mimetype) {
-            prepared.documentMessage.mimetype = mimetype;
-          }
-          mediaPayload = prepared;
-        }
-      }
-    } catch (err) {
-      console.error("Error preparing media for button message:", err.message);
-      mediaPayload = null;
-    }
-
-    const interactiveMessageBody = {
-      body: { text: title || "" },
-      footer: { text: footer || "" },
-      nativeFlowMessage: {
-        buttons: interactiveButtons,
-      },
-    };
-
-    if (mediaPayload) {
-      interactiveMessageBody.header = {
-        title: header || "",
-        hasMediaAttachment: true,
-        ...mediaPayload,
-      };
-    } else {
-      interactiveMessageBody.header = {
-        title: header || "",
-        hasMediaAttachment: false,
-      };
-    }
-
-    let finalContextInfo = {
-      mentionedJid: contextInfo.mentionedJid || [],
-      forwardingScore: contextInfo.forwardingScore || 0,
-      isForwarded: contextInfo.isForwarded || false,
-      ...contextInfo,
-    };
-
-    if (externalAdReply) {
-      finalContextInfo.externalAdReply = {
-        title: externalAdReply.title || "",
-        body: externalAdReply.body || "",
-        mediaType: externalAdReply.mediaType || 1,
-        thumbnailUrl: externalAdReply.thumbnailUrl || "",
-        mediaUrl: externalAdReply.mediaUrl || "",
-        sourceUrl: externalAdReply.sourceUrl || "",
-        showAdAttribution: externalAdReply.showAdAttribution || false,
-        renderLargerThumbnail:
-          externalAdReply.renderLargerThumbnail || false,
-        ...externalAdReply,
-      };
-    }
-
-    if (Object.keys(finalContextInfo).length > 0) {
-      interactiveMessageBody.contextInfo = finalContextInfo;
-    }
-
-    const messageContent = {
-      interactiveMessage: interactiveMessageBody,
-    };
-
-    const { errors: contentErrors, warnings: contentWarnings, valid: contentValid } = validateInteractiveMessageContent(messageContent);
-    if (!contentValid) {
-      throw new Error("Interactive message validation failed: " + contentErrors.join("; "));
-    }
-    if (contentWarnings.length > 0) {
-      console.warn("Interactive message warnings:", contentWarnings);
-    }
-
-    const userJid = this.client.user?.id || this.client.user?.jid;
-    const waMessage = generateWAMessageFromContent(this.jid, messageContent, {
-      quoted: quoted || null,
-      userJid,
+    const ui = require("../ui");
+    const ephemeralExpiration =
+      content.ephemeralExpiration || (this.ephemeral ? this.ephemeral.expiration : null);
+    const sent = await ui.sendInteractive(this.client, this.jid, content, {
+      quoted: content.quoted || null,
+      ephemeralExpiration,
     });
+    return sent.key.id;
+  }
 
-    const realOptions = {};
-    if (this.ephemeral && !ephemeralExpiration) {
-      realOptions.ephemeralExpiration = this.ephemeral.expiration;
-    } else if (ephemeralExpiration) {
-      realOptions.ephemeralExpiration = ephemeralExpiration;
-    }
+  // list when BUTTONS is on, opts.text otherwise; quotes this message by default
+  async sendList(opts, { quoted = this.data } = {}) {
+    return require("../ui").sendList(this.client, this.jid, opts, { quoted });
+  }
 
-    const buttonType = getButtonType(messageContent);
-    let additionalNodes = [];
-    if (buttonType) {
-      additionalNodes.push(getButtonArgs(messageContent));
-    }
-
-    return await this.client.relayMessage(this.jid, waMessage.message, {
-      messageId: waMessage.key.id,
-      additionalNodes,
-    });
+  // buttons when BUTTONS is on, opts.text otherwise; quotes this message by default
+  async sendButtons(opts, { quoted = this.data } = {}) {
+    return require("../ui").sendButtons(this.client, this.jid, opts, { quoted });
   }
 
   // @deprecated

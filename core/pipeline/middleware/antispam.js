@@ -50,7 +50,7 @@ async function check(env) {
       );
       await sock.updateBlockStatus(jid, "block");
       await sock.sendMessage(
-        ownerTarget(sock, { legacy: false }),
+        ownerTarget(sock),
         {
           text: `_*=== Spam block report ===*_\n\n_User:_ @${
             userJid?.split("@")[0]

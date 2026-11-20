@@ -43,7 +43,7 @@ class BotManager {
 
         const sentTo = new Set();
         for (const bot of this.connectedBots()) {
-            const target = () => ownerTarget(bot.sock, { map: false, self: "pn" });
+            const target = () => ownerTarget(bot.sock);
             const owner = bot.inSession ? bot.inSession(target) : target();
             if (sentTo.has(owner)) continue;
             sentTo.add(owner);

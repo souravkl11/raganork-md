@@ -71,21 +71,13 @@ function messageSender(key) {
   return key.remoteJid.endsWith("lid") ? key.remoteJid : key.remoteJidAlt;
 }
 
-// where owner notices go. a notice site picks which lists it has always read:
-//   map     first SUDO_MAP entry (a LID)
-//   legacy  first number of SUDO
-//   self    "lid": the bot's own lid, with its device suffix; "pn": its phone jid
-function ownerTarget(sock, { map = true, legacy = true, self = "lid" } = {}) {
-  if (map) {
-    const first = getSudoMap()[0];
-    if (first) return first;
-  }
-  if (legacy) {
-    const first = config.SUDO && config.SUDO.split(",")[0].trim();
-    if (first) return first.includes("@") ? first : `${first}@s.whatsapp.net`;
-  }
-  const ids = botIds(sock);
-  return self === "lid" ? sock?.user?.lid || ids.pn : ids.pn;
+// where owner notices go: the first SUDO_MAP entry (a LID, set by .setsudo), else the bot's own lid.
+// legacy SUDO numbers are migrated into SUDO_MAP on connect, so they are never read here.
+function ownerTarget(sock) {
+  const first = getSudoMap()[0];
+  if (first) return first;
+  // phone jid only when the socket has no lid at all (never on a live connection)
+  return sock?.user?.lid || botIds(sock).pn;
 }
 
 module.exports = {

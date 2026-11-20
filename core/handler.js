@@ -10,6 +10,7 @@ String.prototype.format = function () {
 const { commands } = require("./plugins/registry");
 const { loadAll } = require("./plugins/loader");
 const { handle } = require("./pipeline");
+const { ownerTarget } = require("./identity");
 
 // resolves once db config, plugins and table sync are done; entry points wait on it
 const ready = loadAll();
@@ -76,7 +77,7 @@ const startEvent = async (client) => {
       );
       try {
         await client.sendMessage(
-          client.user?.id?.split(":")[0] + "@s.whatsapp.net",
+          ownerTarget(client),
           {
             text: `\`\`\`START EVENT ERROR (Handler #${index + 1}):\n\n${
               error.message

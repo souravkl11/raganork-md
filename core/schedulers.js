@@ -65,7 +65,7 @@ function trackTask(sessionId, task) {
 async function notifyOwners(text) {
   const sent = new Set();
   for (const { client, session } of sessions.values()) {
-    const target = () => ownerTarget(client, { map: false, self: "pn" });
+    const target = () => ownerTarget(client);
     const owner = session ? context.run(session, target) : target();
     if (sent.has(owner)) continue;
     sent.add(owner);
