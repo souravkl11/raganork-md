@@ -17,9 +17,11 @@ const { isPublicHttpUrl } = require("./guards");
 const engine = require("./yt-engine");
 
 const tempDir = () => getTempSubdir("yt");
+// above this a video goes out as a document instead of an inline video
 const VIDEO_SIZE_LIMIT = 150 * 1024 * 1024;
-const DEFAULT_MAX_DURATION_MIN = 30;
-const DEFAULT_MAX_SIZE_MB = 150;
+const DEFAULT_MAX_DURATION_MIN = 60;
+// WhatsApp accepts documents up to 2 GB, so the download cap sits there, not at the inline-video limit
+const DEFAULT_MAX_SIZE_MB = 2000;
 const YOUTUBE_HOSTS = new Set([
   "youtube.com",
   "www.youtube.com",

@@ -18,7 +18,7 @@ const entries = {
   MULTI_HANDLERS: { type: "bool", default: false },
   AUTO_LIKE_STATUS: { type: "bool", default: false },
   DISABLE_START_MESSAGE: { type: "bool", default: false },
-  BUTTONS: { type: "bool", default: true },
+  BUTTONS: { type: "bool", default: false },
   NOLOG: { type: "string", default: false, scope: "global" },
   DISABLED_COMMANDS: {
     type: "string",

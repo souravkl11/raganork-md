@@ -10,7 +10,7 @@ const CATEGORIES = [
       { key: "LANGUAGE", title: "Language", kind: "enum", options: [{ value: "english" }, { value: "manglish" }, { value: "turkish" }] },
       { key: "BOT_NAME", title: "Bot name", kind: "text" },
       { key: "BOT_INFO", title: "Bot info", kind: "text", desc: "name;owner;image", via: "setinfo" },
-      { key: "BUTTONS", title: "Interactive buttons", kind: "bool", desc: "experimental, use at your own risk" },
+      { key: "BUTTONS", title: "Interactive buttons", kind: "bool", desc: "experimental, use at your own risk", aliases: ["BUTTON"] },
     ],
   },
   {
@@ -100,7 +100,13 @@ function settingsCatalog() {
   return CATEGORIES;
 }
 
-const settingFor = (key) => byKey.get(String(key || "").trim().toUpperCase()) || null;
+const byAlias = new Map();
+for (const s of byKey.values()) for (const alias of s.aliases || []) byAlias.set(alias, s);
+
+const settingFor = (key) => {
+  const name = String(key || "").trim().toUpperCase();
+  return byKey.get(name) || byAlias.get(name) || null;
+};
 
 const allSettings = () => [...byKey.values()];
 

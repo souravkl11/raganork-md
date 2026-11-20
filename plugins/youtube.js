@@ -359,7 +359,11 @@ async function sendVideoDetails(message, video) {
     console.error("YTS thumbnail error:", error.message);
   }
   if (ui.enabled()) {
-    const body = caption.slice(0, caption.indexOf("_Reply with:_")).trim();
+    // the "Open on YouTube" button carries the link, so the body drops the URL line
+    const body = caption
+      .slice(0, caption.indexOf("_Reply with:_"))
+      .replace(/^\*URL:\*.*$/m, "")
+      .trim();
     return await message.sendButtons({
       text: caption,
       body,
