@@ -4,9 +4,9 @@ const VV_WRAPPERS = [
   "viewOnceMessageV2Extension",
 ];
 const MEDIA_TYPES = ["imageMessage", "videoMessage", "audioMessage"];
+const TEXT_TYPES = ["extendedTextMessage", "conversation"];
 
 // returns a clean (non view once) copy of a view once message, or null. covers the wrapped
-// forms and a bare media message carrying viewOnce: true (what an Android companion receives)
 function extractViewOnce(message) {
   if (!message) return null;
   const root = message.ephemeralMessage?.message || message;
@@ -14,13 +14,26 @@ function extractViewOnce(message) {
   const inner = wrapperKey ? root[wrapperKey].message : root;
   if (!inner) return null;
 
-  const type = MEDIA_TYPES.find((t) => inner[t]);
+  const type = [...MEDIA_TYPES, ...TEXT_TYPES].find((t) => inner[t]);
   if (!type) return null;
+  if (typeof inner[type] === "string") {
+    return wrapperKey ? { type, isText: true, text: inner[type], message: { [type]: inner[type] } } : null;
+  }
   if (!wrapperKey && !inner[type].viewOnce) return null;
 
-  const media = { ...inner[type] };
-  delete media.viewOnce;
-  return { type, message: { ...inner, [type]: media } };
+  const node = { ...inner[type] };
+  delete node.viewOnce;
+  const isText = TEXT_TYPES.includes(type);
+  return { type, isText, text: isText ? node.text || "" : undefined, message: { ...inner, [type]: node } };
 }
 
-module.exports = { extractViewOnce };
+// whether the copy is usable: text present, or media that can still be downloaded
+// (newer WhatsApp quotes view once as a stub without either)
+function hasViewOnceContent(vv) {
+  if (!vv) return false;
+  if (vv.isText) return Boolean(vv.text);
+  const node = vv.message[vv.type];
+  return Boolean(node && (node.mediaKey || node.url || node.directPath));
+}
+
+module.exports = { extractViewOnce, hasViewOnceContent };

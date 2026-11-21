@@ -402,6 +402,9 @@ function removeFiles(files) {
 
 function failureText(error) {
   if (error.code === "YT_LIMIT") return `_${error.message}_`;
+  if (error.code === "YT_IP_BLOCKED") {
+    return "_YouTube is blocking this server's IP address right now (HTTP 403). This is often temporary, so try again later. If it keeps happening, this host's IP is likely flagged, and a VPS or another host avoids it._";
+  }
   if (error.code === "YT_LOGIN_REQUIRED") {
     return "_YouTube is asking this server to sign in. The owner can fix this with the *ytlogin* command._";
   }

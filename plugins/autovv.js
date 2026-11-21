@@ -67,7 +67,7 @@ Module(
     }
     await setVar("VV_AUTO_JID", target);
     return await m.sendReply(
-      `_Auto view once activated ✅_\n\n_View once media will be sent to:_ ${target}${
+      `_Auto view once activated ✅_\n\n_View once messages will be sent to:_ ${target}${
         isAndroid() ? "" : `\n\n⚠️ ${ANDROID_NOTICE}`
       }`
     );
@@ -91,6 +91,10 @@ async function forward(m, target, vv, msgId, origSender) {
     sourceChat.endsWith("@g.us") ? "group " : ""
   }${sourceChat.split("@")[0]}`;
 
+  if (vv.isText) {
+    return await m.client.sendMessage(target, { text: `${vv.text}\n\n${info}`, mentions: [origSender] });
+  }
+
   const options = {
     contextInfo: { isForwarded: false, mentionedJid: [origSender] },
   };
@@ -112,7 +116,7 @@ Module({ on: "message", fromMe: false }, async (m) => {
   const key = m.data?.key;
   if (!key?.id || key.fromMe) return;
   const vv = extractViewOnce(m.data.message);
-  if (!vv) return;
+  if (!vv || (vv.isText && !vv.text)) return;
 
   const sentKey = `${context.accountId() || "_"}:${key.id}`;
   if (!firstTime(sentKey)) return;

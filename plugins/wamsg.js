@@ -2,7 +2,7 @@ const { Module } = require("../main");
 const { isAdmin } = require("./utils");
 const { ownerTarget } = require("../core/identity");
 const { getFullMessage, hasPendingWrites, flushPendingWrites } = require("../core/store");
-const { extractViewOnce } = require("./utils/viewonce");
+const { extractViewOnce, hasViewOnceContent } = require("./utils/viewonce");
 
 // newer WhatsApp quotes view-once as a stub with no key/link to download from
 const hasMediaDetails = (node) => Boolean(node && (node.mediaKey || node.url || node.directPath));
@@ -27,7 +27,7 @@ async function recoverFromStore(id) {
       const full = await getFullMessage(id);
       if (full?.found) {
         const vv = extractViewOnce(full.messageData?.message);
-        return vv && hasMediaDetails(vv.message[vv.type]) ? vv : null;
+        return hasViewOnceContent(vv) ? vv : null;
       }
       if (!hasPendingWrites() || Date.now() >= deadline) return null;
       await flushPendingWrites();
@@ -38,6 +38,8 @@ async function recoverFromStore(id) {
   }
 }
 
+const TEXT_STUB_REASON =
+  "WhatsApp quoted the view once text without its content, and the original was not found in the saved messages (it may be older than 48 hours). Turn on `.autovv` to save view once messages as soon as they arrive.";
 const STUB_REASON =
   "WhatsApp quoted the message without its media details, and the original was not found in the saved messages (it may be older than 48 hours, or it never arrived with its media). Set the browser to android (`.autovv here` offers to do it), and view once messages are saved as soon as they arrive.";
 Module(
@@ -140,6 +142,17 @@ Module(
     }
 
     if (match[1] && match[1].includes("@")) m.jid = match[1];
+
+    const textVV = extractViewOnce(quoted);
+    if (textVV?.isText) {
+      const text = textVV.text || (await recoverFromStore(m.quoted?.key?.id))?.text;
+      if (!text) return await reportVVFailure(m, TEXT_STUB_REASON);
+      try {
+        return await m.client.sendMessage(m.jid, { text });
+      } catch (error) {
+        return await reportVVFailure(m, String(error?.message || error));
+      }
+    }
 
     const viewOnceKey = [
       "viewOnceMessage",

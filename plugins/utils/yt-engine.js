@@ -14,6 +14,7 @@ const DEVICE_FIELDS = ["deviceMake", "deviceModel", "osName", "osVersion"];
 const VIDEO_QUALITIES = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "240p", "144p"];
 const AUDIO_QUALITIES = ["AUDIO_QUALITY_HIGH", "AUDIO_QUALITY_MEDIUM", "AUDIO_QUALITY_LOW"];
 const ANON_BLOCK_MS = 30 * 60 * 1000;
+const IP_BLOCK_MS = 10 * 60 * 1000;
 const INNERTUBE_TTL_MS = 30 * 60 * 1000;
 const INFO_TTL_MS = 2 * 60 * 1000;
 const PROFILES_URL = "https://gist.githubusercontent.com/souravkl11/d0d80aa9595de66be90ded00492e5e56/raw/tv-profiles.json";
@@ -269,9 +270,23 @@ async function innertubeFor(clientKey, credentials = null, profile = null) {
 const isBotCheck = (err) => /LOGIN_REQUIRED|not a bot/i.test(err.message);
 const isFinal = (err) => err.playability && !["LOGIN_REQUIRED", "UNPLAYABLE", "AGE_CHECK_REQUIRED"].includes(err.playability);
 
+// plain HTTP 403 from the innertube API itself: google refuses this server's IP (seen on render),
+// every client gets the same, login included
+const isIpBlock = (err) => /youtubei\/v1\/\S* failed with status code 403/i.test(err.message);
+
 let anonBlockedUntil = 0;
+let ipBlockedUntil = 0;
+
+function ipBlockedError(detail) {
+  const error = new Error(detail || "YouTube refuses this server's IP (HTTP 403)");
+  error.code = "YT_IP_BLOCKED";
+  error.primary = error.message;
+  return error;
+}
 
 async function withClients(fn) {
+  // all clients 403'd recently: fail at once instead of redoing every slow attempt per request
+  if (Date.now() < ipBlockedUntil) throw ipBlockedError();
   const credentials = await auth.getCredentials();
   const attempts = [];
   if (!credentials || Date.now() > anonBlockedUntil) {
@@ -282,16 +297,26 @@ async function withClients(fn) {
   }
 
   const failures = [];
+  // one 403 means the rest of that group (anonymous / login profiles) gets it too: try each group once
+  const ipBlocked = { anon: false, login: false };
+  const groupOf = (attempt) => (attempt.credentials ? "login" : "anon");
   for (const attempt of attempts) {
+    if (ipBlocked[groupOf(attempt)]) continue;
     try {
       return await fn(attempt);
     } catch (err) {
       failures.push({ attempt, err });
       if (credentials && !attempt.credentials && isBotCheck(err)) anonBlockedUntil = Date.now() + ANON_BLOCK_MS;
+      if (isIpBlock(err)) ipBlocked[groupOf(attempt)] = true;
       if (isFinal(err)) break;
     }
   }
-  const error = new Error(failures.map(({ attempt, err }) => `${attempt.label}: ${err.message}`).join("; "));
+  const detail = failures.map(({ attempt, err }) => `${attempt.label}: ${err.message}`).join("; ");
+  if (failures.length && failures.every(({ err }) => isIpBlock(err))) {
+    ipBlockedUntil = Date.now() + IP_BLOCK_MS;
+    throw ipBlockedError(detail);
+  }
+  const error = new Error(detail);
   error.primary = failures.at(-1)?.err.message;
   if (!credentials && failures.some(({ err }) => isBotCheck(err))) error.code = "YT_LOGIN_REQUIRED";
   throw error;
