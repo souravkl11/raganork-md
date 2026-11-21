@@ -65,6 +65,19 @@ async function syncTables() {
   await StickyCmdDB.sync();
   await ScheduledMessageDB.sync();
   await config.sequelize.sync();
+  // sync() never alters: add .antistatus post switch to tables made before it
+  const { ensureColumns } = require("../database");
+  const { AntiStatusMentionDB } = require("../db/models/group");
+  const { DataTypes } = require("sequelize");
+  await ensureColumns(AntiStatusMentionDB, {
+    postEnabled: { type: DataTypes.BOOLEAN, defaultValue: false },
+  });
+  // postgres keeps the enum it was created with
+  if (config.sequelize.getDialect() === "postgres") {
+    await config.sequelize
+      .query(`ALTER TYPE "enum_account_anti_status_mentions_action" ADD VALUE IF NOT EXISTS 'warn'`)
+      .catch((err) => console.warn("Could not add 'warn' to the antistatus action enum:", err.message));
+  }
 }
 
 async function restoreExternalPlugins() {

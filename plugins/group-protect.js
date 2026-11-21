@@ -18,6 +18,8 @@ const config = require("../config");
 const { helpPrefix } = require("../core/plugins/registry");
 const badWords = require("./utils/badwords");
 const { setVar, containsDisallowedWords, listOf } = require("./manage");
+const { isGroupStatusPost } = require("../core/session/features/status-stanza");
+const { debugOn } = require("../core/helpers");
 
 Module(
   {
@@ -480,76 +482,122 @@ Module(
   }
 );
 
-const STATUS_MENTION_ACTIONS = {
-  delete: "🗑️ delete the mention",
-  kick: "👢 kick the member",
-  both: "🗑️👢 delete the mention and kick the member",
+// .antistatus: statuses aimed at this group, of two kinds, each with its own switch:
+//   mention  a member's own status that mentions the group  (row.enabled, the original column)
+//   post     a status posted to the group itself            (row.postEnabled)
+// the status is always deleted; the shared action decides what happens to the member.
+const STATUS_ACTIONS = {
+  delete: "🗑️ delete the status",
+  warn: "⚠️ delete the status and warn the member (kick at the warn limit)",
+  kick: "👢 delete the status and kick the member",
 };
-const DEFAULT_STATUS_MENTION_REPLY =
-  "⚠️ *@user*, mentioning this group in a status is not allowed here.";
+// "both": rows saved before warn existed
+const statusAction = (action) => (action === "both" ? "kick" : STATUS_ACTIONS[action] ? action : "delete");
 
-const statusMentionSummary = (conf) =>
-  `*Status:* ${conf.enabled ? "✅ ENABLED" : "❌ DISABLED"}\n` +
-  `*Action:* ${STATUS_MENTION_ACTIONS[conf.action] || STATUS_MENTION_ACTIONS.delete}\n` +
-  `*Reply:* ${conf.replyEnabled ? "✅ ON" : "❌ OFF"}\n` +
+const STATUS_KINDS = {
+  mention: {
+    field: "enabled",
+    label: "Status mentions",
+    defaultReply: "⚠️ *@user*, mentioning this group in a status is not allowed here.",
+    warnReason: "Mentioning the group in a status",
+    detect: (message) => Boolean(message.data?.message?.groupStatusMentionMessage),
+    // a mention is an ordinary group message
+    remove: (message) => message.client.sendMessage(message.jid, { delete: message.data.key }),
+  },
+  post: {
+    field: "postEnabled",
+    label: "Group status posts",
+    defaultReply: "⚠️ *@user*, posting statuses in this group is not allowed.",
+    warnReason: "Posting a status in the group",
+    detect: (message) => {
+      const m = message.data?.message;
+      return Boolean(
+        m?.groupStatusMessageV2 || m?.groupStatusMessage || isGroupStatusPost(message.jid, message.id)
+      );
+    },
+    remove: (message) => message.revokeGroupStatus(message.data.key),
+  },
+};
+
+const onOff = (value) => (value ? "✅ ON" : "❌ OFF");
+const statusSummary = (conf) =>
+  `*Status mentions:* ${onOff(conf.enabled)}\n` +
+  `*Group status posts:* ${onOff(conf.postEnabled)}\n` +
+  `*Action:* ${STATUS_ACTIONS[statusAction(conf.action)]}\n` +
+  `*Reply:* ${onOff(conf.replyEnabled)}\n` +
   `*Reply text:* ${conf.customMessage || "Default"}`;
 
 Module(
   {
-    pattern: "antistatusmention ?(.*)",
+    pattern: "antistatus(?: |$)(.*)",
     fromMe: false,
-    desc: "Deletes group status mentions and/or kicks the member who posted them, with an optional reply",
+    desc: "Deletes statuses that mention this group or are posted to it, and can warn or kick the member",
     use: "group",
   },
   async (message, match) => {
     if (!(await groupAdminGuard(message))) return;
 
     const input = (match[1] || "").trim();
-    const command = input.split(/\s+/)[0].toLowerCase();
-    const value = input.slice(command.length).trim();
-    const p = helpPrefix();
-    const name = `${p}antistatusmention`;
+    let [command = "", ...rest] = input.split(/\s+/);
+    command = command.toLowerCase();
+    const value = rest.join(" ").trim();
+    const name = `${helpPrefix()}antistatus`;
     const by = { updatedBy: message.sender };
+    const needBotAdmin = async () => {
+      if (await isAdmin(message)) return false;
+      await message.sendReply("_I'm not an admin!_");
+      return true;
+    };
 
     let conf = await antiStatusMention.get(message.jid);
 
     try {
       switch (command) {
         case "on":
-        case "enable":
-          if (!(await isAdmin(message))) {
-            return await message.sendReply("_I'm not an admin!_");
-          }
-          conf = await antiStatusMention.set(message.jid, { enabled: true, ...by });
+        case "off": {
+          const on = command === "on";
+          if (on && (await needBotAdmin())) return;
+          conf = await antiStatusMention.set(message.jid, { enabled: on, postEnabled: on, ...by });
           return await message.sendReply(
-            `✅ *Anti status mention enabled!*\n\n${statusMentionSummary(conf)}\n\n` +
-              `_Use \`${name} help\` for more options_`
+            `${on ? "✅" : "❌"} *Anti status turned ${command.toUpperCase()}!*\n\n${statusSummary(conf)}` +
+              (on ? `\n\n_Use \`${name} help\` for more options_` : "")
           );
+        }
 
-        case "off":
-        case "disable":
-          if (conf) await antiStatusMention.set(message.jid, { enabled: false, ...by });
-          return await message.sendReply("❌ *Anti status mention disabled!*");
+        case "mention":
+        case "post": {
+          const kind = STATUS_KINDS[command];
+          const toggle = value.toLowerCase();
+          if (toggle !== "on" && toggle !== "off") {
+            return await message.sendReply(
+              `_Usage:_ \`${name} ${command} on/off\`\n` +
+                `_Currently:_ ${conf?.[kind.field] ? "on" : "off"}`
+            );
+          }
+          if (toggle === "on" && (await needBotAdmin())) return;
+          conf = await antiStatusMention.set(message.jid, { [kind.field]: toggle === "on", ...by });
+          return await message.sendReply(
+            `✅ *${kind.label} turned ${toggle.toUpperCase()}!*\n\n${statusSummary(conf)}`
+          );
+        }
 
         case "action":
         case "mode": {
           const action = value.toLowerCase();
-          if (!STATUS_MENTION_ACTIONS[action]) {
+          if (!STATUS_ACTIONS[action]) {
             return await message.sendReply(
-              `_Choose what happens when someone mentions this group in a status:_\n\n` +
-                `• \`delete\` - delete the mention only\n` +
-                `• \`kick\` - kick the member only\n` +
-                `• \`both\` - delete the mention and kick the member\n\n` +
-                `_Usage:_ \`${name} action both\``
+              `_Choose what happens to the member:_\n\n` +
+                `• \`delete\` - delete the status only\n` +
+                `• \`warn\` - delete it and warn the member (kicked at the warn limit)\n` +
+                `• \`kick\` - delete it and kick the member\n\n` +
+                `_Usage:_ \`${name} action warn\``
             );
           }
-          if (!(await isAdmin(message))) {
-            return await message.sendReply("_I'm not an admin!_");
-          }
-          conf = await antiStatusMention.set(message.jid, { action, enabled: true, ...by });
+          if (await needBotAdmin()) return;
+          conf = await antiStatusMention.set(message.jid, { action, ...by });
           return await message.sendReply(
-            `✅ *Action set to ${action.toUpperCase()}!*\n\n` +
-              `Will ${STATUS_MENTION_ACTIONS[action]} on a group status mention.`
+            `✅ *Action set to ${action.toUpperCase()}!*\n\nWill ${STATUS_ACTIONS[action]}.` +
+              (!conf.enabled && !conf.postEnabled ? `\n\n_Anti status is still off, use \`${name} on\`_` : "")
           );
         }
 
@@ -562,16 +610,8 @@ Module(
                 `_Currently:_ ${conf?.replyEnabled ? "on" : "off"}`
             );
           }
-          conf = await antiStatusMention.set(message.jid, {
-            replyEnabled: toggle === "on",
-            ...by,
-          });
-          return await message.sendReply(
-            `✅ *Reply turned ${toggle.toUpperCase()}!*` +
-              (toggle === "on" && !conf.enabled
-                ? `\n\n_Anti status mention is still off, use \`${name} on\`_`
-                : "")
-          );
+          conf = await antiStatusMention.set(message.jid, { replyEnabled: toggle === "on", ...by });
+          return await message.sendReply(`✅ *Reply turned ${toggle.toUpperCase()}!*`);
         }
 
         case "message":
@@ -579,7 +619,7 @@ Module(
           if (!value) {
             return await message.sendReply(
               `_Set the reply sent after acting:_\n\n` +
-                `_Usage:_ \`${name} message Don't mention this group in statuses @user\`\n` +
+                `_Usage:_ \`${name} message No statuses here @user\`\n` +
                 `• \`@user\` becomes a mention of the member\n` +
                 `• \`${name} message reset\` goes back to the default\n\n` +
                 `_Current:_ ${conf?.customMessage || "Default"}`
@@ -601,16 +641,18 @@ Module(
 
         case "reset":
           if (conf) await antiStatusMention.delete(message.jid);
-          return await message.sendReply("🔄 *Anti status mention settings reset!*");
+          return await message.sendReply("🔄 *Anti status settings reset!*");
 
         case "help":
           return await message.sendReply(
-            `🛡️ *Anti Status Mention Help*\n\n` +
-              `_Acts when a member mentions this group in their status. ` +
-              `Admins and the owner are skipped, and the bot must be an admin._\n\n` +
-              `• \`${name} on/off\` - Enable/disable\n` +
-              `• \`${name} action delete/kick/both\` - What to do\n` +
-              `• \`${name} reply on/off\` - Send a message afterwards\n` +
+            `🛡️ *Anti Status Help*\n\n` +
+              `_Acts on statuses aimed at this group: a member's own status that mentions it, or a ` +
+              `status posted to the group. Admins and the owner are skipped, and the bot must be an admin._\n\n` +
+              `• \`${name} on/off\` - Both kinds on/off\n` +
+              `• \`${name} mention on/off\` - Statuses that mention this group\n` +
+              `• \`${name} post on/off\` - Statuses posted to this group\n` +
+              `• \`${name} action delete/warn/kick\` - What happens to the member\n` +
+              `• \`${name} reply on/off\` - Send a message afterwards (always sent on warn)\n` +
               `• \`${name} message <text>\` - Custom reply (\`@user\` mentions them)\n` +
               `• \`${name} message reset\` - Default reply\n` +
               `• \`${name} reset\` - Remove the settings\n` +
@@ -620,28 +662,21 @@ Module(
         case "status":
         default: {
           const { subject } = await message.client.groupMetadata(message.jid);
-          const shown = conf || {
-            enabled: false,
-            action: "delete",
-            replyEnabled: false,
-            customMessage: null,
-          };
+          const shown = conf || { enabled: false, postEnabled: false, action: "delete", replyEnabled: false };
           return await message.sendReply(
-            `🛡️ *Anti Status Mention - ${subject}*\n\n${statusMentionSummary(shown)}\n\n` +
+            `🛡️ *Anti Status - ${subject}*\n\n${statusSummary(shown)}\n\n` +
               `_Use \`${name} help\` for all commands_`
           );
         }
       }
     } catch (error) {
-      console.error("Anti status mention error:", error);
-      return await message.sendReply(
-        "_An error occurred while updating anti status mention settings._"
-      );
+      console.error("Anti status error:", error);
+      return await message.sendReply("_An error occurred while updating anti status settings._");
     }
   }
 );
 
-const handledStatusMentions = new Set();
+const handledStatuses = new Set();
 
 Module(
   {
@@ -650,47 +685,52 @@ Module(
   },
   async (message) => {
     if (!message.isGroup || message.fromMe) return;
-    if (!message.data?.message?.groupStatusMentionMessage) return;
+    const kind = Object.values(STATUS_KINDS).find((k) => k.detect(message));
+    if (!kind) return;
 
     const conf = await antiStatusMention.get(message.jid);
-    if (!conf || !conf.enabled) return;
+    if (!conf || !conf[kind.field]) return;
 
     const poster = message.sender;
     if (!poster) return;
-    if (message.fromOwner || (await isAdmin(message, poster))) return;
+    // exempt on purpose; said out loud under DEBUG since a silent skip looks like a bug
+    const exempt = message.fromOwner ? "owner/sudo" : (await isAdmin(message, poster)) ? "group admin" : null;
+    if (exempt) {
+      if (debugOn()) console.log(`[antistatus] skipped ${poster} in ${message.jid}: ${exempt} is exempt`);
+      return;
+    }
     if (!(await isAdmin(message))) {
-      console.warn(`[antistatusmention] not an admin in ${message.jid}, cannot act`);
+      console.warn(`[antistatus] not an admin in ${message.jid}, cannot act`);
       return;
     }
 
     const handledKey = `${message.jid}:${message.id}`;
-    if (handledStatusMentions.has(handledKey)) return;
-    handledStatusMentions.add(handledKey);
-    if (handledStatusMentions.size > 500) {
-      handledStatusMentions.delete(handledStatusMentions.values().next().value);
+    if (handledStatuses.has(handledKey)) return;
+    handledStatuses.add(handledKey);
+    if (handledStatuses.size > 500) handledStatuses.delete(handledStatuses.values().next().value);
+
+    try {
+      await kind.remove(message);
+    } catch (error) {
+      console.error("Anti status delete error:", error);
     }
 
-    if (conf.action !== "kick") {
-      try {
-        await message.client.sendMessage(message.jid, { delete: message.data.key });
-      } catch (error) {
-        console.error("Anti status mention delete error:", error);
-      }
+    const number = poster.split("@")[0].split(":")[0];
+    const notice = (conf.customMessage || kind.defaultReply).replace(/@user/gi, `@${number}`);
+    const action = statusAction(conf.action);
+    if (action === "warn") {
+      // warnMember sends the notice with the warn count, and kicks at the limit
+      return await warnMember(message, poster, kind.warnReason, notice);
     }
-    if (conf.action !== "delete") {
+    if (action === "kick") {
       try {
         await message.client.groupParticipantsUpdate(message.jid, [poster], "remove");
       } catch (error) {
-        console.error("Anti status mention kick error:", error);
+        console.error("Anti status kick error:", error);
       }
     }
     if (conf.replyEnabled) {
-      const number = poster.split("@")[0].split(":")[0];
-      const text = (conf.customMessage || DEFAULT_STATUS_MENTION_REPLY).replace(
-        /@user/gi,
-        `@${number}`
-      );
-      await message.sendMessage(text, "text", { mentions: [poster] });
+      await message.sendMessage(notice, "text", { mentions: [poster] });
     }
   }
 );

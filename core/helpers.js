@@ -494,7 +494,15 @@ function getButtonArgs(message) {
   }
 }
 
+const frameDebugOn = () => require("../config").DEBUG === "frame";
+const debugOn = () => {
+  const value = require("../config").DEBUG;
+  return value === true || value === "true" || value === "frame";
+};
+
 module.exports = {
+  debugOn,
+  frameDebugOn,
   loadBaileys,
   suppressLibsignalLogs,
   genThumb,

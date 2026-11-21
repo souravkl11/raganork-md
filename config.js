@@ -6,7 +6,17 @@ const store = require("./core/config/store");
 const platform = require("./core/platform").current();
 const { isVPS, isHeroku, isKoyeb, isRailway } = platform;
 
-const logger = P({ level: process.env.LOG_LEVEL || "warn" });
+// error+ goes to stderr so pm2's error log (and .log) carries it
+const logger = P(
+  { level: process.env.LOG_LEVEL || "warn" },
+  P.multistream(
+    [
+      { level: "trace", stream: process.stdout },
+      { level: "error", stream: process.stderr },
+    ],
+    { dedupe: true }
+  )
+);
 const baileysLogger = P({ level: process.env.BAILEYS_LOG_LEVEL || "silent" });
 
 const VERSION = require("./package.json").version;

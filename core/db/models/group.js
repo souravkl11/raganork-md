@@ -105,12 +105,18 @@ const AntiStatusMentionDB = sequelize.define("anti_status_mention", {
     allowNull: false,
     primaryKey: true,
   },
+  // .antistatus mention switch (the original column)
   enabled: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  // .antistatus post switch: statuses posted to the group itself
+  postEnabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
   action: {
-    type: DataTypes.ENUM("delete", "kick", "both"),
+    type: DataTypes.ENUM("delete", "kick", "both", "warn"),
     defaultValue: "delete",
     allowNull: false,
   },

@@ -262,6 +262,28 @@ class Message extends Base {
     return waMessage;
   }
 
+  async revokeGroupStatus(key) {
+    if (!this.jid.endsWith("@g.us")) {
+      throw new Error("Group status can only be revoked in a group chat.");
+    }
+    // the author without a device suffix (8362502684674:84@lid -> 8362502684674@lid)
+    const author = (key.participant || "").replace(/:\d+@/, "@");
+    if (!author) throw new Error("Revoking a group status needs its author (key.participant).");
+    const { relayGroupStatusStanza } = require("../session/features/status-stanza");
+    return await relayGroupStatusStanza(
+      this.client,
+      this.jid,
+      {
+        protocolMessage: {
+          key: { remoteJid: this.jid, fromMe: false, id: key.id, participant: author },
+          type: 0, // REVOKE
+        },
+        messageContextInfo: {},
+      },
+      { edit: "8" }
+    );
+  }
+
   async sendMessage(content, type = "text", options = {}) {
     const { ephemeralExpiration, quoted, ...messageOptions } = options;
 

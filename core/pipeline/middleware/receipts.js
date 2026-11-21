@@ -1,12 +1,11 @@
 const config = require("../../../config");
 const { isStatus, botIds } = require("../../identity");
-const { loadBaileys } = require("../../helpers");
+const { loadBaileys, debugOn } = require("../../helpers");
 
 const READABLE_STATUS = ["audioMessage", "imageMessage", "videoMessage", "extendedTextMessage"];
 
 const LIKE_EMOJI = "💚";
 
-const debugOn = () => config.DEBUG === true || config.DEBUG === "true";
 
 const posterOf = (key) => key.participant || key.participantAlt || key.remoteJidAlt;
 

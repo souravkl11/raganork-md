@@ -4,6 +4,8 @@ if (fs.existsSync("./config.env")) {
   require("dotenv").config({ path: "./config.env" });
 }
 
+require("./core/logbuffer").install();
+
 const { suppressLibsignalLogs } = require("./core/helpers");
 
 suppressLibsignalLogs();

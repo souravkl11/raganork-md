@@ -66,7 +66,8 @@ const entries = {
   CMD_TIMEOUT: { type: "int", default: 300, scope: "global" },
 
   // built in config.js / read straight from env by their consumers
-  DEBUG: { type: "string", default: false, scope: "global", env: legacyBool, external: true },
+  // "frame" also logs raw group frames (debugOn/frameDebugOn in core/helpers.js)
+  DEBUG: { type: "string", default: false, scope: "global", env: (raw) => (raw === "frame" ? "frame" : legacyBool(raw)), external: true },
   DATABASE_URL: { type: "string", scope: "global", external: true },
   SESSION: { type: "string", scope: "global", external: true },
   LOG_LEVEL: { type: "string", default: "warn", scope: "global", external: true },

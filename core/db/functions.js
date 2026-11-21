@@ -364,33 +364,34 @@ async function resetAntiBot() {
   }
 }
 
-// cached: checked on every message
-const antiStatusMentionList = cachedList(() => AntiStatusMentionDB.findAll());
-
-async function getAntiStatusMention(jid = null) {
-  const rows = await antiStatusMentionList();
-  if (!jid) return rows;
-  return rows.find((row) => row.jid === jid) || null;
-}
-
-async function setAntiStatusMention(jid, fields = {}) {
-  if (!jid) return false;
-  try {
-    // upsert, not create: scoping stamps accountId on upsert before validation
-    await AntiStatusMentionDB.upsert({ ...fields, jid });
-    return await AntiStatusMentionDB.findOne({ where: { jid } });
-  } finally {
-    antiStatusMentionList.invalidate();
-  }
-}
-
-async function delAntiStatusMention(jid = null) {
-  if (!jid) return false;
-  try {
-    return await AntiStatusMentionDB.destroy({ where: { jid } });
-  } finally {
-    antiStatusMentionList.invalidate();
-  }
+// per-group on/action/reply settings; cached: checked on every message
+function groupSettingStore(Model) {
+  const list = cachedList(() => Model.findAll());
+  return {
+    async get(jid = null) {
+      const rows = await list();
+      if (!jid) return rows;
+      return rows.find((row) => row.jid === jid) || null;
+    },
+    async set(jid, fields = {}) {
+      if (!jid) return false;
+      try {
+        // upsert, not create: scoping stamps accountId on upsert before validation
+        await Model.upsert({ ...fields, jid });
+        return await Model.findOne({ where: { jid } });
+      } finally {
+        list.invalidate();
+      }
+    },
+    async delete(jid = null) {
+      if (!jid) return false;
+      try {
+        return await Model.destroy({ where: { jid } });
+      } finally {
+        list.invalidate();
+      }
+    },
+  };
 }
 
 const antiWordList = cachedList(() => antiWordDB.findAll());
@@ -638,11 +639,7 @@ const antilinkConfig = {
   parsePattern: parseAntilinkPattern,
   checkAllowed: checkLinkAllowed,
 };
-const antiStatusMention = {
-  get: getAntiStatusMention,
-  set: setAntiStatusMention,
-  delete: delAntiStatusMention,
-};
+const antiStatusMention = groupSettingStore(AntiStatusMentionDB);
 const antiword = {
   set: setAntiWord,
   get: getAntiWord,

@@ -4,10 +4,12 @@ const { groupUpdate, handler } = require("../handler");
 const { handleCall } = require("./features/calls");
 const { ANTI_DELETE_MODES } = require("./features/antidelete");
 const { readEncryptedEdit } = require("./features/message-edit");
-const { bridgeStatusStanzas } = require("./features/status-stanza");
+const { bridgeStatusStanzas, logGroupFrames } = require("./features/status-stanza");
+const { debugOn } = require("../helpers");
 
 function wireEvents(bot) {
   bridgeStatusStanzas(bot.sock);
+  logGroupFrames(bot.sock);
   bot._on("creds.update", async (newCreds) => {
     try {
       logger.info(
@@ -55,7 +57,7 @@ function wireEvents(bot) {
       }
     }
     // DEBUG: log statuses before anything drops them; undecryptable ones never reach [msg]
-    if (config.DEBUG === true || config.DEBUG === "true") {
+    if (debugOn()) {
       for (const m of upsert.messages) {
         if (m.key?.remoteJid !== "status@broadcast") continue;
         const content = m.message ? Object.keys(m.message).join(",") : "no content";

@@ -1,9 +1,8 @@
 // DEBUG: one console line per message, then the whole payload
-const config = require("../../../config");
+const { debugOn } = require("../../helpers");
 
 module.exports = async function debugLog(env, next) {
-  // DEBUG may come from env (boolean) or from the db override (string)
-  if (config.DEBUG === true || config.DEBUG === "true") {
+  if (debugOn()) {
     const { msg } = env;
     console.log(
       `[msg] ${env.isGroup ? "group" : "pm"} ${env.jid} from ${env.sender}${

@@ -142,7 +142,8 @@ const sequelize = (() => {
   );
   return new Sequelize(DATABASE_URL, {
     dialectOptions: useSsl ? { ssl: { require: true, rejectUnauthorized: false } } : {},
-    logging: DEBUG,
+    // only DEBUG=true: a string like "frame" is not a valid sequelize logger
+    logging: DEBUG === true,
     pool: {
       max: 20,
       min: 5,
