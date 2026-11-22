@@ -376,6 +376,15 @@ function pickAudio(formats, wanted = "AUDIO_QUALITY_MEDIUM") {
     .sort((a, b) => aac(b) - aac(a) || (b.bitrate || 0) - (a.bitrate || 0))[0];
 }
 
+function pickBestAudio(formats) {
+  const all = formats.filter((f) => f.hasAudio && !f.hasVideo);
+  const original = all.filter((f) => f.isOriginal !== false && !f.isDrc);
+  const pool = original.length ? original : all;
+  const tier = (f) => (AUDIO_QUALITIES.includes(f.audioQuality) ? AUDIO_QUALITIES.indexOf(f.audioQuality) : AUDIO_QUALITIES.length);
+  const opus = (f) => Number(/opus/i.test(f.mimeType || ""));
+  return [...pool].sort((a, b) => tier(a) - tier(b) || opus(b) - opus(a) || (b.bitrate || 0) - (a.bitrate || 0))[0];
+}
+
 const extOf = (mime = "") => (mime.includes("webm") ? "webm" : mime.startsWith("audio/") ? "m4a" : "mp4");
 
 function describe(info, page, videoId) {
@@ -437,7 +446,7 @@ async function getInfo(videoId) {
   return value;
 }
 
-async function sabrDownload({ client, credentials, profile }, videoId, kind, quality) {
+async function sabrDownload({ client, credentials, profile }, videoId, kind, quality, { bestAudio = false } = {}) {
   const { yt, SabrStream, gvUtils } = await libs();
   const innertube = await innertubeFor(client, credentials, profile);
   const withPoToken = !credentials;
@@ -457,7 +466,7 @@ async function sabrDownload({ client, credentials, profile }, videoId, kind, qua
 
   const player = await loadPlayer();
   const formats = player.page.streaming_data.adaptive_formats.map(gvUtils.buildSabrFormat);
-  const audioFormat = pickAudio(formats);
+  const audioFormat = bestAudio ? pickBestAudio(formats) : pickAudio(formats);
   const videoFormat = kind === "video" ? pickVideo(formats, quality) : undefined;
   if (!audioFormat) throw new Error("no audio format");
   if (kind === "video" && !videoFormat) throw new Error("no video format");
@@ -524,8 +533,8 @@ async function sabrDownload({ client, credentials, profile }, videoId, kind, qua
   };
 }
 
-function download(videoId, kind = "audio", quality = "360p") {
-  return withClients((attempt) => sabrDownload(attempt, videoId, kind, quality));
+function download(videoId, kind = "audio", quality = "360p", options = {}) {
+  return withClients((attempt) => sabrDownload(attempt, videoId, kind, quality, options));
 }
 
 async function search(query, limit = 10) {
@@ -560,6 +569,7 @@ module.exports = {
   _internals: {
     pickVideo,
     pickAudio,
+    pickBestAudio,
     labelOf,
     parseProfiles,
     tvProfiles,

@@ -182,10 +182,11 @@ async function downloadVideo(url, quality = "360p") {
   return { path: output, title: info.title, quality: dl.quality || target, playable: Boolean(dl.videoMime?.includes("avc1")) };
 }
 
-async function downloadAudio(url) {
+async function downloadAudio(url, { best = false, onInfo } = {}) {
   const info = await getVideoInfo(url);
   assertWithinLimits(info, [info.formats.find((f) => f.type === "audio")]);
-  const dl = await engine.download(info.videoId, "audio");
+  if (onInfo) await onInfo(info);
+  const dl = await engine.download(info.videoId, "audio", undefined, { bestAudio: best });
   return { path: dl.audioPath, title: info.title, info };
 }
 
@@ -350,9 +351,24 @@ async function fetchCover(thumbnail, files) {
   }
 }
 
-// aac is stream-copied into a tagged m4a; only other codecs (opus/webm) get encoded to mp3
-async function tagAudio(input, tags, files) {
+// aac is stream-copied into a tagged m4a; opus/webm is encoded to mp3, or with keepOpus
+// stream-copied into a tagged .opus (ogg can't carry the cover)
+async function tagAudio(input, tags, files, { keepOpus = false } = {}) {
   const aac = !input.endsWith(".webm");
+  if (!aac && keepOpus && ffmpeg) {
+    const output = uniqueTempPath("yt_audio.opus");
+    files.push(output);
+    const command = ffmpeg(input).outputOption("-map", "0:a").outputOption("-c:a", "copy");
+    for (const key of ["title", "artist", "album"]) {
+      if (tags[key]) command.outputOption("-metadata", `${key}=${tags[key]}`);
+    }
+    try {
+      await runFfmpeg(command, output);
+      return { path: output, ext: "opus", mimetype: "audio/ogg; codecs=opus" };
+    } catch (err) {
+      console.error("opus remux failed:", err.message);
+    }
+  }
   const original = aac
     ? { path: input, ext: "m4a", mimetype: "audio/mp4" }
     : { path: input, ext: "webm", mimetype: "audio/webm" };
@@ -418,12 +434,15 @@ function failureText(error) {
 
 const safeFileName = (title) => String(title || "audio").replace(/[\\/:*?"<>|\r\n]+/g, "_").trim().slice(0, 100) || "audio";
 
-async function sendYoutubeAudio(message, url, { asDocument = false, meta = {}, status = null } = {}) {
+async function sendYoutubeAudio(message, url, { asDocument = false, best = false, meta = {}, status = null } = {}) {
   const say = statusReporter(message, status);
   const files = [];
   try {
-    await say("_Downloading audio..._");
-    const result = await downloadAudio(url);
+    if (!status) await say("_Fetching info..._");
+    const result = await downloadAudio(url, {
+      best,
+      onInfo: (info) => say(`_Downloading *${info.title}*..._`),
+    });
     files.push(result.path);
     const tags = {
       title: meta.title || result.title,
@@ -431,7 +450,7 @@ async function sendYoutubeAudio(message, url, { asDocument = false, meta = {}, s
       album: meta.album,
       thumbnail: meta.thumbnail || result.info?.thumbnail,
     };
-    const audio = await tagAudio(result.path, tags, files);
+    const audio = await tagAudio(result.path, tags, files, { keepOpus: best });
     await say("_Sending audio..._");
     const stream = fs.createReadStream(audio.path);
     stream.on("error", () => {});

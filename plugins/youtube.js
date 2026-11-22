@@ -251,19 +251,34 @@ Module(
 Module(
   {
     pattern: "yta ?(.*)",
-    desc: "Download YouTube audio as document",
-    usage: ".yta <link>",
+    desc: "Download YouTube audio as document (best quality) from a link or search",
+    usage: ".yta <song name or link>",
     use: "download",
   },
   async (message, match) => {
-    const url = youtubeUrlFrom(match[1] || message.reply_message?.text);
-
-    if (!url) {
+    const input = match[1] || message.reply_message?.text;
+    if (!input) {
       return await message.sendReply(
-        `_Please provide a valid YouTube link!_\n_Example: ${helpPrefix()}yta https://youtube.com/watch?v=xxxxx or https://youtube.com/shorts/xxxxx_`
+        `_Please provide a song name or link!_\n_Example: ${helpPrefix()}yta faded alan walker_`
       );
     }
-    await sendYoutubeAudio(message, url, { asDocument: true });
+
+    const url = youtubeUrlFrom(input);
+    if (url) return await sendYoutubeAudio(message, url, { asDocument: true, best: true });
+
+    let searchMsg;
+    try {
+      searchMsg = await message.sendReply("_Searching..._");
+      const results = await searchYoutube(input, 1);
+      if (!results || results.length === 0) {
+        return await message.edit("_No results found!_", message.jid, searchMsg.key);
+      }
+      await sendYoutubeAudio(message, results[0].url, { asDocument: true, best: true, status: searchMsg });
+    } catch (error) {
+      console.error("yta error:", error);
+      if (searchMsg) await message.edit("_Download failed!_", message.jid, searchMsg.key);
+      else await message.sendReply("_Download failed. Please try again._");
+    }
   }
 );
 
@@ -473,7 +488,7 @@ Module(
 
       if (selectedLine.includes("Audio Only")) {
         await inChatQueue(message, "ytv-audio", () =>
-          sendYoutubeAudio(message, url, { asDocument: true })
+          sendYoutubeAudio(message, url, { asDocument: true, best: true })
         );
       } else {
         const quality = selectedLine.match(/(\d+p)/)?.[1];
