@@ -2,6 +2,7 @@
 const { loadBaileys, convertToOgg, toBuffer } = require("../../helpers");
 
 const DEFAULT_EMOJI = "🔊";
+const sentStickerAudio = new Map();
 
 async function relay(sock, baileys, jid, content, options) {
   const msg = baileys.generateWAMessageFromContent(jid, content, {
@@ -15,21 +16,32 @@ async function relay(sock, baileys, jid, content, options) {
 
 const uploadOpts = (sock) => ({ upload: sock.waUploadToServer, logger: sock.logger });
 
-async function sendStickerAudio(sock, jid, sticker, audio, options = {}) {
-  const baileys = await loadBaileys();
-  const opts = uploadOpts(sock);
+async function uploadStickerAudio(baileys, audio, opts) {
   const ogg = await convertToOgg(await toBuffer(audio), { voice: true });
-  const { stickerMessage } = await baileys.generateWAMessageContent({ sticker }, opts);
   const { audioMessage } = await baileys.prepareWAMessageMedia(
     { audio: ogg, mimetype: "audio/ogg; codecs=opus", ptt: true },
     opts,
   );
   delete audioMessage.ptt;
   audioMessage.contextInfo = {};
+  return audioMessage;
+}
+
+// audio: media to upload, or an already uploaded audioMessage to reuse
+async function sendStickerAudio(sock, jid, sticker, audio, options = {}) {
+  const baileys = await loadBaileys();
+  const opts = uploadOpts(sock);
+  const { stickerMessage } = await baileys.generateWAMessageContent({ sticker }, opts);
+  const audioMessage = audio?.directPath ? { ...audio } : await uploadStickerAudio(baileys, audio, opts);
   stickerMessage.premium = 0;
+  stickerMessage.isAnimated = Buffer.isBuffer(sticker) && sticker.includes("ANIM");
   stickerMessage.emojis = options.emojis || DEFAULT_EMOJI;
   stickerMessage.audioMessage = audioMessage;
-  return relay(sock, baileys, jid, { stickerMessage }, options);
+  const msg = await relay(sock, baileys, jid, { stickerMessage }, options);
+  sentStickerAudio.set(msg.key.id, audioMessage);
+  if (sentStickerAudio.size > 200) sentStickerAudio.delete(sentStickerAudio.keys().next().value);
+  require("../../store").storeMessage({ ...msg, key: { ...msg.key, remoteJid: jid, fromMe: true } }).catch(() => {});
+  return msg;
 }
 
 async function sendZap(sock, jid, media, type, options = {}) {
@@ -56,6 +68,7 @@ const isStickerAudio = (message) => !!message?.stickerMessage?.audioMessage;
 const isZap = (message) => !!(message?.imageMessage?.instant || message?.videoMessage?.instant);
 
 const isSpoiler = (message) => !!message?.spoiler;
+const sentStickerAudioFor = (id) => sentStickerAudio.get(id);
 
 module.exports = {
   sendStickerAudio,
@@ -64,4 +77,5 @@ module.exports = {
   isStickerAudio,
   isZap,
   isSpoiler,
+  sentStickerAudioFor,
 };

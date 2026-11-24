@@ -7,10 +7,12 @@ const Schedule = require("../schedulers");
 const { bindings } = require("./baileys");
 const { STABLE_CONNECTION_MS } = require("./reconnect");
 const { sendStartMessage } = require("./start-message");
+const { handlePairing, isLocalSession } = require("./terminal-login");
 
 async function handleConnectionUpdate(bot, update) {
   const { connection, lastDisconnect, qr } = update;
-  if (qr) {
+  const pairing = Boolean(qr) && (await handlePairing(bot, bot.sock));
+  if (qr && !pairing) {
     logger.info(
       { session: bot.sessionId },
       `QR code received, generating terminal QR...`,
@@ -53,7 +55,9 @@ async function handleConnectionUpdate(bot, update) {
         `Logged out. Please delete session data and rescan QR.`,
       );
       console.log(
-        `❌ [${bot.sessionId}] SESSION LOGGED OUT. Please rescan QR and update SESSION.`,
+        isLocalSession(bot.sessionId)
+          ? `❌ [${bot.sessionId}] SESSION LOGGED OUT. Restart the bot to log in again from the terminal.`
+          : `❌ [${bot.sessionId}] SESSION LOGGED OUT. Please rescan QR and update SESSION.`,
       );
       bot._teardownSocket();
       await CustomAuthState.deleteSessionById(bot.sessionId);
@@ -84,6 +88,7 @@ async function handleConnectionUpdate(bot, update) {
     bot.lastOpenAt = Date.now();
     bot.stopReason = null;
     bot.loggedOut = false;
+    bot.loginMethod = null;
     // only forgive past failures once the link has stayed up for a while
     if (bot.stableTimer) clearTimeout(bot.stableTimer);
     bot.stableTimer = setTimeout(() => {

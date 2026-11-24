@@ -25,9 +25,35 @@ const { sequelize, DATABASE_URL } = require("./core/db");
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID;
 
-const SESSION = SESSION_STRING
-  ? SESSION_STRING.split(",").map((s) => s.split("~")[1].trim())
-  : [];
+const sessionEntries = [];
+for (const token of (SESSION_STRING || "").split(",").map((s) => s.trim()).filter(Boolean)) {
+  if (token.includes("~")) {
+    const id = token.split("~")[1].trim();
+    if (id) sessionEntries.push({ id, local: false });
+    continue;
+  }
+  const method = token.toLowerCase();
+  if (method !== "qr" && method !== "pair") {
+    console.warn(
+      `⚠️ SESSION "${token}" is not a session string (like RGNK~abc123), "qr" or "pair". Logging in with a QR code instead.`,
+    );
+  }
+  sessionEntries.push({ local: true, method: method === "pair" ? "pair" : "qr" });
+}
+if (sessionEntries.length === 0) sessionEntries.push({ local: true, method: "qr" });
+
+// ids go by position, not method, so switching qr/pair keeps a linked account
+let localCount = 0;
+const LOGIN_METHODS = {};
+for (const entry of sessionEntries) {
+  if (!entry.local) continue;
+  localCount++;
+  entry.id = localCount === 1 ? "local" : `local-${localCount}`;
+  LOGIN_METHODS[entry.id] = entry.method;
+}
+
+const SESSION = sessionEntries.map((entry) => entry.id);
+const LOCAL_SESSIONS = Object.keys(LOGIN_METHODS);
 
 const settingsMenu = require("./core/config/catalog").legacySettingsMenu();
 
@@ -47,6 +73,8 @@ const baseConfig = {
   settingsMenu,
 
   SESSION,
+  LOCAL_SESSIONS,
+  LOGIN_METHODS,
   logger,
   baileysLogger,
   sequelize,

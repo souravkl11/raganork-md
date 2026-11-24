@@ -35,7 +35,7 @@ function restartNote(key) {
   return needsRestart(key) ? "\n_Restart needed for this to take effect._" : "";
 }
 
-const PROTECTED_KEYS = ["SESSION", "DATABASE_URL"];
+const PROTECTED_KEYS = ["SESSION", "LOCAL_SESSIONS", "LOGIN_METHODS", "DATABASE_URL"];
 
 const isSecretKey = (key) => {
   const name = String(key).trim().toUpperCase();

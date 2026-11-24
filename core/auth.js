@@ -5,10 +5,11 @@ const { Op } = require("sequelize");
 const { fetchInitialSession } = require("./private");
 
 let WAProto;
+let initAuthCreds;
 const { loadBaileys } = require("./helpers");
 loadBaileys()
   .then((baileys) => {
-    ({ WAProto } = baileys);
+    ({ WAProto, initAuthCreds } = baileys);
   })
   .catch((err) => {
     console.error("Failed to load baileys:", err.message);
@@ -410,7 +411,7 @@ class CustomAuthState {
     }
   }
 
-  async loadSession() {
+  async loadSession({ skipBackend = false } = {}) {
     if (Object.keys(this.sessionData.creds).length > 0) {
       logger.info({ session: this.sessionId }, "Session already loaded in memory");
       return;
@@ -443,6 +444,13 @@ class CustomAuthState {
         { session: this.sessionId, err: dbError },
         "Error loading from database, will try session backend",
       );
+    }
+
+    if (skipBackend) {
+      logger.info({ session: this.sessionId }, "No stored session, terminal login needed");
+      this.sessionData.creds = {};
+      this.sessionData.keys = {};
+      return;
     }
 
     try {
@@ -492,6 +500,18 @@ class CustomAuthState {
         "Cleaned up invalid keys",
       );
     }
+  }
+
+  // creds.registered stays false after a qr scan, me.id doesn't
+  isLinked() {
+    return Boolean(this.sessionData.creds?.me?.id);
+  }
+
+  startFresh() {
+    if (!initAuthCreds) throw new Error("Baileys is not loaded yet");
+    for (const keyName of Object.keys(this.sessionData.keys)) this._deleteKeyByName(keyName);
+    this.sessionData.creds = initAuthCreds();
+    this.sessionData.credsDirty = true;
   }
 
   // creds.me.id is "<digits>:<device>@s.whatsapp.net"; falls back to the session id

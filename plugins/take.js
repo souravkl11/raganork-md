@@ -8,6 +8,11 @@ const {
   withTempFile,
 } = require("./utils");
 const { fetchPublicBuffer } = require("./utils/upload");
+const ffmpeg = require("fluent-ffmpeg");
+const webp = require("node-webpmux");
+const { runFfmpeg, loadBaileys } = require("../core/helpers");
+const { getFullMessage } = require("../core/store");
+const { sentStickerAudioFor, sendStickerAudio } = require("../core/session/features/new-media");
 const { Module } = require("../main");
 const { helpPrefix } = require("../core/plugins/registry");
 let config = require("../config");
@@ -58,6 +63,13 @@ Module(
       let out;
       try {
         out = await addExif(file, exif);
+        const audio = await stickerAudioOf(reply);
+        if (audio) {
+          return await sendStickerAudio(m.client, m.jid, fs.readFileSync(out), audio.audioMessage, {
+            emojis: reply.data.message?.stickerMessage?.emojis,
+            quoted: m.quoted,
+          });
+        }
         return await m.client.sendMessage(
           m.jid,
           { sticker: fs.readFileSync(out) },
@@ -115,19 +127,72 @@ Module(
     );
   },
 );
+async function isAnimatedWebp(file) {
+  const img = new webp.Image();
+  await img.load(file);
+  return img.hasAnim;
+}
+
+async function stickerAudioOf(reply) {
+  const quoted = reply.data.message?.stickerMessage?.audioMessage;
+  if (quoted) return { audioMessage: quoted, key: reply.data.key };
+  const sent = reply.id && sentStickerAudioFor(reply.id);
+  if (sent) return { audioMessage: sent, key: reply.data.key };
+  const stored = reply.id ? await getFullMessage(reply.id) : null;
+  const audioMessage = stored?.found && stored.messageData.message?.stickerMessage?.audioMessage;
+  return audioMessage ? { audioMessage, key: stored.messageData.key } : null;
+}
+
+async function stickerAudioToMp4({ audioMessage, key }, animated, webpPath, out) {
+  const { downloadMediaMessage } = await loadBaileys();
+  const audio = await downloadMediaMessage({ key, message: { audioMessage } }, "buffer", {});
+  await withTempFile("sticker-audio.ogg", async (audioPath) => {
+    await fs.promises.writeFile(audioPath, audio);
+    const secs =
+      audioMessage.seconds ||
+      (await new Promise((resolve, reject) =>
+        ffmpeg.ffprobe(audioPath, (err, data) => (err ? reject(err) : resolve(data.format.duration))),
+      ));
+    const mux = (video, inputOptions, videoOptions) =>
+      runFfmpeg(
+        ffmpeg()
+          .input(video)
+          .inputOptions(inputOptions)
+          .input(audioPath)
+          .outputOptions(["-map 0:v", "-map 1:a", ...videoOptions, "-c:a aac", `-t ${secs}`]),
+        out,
+      );
+    if (!animated) {
+      return mux(webpPath, ["-loop 1"], [
+        "-c:v libx264",
+        "-tune stillimage",
+        "-pix_fmt yuv420p",
+        "-vf scale=trunc(iw/2)*2:trunc(ih/2)*2",
+      ]);
+    }
+    await withTempFile("sticker.mp4", async (video) => {
+      await webp2mp4(webpPath, video);
+      await mux(video, ["-stream_loop -1"], ["-c:v copy"]);
+    });
+  });
+}
+
 Module(
   {
     pattern: "mp4 ?(.*)",
     use: "edit",
-    desc: "Converts animated sticker to video",
+    desc: "Converts animated sticker to video (audio stickers keep their sound)",
   },
   async (m, t) => {
-    if (!m.reply_message?.sticker)
+    const reply = m.reply_message;
+    if (!reply?.sticker)
       return await m.sendReply("_Reply to an animated sticker!_");
-    const q = await m.reply_message.download();
+    const q = await reply.download();
     try {
       await withTempFile("mp4.mp4", async (out) => {
-        await webp2mp4(q, out);
+        const audio = await stickerAudioOf(reply);
+        if (audio) await stickerAudioToMp4(audio, await isAnimatedWebp(q), q, out);
+        else await webp2mp4(q, out);
         await m.client.sendMessage(
           m.jid,
           { video: { url: out } },

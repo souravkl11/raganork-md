@@ -6,7 +6,10 @@ const { logger, baileysLogger } = config;
 // WA_BROWSER=chrome keeps the old identity.
 const CHROME_VALUES = new Set(["chrome", "web", "browser"]);
 const isAndroidBrowser = () => !CHROME_VALUES.has(String(config.WA_BROWSER || "").trim().toLowerCase());
-const browserFor = () => (isAndroidBrowser() ? ["13", "Android", ""] : ["Raganork", "Chrome", "1.0.0"]);
+const CHROME_BROWSER = ["Raganork", "Chrome", "1.0.0"];
+const browserFor = () => (isAndroidBrowser() ? ["13", "Android", ""] : CHROME_BROWSER);
+
+const linkingBrowser = (bot) => (bot.authState.isLinked?.() === false ? CHROME_BROWSER : null);
 
 function buildSocketOptions(bot, version) {
   return {
@@ -17,7 +20,7 @@ function buildSocketOptions(bot, version) {
     ...(version ? { version } : {}),
     logger: baileysLogger.child({ session: bot.sessionId }),
     // read inside the session: a .setvar value is only visible there
-    browser: bot.inSession(browserFor),
+    browser: linkingBrowser(bot) || bot.inSession(browserFor),
     cachedGroupMetadata: (jid) => {
       const cached = bot.groupCache.get(jid);
       if (cached) {

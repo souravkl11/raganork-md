@@ -1002,19 +1002,27 @@ async function extractAudioTrack(file, secs) {
   }).catch(() => null);
 }
 
+function mediaKind(msg) {
+  if (!msg) return null;
+  for (const kind of ["sticker", "image", "video", "audio"]) if (msg[kind]) return kind;
+  const type = msg.document && msg.mimetype?.split("/")[0];
+  return ["image", "video", "audio"].includes(type) ? type : null;
+}
+
 async function absorbStickerAudio(msg, state, exif) {
-  if (msg.audio) {
+  const kind = mediaKind(msg);
+  if (kind === "audio") {
     state.audioBuf = await msg.download("buffer");
-  } else if (msg.video && state.stickerBuf && !state.audioBuf) {
+  } else if (kind === "video" && state.stickerBuf && !state.audioBuf) {
     state.audioBuf = await withDownload(msg, extractAudioTrack);
     if (!state.audioBuf) return "_That video has no audio_";
-  } else if (msg.sticker) {
+  } else if (kind === "sticker") {
     state.stickerBuf = await msg.download("buffer");
-  } else if (msg.image) {
+  } else if (kind === "image") {
     await withDownload(msg, async (file) => {
       state.stickerBuf = await toStickerBuffer(file, "image", exif);
     });
-  } else if (msg.video) {
+  } else if (kind === "video") {
     await withDownload(msg, async (file) => {
       const ownAudio = !state.audioBuf;
       const { path: webp, secs } = await videoSticker(file, { fullLength: ownAudio });
@@ -1055,7 +1063,7 @@ Module(
     const label = match[1]?.trim() || undefined;
     const usage =
       "_Reply to a video, or reply to a sticker/image and an audio with .stickeraudio_";
-    if (!reply || !(reply.sticker || reply.image || reply.video || reply.audio))
+    if (!mediaKind(reply))
       return await message.send(usage);
 
     const pending = takePending(key);
@@ -1067,7 +1075,8 @@ Module(
 
     if (!state.stickerBuf || !state.audioBuf) {
       const inner = await quotedOfReply(message).catch(() => null);
-      const fills = inner && (state.stickerBuf ? inner.audio || inner.video : inner.sticker || inner.image || inner.video);
+      const innerKind = mediaKind(inner);
+      const fills = state.stickerBuf ? ["audio", "video"].includes(innerKind) : !!innerKind && innerKind !== "audio";
       if (fills) await absorbStickerAudio(inner, state, exif).catch(() => null);
     }
     const { stickerBuf, audioBuf } = state;

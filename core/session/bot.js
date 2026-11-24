@@ -10,6 +10,7 @@ const { wireEvents } = require("./events");
 const { planReconnect, SLOW_RETRY_MS, SLOW_RETRY_LOG_EVERY_MS } = require("./reconnect");
 const { attachSocketFeatures } = require("./features");
 const { handleAntiDelete } = require("./features/antidelete");
+const { isLocalSession, chooseLoginMethod } = require("./terminal-login");
 
 class WhatsAppBot {
   get maxReconnectAttempts() {
@@ -36,6 +37,7 @@ class WhatsAppBot {
     this.loggedOut = false;
     this.stopReason = null;
     this.lastSlowRetryLogAt = 0;
+    this.loginMethod = null;
 
     const caches = createSessionCaches();
     this.groupCache = caches.groupCache;
@@ -114,9 +116,10 @@ class WhatsAppBot {
         console.log(`- [${this.sessionId}] Initializing bot...`);
       }
       this.authState = new CustomAuthState(this.sessionId);
+      const local = isLocalSession(this.sessionId);
       let sessionLoaded = false;
       try {
-        await this.authState.loadSession();
+        await this.authState.loadSession({ skipBackend: local });
         sessionLoaded = Object.keys(this.authState.creds).length > 0;
       } catch (error) {
         logger.warn(
@@ -126,6 +129,14 @@ class WhatsAppBot {
         console.warn(
           `⚠️ Failed to load session from database: ${this.sessionId}`,
         );
+      }
+      if (local && !this.authState.isLinked()) {
+        // keep the identity of a link attempt that's still running
+        if (!this.loginMethod || !sessionLoaded) {
+          this.loginMethod = await chooseLoginMethod(this.sessionId);
+          this.authState.startFresh();
+        }
+        sessionLoaded = true;
       }
       if (!sessionLoaded) {
         throw new Error(
