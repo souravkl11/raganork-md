@@ -238,19 +238,31 @@ function cleanupKickBot() {
   isKickBotInitialized = false;
 }
 
-function convertToOgg(inputBuffer) {
-  return new Promise((resolve, reject) => {
-    const inputStream = Readable.from(inputBuffer);
-    const outputStream = ffmpeg(inputStream)
-      .audioCodec("libopus")
-      .format("ogg")
-      .pipe();
-
-    const chunks = [];
-    outputStream.on("data", (chunk) => chunks.push(chunk));
-    outputStream.on("end", () => resolve(Buffer.concat(chunks)));
-    outputStream.on("error", reject);
-  });
+// voice: mono like wa voice notes, ios won't play stereo
+async function convertToOgg(inputBuffer, { voice = false } = {}) {
+  // file input: piped mp4/m4a can't seek to the index
+  const input = uniqueTempPath("ogg-in");
+  await fs.promises.writeFile(input, inputBuffer);
+  try {
+    return await new Promise((resolve, reject) => {
+      let command = ffmpeg(input).noVideo().audioCodec("libopus");
+      if (voice) {
+        command = command
+          .audioChannels(1)
+          .audioFrequency(48000)
+          .audioBitrate("32k")
+          .outputOptions(["-application", "voip", "-map_metadata", "-1"]);
+      }
+      command.on("error", reject);
+      const outputStream = command.format("ogg").pipe();
+      const chunks = [];
+      outputStream.on("data", (chunk) => chunks.push(chunk));
+      outputStream.on("end", () => resolve(Buffer.concat(chunks)));
+      outputStream.on("error", reject);
+    });
+  } finally {
+    fs.promises.unlink(input).catch(() => {});
+  }
 }
 
 async function toBuffer(input) {

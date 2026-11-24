@@ -122,31 +122,73 @@ async function blur(file, count = 5) {
 
 const attp = (text) => require("../../core/private").attp(text);
 
-async function sticker(file, type = "image") {
-  const opt =
-    type === "video"
-      ? [
-          "-y",
-          "-vcodec libwebp",
-          "-lossless 1",
-          "-qscale 1",
-          "-preset default",
-          "-loop 0",
-          "-an",
-          "-vsync 0",
-          "-s 600x600",
-        ]
-      : ["-y", "-vcodec libwebp"];
+// wa freezes animated stickers past ~500kb
+const MAX_ANIMATED_STICKER = 490 * 1024;
+const VIDEO_STICKER_STEPS = [
+  { q: 65, fps: 15, secs: 10, size: 512 },
+  { q: 50, fps: 12, secs: 8, size: 512 },
+  { q: 35, fps: 10, secs: 6, size: 512 },
+  { q: 25, fps: 10, secs: 5, size: 384 },
+  { q: 15, fps: 8, secs: 4, size: 320 },
+];
 
-  const fil =
-    type === "video"
-      ? "scale=600:600:flags=lanczos:force_original_aspect_ratio=decrease,format=rgba,pad=600:600:(ow-iw)/2:(oh-ih)/2:color=#00000000,setsar=1"
-      : STICKER_FILTER;
+const MAX_STICKER_SECS = 30;
+const FULL_LENGTH_STEPS = [
+  { q: 50, fps: 12, size: 512 },
+  { q: 40, fps: 10, size: 512 },
+  { q: 30, fps: 8, size: 448 },
+  { q: 20, fps: 6, size: 384 },
+  { q: 15, fps: 5, size: 320 },
+].map((step) => ({ ...step, secs: MAX_STICKER_SECS }));
 
+const fitFilter = (size) =>
+  `scale=${size}:${size}:flags=lanczos:force_original_aspect_ratio=decrease,format=rgba,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000,setsar=1`;
+
+function encodeVideoSticker(file, { q, fps, secs, size }) {
   return runFfmpeg(
-    ffmpeg(file).outputOptions(opt).videoFilters(fil),
+    ffmpeg(file)
+      .duration(secs)
+      .noAudio()
+      .videoFilters(`fps=${fps},${fitFilter(size)}`)
+      .outputOptions(["-y", "-vcodec libwebp", "-lossless 0", `-q:v ${q}`, "-compression_level 4", "-loop 0"]),
     uniqueTempPath("st.webp"),
   );
+}
+
+async function fitSteps(file, steps) {
+  let best = null;
+  for (let i = 0; i < steps.length; ) {
+    const path = await encodeVideoSticker(file, steps[i]);
+    const size = fs.statSync(path).size;
+    if (!best || size < best.size) {
+      if (best) fs.unlink(best.path, () => {});
+      best = { path, size, secs: steps[i].secs };
+    } else {
+      fs.unlink(path, () => {});
+    }
+    if (size <= MAX_ANIMATED_STICKER) break;
+    i += size > MAX_ANIMATED_STICKER * 2 ? 2 : 1;
+  }
+  return best;
+}
+
+async function videoSticker(file, { fullLength = false } = {}) {
+  if (fullLength) {
+    const full = await fitSteps(file, FULL_LENGTH_STEPS);
+    if (full.size <= MAX_ANIMATED_STICKER) return full;
+    fs.unlink(full.path, () => {});
+  }
+  return fitSteps(file, VIDEO_STICKER_STEPS);
+}
+
+async function sticker(file, type = "image") {
+  if (type !== "video") {
+    return runFfmpeg(
+      ffmpeg(file).outputOptions(["-y", "-vcodec libwebp"]).videoFilters(STICKER_FILTER),
+      uniqueTempPath("st.webp"),
+    );
+  }
+  return (await videoSticker(file)).path;
 }
 
 async function rotate(video, angle) {
@@ -320,6 +362,7 @@ module.exports = {
   circle,
   blur,
   sticker,
+  videoSticker,
   rotate,
   avMix,
   webp2mp4,

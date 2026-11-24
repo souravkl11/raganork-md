@@ -42,7 +42,6 @@ class ReplyMessage extends Base {
     this.video = false;
     this.text = null;
     this.album = false;
-    // set by proto-ext when the quoted message arrived as one of the newer wa types
     this.spoiler = false;
     this.zap = false;
     this.stickerAudio = false;

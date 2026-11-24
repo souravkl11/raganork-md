@@ -15,10 +15,13 @@ const {
 const config = require("../config");
 const { runFfmpeg } = require("../core/helpers");
 const { sendZap, sendSpoiler } = require("../core/session/features/new-media");
+const { getFullMessage } = require("../core/store");
+const { ReplyMessage } = require("../core/constructors");
 const { helpPrefix } = require("../core/plugins/registry");
 const { fetchPublic } = require("./utils/upload");
 const {
   withDownload,
+  videoSticker,
   clampInt,
   interpolationLimit,
 } = require("./utils/mediaProcessors");
@@ -989,19 +992,62 @@ function takePending(key) {
   return entry;
 }
 
-async function extractAudioTrack(file) {
+async function extractAudioTrack(file, secs) {
   return await withTempFile("sticker-audio.ogg", async (out) => {
-    await runFfmpeg(ffmpeg(file).noVideo().audioCodec("libopus").format("ogg"), out);
+    const command = ffmpeg(file).noVideo().audioCodec("libopus").format("ogg");
+    if (secs) command.duration(secs);
+    await runFfmpeg(command, out);
     const buf = fs.readFileSync(out);
     return buf.length > 1024 ? buf : null;
   }).catch(() => null);
+}
+
+async function absorbStickerAudio(msg, state, exif) {
+  if (msg.audio) {
+    state.audioBuf = await msg.download("buffer");
+  } else if (msg.video && state.stickerBuf && !state.audioBuf) {
+    state.audioBuf = await withDownload(msg, extractAudioTrack);
+    if (!state.audioBuf) return "_That video has no audio_";
+  } else if (msg.sticker) {
+    state.stickerBuf = await msg.download("buffer");
+  } else if (msg.image) {
+    await withDownload(msg, async (file) => {
+      state.stickerBuf = await toStickerBuffer(file, "image", exif);
+    });
+  } else if (msg.video) {
+    await withDownload(msg, async (file) => {
+      const ownAudio = !state.audioBuf;
+      const { path: webp, secs } = await videoSticker(file, { fullLength: ownAudio });
+      try {
+        state.stickerBuf = await withExif(webp, exif);
+      } finally {
+        fs.unlink(webp, () => {});
+      }
+      if (ownAudio) state.audioBuf = await extractAudioTrack(file, secs);
+    });
+  }
+}
+
+async function quotedOfReply(message) {
+  const reply = message.reply_message;
+  const stored = reply.id ? await getFullMessage(reply.id) : null;
+  const content = stored?.found ? stored.messageData.message : reply.data?.message;
+  const ctx = Object.values(content || {}).find((v) => v?.contextInfo?.quotedMessage)?.contextInfo;
+  if (!ctx) return null;
+  const original = ctx.stanzaId ? await getFullMessage(ctx.stanzaId) : null;
+  return new ReplyMessage(message.client, {
+    stanzaId: ctx.stanzaId,
+    participant: ctx.participant,
+    remoteJid: ctx.remoteJid || message.jid,
+    quotedMessage: original?.found ? original.messageData.message : ctx.quotedMessage,
+  });
 }
 
 Module(
   {
     pattern: "stickeraudio ?(.*)",
     use: "edit",
-    desc: "Makes a sticker that plays audio. Reply to a video to use its own sound, or reply to a sticker/image and an audio (either order) to merge them. Optional emoji: .stickeraudio ✨",
+    desc: "Makes a sticker that plays audio. Reply to a video to use its own sound, to a sticker that replied to an audio (or the other way round), or to a sticker/image and an audio one after another. Optional emoji: .stickeraudio ✨",
   },
   async (message, match) => {
     const reply = message.reply_message;
@@ -1014,21 +1060,17 @@ Module(
 
     const pending = takePending(key);
     const exif = stickerExif(message);
-    let { stickerBuf, audioBuf } = pending;
+    const state = { stickerBuf: pending.stickerBuf, audioBuf: pending.audioBuf };
 
-    if (reply.audio) {
-      audioBuf = await reply.download("buffer");
-    } else if (reply.video && stickerBuf && !audioBuf) {
-      audioBuf = await withDownload(reply, extractAudioTrack);
-      if (!audioBuf) return await message.send("_That video has no audio_");
-    } else if (reply.sticker) {
-      stickerBuf = await reply.download("buffer");
-    } else {
-      await withDownload(reply, async (file) => {
-        stickerBuf = await toStickerBuffer(file, reply.image ? "image" : "video", exif);
-        if (reply.video && !audioBuf) audioBuf = await extractAudioTrack(file);
-      });
+    const error = await absorbStickerAudio(reply, state, exif);
+    if (error) return await message.send(error);
+
+    if (!state.stickerBuf || !state.audioBuf) {
+      const inner = await quotedOfReply(message).catch(() => null);
+      const fills = inner && (state.stickerBuf ? inner.audio || inner.video : inner.sticker || inner.image || inner.video);
+      if (fills) await absorbStickerAudio(inner, state, exif).catch(() => null);
     }
+    const { stickerBuf, audioBuf } = state;
 
     if (!stickerBuf || !audioBuf) {
       pendingStickerAudio.set(key, {

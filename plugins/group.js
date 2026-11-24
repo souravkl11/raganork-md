@@ -339,16 +339,14 @@ Module(
     use: "group",
   },
   async (message, match) => {
+    if (!message.reply_message?.id) {
+      return await message.sendReply("_Reply to a message that quotes another message!_");
+    }
     try {
-      const repliedMessage = await getFullMessage(
-        message.reply_message.id + "_"
-      );
-      if (!repliedMessage.found) {
-        return await message.sendReply(
-          "_Original message not found in database!_"
-        );
-      }
-      const messageData = repliedMessage.messageData;
+      const repliedMessage = await getFullMessage(message.reply_message.id);
+      const messageData = repliedMessage.found
+        ? repliedMessage.messageData
+        : message.reply_message.data;
       let quotedMessageId = null;
       let quotedMessage = null;
       let participant = null;

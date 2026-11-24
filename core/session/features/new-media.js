@@ -18,13 +18,15 @@ const uploadOpts = (sock) => ({ upload: sock.waUploadToServer, logger: sock.logg
 async function sendStickerAudio(sock, jid, sticker, audio, options = {}) {
   const baileys = await loadBaileys();
   const opts = uploadOpts(sock);
-  const ogg = await convertToOgg(await toBuffer(audio));
+  const ogg = await convertToOgg(await toBuffer(audio), { voice: true });
   const { stickerMessage } = await baileys.generateWAMessageContent({ sticker }, opts);
   const { audioMessage } = await baileys.prepareWAMessageMedia(
     { audio: ogg, mimetype: "audio/ogg; codecs=opus", ptt: true },
     opts,
   );
   delete audioMessage.ptt;
+  audioMessage.contextInfo = {};
+  stickerMessage.premium = 0;
   stickerMessage.emojis = options.emojis || DEFAULT_EMOJI;
   stickerMessage.audioMessage = audioMessage;
   return relay(sock, baileys, jid, { stickerMessage }, options);
