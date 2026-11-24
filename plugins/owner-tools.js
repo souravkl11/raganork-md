@@ -1,6 +1,7 @@
 const { Module } = require("../main");
 const config = require("../config");
 const { handleSettingsReply } = require("./manage");
+const { helpPrefix } = require("../core/plugins/registry");
 
 Module(
   {
@@ -50,7 +51,7 @@ Module(
   async (message) => {
     if (await handleSettingsReply(message)) return;
     // the registration also lets sudo users in; eval is the bot account's alone
-    if (message.fromMe && message.message?.startsWith(">")) {
+    if (message.fromMe && !config.DISABLE_EVAL && message.message?.startsWith(">")) {
       var m = message;
       const util = require("util");
       const js = (x) => JSON.stringify(x, null, 2);
@@ -74,11 +75,14 @@ Module(
         }
       } catch (e) {
         const readMore = String.fromCharCode(8206).repeat(4001);
-        if (e)
-          await message.sendMessage(
-            `_ ❌ Error:_\n${readMore}` + util.format(e),
-            "text"
-          );
+        if (e) {
+          const p = helpPrefix();
+          const warn =
+            config.DISABLE_EVAL === ""
+              ? `\n\n_⚠️ Messages starting with > run as code on the bot._\n_Turn off: \`${p}setvar DISABLE_EVAL=true\`_\n_Hide this note: \`${p}setvar DISABLE_EVAL=false\`_`
+              : "";
+          await message.sendMessage(`_ ❌ Error:_${warn}\n${readMore}` + util.format(e), "text");
+        }
       }
     }
   }

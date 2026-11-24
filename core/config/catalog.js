@@ -78,6 +78,7 @@ const CATEGORIES = [
     items: [
       { key: "AUTO_UPDATE", title: "Auto update", kind: "bool" },
       { key: "DISABLE_START_MESSAGE", title: "Disable start message", kind: "bool" },
+      { key: "DISABLE_EVAL", title: "Disable > eval", kind: "bool", desc: "blocks running code with >" },
       { key: "CMD_TIMEOUT", title: "Command timeout (s)", kind: "number" },
       { key: "CMD_CONCURRENCY", title: "Command concurrency", kind: "number" },
       { key: "MAX_RECONNECT_ATTEMPTS", title: "Max reconnect attempts", kind: "number" },

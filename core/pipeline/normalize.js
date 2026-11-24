@@ -15,7 +15,7 @@ function normalize(raw, sock) {
     sender,
     botNumber: botIds(sock).lidNumber,
     isGroup: isGroup(jid),
-    isPM: !isGroup(jid) && !isStatus(jid),
+    isPM: !isGroup(jid) && !isStatus(jid) && !jid.endsWith("@newsletter"),
     fromMe: msg.key.fromMe,
     type: Object.keys(msg.message)[0],
     text: false,

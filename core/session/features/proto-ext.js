@@ -2,7 +2,8 @@
 // web 2.3000.1056029132. new message types are flattened onto the key baileys already
 // understands (stickerMessage/imageMessage/videoMessage) so download/send keep working,
 // and re-wrapped on encode.
-const { Reader } = require("protobufjs/minimal");
+const protobuf = require("protobufjs");
+const { Reader } = protobuf;
 
 let installed = false;
 
@@ -25,7 +26,10 @@ function eachField(bytes, wanted, onField) {
       const wireType = tag & 7;
       if (!wanted.has(no)) reader.skipType(wireType);
       else if (wireType === 2) onField(no, reader.bytes());
-      else if (wireType === 0) onField(no, reader.int32());
+      else if (wireType === 0) {
+        const v = reader.int64();
+        onField(no, typeof v === "object" ? Number(v.toString()) : v);
+      }
       else reader.skipType(wireType);
     }
   } catch {}
@@ -44,7 +48,7 @@ function moveToEnd(obj, key) {
   obj[key] = value;
 }
 
-// kind: "string" | "int32" | a generated message type
+// kind: "string" | "int32" | "int64" | "bool" | a message type
 function extendType(Type, fields, flags = []) {
   const byNo = new Map(fields.map((f) => [f.no, f]));
   const wanted = new Set(byNo.keys());
@@ -55,7 +59,8 @@ function extendType(Type, fields, flags = []) {
     eachField(bytes, wanted, (no, value) => {
       const f = byNo.get(no);
       if (f.kind === "string") m[f.name] = Buffer.from(value).toString("utf8");
-      else if (f.kind === "int32") m[f.name] = value;
+      else if (f.kind === "bool") m[f.name] = !!value;
+      else if (typeof f.kind === "string") m[f.name] = value;
       else m[f.name] = f.kind.decode(value);
     });
     return m;
@@ -68,7 +73,8 @@ function extendType(Type, fields, flags = []) {
       const v = m[f.name];
       if (v == null) continue;
       if (f.kind === "string") w.uint32((f.no << 3) | 2).string(v);
-      else if (f.kind === "int32") w.uint32(f.no << 3).int32(v);
+      else if (f.kind === "bool") w.uint32(f.no << 3).bool(v);
+      else if (typeof f.kind === "string") w.uint32(f.no << 3)[f.kind](v);
       else f.kind.encode(v, w.uint32((f.no << 3) | 2).fork()).ldelim();
     }
     return w;
@@ -114,6 +120,20 @@ function install(proto) {
   ]);
   extendType(ImageMessage, [], ["instant"]);
   extendType(VideoMessage, [], ["instant"]);
+  extendType(Message.PollCreationMessage, [
+    { no: 9, name: "endTime", kind: "int64" },
+    { no: 10, name: "hideParticipantName", kind: "bool" },
+    { no: 11, name: "allowAddOption", kind: "bool" },
+  ]);
+  extendType(Message.PollCreationMessage.Option, [{ no: 3, name: "optionDatetime", kind: "int64" }]);
+  extendType(Message, [{ no: 119, name: "pollCreationMessageV6", kind: Message.PollCreationMessage }]);
+  extendType(proto.MessageContextInfo, [{ no: 29, name: "afterReadDuration", kind: "uint32" }]);
+  const PartialContent = new protobuf.Type("PartiallySelectedContent").add(new protobuf.Field("text", 1, "string"));
+  extendType(ContextInfo, [
+    { no: 73, name: "isSpoiler", kind: "bool" },
+    { no: 75, name: "partiallySelectedContent", kind: PartialContent },
+    { no: 76, name: "afterReadDuration", kind: "uint32" },
+  ]);
 
   const wrappers = [
     { no: 134, name: "audioStickerMessage", key: "stickerMessage", futureProof: true, when: (v) => v.audioMessage },

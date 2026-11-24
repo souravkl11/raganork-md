@@ -5,7 +5,7 @@ module.exports = async function debugLog(env, next) {
   if (debugOn()) {
     const { msg } = env;
     console.log(
-      `[msg] ${env.isGroup ? "group" : "pm"} ${env.jid} from ${env.sender}${
+      `[msg] ${env.isGroup ? "group" : env.isPM ? "pm" : env.jid.endsWith("@newsletter") ? "channel" : "status"} ${env.jid} from ${env.sender}${
         env.fromMe ? " (me)" : ""
       } | ${env.type}: ${env.text || "<no text>"}
        ${JSON.stringify(msg.message, null, 2)}`,

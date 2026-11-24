@@ -280,6 +280,12 @@ async function toBuffer(input) {
   }
   if (typeof input === "string" && fs.existsSync(input))
     return fs.readFileSync(input);
+  const stream = input?.stream || (typeof input?.pipe === "function" ? input : null);
+  if (stream?.[Symbol.asyncIterator]) {
+    const chunks = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    return Buffer.concat(chunks);
+  }
   const d = input && (input.data || input.buffer);
   if (Buffer.isBuffer(d)) return d;
   if (Array.isArray(d)) return Buffer.from(d);
