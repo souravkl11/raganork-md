@@ -38,7 +38,8 @@ Module(
       const { commits, localVersion, remoteVersion, hasCommits, versionChanged } = info;
       const { isStable: isStableUpdate, isBeta: isBetaUpdate } = info;
 
-      if (!hasCommits && !versionChanged) {
+      if (!hasCommits) {
+        if (versionChanged) await updater.resetVersion(remoteVersion);
         return await edit("_Bot is up to date!_");
       }
 

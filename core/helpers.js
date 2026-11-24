@@ -132,10 +132,12 @@ function startTempSweeper() {
 async function loadBaileys() {
   try {
     const baileys = await import("baileys");
+    require("./session/features/proto-ext").install(baileys.proto);
     return baileys;
   } catch (err) {
     try {
       const baileys = require("baileys");
+      require("./session/features/proto-ext").install(baileys.proto);
       return baileys;
     } catch (requireErr) {
       throw new Error(

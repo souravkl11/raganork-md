@@ -76,8 +76,10 @@ function messageSender(key) {
 function ownerTarget(sock) {
   const first = getSudoMap()[0];
   if (first) return first;
+  // sock.user.lid carries a device suffix ("123:7@lid"); messages must go to the bare account lid.
   // phone jid only when the socket has no lid at all (never on a live connection)
-  return sock?.user?.lid || botIds(sock).pn;
+  const ids = botIds(sock);
+  return ids.rawLid ? ids.lid : ids.pn;
 }
 
 module.exports = {

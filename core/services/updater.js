@@ -169,6 +169,13 @@ function createUpdater(overrides = {}) {
     return { started: true };
   }
 
+  async function resetVersion(version) {
+    const file = path.join(process.cwd(), "package.json");
+    const raw = await fs.readFile(file, "utf8");
+    await fs.writeFile(file, raw.replace(/("version"\s*:\s*)"[^"]*"/, `$1"${version}"`));
+    deps.localVersion = version;
+  }
+
   function describeDirty(files) {
     const shown = files.slice(0, 10).map((f) => `• ${f}`).join("\n");
     const more = files.length > 10 ? `\n…and ${files.length - 10} more` : "";
@@ -185,6 +192,7 @@ function createUpdater(overrides = {}) {
     applyLocal,
     deployOnRender,
     describeDirty,
+    resetVersion,
   };
 }
 

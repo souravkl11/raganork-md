@@ -14,6 +14,7 @@ const {
 } = require("./utils");
 const config = require("../config");
 const { runFfmpeg } = require("../core/helpers");
+const { sendZap, sendSpoiler } = require("../core/session/features/new-media");
 const { helpPrefix } = require("../core/plugins/registry");
 const { fetchPublic } = require("./utils/upload");
 const {
@@ -144,7 +145,7 @@ Module(
 
 Module(
   {
-    pattern: "sticker ?(.*)",
+    pattern: "sticker(?!audio) ?(.*)",
     use: "edit",
     desc: Lang.STICKER_DESC,
   },
@@ -973,5 +974,129 @@ Module(
       doneText: (stats) =>
         `_Compression completed ✅ (${reduction(stats)}% reduction)_`,
     });
+  }
+);
+
+const pendingStickerAudio = new Map();
+const PENDING_TTL_MS = 10 * 60 * 1000;
+
+function takePending(key) {
+  const entry = pendingStickerAudio.get(key);
+  if (!entry || Date.now() - entry.at > PENDING_TTL_MS) {
+    pendingStickerAudio.delete(key);
+    return {};
+  }
+  return entry;
+}
+
+async function extractAudioTrack(file) {
+  return await withTempFile("sticker-audio.ogg", async (out) => {
+    await runFfmpeg(ffmpeg(file).noVideo().audioCodec("libopus").format("ogg"), out);
+    const buf = fs.readFileSync(out);
+    return buf.length > 1024 ? buf : null;
+  }).catch(() => null);
+}
+
+Module(
+  {
+    pattern: "stickeraudio ?(.*)",
+    use: "edit",
+    desc: "Makes a sticker that plays audio. Reply to a video to use its own sound, or reply to a sticker/image and an audio (either order) to merge them. Optional emoji: .stickeraudio ✨",
+  },
+  async (message, match) => {
+    const reply = message.reply_message;
+    const key = `${message.jid}:${message.sender}`;
+    const label = match[1]?.trim() || undefined;
+    const usage =
+      "_Reply to a video, or reply to a sticker/image and an audio with .stickeraudio_";
+    if (!reply || !(reply.sticker || reply.image || reply.video || reply.audio))
+      return await message.send(usage);
+
+    const pending = takePending(key);
+    const exif = stickerExif(message);
+    let { stickerBuf, audioBuf } = pending;
+
+    if (reply.audio) {
+      audioBuf = await reply.download("buffer");
+    } else if (reply.video && stickerBuf && !audioBuf) {
+      audioBuf = await withDownload(reply, extractAudioTrack);
+      if (!audioBuf) return await message.send("_That video has no audio_");
+    } else if (reply.sticker) {
+      stickerBuf = await reply.download("buffer");
+    } else {
+      await withDownload(reply, async (file) => {
+        stickerBuf = await toStickerBuffer(file, reply.image ? "image" : "video", exif);
+        if (reply.video && !audioBuf) audioBuf = await extractAudioTrack(file);
+      });
+    }
+
+    if (!stickerBuf || !audioBuf) {
+      pendingStickerAudio.set(key, {
+        stickerBuf,
+        audioBuf,
+        label: label || pending.label,
+        at: Date.now(),
+      });
+      return await message.send(
+        stickerBuf
+          ? "_Got the sticker. Now reply to an audio or video with .stickeraudio_"
+          : "_Got the audio. Now reply to a sticker, image or video with .stickeraudio_"
+      );
+    }
+
+    pendingStickerAudio.delete(key);
+    await message.sendMessage(stickerBuf, "sticker", {
+      audio: audioBuf,
+      emojis: label || pending.label,
+      quoted: message.data,
+    });
+  }
+);
+
+Module(
+  {
+    pattern: "zap ?(.*)",
+    use: "edit",
+    desc: "Resends a replied photo or video as a Zap (WhatsApp's instant photo/video). .zap [jid ...] [caption]: words with @ are target chats, the rest is the caption",
+  },
+  async (message, match) => {
+    const reply = message.reply_message;
+    if (!reply || !(reply.image || reply.video))
+      return await message.send("_Reply to a photo or video with .zap [jid] [caption]_");
+    const words = (match[1] || "").trim().split(/\s+/).filter(Boolean);
+    const targets = words.filter((w) => w.includes("@"));
+    const caption = words.filter((w) => !w.includes("@")).join(" ") || undefined;
+    if (targets.length && !message.fromOwner)
+      return await message.send("_Only the owner can zap other chats_");
+    const type = reply.image ? "image" : "video";
+    const media = await reply.download("buffer");
+    if (!targets.length) {
+      return await message.sendMessage(media, type, { zap: true, caption });
+    }
+    for (const jid of targets) {
+      await sendZap(message.client, jid, media, type, { caption });
+    }
+    await message.send(`_Zap sent to ${targets.length} chat${targets.length > 1 ? "s" : ""}_`);
+  }
+);
+
+Module(
+  {
+    pattern: "spoiler ?(.*)",
+    use: "edit",
+    desc: "Sends a photo, video or text hidden behind a spoiler. Reply to media (text becomes the caption), reply to a text, or .spoiler your text",
+  },
+  async (message, match) => {
+    const reply = message.reply_message;
+    const text = match[1]?.trim();
+    if (reply && (reply.image || reply.video)) {
+      const media = await reply.download("buffer");
+      return await sendSpoiler(message.client, message.jid, media, reply.image ? "image" : "video", {
+        caption: text || reply.caption || undefined,
+      });
+    }
+    const body = text || reply?.text;
+    if (!body) return await message.send("_Reply to a photo, video or text, or use .spoiler your text_");
+    await sendSpoiler(message.client, message.jid, body, "text");
   }
 );

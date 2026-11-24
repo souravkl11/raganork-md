@@ -28,6 +28,7 @@ const ReplyMessage = require("./reply-message");
 const fs = require("fs");
 const { genThumb } = require("../helpers");
 const { forwardMessage } = require("../session/features/forward");
+const { sendStickerAudio, sendZap, isSpoiler, isZap, isStickerAudio } = require("../session/features/new-media");
 const { uniqueTempPath } = require("../helpers");
 
 class Message extends Base {
@@ -59,6 +60,9 @@ class Message extends Base {
     this.data = data;
 
     this.ephemeral = this._extractEphemeralSettings(data);
+    this.spoiler = isSpoiler(data.message);
+    this.zap = isZap(data.message);
+    this.stickerAudio = isStickerAudio(data.message);
 
     this.reply_message = false;
     this.quoted = false;
@@ -314,6 +318,13 @@ class Message extends Base {
       const textMessage = { text: content, ...messageOptions };
       return await this.client.sendMessage(this.jid, textMessage, realOptions);
     }
+    if ((type == "image" || type == "video") && messageOptions.zap) {
+      return await sendZap(this.client, this.jid, content, type, {
+        caption: messageOptions.caption,
+        quoted: realOptions.quoted,
+        ephemeralExpiration: realOptions.ephemeralExpiration,
+      });
+    }
     if (type == "image") {
       const { thumbnail, ...otherOptions } = messageOptions;
       const imageMessage = { image: content, ...otherOptions };
@@ -390,6 +401,14 @@ class Message extends Base {
       );
     }
     if (type == "sticker") {
+      if (messageOptions.audio) {
+        const { audio, emojis } = messageOptions;
+        return await sendStickerAudio(this.client, this.jid, content, audio, {
+          emojis,
+          quoted: realOptions.quoted,
+          ephemeralExpiration: realOptions.ephemeralExpiration,
+        });
+      }
       return await this.client.sendMessage(
         this.jid,
         { sticker: content, ...messageOptions },

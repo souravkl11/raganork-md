@@ -12,6 +12,7 @@ const baileysPromise = loadBaileys()
 const fs = require("fs");
 const Base = require("./base");
 const { uniqueTempPath } = require("../helpers");
+const { isSpoiler, isZap, isStickerAudio } = require("../session/features/new-media");
 
 class ReplyMessage extends Base {
   constructor(client, data) {
@@ -41,12 +42,19 @@ class ReplyMessage extends Base {
     this.video = false;
     this.text = null;
     this.album = false;
+    // set by proto-ext when the quoted message arrived as one of the newer wa types
+    this.spoiler = false;
+    this.zap = false;
+    this.stickerAudio = false;
 
     if (data.quotedMessage) {
       if (data.quotedMessage.documentWithCaptionMessage)
         data.quotedMessage.documentMessage =
           data.quotedMessage.documentWithCaptionMessage.message.documentMessage;
       const quotedMsg = data.quotedMessage;
+      this.spoiler = isSpoiler(quotedMsg);
+      this.zap = isZap(quotedMsg);
+      this.stickerAudio = isStickerAudio(quotedMsg);
       this.fromMe =
         (data.participant?.includes("lid") &&
           data.participant?.startsWith(this.client.user.lid.split(":")[0])) ||
