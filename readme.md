@@ -292,7 +292,16 @@ raganork-md/
 
 ## License
 
-GPL License - See LICENSE file for details.
+Copyright (C) 2021-2026 Sourav K. Licensed under the GNU GPL v3 (see [LICENSE](LICENSE)) with the additional terms in [NOTICE](NOTICE).
+
+Forks are welcome. If you publish one, keep the [NOTICE](NOTICE) file, credit Raganork-MD with a link to this repo in your README, and use your own name and logo. Nothing has to be shown inside the bot: what your bot says stays fully yours.
+
+### Official sources
+
+- Code: [github.com/souravkl11/raganork-md](https://github.com/souravkl11/raganork-md)
+- Sessions: [raganork.site](https://raganork.site)
+
+Any other repository or session site is unofficial. A session site can read everything your linked WhatsApp account can, so only use one you trust.
 
 ---
 

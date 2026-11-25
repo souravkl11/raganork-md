@@ -58,7 +58,7 @@ async function boot() {
   ensureTempDir();
   startTempSweeper();
   logger.info(`Created temporary directory at ${TEMP_DIR}`);
-  console.log(`Raganork v${require("../package.json").version}`);
+  console.log(`Raganork-MD v${require("../package.json").version}`);
   console.log(`- Configured sessions: ${SESSION.join(", ")}\n- For multiple sessions, set SESSION=session1,session2,session3`);
   logger.info(`Configured sessions: ${SESSION.join(", ")}`);
   if (SESSION.length === 0) {
