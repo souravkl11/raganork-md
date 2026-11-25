@@ -70,6 +70,17 @@ const isZap = (message) => !!(message?.imageMessage?.instant || message?.videoMe
 const isSpoiler = (message) => !!message?.spoiler;
 const sentStickerAudioFor = (id) => sentStickerAudio.get(id);
 
+// a quoted audio sticker arrives without its audioMessage; recover it from what we sent or the store
+async function findStickerAudio(reply) {
+  const quoted = reply.data.message?.stickerMessage?.audioMessage;
+  if (quoted?.directPath) return { audioMessage: quoted, key: reply.data.key };
+  const sent = reply.id && sentStickerAudioFor(reply.id);
+  if (sent) return { audioMessage: sent, key: reply.data.key };
+  const stored = reply.id ? await require("../../store").getFullMessage(reply.id) : null;
+  const audioMessage = stored?.found && stored.messageData.message?.stickerMessage?.audioMessage;
+  return audioMessage ? { audioMessage, key: stored.messageData.key } : null;
+}
+
 module.exports = {
   sendStickerAudio,
   sendZap,
@@ -78,4 +89,5 @@ module.exports = {
   isZap,
   isSpoiler,
   sentStickerAudioFor,
+  findStickerAudio,
 };

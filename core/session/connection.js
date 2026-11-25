@@ -8,11 +8,14 @@ const { bindings } = require("./baileys");
 const { STABLE_CONNECTION_MS } = require("./reconnect");
 const { sendStartMessage } = require("./start-message");
 const { handlePairing, isLocalSession } = require("./terminal-login");
+const { isHatchedId, forgetHatched } = require("./hatchery");
 
 async function handleConnectionUpdate(bot, update) {
   const { connection, lastDisconnect, qr } = update;
   const pairing = Boolean(qr) && (await handlePairing(bot, bot.sock));
-  if (qr && !pairing) {
+  if (qr && !pairing && bot.hatch?.onQr) {
+    await bot.hatch.onQr(qr);
+  } else if (qr && !pairing) {
     logger.info(
       { session: bot.sessionId },
       `QR code received, generating terminal QR...`,
@@ -48,6 +51,8 @@ async function handleConnectionUpdate(bot, update) {
     await Schedule.cleanup(bot.sessionId);
     bot.manager?.onSessionStateChange?.();
 
+    if (bot.hatch?.onClose && (await bot.hatch.onClose(statusCode))) return;
+
     if (statusCode === bindings.DisconnectReason.loggedOut) {
       bot.loggedOut = true;
       bot.stopReason = "logged_out";
@@ -55,12 +60,15 @@ async function handleConnectionUpdate(bot, update) {
         `Logged out. Please delete session data and rescan QR.`,
       );
       console.log(
-        isLocalSession(bot.sessionId)
-          ? `❌ [${bot.sessionId}] SESSION LOGGED OUT. Restart the bot to log in again from the terminal.`
-          : `❌ [${bot.sessionId}] SESSION LOGGED OUT. Please rescan QR and update SESSION.`,
+        isHatchedId(bot.sessionId)
+          ? `❌ [${bot.sessionId}] HATCHED BOT LOGGED OUT. Link it again with the hatch command.`
+          : isLocalSession(bot.sessionId)
+            ? `❌ [${bot.sessionId}] SESSION LOGGED OUT. Restart the bot to log in again from the terminal.`
+            : `❌ [${bot.sessionId}] SESSION LOGGED OUT. Please rescan QR and update SESSION.`,
       );
       bot._teardownSocket();
       await CustomAuthState.deleteSessionById(bot.sessionId);
+      await forgetHatched(bot);
     } else if (
       statusCode === bindings.DisconnectReason.connectionReplaced &&
       bot.reconnectAttempts >= bot.maxReconnectAttempts
@@ -80,6 +88,7 @@ async function handleConnectionUpdate(bot, update) {
       bot._scheduleReconnect(statusCode);
     }
   } else if (connection === "open") {
+    if (bot.hatch?.onOpen && !(await bot.hatch.onOpen())) return;
     sessionLogger.info(
       { botId: bot.sock.user?.id },
       `Connection established.`,

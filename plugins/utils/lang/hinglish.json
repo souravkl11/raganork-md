@@ -1466,6 +1466,48 @@
       "ONWA_ITEM": "_Number: {}_\n_Bio: {}_\n_Date: {}_",
       "ONWA_DATEWISE": "*_=== Date ke hisaab se result ===_*\n{}\n{}",
       "ONWA_TOTAL": "_*=== Kul registered numbers ===*_\n{}\n{}"
+    },
+    "start_message": {
+      "BUTTONS_TIP": "\n\n💡 *Naya: interactive buttons!*\n_Type karne ki jagah menus aur settings mein tap karo. Try karo_ `{p}settings BUTTONS on`\n_Experimental hai. Pasand nahi? Bhejo_ `{p}settings BUTTONS off` _aur ye tip phir nahi dikhega._"
+    },
+    "hatch": {
+      "DESC": "Chat se hi doosra WhatsApp number is server par naye bot ki tarah link karta hai (QR ya pairing code)",
+      "USAGE": ".hatch · .hatch qr · .hatch pair 919876543210 · .hatch list · .hatch remove 2 · .hatch cancel",
+      "USAGE_HINT": "_{p}hatch, {p}hatch qr, {p}hatch pair <number>, {p}hatch list, {p}hatch remove <n> ya {p}hatch cancel use karo._",
+      "MENU": "🐣 *Naya bot banao*\n\nNaya number kaise link karna hai?\n\n*1.* QR code: doosre phone se scan karo\n*2.* Pairing code: doosre phone par code daalo\n\n_1 ya 2 reply karo, ya *cancel*._",
+      "ASK_NUMBER": "📱 Naye bot ka WhatsApp number country code ke saath bhejo.\n_Example: 919876543210_\n\n_Rokne ke liye *cancel* reply karo._",
+      "BAD_NUMBER": "_Ye phone number jaisa nahi lag raha. Country code ke saath bhejo, jaise 919876543210._",
+      "STARTING": "⏳ _Naya bot start ho raha hai..._",
+      "QR_CAPTION": "📷 *Naya bot link karne ke liye scan karo* ({})\n\nDoosre phone par: WhatsApp → Settings → Linked devices → Link a device, phir ise scan karo.\n_Ye har ~20 second mein refresh hota hai; sabse naya hamesha last message hai._",
+      "CODE_INTRO": "🔑 *+{} ka pairing code*\n\nUs phone par: WhatsApp → Settings → Linked devices → Link a device → *Link with phone number instead*, phir neeche wala code daalo. Ye lagbhag ek minute mein expire ho jaata hai.",
+      "LINKED": "✅ *Naya bot live hai:* +{}\n\nYe is bot ke saath chalta hai aur har restart ke baad wapas aata hai. Wahan badli settings sirf us number par lagti hain.\n_Saare bots {p}hatch list se dekho, kisi ko {p}hatch remove <n> se hatao._",
+      "NOT_SAVED": "⚠️ _Database mein save nahi ho paya, isliye restart ke baad ye wapas nahi aayega._",
+      "DUPLICATE": "⚠️ _Ye number yahan pehle se bot chal raha hai, isliye naya link hata diya gaya._",
+      "ALREADY_RUNNING": "⚠️ _+{} yahan pehle se bot chal raha hai._",
+      "TIMEOUT": "⌛ _Linking ka time khatam. Dobara try karne ke liye {p}hatch chalao._",
+      "FAILED": "❌ _Naya bot link nahi ho paya. Dobara try karne ke liye {p}hatch chalao._",
+      "PAIR_FAILED": "❌ _WhatsApp ne pairing code nahi diya. Number check karo, ya {p}hatch qr try karo._",
+      "CANCELLED": "_Cancel ho gaya._",
+      "NOTHING_TO_CANCEL": "_Abhi kuch link nahi ho raha._",
+      "CANCEL_WORD": "cancel",
+      "BUSY": "_Abhi ek aur bot link ho raha hai. Use poora karo, ya {p}hatch cancel bhejo._",
+      "LIST_HEADER": "🤖 *Is server ke bots*",
+      "LIST_ITEM": "*{}.* {} · {} · {}",
+      "LIST_FOOTER": "_Hatched bot ko {p}hatch remove <n> se hatao._",
+      "ONLINE": "🟢 online",
+      "OFFLINE": "🔴 offline",
+      "LINKING": "🐣 link ho raha hai",
+      "NOT_LINKED": "abhi link nahi hua",
+      "SRC_HATCHED": "chat se bana",
+      "SRC_TERMINAL": "terminal login",
+      "SRC_WEB": "session string",
+      "REMOVE_USAGE": "_{p}hatch list bhejo, phir list wale number ke saath {p}hatch remove <n>._",
+      "NO_SUCH_BOT": "_Is number ka koi bot nahi hai. {p}hatch list check karo._",
+      "NOT_HATCHED": "_Ye bot SESSION variable se aata hai. Wahan se hatao aur restart karo._",
+      "REMOVED": "🗑️ _+{} hata diya aur WhatsApp se unlink kar diya._",
+      "MAIN_ONLY": "_Sirf main bot hi naye bot bana ya hata sakta hai._",
+      "GROUP_CONFIRM": "⚠️ *Ye ek group hai.* Yahan koi bhi QR code scan karke apna number tumhare server par bot ki tarah link kar sakta hai.\n\n_Yahin continue karne ke liye *haan* reply karo, ya {p}hatch private chat mein chalao._",
+      "YES_WORD": "haan"
     }
   }
 }

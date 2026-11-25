@@ -26,10 +26,15 @@ function buildStartMessage(config) {
   );
 }
 
-// goes to the first setsudo entry (SUDO_MAP lid), else the bot's own lid
+function buttonsTip(cfg) {
+  if (typeof cfg.isDynamic !== "function" || cfg.isDynamic("BUTTONS") || process.env.BUTTONS !== undefined) return "";
+  const { getString } = require("../../plugins/utils/lang");
+  return getString("start_message").BUTTONS_TIP.replaceAll("{p}", prefixOf(cfg));
+}
+
 async function sendStartMessage(sock, cfg = config) {
   const target = ownerTarget(sock);
-  const text = buildStartMessage(cfg);
+  const text = buildStartMessage(cfg) + buttonsTip(cfg);
   if (cfg.BUTTONS === true) {
     const p = prefixOf(cfg);
     return await ui.sendButtons(
@@ -49,4 +54,4 @@ async function sendStartMessage(sock, cfg = config) {
   await sock.sendMessage(target, { text });
 }
 
-module.exports = { buildStartMessage, sendStartMessage };
+module.exports = { buildStartMessage, buttonsTip, sendStartMessage };

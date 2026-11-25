@@ -82,6 +82,14 @@ function createSessionCaches() {
       checkperiod: 30,
       deleteOnExpire: true,
     }),
+    // as long as baileys keeps counting retries for a message id
+    revokedIds: new SafeNodeCache({
+      stdTTL: 15 * 60,
+      maxLimit: 2000,
+      useClones: false,
+      checkperiod: 60,
+      deleteOnExpire: true,
+    }),
   };
 }
 

@@ -1,7 +1,9 @@
 // never reads stdin: many panels have a console that takes no input
 const config = require("../../config");
+const { isHatchedId } = require("./hatchery");
 
-const isLocalSession = (sessionId) => (config.LOCAL_SESSIONS || []).includes(sessionId);
+const isLocalSession = (sessionId) =>
+  (config.LOCAL_SESSIONS || []).includes(sessionId) || isHatchedId(sessionId);
 
 const cleanNumber = (raw) => String(raw || "").replace(/\D/g, "");
 const isValidNumber = (digits) => digits.length >= 7 && digits.length <= 15;
@@ -41,6 +43,10 @@ async function handlePairing(bot, sock) {
   sock.__pairingRequested = true;
   try {
     const code = await sock.requestPairingCode(method.number);
+    if (bot.hatch?.onCode) {
+      await bot.hatch.onCode(formatCode(code));
+      return true;
+    }
     console.log(`\n🔗 [${bot.sessionId}] Pairing code for +${method.number}:`);
     console.log(`\n      ${formatCode(code)}\n`);
     console.log("📱 Open WhatsApp → Settings → Linked Devices → Link a Device → Link with phone number instead");
@@ -49,6 +55,7 @@ async function handlePairing(bot, sock) {
     sock.__pairingRequested = false;
     config.logger.error({ session: bot.sessionId, err: error }, "Failed to request pairing code");
     console.error(`[${bot.sessionId}] Could not get a pairing code: ${error.message}`);
+    await bot.hatch?.onPairingError?.(error);
   }
   return true;
 }

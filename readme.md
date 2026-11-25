@@ -32,6 +32,7 @@ A lightweight WhatsApp bot framework with multi-session support and extensive co
 
 - Lightweight and fast performance
 - Single and multi-session capabilities
+- Clone bots directly from WhatsApp
 - Extensive plugin system
 - Group management tools
 - Media download functionality
@@ -98,6 +99,10 @@ Start the bot with `npm start` and watch the console or logs. For `qr`, scan the
 The login is saved in the database, so later starts reconnect without a new code. Switching between `qr` and `pair` keeps an account that is already linked.
 
 To run several sessions, separate them with commas, e.g. `SESSION=qr,pair` or `SESSION=RGNK~d7a5s66,qr`. With more than one `pair` session, list the numbers in `PAIRING_NUMBER` in the same order, comma-separated.
+
+#### Adding bots from chat
+
+`.hatch` links another number as a new bot from chat, by QR or pairing code, with no restart. Hatched bots are kept in the database and start with the `SESSION` bots. Only `SESSION` bots can use it. See `.hatch list`, `.hatch remove <n>`.
 
 #### Required Variables
 
@@ -247,6 +252,7 @@ Default prefix: `.`
 
 - `.list` – Show available commands
 - `.ping` – Check response time
+- `.hatch` – Link another number as a new bot
 - `.restart` – Restart bot (sudo only)
 - `.shutdown` – Stop bot (sudo only)
 - `.mem` – Show memory usage (sudo only)

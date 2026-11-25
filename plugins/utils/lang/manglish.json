@@ -1467,6 +1467,48 @@
       "ONWA_ITEM": "_Number: {}_\n_Bio: {}_\n_Date: {}_",
       "ONWA_DATEWISE": "*_=== Date anusarichu result ===_*\n{}\n{}",
       "ONWA_TOTAL": "_*=== Ella register cheytha numbers ===*_\n{}\n{}"
+    },
+    "start_message": {
+      "BUTTONS_TIP": "\n\n💡 *Puthiya feature: interactive buttons!*\n_Type cheyyathe menus um settings um tap cheythu use cheyyam. Try cheyyan_ `{p}settings BUTTONS on`\n_Experimental aanu. Venda enkil_ `{p}settings BUTTONS off` _ayakku, pinne ee tip varilla._"
+    },
+    "hatch": {
+      "DESC": "Chatil ninnu thanne vere oru WhatsApp number ee serveril puthiya bot aayi link cheyyum (QR or pairing code)",
+      "USAGE": ".hatch · .hatch qr · .hatch pair 919876543210 · .hatch list · .hatch remove 2 · .hatch cancel",
+      "USAGE_HINT": "_{p}hatch, {p}hatch qr, {p}hatch pair <number>, {p}hatch list, {p}hatch remove <n> allenkil {p}hatch cancel use cheyyu._",
+      "MENU": "🐣 *Puthiya bot undakkam*\n\nPuthiya number engane link cheyyanam?\n\n*1.* QR code: vere phoneil ninnu scan cheyyu\n*2.* Pairing code: vere phoneil code type cheyyu\n\n_1 allenkil 2 reply cheyyu, allenkil *cancel*._",
+      "ASK_NUMBER": "📱 Puthiya botinte WhatsApp number country code koode ayakku.\n_Example: 919876543210_\n\n_Nirthaan *cancel* reply cheyyu._",
+      "BAD_NUMBER": "_Ithu phone number pole thonnunnilla. Country code koode ayakku, eg. 919876543210._",
+      "STARTING": "⏳ _Puthiya bot start aavunnu..._",
+      "QR_CAPTION": "📷 *Puthiya bot link cheyyan scan cheyyu* ({})\n\nVere phoneil: WhatsApp → Settings → Linked devices → Link a device, ennittu ithu scan cheyyu.\n_Ithu ~20 secondil oru vattam refresh aavum; ettavum puthiyathu eppozhum last message aanu._",
+      "CODE_INTRO": "🔑 *+{} nte pairing code*\n\nAa phoneil: WhatsApp → Settings → Linked devices → Link a device → *Link with phone number instead*, ennittu thazhe ulla code type cheyyu. Ithu oru minuteil expire aavum.",
+      "LINKED": "✅ *Puthiya bot live aanu:* +{}\n\nIthu ee botinte koode run cheyyum, oro restartinu shesham thirichu varum. Avide maattunna settings aa numberinu mathram aanu.\n_Ella botsum {p}hatch list il kaanam, onnine {p}hatch remove <n> vechu maattam._",
+      "NOT_SAVED": "⚠️ _Databaseil save cheyyan pattiyilla, athukondu restartinu shesham ithu thirichu varilla._",
+      "DUPLICATE": "⚠️ _Aa number ivide already bot aayi run cheyyunnund, athukondu puthiya link maatti._",
+      "ALREADY_RUNNING": "⚠️ _+{} ivide already bot aayi run cheyyunnund._",
+      "TIMEOUT": "⌛ _Linking time kazhinju. Veendum try cheyyan {p}hatch use cheyyu._",
+      "FAILED": "❌ _Puthiya bot link cheyyan pattiyilla. Veendum try cheyyan {p}hatch use cheyyu._",
+      "PAIR_FAILED": "❌ _WhatsApp pairing code thannilla. Number check cheyyu, allenkil {p}hatch qr try cheyyu._",
+      "CANCELLED": "_Cancel cheythu._",
+      "NOTHING_TO_CANCEL": "_Ippol onnum link aavunnilla._",
+      "CANCEL_WORD": "cancel",
+      "BUSY": "_Vere oru bot ippol link aavunnund. Athu theerkku, allenkil {p}hatch cancel ayakku._",
+      "LIST_HEADER": "🤖 *Ee serverile bots*",
+      "LIST_ITEM": "*{}.* {} · {} · {}",
+      "LIST_FOOTER": "_Hatch cheytha botine {p}hatch remove <n> vechu maattam._",
+      "ONLINE": "🟢 online",
+      "OFFLINE": "🔴 offline",
+      "LINKING": "🐣 link aavunnu",
+      "NOT_LINKED": "ithuvare link aayilla",
+      "SRC_HATCHED": "chatil ninnu undakkiyathu",
+      "SRC_TERMINAL": "terminal login",
+      "SRC_WEB": "session string",
+      "REMOVE_USAGE": "_{p}hatch list ayakku, ennittu listile number vechu {p}hatch remove <n>._",
+      "NO_SUCH_BOT": "_Aa numberil bot illa. {p}hatch list nokku._",
+      "NOT_HATCHED": "_Ee bot SESSION variableil ninnu aanu. Avide ninnu maatti restart cheyyu._",
+      "REMOVED": "🗑️ _+{} maatti, WhatsAppil ninnu unlink cheythu._",
+      "MAIN_ONLY": "_Main botinu mathrame bot undakkano maattano pattu._",
+      "GROUP_CONFIRM": "⚠️ *Ithu oru group aanu.* Ivide aarkkum QR code scan cheythu avarude number ninte serveril bot aayi link cheyyam.\n\n_Ivide thanne continue cheyyan *athe* reply cheyyu, allenkil {p}hatch private chatil use cheyyu._",
+      "YES_WORD": "athe"
     }
   }
 }

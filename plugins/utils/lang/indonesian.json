@@ -1466,6 +1466,48 @@
       "ONWA_ITEM": "_Nomor: {}_\n_Bio: {}_\n_Tanggal: {}_",
       "ONWA_DATEWISE": "*_=== Hasil berdasarkan tanggal ===_*\n{}\n{}",
       "ONWA_TOTAL": "_*=== Total nomor terdaftar ===*_\n{}\n{}"
+    },
+    "start_message": {
+      "BUTTONS_TIP": "\n\n💡 *Baru: tombol interaktif!*\n_Cukup ketuk menu dan pengaturan, tanpa mengetik. Coba dengan_ `{p}settings BUTTONS on`\n_Masih eksperimental. Tidak suka? Kirim_ `{p}settings BUTTONS off` _dan tips ini tidak muncul lagi._"
+    },
+    "hatch": {
+      "DESC": "Menautkan nomor WhatsApp lain sebagai bot baru di server ini, langsung dari chat (QR atau kode penautan)",
+      "USAGE": ".hatch · .hatch qr · .hatch pair 919876543210 · .hatch list · .hatch remove 2 · .hatch cancel",
+      "USAGE_HINT": "_Gunakan {p}hatch, {p}hatch qr, {p}hatch pair <nomor>, {p}hatch list, {p}hatch remove <n> atau {p}hatch cancel._",
+      "MENU": "🐣 *Buat bot baru*\n\nBagaimana nomor baru ini ditautkan?\n\n*1.* Kode QR: pindai dari ponsel lain\n*2.* Kode penautan: ketik kode di ponsel lain\n\n_Balas 1 atau 2, atau *batal*._",
+      "ASK_NUMBER": "📱 Kirim nomor WhatsApp bot baru dengan kode negara.\n_Contoh: 919876543210_\n\n_Balas *batal* untuk berhenti._",
+      "BAD_NUMBER": "_Itu tidak terlihat seperti nomor telepon. Kirim dengan kode negara, mis. 919876543210._",
+      "STARTING": "⏳ _Memulai bot baru..._",
+      "QR_CAPTION": "📷 *Pindai untuk menautkan bot baru* ({})\n\nDi ponsel lain: WhatsApp → Setelan → Perangkat tertaut → Tautkan perangkat, lalu pindai ini.\n_Diperbarui setiap ~20 detik; yang terbaru selalu pesan terakhir._",
+      "CODE_INTRO": "🔑 *Kode penautan untuk +{}*\n\nDi ponsel itu: WhatsApp → Setelan → Perangkat tertaut → Tautkan perangkat → *Tautkan dengan nomor telepon saja*, lalu masukkan kode di bawah. Kode berlaku sekitar satu menit.",
+      "LINKED": "✅ *Bot baru sudah aktif:* +{}\n\nBot ini berjalan bersama bot ini dan aktif lagi setiap restart. Setelan yang diubah di sana hanya berlaku untuk nomor itu.\n_Lihat semua bot dengan {p}hatch list, hapus dengan {p}hatch remove <n>._",
+      "NOT_SAVED": "⚠️ _Tidak bisa disimpan ke database, jadi tidak akan aktif lagi setelah restart._",
+      "DUPLICATE": "⚠️ _Nomor itu sudah berjalan sebagai bot di sini, jadi tautan baru dihapus._",
+      "ALREADY_RUNNING": "⚠️ _+{} sudah berjalan sebagai bot di sini._",
+      "TIMEOUT": "⌛ _Waktu penautan habis. Gunakan {p}hatch untuk mencoba lagi._",
+      "FAILED": "❌ _Bot baru tidak bisa ditautkan. Gunakan {p}hatch untuk mencoba lagi._",
+      "PAIR_FAILED": "❌ _WhatsApp tidak memberi kode penautan. Periksa nomornya, atau coba {p}hatch qr._",
+      "CANCELLED": "_Dibatalkan._",
+      "NOTHING_TO_CANCEL": "_Tidak ada yang sedang ditautkan._",
+      "CANCEL_WORD": "batal",
+      "BUSY": "_Bot lain sedang ditautkan. Selesaikan dulu, atau kirim {p}hatch cancel._",
+      "LIST_HEADER": "🤖 *Bot di server ini*",
+      "LIST_ITEM": "*{}.* {} · {} · {}",
+      "LIST_FOOTER": "_Hapus bot hasil hatch dengan {p}hatch remove <n>._",
+      "ONLINE": "🟢 online",
+      "OFFLINE": "🔴 offline",
+      "LINKING": "🐣 menautkan",
+      "NOT_LINKED": "belum tertaut",
+      "SRC_HATCHED": "dibuat dari chat",
+      "SRC_TERMINAL": "login terminal",
+      "SRC_WEB": "string sesi",
+      "REMOVE_USAGE": "_Kirim {p}hatch list, lalu {p}hatch remove <n> dengan nomor bot dari daftar._",
+      "NO_SUCH_BOT": "_Tidak ada bot dengan nomor itu. Periksa {p}hatch list._",
+      "NOT_HATCHED": "_Bot itu berasal dari variabel SESSION. Hapus di sana lalu restart._",
+      "REMOVED": "🗑️ _+{} dihapus dan ditautkan lepas dari WhatsApp._",
+      "MAIN_ONLY": "_Hanya bot utama yang bisa membuat atau menghapus bot._",
+      "GROUP_CONFIRM": "⚠️ *Ini grup.* Siapa pun di sini bisa memindai kode QR dan menautkan nomornya sendiri sebagai bot di server kamu.\n\n_Balas *ya* untuk lanjut di sini, atau gunakan {p}hatch di chat pribadi._",
+      "YES_WORD": "ya"
     }
   }
 }

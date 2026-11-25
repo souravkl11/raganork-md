@@ -1466,6 +1466,48 @@
       "ONWA_ITEM": "_号码：{}_\n_简介：{}_\n_日期：{}_",
       "ONWA_DATEWISE": "*_=== 按日期统计结果 ===_*\n{}\n{}",
       "ONWA_TOTAL": "_*=== 已注册号码总数 ===*_\n{}\n{}"
+    },
+    "start_message": {
+      "BUTTONS_TIP": "\n\n💡 *新功能：交互按钮！*\n_无需输入，点一点就能浏览菜单和设置。发送_ `{p}settings BUTTONS on` _试试_\n_实验性功能。不需要？发送_ `{p}settings BUTTONS off` _此提示将不再显示。_"
+    },
+    "hatch": {
+      "DESC": "直接在聊天中把另一个 WhatsApp 号码关联为本服务器上的新机器人(二维码或配对码)",
+      "USAGE": ".hatch · .hatch qr · .hatch pair 919876543210 · .hatch list · .hatch remove 2 · .hatch cancel",
+      "USAGE_HINT": "_使用 {p}hatch、{p}hatch qr、{p}hatch pair <号码>、{p}hatch list、{p}hatch remove <n> 或 {p}hatch cancel。_",
+      "MENU": "🐣 *创建新机器人*\n\n新号码要如何关联?\n\n*1.* 二维码:用另一部手机扫描\n*2.* 配对码:在另一部手机上输入代码\n\n_回复 1 或 2,或回复 *取消*。_",
+      "ASK_NUMBER": "📱 请发送新机器人的 WhatsApp 号码(带国家代码)。\n_例如:919876543210_\n\n_回复 *取消* 可停止。_",
+      "BAD_NUMBER": "_这看起来不像电话号码。请带国家代码发送,例如 919876543210。_",
+      "STARTING": "⏳ _正在启动新机器人..._",
+      "QR_CAPTION": "📷 *扫描以关联新机器人* ({})\n\n在另一部手机上:WhatsApp → 设置 → 已关联的设备 → 关联新设备,然后扫描此码。\n_约每 20 秒刷新一次;最新的一张总是最后一条消息。_",
+      "CODE_INTRO": "🔑 *+{} 的配对码*\n\n在那部手机上:WhatsApp → 设置 → 已关联的设备 → 关联新设备 → *改用电话号码关联*,然后输入下面的代码。约一分钟后失效。",
+      "LINKED": "✅ *新机器人已上线:* +{}\n\n它与当前机器人一起运行,每次重启后都会自动恢复。在那里修改的设置只对该号码生效。\n_用 {p}hatch list 查看所有机器人,用 {p}hatch remove <n> 移除。_",
+      "NOT_SAVED": "⚠️ _无法保存到数据库,重启后它不会恢复。_",
+      "DUPLICATE": "⚠️ _该号码已在此作为机器人运行,新的关联已被移除。_",
+      "ALREADY_RUNNING": "⚠️ _+{} 已在此作为机器人运行。_",
+      "TIMEOUT": "⌛ _关联超时。请使用 {p}hatch 重试。_",
+      "FAILED": "❌ _新机器人关联失败。请使用 {p}hatch 重试。_",
+      "PAIR_FAILED": "❌ _WhatsApp 没有返回配对码。请检查号码,或改用 {p}hatch qr。_",
+      "CANCELLED": "_已取消。_",
+      "NOTHING_TO_CANCEL": "_当前没有正在关联的机器人。_",
+      "CANCEL_WORD": "取消",
+      "BUSY": "_另一个机器人正在关联中。请先完成,或发送 {p}hatch cancel。_",
+      "LIST_HEADER": "🤖 *本服务器上的机器人*",
+      "LIST_ITEM": "*{}.* {} · {} · {}",
+      "LIST_FOOTER": "_用 {p}hatch remove <n> 移除从聊天创建的机器人。_",
+      "ONLINE": "🟢 在线",
+      "OFFLINE": "🔴 离线",
+      "LINKING": "🐣 关联中",
+      "NOT_LINKED": "尚未关联",
+      "SRC_HATCHED": "聊天创建",
+      "SRC_TERMINAL": "终端登录",
+      "SRC_WEB": "会话字符串",
+      "REMOVE_USAGE": "_先发送 {p}hatch list,再用列表中的序号发送 {p}hatch remove <n>。_",
+      "NO_SUCH_BOT": "_没有该序号的机器人。请查看 {p}hatch list。_",
+      "NOT_HATCHED": "_该机器人来自 SESSION 变量。请在那里移除并重启。_",
+      "REMOVED": "🗑️ _已移除 +{} 并从 WhatsApp 取消关联。_",
+      "MAIN_ONLY": "_只有主机器人可以创建或移除机器人。_",
+      "GROUP_CONFIRM": "⚠️ *这是一个群组。* 群里的任何人都可以扫描二维码,把自己的号码关联为你服务器上的机器人。\n\n_回复 *是* 在这里继续,或改在私聊中使用 {p}hatch。_",
+      "YES_WORD": "是"
     }
   }
 }

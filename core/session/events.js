@@ -7,6 +7,7 @@ const { readEncryptedEdit } = require("./features/message-edit");
 const { bridgeStatusStanzas, logGroupFrames } = require("./features/status-stanza");
 const { debugOn } = require("../helpers");
 const { trackOwnChannelPosts, markOwnChannelPost, patchChannelSend } = require("./features/channels");
+const { forgetRevoked } = require("./features/revoke-guard");
 
 function wireEvents(bot) {
   bridgeStatusStanzas(bot.sock);
@@ -55,6 +56,7 @@ function wireEvents(bot) {
   bot._on("messages.upsert", async (upsert) => {
     for (const message of upsert.messages) {
       markOwnChannelPost(message);
+      forgetRevoked(bot, message);
       if (message.key && message.key.id && message.key.remoteJid) {
         const cacheKey = `${message.key.remoteJid}_${message.key.id}`;
         bot.messageCache.set(cacheKey, message);

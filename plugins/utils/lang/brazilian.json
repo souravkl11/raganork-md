@@ -1466,6 +1466,48 @@
       "ONWA_ITEM": "_Número: {}_\n_Bio: {}_\n_Data: {}_",
       "ONWA_DATEWISE": "*_=== Resultado por data ===_*\n{}\n{}",
       "ONWA_TOTAL": "_*=== Total de números registrados ===*_\n{}\n{}"
+    },
+    "start_message": {
+      "BUTTONS_TIP": "\n\n💡 *Novo: botões interativos!*\n_Navegue pelos menus e configurações tocando, sem digitar. Experimente com_ `{p}settings BUTTONS on`\n_Experimental. Não curtiu? Envie_ `{p}settings BUTTONS off` _e esta dica some._"
+    },
+    "hatch": {
+      "DESC": "Vincula outro número do WhatsApp como um novo bot neste servidor, direto do chat (QR ou código de pareamento)",
+      "USAGE": ".hatch · .hatch qr · .hatch pair 919876543210 · .hatch list · .hatch remove 2 · .hatch cancel",
+      "USAGE_HINT": "_Use {p}hatch, {p}hatch qr, {p}hatch pair <número>, {p}hatch list, {p}hatch remove <n> ou {p}hatch cancel._",
+      "MENU": "🐣 *Criar um novo bot*\n\nComo o novo número deve ser vinculado?\n\n*1.* Código QR: escaneie no outro celular\n*2.* Código de pareamento: digite um código no outro celular\n\n_Responda 1 ou 2, ou *cancelar*._",
+      "ASK_NUMBER": "📱 Envie o número de WhatsApp do novo bot com o código do país.\n_Exemplo: 919876543210_\n\n_Responda *cancelar* para parar._",
+      "BAD_NUMBER": "_Isso não parece um número de telefone. Envie com o código do país, ex.: 919876543210._",
+      "STARTING": "⏳ _Iniciando o novo bot..._",
+      "QR_CAPTION": "📷 *Escaneie para vincular o novo bot* ({})\n\nNo outro celular: WhatsApp → Configurações → Dispositivos conectados → Conectar um dispositivo, e escaneie isto.\n_Ele é renovado a cada ~20 segundos; o mais novo é sempre a última mensagem._",
+      "CODE_INTRO": "🔑 *Código de pareamento para +{}*\n\nNaquele celular: WhatsApp → Configurações → Dispositivos conectados → Conectar um dispositivo → *Conectar com número de telefone*, e digite o código abaixo. Ele expira em cerca de um minuto.",
+      "LINKED": "✅ *O novo bot está ativo:* +{}\n\nEle roda junto com este e volta após cada reinício. Configurações alteradas lá valem só para aquele número.\n_Veja todos os bots com {p}hatch list, remova um com {p}hatch remove <n>._",
+      "NOT_SAVED": "⚠️ _Não foi possível salvar no banco de dados, então ele não voltará após um reinício._",
+      "DUPLICATE": "⚠️ _Esse número já está rodando como bot aqui, então o novo vínculo foi removido._",
+      "ALREADY_RUNNING": "⚠️ _+{} já está rodando como bot aqui._",
+      "TIMEOUT": "⌛ _O tempo para vincular acabou. Use {p}hatch para tentar de novo._",
+      "FAILED": "❌ _Não foi possível vincular o novo bot. Use {p}hatch para tentar de novo._",
+      "PAIR_FAILED": "❌ _O WhatsApp não gerou um código de pareamento. Confira o número ou tente {p}hatch qr._",
+      "CANCELLED": "_Cancelado._",
+      "NOTHING_TO_CANCEL": "_Nada está sendo vinculado agora._",
+      "CANCEL_WORD": "cancelar",
+      "BUSY": "_Outro bot já está sendo vinculado. Termine-o ou envie {p}hatch cancel._",
+      "LIST_HEADER": "🤖 *Bots neste servidor*",
+      "LIST_ITEM": "*{}.* {} · {} · {}",
+      "LIST_FOOTER": "_Remova um bot criado com {p}hatch remove <n>._",
+      "ONLINE": "🟢 online",
+      "OFFLINE": "🔴 offline",
+      "LINKING": "🐣 vinculando",
+      "NOT_LINKED": "ainda não vinculado",
+      "SRC_HATCHED": "criado pelo chat",
+      "SRC_TERMINAL": "login no terminal",
+      "SRC_WEB": "string de sessão",
+      "REMOVE_USAGE": "_Envie {p}hatch list e depois {p}hatch remove <n> com o número do bot na lista._",
+      "NO_SUCH_BOT": "_Nenhum bot com esse número. Confira {p}hatch list._",
+      "NOT_HATCHED": "_Esse bot vem da variável SESSION. Remova-o lá e reinicie._",
+      "REMOVED": "🗑️ _+{} foi removido e desvinculado do WhatsApp._",
+      "MAIN_ONLY": "_Só o bot principal pode criar ou remover bots._",
+      "GROUP_CONFIRM": "⚠️ *Isto é um grupo.* Qualquer pessoa aqui poderia escanear o código QR e vincular o próprio número como bot no seu servidor.\n\n_Responda *sim* para continuar aqui, ou use {p}hatch em um chat privado._",
+      "YES_WORD": "sim"
     }
   }
 }

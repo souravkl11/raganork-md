@@ -51,13 +51,18 @@ const Lang = getString("converters");
 const unlinkAll = (files) =>
   Promise.all(files.map((f) => fs.promises.unlink(f).catch(() => {})));
 
-const stickerExif = (message) => ({
-  author: config.STICKER_DATA.split(";")[1] || "",
-  packname: message.senderName,
-  categories: config.STICKER_DATA.split(";")[2] || "😂",
-  android: "https://github.com/souravkl11/Raganork-md/",
-  ios: "https://github.com/souravkl11/Raganork-md/",
-});
+// pack is the bot and author the sender, unless the owner forces STICKER_DATA on every sticker
+const stickerExif = (message) => {
+  const [pack, author, emoji] = String(config.STICKER_DATA || "").split(";");
+  const forced = config.FORCE_STICKER_DATA;
+  return {
+    packname: forced ? pack || "" : config.BOT_INFO.split(";")[0] || config.BOT_NAME,
+    author: forced ? author || "" : message.senderName || "",
+    categories: emoji || "😂",
+    android: "https://github.com/souravkl11/Raganork-md/",
+    ios: "https://github.com/souravkl11/Raganork-md/",
+  };
+};
 
 async function withExif(media, exif) {
   const out = await addExif(media, exif);

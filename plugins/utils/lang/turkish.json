@@ -1471,6 +1471,48 @@
       "ONWA_ITEM": "_Numara: {}_\n_Biyografi: {}_\n_Tarih: {}_",
       "ONWA_DATEWISE": "*_=== Tarihe göre sonuç ===_*\n{}\n{}",
       "ONWA_TOTAL": "_*=== Toplam kayıtlı numara ===*_\n{}\n{}"
+    },
+    "start_message": {
+      "BUTTONS_TIP": "\n\n💡 *Yeni: etkileşimli butonlar!*\n_Yazmak yerine menülerde ve ayarlarda dokunarak gezin. Denemek için:_ `{p}settings BUTTONS on`\n_Deneysel bir özellik. Sana göre değil mi? Gönder:_ `{p}settings BUTTONS off` _ve bu ipucu kaybolur._"
+    },
+    "hatch": {
+      "DESC": "Başka bir WhatsApp numarasını doğrudan sohbetten bu sunucuda yeni bir bot olarak bağlar (QR veya eşleme kodu)",
+      "USAGE": ".hatch · .hatch qr · .hatch pair 919876543210 · .hatch list · .hatch remove 2 · .hatch cancel",
+      "USAGE_HINT": "_{p}hatch, {p}hatch qr, {p}hatch pair <numara>, {p}hatch list, {p}hatch remove <n> veya {p}hatch cancel kullanın._",
+      "MENU": "🐣 *Yeni bot oluştur*\n\nYeni numara nasıl bağlansın?\n\n*1.* QR kod: diğer telefondan tarayın\n*2.* Eşleme kodu: diğer telefona bir kod girin\n\n_1 veya 2 yazın, ya da *iptal*._",
+      "ASK_NUMBER": "📱 Yeni botun WhatsApp numarasını ülke koduyla gönderin.\n_Örnek: 919876543210_\n\n_Durdurmak için *iptal* yazın._",
+      "BAD_NUMBER": "_Bu bir telefon numarasına benzemiyor. Ülke koduyla gönderin, ör. 919876543210._",
+      "STARTING": "⏳ _Yeni bot başlatılıyor..._",
+      "QR_CAPTION": "📷 *Yeni botu bağlamak için tarayın* ({})\n\nDiğer telefonda: WhatsApp → Ayarlar → Bağlı cihazlar → Cihaz bağla, ardından bunu tarayın.\n_Her ~20 saniyede yenilenir; en yenisi her zaman son mesajdır._",
+      "CODE_INTRO": "🔑 *+{} için eşleme kodu*\n\nO telefonda: WhatsApp → Ayarlar → Bağlı cihazlar → Cihaz bağla → *Bunun yerine telefon numarasıyla bağla*, ardından aşağıdaki kodu girin. Kod yaklaşık bir dakika içinde geçersiz olur.",
+      "LINKED": "✅ *Yeni bot aktif:* +{}\n\nBununla birlikte çalışır ve her yeniden başlatmadan sonra geri gelir. Orada değiştirilen ayarlar yalnızca o numaraya uygulanır.\n_Tüm botları {p}hatch list ile görün, birini {p}hatch remove <n> ile kaldırın._",
+      "NOT_SAVED": "⚠️ _Veritabanına kaydedilemedi, bu yüzden yeniden başlatmadan sonra geri gelmeyecek._",
+      "DUPLICATE": "⚠️ _Bu numara burada zaten bot olarak çalışıyor, bu yüzden yeni bağlantı kaldırıldı._",
+      "ALREADY_RUNNING": "⚠️ _+{} burada zaten bot olarak çalışıyor._",
+      "TIMEOUT": "⌛ _Bağlama süresi doldu. Tekrar denemek için {p}hatch kullanın._",
+      "FAILED": "❌ _Yeni bot bağlanamadı. Tekrar denemek için {p}hatch kullanın._",
+      "PAIR_FAILED": "❌ _WhatsApp eşleme kodu vermedi. Numarayı kontrol edin veya {p}hatch qr deneyin._",
+      "CANCELLED": "_İptal edildi._",
+      "NOTHING_TO_CANCEL": "_Şu anda bağlanan bir şey yok._",
+      "CANCEL_WORD": "iptal",
+      "BUSY": "_Şu anda başka bir bot bağlanıyor. Onu bitirin ya da {p}hatch cancel gönderin._",
+      "LIST_HEADER": "🤖 *Bu sunucudaki botlar*",
+      "LIST_ITEM": "*{}.* {} · {} · {}",
+      "LIST_FOOTER": "_Sohbetten oluşturulan bir botu {p}hatch remove <n> ile kaldırın._",
+      "ONLINE": "🟢 çevrimiçi",
+      "OFFLINE": "🔴 çevrimdışı",
+      "LINKING": "🐣 bağlanıyor",
+      "NOT_LINKED": "henüz bağlı değil",
+      "SRC_HATCHED": "sohbetten oluşturuldu",
+      "SRC_TERMINAL": "terminal girişi",
+      "SRC_WEB": "oturum dizesi",
+      "REMOVE_USAGE": "_{p}hatch list gönderin, ardından listedeki bot numarasıyla {p}hatch remove <n>._",
+      "NO_SUCH_BOT": "_Bu numarada bot yok. {p}hatch list'e bakın._",
+      "NOT_HATCHED": "_Bu bot SESSION değişkeninden geliyor. Oradan kaldırıp yeniden başlatın._",
+      "REMOVED": "🗑️ _+{} kaldırıldı ve WhatsApp bağlantısı kesildi._",
+      "MAIN_ONLY": "_Yalnızca ana bot bot oluşturabilir veya kaldırabilir._",
+      "GROUP_CONFIRM": "⚠️ *Burası bir grup.* Buradaki herkes QR kodu tarayıp kendi numarasını sunucunuzda bot olarak bağlayabilir.\n\n_Burada devam etmek için *evet* yazın, ya da {p}hatch'i özel sohbette kullanın._",
+      "YES_WORD": "evet"
     }
   }
 }

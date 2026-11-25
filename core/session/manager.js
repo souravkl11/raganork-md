@@ -6,6 +6,7 @@ const configStore = require("../config/store");
 const { flushQueueOnShutdown, stopFlushTimer } = require("../store");
 const { ownerTarget } = require("../identity");
 const { createAnnouncementFeed } = require("../private");
+const hatchery = require("./hatchery");
 const { version } = require("../../package.json");
 
 const RECENT_ANNOUNCEMENTS = 50;
@@ -55,11 +56,25 @@ class BotManager {
         }
     }
 
+    // SESSION from env plus bots added from chat with .hatch
+    async sessionIds() {
+        try {
+            const hatched = await hatchery.loadRegistry();
+            return { ids: [...SESSION, ...hatched.filter((id) => !SESSION.includes(id))], hatched, complete: true };
+        } catch (error) {
+            logger.error({ err: error }, `Could not read hatched bots, starting SESSION bots only`);
+            return { ids: [...SESSION], hatched: [], complete: false };
+        }
+    }
+
     async initializeBots() {
-        logger.info({ sessions: SESSION }, `Initializing all configured bots.`);
-        await CustomAuthState.deleteGarbageSessions(SESSION);
+        const { ids, hatched, complete } = await this.sessionIds();
+        logger.info({ sessions: SESSION, hatched: hatched.length }, `Initializing all configured bots.`);
+        // an unreadable registry must not get hatched bots wiped as garbage
+        if (complete) await CustomAuthState.deleteGarbageSessions(ids);
+        if (hatched.length) console.log(`- Hatched bots: ${hatched.length}`);
         const loaded = [];
-        for (const sessionId of SESSION) {
+        for (const sessionId of ids) {
             try {
                 logger.info({ session: sessionId }, `Attempting to initialize bot for session.`);
                 const bot = new WhatsAppBot(sessionId);
@@ -68,6 +83,7 @@ class BotManager {
                 loaded.push(bot);
             } catch (error) {
                 logger.error({ session: sessionId, err: error }, `Overall failure to initialize bot in BotManager`);
+                if (hatchery.isHatchedId(sessionId)) await this.pruneHatched(sessionId);
             }
         }
 
@@ -87,6 +103,18 @@ class BotManager {
 
                 logger.error({ session: sessionId, err: error }, `Overall failure to initialize bot in BotManager`);
             }
+        }
+    }
+
+    // only once its creds row is really gone: a db hiccup at boot must not drop a working bot
+    async pruneHatched(sessionId) {
+        try {
+            const { WhatsappSession } = require("../database");
+            if (await WhatsappSession.count({ where: { sessionId } })) return;
+            await hatchery.unregister(sessionId);
+            console.warn(`⚠️ [${sessionId}] A hatched bot lost its login and was removed. Link it again with the hatch command.`);
+        } catch (error) {
+            logger.error({ session: sessionId, err: error }, `Failed to prune hatched session`);
         }
     }
 

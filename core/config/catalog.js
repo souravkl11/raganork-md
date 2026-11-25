@@ -7,7 +7,7 @@ const CATEGORIES = [
       { key: "MODE", title: "Bot mode", kind: "enum", options: [{ value: "private" }, { value: "public" }], desc: "who can use commands" },
       { key: "HANDLERS", title: "Command prefixes", kind: "text", desc: "characters that start a command" },
       { key: "MULTI_HANDLERS", title: "With & without prefix", kind: "bool", desc: "commands work with or without prefix" },
-      { key: "LANGUAGE", title: "Language", kind: "enum", options: ["english", "manglish", "turkish", "indonesian", "brazilian", "hinglish", "chinese"].map((value) => ({ value })) },
+      { key: "LANGUAGE", title: "Language", kind: "enum", options: ["english", "manglish", "turkish", "indonesian", "brazilian", "hinglish", "chinese", "spanish"].map((value) => ({ value })) },
       { key: "BOT_NAME", title: "Bot name", kind: "text" },
       { key: "BOT_INFO", title: "Bot info", kind: "text", desc: "name;owner;image", via: "setinfo" },
       { key: "BUTTONS", title: "Interactive buttons", kind: "bool", desc: "experimental, use at your own risk", aliases: ["BUTTON"] },
@@ -70,7 +70,8 @@ const CATEGORIES = [
   {
     name: "Media",
     items: [
-      { key: "STICKER_DATA", title: "Sticker pack", kind: "text" },
+      { key: "STICKER_DATA", title: "Sticker pack", kind: "text", desc: "pack;author;emoji" },
+      { key: "FORCE_STICKER_DATA", title: "Always use sticker pack", kind: "bool", desc: "every sticker the bot makes uses the sticker pack, not bot name;sender" },
       { key: "AUDIO_DATA", title: "Audio metadata", kind: "text", desc: "title;artist;image url" },
     ],
   },

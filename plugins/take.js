@@ -11,8 +11,7 @@ const { fetchPublicBuffer } = require("./utils/upload");
 const ffmpeg = require("fluent-ffmpeg");
 const webp = require("node-webpmux");
 const { runFfmpeg, loadBaileys } = require("../core/helpers");
-const { getFullMessage } = require("../core/store");
-const { sentStickerAudioFor, sendStickerAudio } = require("../core/session/features/new-media");
+const { findStickerAudio: stickerAudioOf, sendStickerAudio } = require("../core/session/features/new-media");
 const { Module } = require("../main");
 const { helpPrefix } = require("../core/plugins/registry");
 const { getString } = require("./utils/lang");
@@ -135,15 +134,6 @@ async function isAnimatedWebp(file) {
   return img.hasAnim;
 }
 
-async function stickerAudioOf(reply) {
-  const quoted = reply.data.message?.stickerMessage?.audioMessage;
-  if (quoted) return { audioMessage: quoted, key: reply.data.key };
-  const sent = reply.id && sentStickerAudioFor(reply.id);
-  if (sent) return { audioMessage: sent, key: reply.data.key };
-  const stored = reply.id ? await getFullMessage(reply.id) : null;
-  const audioMessage = stored?.found && stored.messageData.message?.stickerMessage?.audioMessage;
-  return audioMessage ? { audioMessage, key: stored.messageData.key } : null;
-}
 
 async function stickerAudioToMp4({ audioMessage, key }, animated, webpPath, out) {
   const { downloadMediaMessage } = await loadBaileys();

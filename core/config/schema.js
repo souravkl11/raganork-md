@@ -47,6 +47,7 @@ const entries = {
   CHATBOT: { type: "string", default: "off" },
   HANDLERS: { type: "string", default: ".," },
   STICKER_DATA: { type: "string", default: "Raganork" },
+  FORCE_STICKER_DATA: { type: "bool", default: false },
   BOT_NAME: { type: "string", default: "Raganork" },
   AUDIO_DATA: {
     type: "string",

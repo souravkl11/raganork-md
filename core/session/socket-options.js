@@ -1,4 +1,5 @@
 const config = require("../../config");
+const { isRevoked } = require("./features/revoke-guard");
 
 const { logger, baileysLogger } = config;
 
@@ -32,7 +33,7 @@ function buildSocketOptions(bot, version) {
       return cached;
     },
     getMessage: async (key) => {
-      if (!key || !key.remoteJid || !key.id) {
+      if (!key || !key.remoteJid || !key.id || isRevoked(bot, key.id)) {
         return undefined;
       }
       const cacheKey = `${key.remoteJid}_${key.id}`;

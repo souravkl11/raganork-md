@@ -38,7 +38,7 @@ function restartNote(key) {
   return needsRestart(key) ? Lang.RESTART_NOTE : "";
 }
 
-const PROTECTED_KEYS = ["SESSION", "LOCAL_SESSIONS", "LOGIN_METHODS", "DATABASE_URL"];
+const PROTECTED_KEYS = ["SESSION", "LOCAL_SESSIONS", "LOGIN_METHODS", "DATABASE_URL", "HATCHED_SESSIONS"];
 
 const isSecretKey = (key) => {
   const name = String(key).trim().toUpperCase();
@@ -117,6 +117,9 @@ Module(
           Lang.SET_SECRET.format(key.trim(), restartNote(key.trim()))
         );
       } else {
+        if (key.trim().toUpperCase() === "BUTTONS" && catalog.isOn(value) && !ui.enabled()) {
+          await message.sendReply(BUTTONS_WARNING.replace("{p}", helpPrefix()));
+        }
         await setVar(key.trim(), value, message);
       }
     } catch (error) {

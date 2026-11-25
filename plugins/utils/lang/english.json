@@ -1466,6 +1466,48 @@
       "ONWA_ITEM": "_Number: {}_\n_Bio: {}_\n_Date: {}_",
       "ONWA_DATEWISE": "*_=== Date wise result ===_*\n{}\n{}",
       "ONWA_TOTAL": "_*=== Total registered numbers ===*_\n{}\n{}"
+    },
+    "start_message": {
+      "BUTTONS_TIP": "\n\n💡 *New: interactive buttons!*\n_Tap through menus and settings instead of typing. Try them with_ `{p}settings BUTTONS on`\n_Experimental. Not for you? Send_ `{p}settings BUTTONS off` _and this tip goes away._"
+    },
+    "hatch": {
+      "DESC": "Links another WhatsApp number as a new bot on this server, right from chat (QR or pairing code)",
+      "USAGE": ".hatch · .hatch qr · .hatch pair 919876543210 · .hatch list · .hatch remove 2 · .hatch cancel",
+      "USAGE_HINT": "_Use {p}hatch, {p}hatch qr, {p}hatch pair <number>, {p}hatch list, {p}hatch remove <n> or {p}hatch cancel._",
+      "MENU": "🐣 *Hatch a new bot*\n\nHow should the new number be linked?\n\n*1.* QR code: scan it from the other phone\n*2.* Pairing code: type a code on the other phone\n\n_Reply 1 or 2, or *cancel*._",
+      "ASK_NUMBER": "📱 Send the new bot's WhatsApp number with country code.\n_Example: 919876543210_\n\n_Reply *cancel* to stop._",
+      "BAD_NUMBER": "_That doesn't look like a phone number. Send it with the country code, e.g. 919876543210._",
+      "STARTING": "⏳ _Starting the new bot..._",
+      "QR_CAPTION": "📷 *Scan to link the new bot* ({})\n\nOn the other phone: WhatsApp → Settings → Linked devices → Link a device, then scan this.\n_It refreshes every ~20 seconds; the newest one is always the latest message._",
+      "CODE_INTRO": "🔑 *Pairing code for +{}*\n\nOn that phone: WhatsApp → Settings → Linked devices → Link a device → *Link with phone number instead*, then enter the code below. It expires in about a minute.",
+      "LINKED": "✅ *New bot is live:* +{}\n\nIt runs alongside this one and comes back after every restart. Settings changed there apply only to that number.\n_See all bots with {p}hatch list, remove one with {p}hatch remove <n>._",
+      "NOT_SAVED": "⚠️ _It couldn't be saved to the database, so it won't come back after a restart._",
+      "DUPLICATE": "⚠️ _That number is already running as a bot here, so the new link was removed._",
+      "ALREADY_RUNNING": "⚠️ _+{} is already running as a bot here._",
+      "TIMEOUT": "⌛ _Linking timed out. Run {p}hatch to try again._",
+      "FAILED": "❌ _The new bot couldn't be linked. Run {p}hatch to try again._",
+      "PAIR_FAILED": "❌ _WhatsApp didn't give a pairing code. Check the number, or try {p}hatch qr._",
+      "CANCELLED": "_Cancelled._",
+      "NOTHING_TO_CANCEL": "_Nothing is being linked right now._",
+      "CANCEL_WORD": "cancel",
+      "BUSY": "_Another bot is being linked right now. Finish it, or send {p}hatch cancel._",
+      "LIST_HEADER": "🤖 *Bots on this server*",
+      "LIST_ITEM": "*{}.* {} · {} · {}",
+      "LIST_FOOTER": "_Remove a hatched bot with {p}hatch remove <n>._",
+      "ONLINE": "🟢 online",
+      "OFFLINE": "🔴 offline",
+      "LINKING": "🐣 linking",
+      "NOT_LINKED": "not linked yet",
+      "SRC_HATCHED": "hatched",
+      "SRC_TERMINAL": "terminal login",
+      "SRC_WEB": "session string",
+      "REMOVE_USAGE": "_Send {p}hatch list, then {p}hatch remove <n> with the bot's number from the list._",
+      "NO_SUCH_BOT": "_No bot with that number. Check {p}hatch list._",
+      "NOT_HATCHED": "_That bot comes from the SESSION variable. Remove it there and restart._",
+      "REMOVED": "🗑️ _Removed +{} and unlinked it from WhatsApp._",
+      "MAIN_ONLY": "_Only the main bot can hatch or remove bots._",
+      "GROUP_CONFIRM": "⚠️ *This is a group.* Anyone here could scan the QR code and link their own number as a bot on your server.\n\n_Reply *yes* to continue here, or run {p}hatch in a private chat instead._",
+      "YES_WORD": "yes"
     }
   }
 }

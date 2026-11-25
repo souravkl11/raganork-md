@@ -3,6 +3,7 @@ const { isAdmin } = require("./utils");
 const { ownerTarget } = require("../core/identity");
 const { getFullMessage, hasPendingWrites, flushPendingWrites } = require("../core/store");
 const { extractViewOnce, hasViewOnceContent } = require("./utils/viewonce");
+const { findStickerAudio, sendStickerAudio } = require("../core/session/features/new-media");
 const { getString } = require("./utils/lang");
 const Lang = getString("wamsg");
 
@@ -79,6 +80,14 @@ const forwardTo = (command, forwarded) => async (m, t) => {
   const contextInfo = forwarded
     ? { isForwarded: true, forwardingScore: 2 }
     : { isForwarded: false };
+  // a forwarded copy of the quote would lose the audio, so audio stickers are sent again
+  const audio = m.reply_message.sticker && (await findStickerAudio(m.reply_message));
+  if (audio) {
+    const sticker = await m.reply_message.download("buffer");
+    const emojis = m.reply_message.data.message?.stickerMessage?.emojis;
+    for (const jid of jidMap) await sendStickerAudio(m.client, jid, sticker, audio.audioMessage, { emojis });
+    return;
+  }
   for (const jid of jidMap) {
     await m.forwardMessage(jid, m.quoted, { contextInfo });
   }
