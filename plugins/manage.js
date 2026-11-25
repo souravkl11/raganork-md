@@ -796,6 +796,49 @@ Module(
   }
 );
 
+Module(
+  {
+    pattern: "alias ?(.*)",
+    fromMe: true,
+    desc: Lang.ALIAS_DESC,
+    usage: ".alias steal take",
+  },
+  async (message, match) => {
+    const p = helpPrefix();
+    const { parseAliases } = require("../core/pipeline/dispatcher");
+    const aliases = parseAliases(config.ALIASES);
+    const save = () =>
+      setVar("ALIASES", [...aliases].map(([a, t]) => `${a}=${t}`).join(","), false);
+    const words = (match[1] || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+    if (words.length === 0) {
+      if (!aliases.size) return await message.sendReply(Lang.ALIAS_NONE.replaceAll("{p}", p));
+      const lines = [...aliases].map(([a, t]) => Lang.ALIAS_LINE.format(a, t)).join("\n");
+      return await message.sendReply(Lang.ALIAS_LIST.format(lines).replaceAll("{p}", p));
+    }
+
+    const strip = (w) => (p && w.startsWith(p) ? w.slice(p.length) : w);
+    if (words[0] === "del" && words[1]) {
+      const name = strip(words[1]);
+      if (!aliases.delete(name)) return await message.sendReply(Lang.ALIAS_NOT_FOUND.format(name).replaceAll("{p}", p));
+      await save();
+      return await message.sendReply(Lang.ALIAS_REMOVED.format(name).replaceAll("{p}", p));
+    }
+
+    if (words.length !== 2) return await message.sendReply(Lang.ALIAS_USAGE.replaceAll("{p}", p));
+    const [name, target] = words.map(strip);
+    if (!/^[\p{L}\p{N}]{1,20}$/u.test(name)) return await message.sendReply(Lang.ALIAS_BAD_NAME);
+    const { commands } = require("../main");
+    const names = new Set(commands.filter((x) => x.pattern).map((cmd) => commandName(cmd)));
+    // an alias over a real command would hide it
+    if (names.has(name)) return await message.sendReply(Lang.ALIAS_TAKEN.format(name).replaceAll("{p}", p));
+    if (!names.has(target)) return await message.sendReply(Lang.NOT_COMMAND.format(p, target));
+    aliases.set(name, target);
+    await save();
+    return await message.sendReply(Lang.ALIAS_SET.format(name, target).replaceAll("{p}", p));
+  }
+);
+
 const settingByTitle = (title) =>
   catalog.allSettings().find((s) => s.title.toLowerCase() === String(title || "").trim().toLowerCase()) || null;
 

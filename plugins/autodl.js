@@ -2,7 +2,7 @@ const { Module, commands } = require("../main");
 const config = require("../config");
 const { helpPrefix, patternFor, commandName } = require("../core/plugins/registry");
 const { parseText } = require("../core/pipeline/normalize");
-const { queue } = require("../core/pipeline/dispatcher");
+const { queue, applyAlias } = require("../core/pipeline/dispatcher");
 const { setVar } = require("./manage");
 const { getString } = require("./utils/lang");
 const Lang = getString("autodl");
@@ -62,7 +62,7 @@ function detectPlatform(url) {
 
 // true when the dispatcher will run one of the download commands for this text
 function isAlreadyCommand(text) {
-  const parsed = parseText(text);
+  const parsed = applyAlias(parseText(text));
   if (!parsed) return false;
   return commands.some(
     (cmd) =>

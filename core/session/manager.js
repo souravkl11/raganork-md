@@ -73,12 +73,18 @@ class BotManager {
         // an unreadable registry must not get hatched bots wiped as garbage
         if (complete) await CustomAuthState.deleteGarbageSessions(ids);
         if (hatched.length) console.log(`- Hatched bots: ${hatched.length}`);
+        const logoutHatched = /^(true|1|yes|on)$/i.test(String(process.env.LOGOUT_HATCHED || "").trim());
+        if (logoutHatched && hatched.length) {
+            console.warn(`⚠️ LOGOUT_HATCHED is on: logging out ${hatched.length} hatched bot(s) as they connect. Remove it afterwards.`);
+        }
         const loaded = [];
         for (const sessionId of ids) {
             try {
                 logger.info({ session: sessionId }, `Attempting to initialize bot for session.`);
                 const bot = new WhatsAppBot(sessionId);
                 bot.manager = this;
+                // boot only, so bots hatched while the flag is set survive
+                if (logoutHatched && hatchery.isHatchedId(sessionId)) bot.forceLogout = true;
                 await bot.loadAuth();
                 loaded.push(bot);
             } catch (error) {

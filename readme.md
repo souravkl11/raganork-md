@@ -91,18 +91,28 @@ SESSION=qr      # prints a QR code to scan (also used when SESSION is empty)
 
 ```
 SESSION=pair
-PAIRING_NUMBER=919876543210   # your number with country code
+PAIRING_NUMBER=919876543210   # your number with country code; optional if the console takes input
 ```
 
-Start the bot with `npm start` and watch the console or logs. For `qr`, scan the code from WhatsApp → Settings → Linked Devices → Link a Device. For `pair`, enter the code there under "Link with phone number instead". Nothing needs to be typed into the console, so this works on panels with a console that takes no input.
+Start the bot with `npm start` and watch the console or logs. For `qr`, scan the code from WhatsApp → Settings → Linked Devices → Link a Device. For `pair`, enter the code there under "Link with phone number instead". Without `PAIRING_NUMBER`, a console you can type into (e.g. `node index.js` over SSH) asks for the number. On panels whose console takes no input (and under pm2), set `PAIRING_NUMBER`, or a QR code is shown instead.
 
 The login is saved in the database, so later starts reconnect without a new code. Switching between `qr` and `pair` keeps an account that is already linked.
 
 To run several sessions, separate them with commas, e.g. `SESSION=qr,pair` or `SESSION=RGNK~d7a5s66,qr`. With more than one `pair` session, list the numbers in `PAIRING_NUMBER` in the same order, comma-separated.
 
+To be able to change a terminal login later, give it a name: `qr:main` or `pair:work` (a-z, 0-9, `_`, `-`). The login is saved under that name:
+
+- **Log in with another number:** change the name (e.g. `qr:main` → `qr:main2`) and restart. The old login is deleted and a new code is shown.
+- **Remove one account:** delete its entry and restart. The other entries keep their logins. (Unnamed `qr`/`pair` entries go by position, so removing one in the middle moves the others' logins along.)
+- Switching `qr:work` ↔ `pair:work` keeps the account, like the unnamed ones.
+
+Unlinking the device from your phone (Linked Devices → log out) also clears a terminal login; the next restart shows a new code.
+
 #### Adding bots from chat
 
 `.hatch` links another number as a new bot from chat, by QR or pairing code, with no restart. Hatched bots are kept in the database and start with the `SESSION` bots. Only `SESSION` bots can use it. See `.hatch list`, `.hatch remove <n>`.
+
+To unlink every hatched bot without using chat, set `LOGOUT_HATCHED=true` in `config.env` or your platform's environment settings and restart. Each hatched bot is logged out (removed from the phone's Linked Devices) once it connects. Remove the variable afterwards. Bots hatched while it is still set are not affected.
 
 #### Required Variables
 
@@ -138,6 +148,7 @@ Set these in `config.env`, or from WhatsApp with `.setvar KEY=VALUE` (no restart
 | `ALIVE` | | reply for `.alive` (see `.setalive help`) |
 | `BUTTONS` | `false` | interactive buttons, experimental |
 | `DISABLED_COMMANDS` | | comma-separated commands to turn off |
+| `ALIASES` | | extra command names, like `steal=take` (manage with `.alias`) |
 | `BLOCK_CHAT` | | comma-separated chat ids the bot ignores |
 
 **Presence and reading**

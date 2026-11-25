@@ -25,31 +25,43 @@ const { sequelize, DATABASE_URL } = require("./core/db");
 
 const SESSION_STRING = process.env.SESSION || process.env.SESSION_ID;
 
+// ids never depend on the method, so switching qr/pair keeps a linked account
 const sessionEntries = [];
+const LOGIN_METHODS = {};
+let unnamedLocals = 0;
 for (const token of (SESSION_STRING || "").split(",").map((s) => s.trim()).filter(Boolean)) {
+  let entry;
   if (token.includes("~")) {
     const id = token.split("~")[1].trim();
-    if (id) sessionEntries.push({ id, local: false });
+    if (!id) continue;
+    entry = { id, local: false };
+  } else {
+    const colon = token.indexOf(":");
+    const method = (colon === -1 ? token : token.slice(0, colon)).trim().toLowerCase();
+    if (method !== "qr" && method !== "pair") {
+      console.warn(`⚠️ SESSION "${token}" is not a session string (like RGNK~abc123), "qr" or "pair". Logging in with a QR code instead.`);
+    }
+    let name = colon === -1 ? null : token.slice(colon + 1).trim().toLowerCase();
+    // digit names would collide with positional local-2
+    if (name !== null && /^\d+$/.test(name)) {
+      console.warn(`⚠️ SESSION "${token}": a name can't be only digits (put the phone number in PAIRING_NUMBER). Ignoring the name.`);
+      name = null;
+    } else if (name !== null && !/^[a-z0-9_-]{1,24}$/.test(name)) {
+      console.warn(`⚠️ SESSION "${token}": names may use only a-z, 0-9, _ and -, up to 24 characters. Ignoring the name.`);
+      name = null;
+    }
+    const id = name ? `local-${name}` : ++unnamedLocals === 1 ? "local" : `local-${unnamedLocals}`;
+    entry = { id, local: true, method: method === "pair" ? "pair" : "qr" };
+  }
+  if (sessionEntries.some((e) => e.id === entry.id)) {
+    console.warn(`⚠️ SESSION lists "${entry.id}" twice. Starting it once.`);
     continue;
   }
-  const method = token.toLowerCase();
-  if (method !== "qr" && method !== "pair") {
-    console.warn(
-      `⚠️ SESSION "${token}" is not a session string (like RGNK~abc123), "qr" or "pair". Logging in with a QR code instead.`,
-    );
-  }
-  sessionEntries.push({ local: true, method: method === "pair" ? "pair" : "qr" });
+  sessionEntries.push(entry);
 }
-if (sessionEntries.length === 0) sessionEntries.push({ local: true, method: "qr" });
-
-// ids go by position, not method, so switching qr/pair keeps a linked account
-let localCount = 0;
-const LOGIN_METHODS = {};
+if (sessionEntries.length === 0) sessionEntries.push({ id: "local", local: true, method: "qr" });
 for (const entry of sessionEntries) {
-  if (!entry.local) continue;
-  localCount++;
-  entry.id = localCount === 1 ? "local" : `local-${localCount}`;
-  LOGIN_METHODS[entry.id] = entry.method;
+  if (entry.local) LOGIN_METHODS[entry.id] = entry.method;
 }
 
 const SESSION = sessionEntries.map((entry) => entry.id);

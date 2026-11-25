@@ -3,7 +3,7 @@
 const config = require("../../config");
 const context = require("../context");
 const { Message, Image, Video } = require("../constructors");
-const { commands, patternFor, commandName } = require("../plugins/registry");
+const { commands, patternFor, commandName, currentHandlerPrefix } = require("../plugins/registry");
 const { derived } = require("../config/derived");
 const { isOwner } = require("../identity");
 const { parseText } = require("./normalize");
@@ -13,6 +13,32 @@ const { createQueue } = require("./queue");
 const disabledCommandList = derived("DISABLED_COMMANDS", (raw) =>
   typeof raw === "string" ? raw.split(",") : [],
 );
+
+const parseAliases = (raw) => {
+  const map = new Map();
+  for (const pair of typeof raw === "string" ? raw.split(",") : []) {
+    const [alias, target] = pair.split("=").map((s) => s?.trim().toLowerCase());
+    if (alias && target) map.set(alias, target);
+  }
+  return map;
+};
+const aliasMap = derived("ALIASES", parseAliases);
+
+const wordAfterPrefix = new Map();
+function applyAlias(text) {
+  const aliases = aliasMap();
+  if (!aliases.size || !text) return text;
+  const prefix = currentHandlerPrefix();
+  let re = wordAfterPrefix.get(prefix);
+  if (!re) {
+    wordAfterPrefix.clear();
+    re = new RegExp(`(${prefix})(\\S+)`, "su");
+    wordAfterPrefix.set(prefix, re);
+  }
+  const m = text.match(re);
+  const target = m && aliases.get(m[2].toLowerCase());
+  return target ? m[1] + target + text.slice(m[0].length) : text;
+}
 
 const positiveInt = (value, fallback) => {
   const n = parseInt(value, 10);
@@ -173,7 +199,7 @@ function runCommand(cmd, env, disabled, pattern) {
 }
 
 function dispatch(env) {
-  env.parsedText = parseText(env.text);
+  env.parsedText = applyAlias(parseText(env.text));
   const disabled = disabledCommandList();
   for (const cmd of commands) {
     try {
@@ -188,4 +214,4 @@ function dispatch(env) {
   }
 }
 
-module.exports = { dispatch, matches, permitted, runCommand, handleError, queue };
+module.exports = { dispatch, matches, permitted, runCommand, handleError, queue, parseAliases, applyAlias };

@@ -68,11 +68,11 @@ async function begin(m, method) {
     if (event === "qr") {
       qrCount++;
       const image = await hatchery.qrPng(data.qr);
-      const sent = await send({ image, caption: Lang.QR_CAPTION.format(qrCount) });
+      const sent = await send({ image, caption: `${Lang.QR_CAPTION.format(qrCount)}\n\n${p(Lang.CANCEL_HINT)}` });
       await dropLastQr();
       lastQr = sent?.key || null;
     } else if (event === "code") {
-      await send({ text: Lang.CODE_INTRO.format(data.number) });
+      await send({ text: `${Lang.CODE_INTRO.format(data.number)}\n\n${p(Lang.CANCEL_HINT)}` });
       // alone in its own message so it copies cleanly
       await send({ text: data.code });
     } else if (event === "linked") {

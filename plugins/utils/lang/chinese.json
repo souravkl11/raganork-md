@@ -1338,7 +1338,17 @@
       "NOT_COMMAND": "_{}{} 不是有效的命令！_",
       "CANT_DISABLE": "_你无法禁用 {}{} 命令！_",
       "TURNED_OFF": "_已成功关闭 `{p}{}` 命令_\n_使用 `{p}toggle {}` 可重新开启此命令_",
-      "TURNED_ON": "_已成功开启 `{}{}` 命令_"
+      "TURNED_ON": "_已成功开启 `{}{}` 命令_",
+      "ALIAS_DESC": "给命令起另一个名字",
+      "ALIAS_USAGE": "_用法:_\n`{p}alias steal take`: {p}steal 会运行 {p}take\n`{p}alias del steal`: 删除它\n`{p}alias`: 查看列表",
+      "ALIAS_NONE": "_还没有别名。_\n_例如: `{p}alias steal take` 让 {p}steal 运行 {p}take_",
+      "ALIAS_LIST": "*命令别名*\n\n{}\n\n_用 `{p}alias del <名字>` 删除_",
+      "ALIAS_LINE": "`{p}{}` → `{p}{}`",
+      "ALIAS_SET": "_现在 `{p}{}` 会运行 `{p}{}`_",
+      "ALIAS_REMOVED": "_已删除别名 `{p}{}`_",
+      "ALIAS_NOT_FOUND": "_`{p}{}` 不是别名_",
+      "ALIAS_BAD_NAME": "_别名必须是一个由字母和数字组成的词，最多 20 个字符_",
+      "ALIAS_TAKEN": "_`{p}{}` 已经是一个命令，请换个名字_"
     },
     "group_protect": {
       "DETECTS_OTHER_BOTS_MESSAGES_AND": "检测其他机器人的消息并将其踢出。",
@@ -1507,7 +1517,8 @@
       "REMOVED": "🗑️ _已移除 +{} 并从 WhatsApp 取消关联。_",
       "MAIN_ONLY": "_只有主机器人可以创建或移除机器人。_",
       "GROUP_CONFIRM": "⚠️ *这是一个群组。* 群里的任何人都可以扫描二维码,把自己的号码关联为你服务器上的机器人。\n\n_回复 *是* 在这里继续,或改在私聊中使用 {p}hatch。_",
-      "YES_WORD": "是"
+      "YES_WORD": "是",
+      "CANCEL_HINT": "_发送 {p}hatch cancel 可停止_"
     }
   }
 }

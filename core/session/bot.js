@@ -145,6 +145,8 @@ class WhatsAppBot {
         if (!this.loginMethod || !sessionLoaded) {
           this.loginMethod = this.hatch?.method || (await chooseLoginMethod(this.sessionId));
           this.authState.startFresh();
+        } else {
+          this.authState.dropPairingPlaceholder();
         }
         sessionLoaded = true;
       }

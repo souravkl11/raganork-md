@@ -27,6 +27,7 @@ const entries = {
     default: [],
     env: (raw) => (raw ? raw.split(",") : []),
   },
+  ALIASES: { type: "string", default: "" },
   ANTI_BOT: { type: "string", default: "" },
   ANTISPAM_COUNT: { type: "string", default: "6/10" },
   AUTOUNMUTE_MSG: { type: "string", default: "_Group auto unmuted!_\n_(edit AUTOUNMUTE_MSG)_" },

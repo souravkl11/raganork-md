@@ -502,9 +502,18 @@ class CustomAuthState {
     }
   }
 
-  // creds.registered stays false after a qr scan, me.id doesn't
+  // requestPairingCode sets me.id before the link exists
   isLinked() {
-    return Boolean(this.sessionData.creds?.me?.id);
+    const creds = this.sessionData.creds;
+    return Boolean(creds?.me?.id && (creds.account || creds.me.id.includes(":")));
+  }
+
+  // baileys logs in instead of registering whenever creds.me exists
+  dropPairingPlaceholder() {
+    if (this.isLinked() || !this.sessionData.creds?.me) return;
+    delete this.sessionData.creds.me;
+    delete this.sessionData.creds.pairingCode;
+    this.sessionData.credsDirty = true;
   }
 
   startFresh() {

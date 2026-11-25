@@ -1338,7 +1338,17 @@
       "NOT_COMMAND": "_¡{}{} no es un comando válido!_",
       "CANT_DISABLE": "_¡No puedes desactivar el comando {}{}!_",
       "TURNED_OFF": "_Comando `{p}{}` desactivado correctamente_\n_Usa `{p}toggle {}` para volver a activarlo_",
-      "TURNED_ON": "_Comando `{}{}` activado correctamente_"
+      "TURNED_ON": "_Comando `{}{}` activado correctamente_",
+      "ALIAS_DESC": "Dale otro nombre a un comando",
+      "ALIAS_USAGE": "_Uso:_\n`{p}alias steal take`: {p}steal ejecuta {p}take\n`{p}alias del steal`: quitarlo\n`{p}alias`: ver la lista",
+      "ALIAS_NONE": "_Aún no hay alias._\n_Ejemplo: `{p}alias steal take` hace que {p}steal ejecute {p}take_",
+      "ALIAS_LIST": "*Alias de comandos*\n\n{}\n\n_Quita uno con `{p}alias del <nombre>`_",
+      "ALIAS_LINE": "`{p}{}` → `{p}{}`",
+      "ALIAS_SET": "_Ahora `{p}{}` ejecuta `{p}{}`_",
+      "ALIAS_REMOVED": "_Alias `{p}{}` eliminado_",
+      "ALIAS_NOT_FOUND": "_`{p}{}` no es un alias_",
+      "ALIAS_BAD_NAME": "_Un alias es una sola palabra de letras y números, hasta 20 caracteres_",
+      "ALIAS_TAKEN": "_`{p}{}` ya es un comando, elige otro nombre_"
     },
     "group_protect": {
       "DETECTS_OTHER_BOTS_MESSAGES_AND": "Detecta los mensajes de otros bots y los expulsa.",
@@ -1507,7 +1517,8 @@
       "REMOVED": "🗑️ _Se eliminó +{} y se desvinculó de WhatsApp._",
       "MAIN_ONLY": "_Solo el bot principal puede crear o eliminar bots._",
       "GROUP_CONFIRM": "⚠️ *Esto es un grupo.* Cualquiera aquí podría escanear el código QR y vincular su propio número como bot en tu servidor.\n\n_Responde *sí* para continuar aquí, o usa {p}hatch en un chat privado._",
-      "YES_WORD": "sí"
+      "YES_WORD": "sí",
+      "CANCEL_HINT": "_Para detenerlo, envía {p}hatch cancel_"
     }
   }
 }

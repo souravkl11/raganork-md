@@ -1338,7 +1338,17 @@
       "NOT_COMMAND": "_{}{} bukan perintah yang valid!_",
       "CANT_DISABLE": "_Kamu tidak bisa menonaktifkan perintah {}{}!_",
       "TURNED_OFF": "_Berhasil menonaktifkan perintah `{p}{}`_\n_Gunakan `{p}toggle {}` untuk mengaktifkannya kembali_",
-      "TURNED_ON": "_Berhasil mengaktifkan perintah `{}{}`_"
+      "TURNED_ON": "_Berhasil mengaktifkan perintah `{}{}`_",
+      "ALIAS_DESC": "Beri nama lain untuk sebuah perintah",
+      "ALIAS_USAGE": "_Cara pakai:_\n`{p}alias steal take`: {p}steal menjalankan {p}take\n`{p}alias del steal`: menghapusnya\n`{p}alias`: lihat daftar",
+      "ALIAS_NONE": "_Belum ada alias._\n_Contoh: `{p}alias steal take` membuat {p}steal menjalankan {p}take_",
+      "ALIAS_LIST": "*Alias perintah*\n\n{}\n\n_Hapus dengan `{p}alias del <nama>`_",
+      "ALIAS_LINE": "`{p}{}` → `{p}{}`",
+      "ALIAS_SET": "_Sekarang `{p}{}` menjalankan `{p}{}`_",
+      "ALIAS_REMOVED": "_Alias `{p}{}` dihapus_",
+      "ALIAS_NOT_FOUND": "_`{p}{}` bukan alias_",
+      "ALIAS_BAD_NAME": "_Alias adalah satu kata berisi huruf dan angka, maksimal 20 karakter_",
+      "ALIAS_TAKEN": "_`{p}{}` sudah menjadi perintah, pilih nama lain_"
     },
     "group_protect": {
       "DETECTS_OTHER_BOTS_MESSAGES_AND": "Mendeteksi pesan bot lain dan mengeluarkannya.",
@@ -1507,7 +1517,8 @@
       "REMOVED": "🗑️ _+{} dihapus dan ditautkan lepas dari WhatsApp._",
       "MAIN_ONLY": "_Hanya bot utama yang bisa membuat atau menghapus bot._",
       "GROUP_CONFIRM": "⚠️ *Ini grup.* Siapa pun di sini bisa memindai kode QR dan menautkan nomornya sendiri sebagai bot di server kamu.\n\n_Balas *ya* untuk lanjut di sini, atau gunakan {p}hatch di chat pribadi._",
-      "YES_WORD": "ya"
+      "YES_WORD": "ya",
+      "CANCEL_HINT": "_Untuk berhenti, kirim {p}hatch cancel_"
     }
   }
 }

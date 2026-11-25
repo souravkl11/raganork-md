@@ -1343,7 +1343,17 @@
       "NOT_COMMAND": "_{}{} geçerli bir komut değil!_",
       "CANT_DISABLE": "_{}{} komutunu devre dışı bırakamazsınız!_",
       "TURNED_OFF": "_`{p}{}` komutu başarıyla kapatıldı_\n_Bu komutu yeniden açmak için `{p}toggle {}` kullanın_",
-      "TURNED_ON": "_`{}{}` komutu başarıyla açıldı_"
+      "TURNED_ON": "_`{}{}` komutu başarıyla açıldı_",
+      "ALIAS_DESC": "Bir komuta başka bir ad verin",
+      "ALIAS_USAGE": "_Kullanım:_\n`{p}alias steal take`: {p}steal, {p}take çalıştırır\n`{p}alias del steal`: kaldırır\n`{p}alias`: listeyi gösterir",
+      "ALIAS_NONE": "_Henüz takma ad yok._\n_Örnek: `{p}alias steal take` ile {p}steal, {p}take çalıştırır_",
+      "ALIAS_LIST": "*Komut takma adları*\n\n{}\n\n_Kaldırmak için `{p}alias del <ad>`_",
+      "ALIAS_LINE": "`{p}{}` → `{p}{}`",
+      "ALIAS_SET": "_Artık `{p}{}`, `{p}{}` çalıştırır_",
+      "ALIAS_REMOVED": "_`{p}{}` takma adı kaldırıldı_",
+      "ALIAS_NOT_FOUND": "_`{p}{}` bir takma ad değil_",
+      "ALIAS_BAD_NAME": "_Takma ad harf ve rakamlardan oluşan tek bir kelimedir, en fazla 20 karakter_",
+      "ALIAS_TAKEN": "_`{p}{}` zaten bir komut, başka bir ad seçin_"
     },
     "group_protect": {
       "DETECTS_OTHER_BOTS_MESSAGES_AND": "Diğer botların mesajlarını algılar ve onları atar.",
@@ -1512,7 +1522,8 @@
       "REMOVED": "🗑️ _+{} kaldırıldı ve WhatsApp bağlantısı kesildi._",
       "MAIN_ONLY": "_Yalnızca ana bot bot oluşturabilir veya kaldırabilir._",
       "GROUP_CONFIRM": "⚠️ *Burası bir grup.* Buradaki herkes QR kodu tarayıp kendi numarasını sunucunuzda bot olarak bağlayabilir.\n\n_Burada devam etmek için *evet* yazın, ya da {p}hatch'i özel sohbette kullanın._",
-      "YES_WORD": "evet"
+      "YES_WORD": "evet",
+      "CANCEL_HINT": "_Durdurmak için {p}hatch cancel gönderin_"
     }
   }
 }

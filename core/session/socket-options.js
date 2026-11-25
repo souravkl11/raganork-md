@@ -10,7 +10,12 @@ const isAndroidBrowser = () => !CHROME_VALUES.has(String(config.WA_BROWSER || ""
 const CHROME_BROWSER = ["Raganork", "Chrome", "1.0.0"];
 const browserFor = () => (isAndroidBrowser() ? ["13", "Android", ""] : CHROME_BROWSER);
 
-const linkingBrowser = (bot) => (bot.authState.isLinked?.() === false ? CHROME_BROWSER : null);
+// whatsapp refuses a code link from an unknown os
+const PAIRING_BROWSER = ["Windows", "Chrome", "Chrome 114.0.5735.198"];
+const linkingBrowser = (bot) => {
+  if (bot.authState.isLinked?.() !== false) return null;
+  return bot.loginMethod?.type === "pairing" ? PAIRING_BROWSER : CHROME_BROWSER;
+};
 
 function buildSocketOptions(bot, version) {
   return {

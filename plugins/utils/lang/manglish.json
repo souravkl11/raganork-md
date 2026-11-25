@@ -532,7 +532,7 @@
       "REMAINING": "_{} baakki_",
       "PING_DESC": "Ping alakkuka",
       "PING_TESTING": "*❮ ping test cheyyunnu ❯*",
-      "PING_LATENCY": "*latency: {} _ms_*"
+      "PING_LATENCY": "*ʟᴀᴛᴇɴᴄʏ: {} _ms_*"
     },
     "owner_tools": {
       "PLATFORM": "_Bot {} il run cheyyunnu_",
@@ -1339,7 +1339,17 @@
       "NOT_COMMAND": "_{}{} oru valid command alla!_",
       "CANT_DISABLE": "_{}{} command disable cheyyan pattilla!_",
       "TURNED_OFF": "_`{p}{}` command vijayakaramaayi off aayi_\n_Ithu thirike enable cheyyan `{p}toggle {}` use cheyyu_",
-      "TURNED_ON": "_`{}{}` command vijayakaramaayi on aayi_"
+      "TURNED_ON": "_`{}{}` command vijayakaramaayi on aayi_",
+      "ALIAS_DESC": "Commandinu vere oru peru kodukkam",
+      "ALIAS_USAGE": "_Upayogikkunna vidham:_\n`{p}alias steal take`: {p}steal ayachal {p}take work aavum\n`{p}alias del steal`: athu maattan\n`{p}alias`: ellam kaanan",
+      "ALIAS_NONE": "_Ithuvare alias onnum illa._\n_Udaharanam: `{p}alias steal take` ayachal {p}steal {p}take pole work aavum_",
+      "ALIAS_LIST": "*Command aliases*\n\n{}\n\n_Maattan `{p}alias del <peru>`_",
+      "ALIAS_LINE": "`{p}{}` → `{p}{}`",
+      "ALIAS_SET": "_Ini `{p}{}` ayachal `{p}{}` work aavum_",
+      "ALIAS_REMOVED": "_`{p}{}` alias maatti_",
+      "ALIAS_NOT_FOUND": "_`{p}{}` oru alias alla_",
+      "ALIAS_BAD_NAME": "_Alias letters um numbers um ulla oru vakku aayirikkanam, 20 aksharam vare_",
+      "ALIAS_TAKEN": "_`{p}{}` already oru command aanu, vere peru kodukku_"
     },
     "group_protect": {
       "DETECTS_OTHER_BOTS_MESSAGES_AND": "Mattu bots-inte messages kandupidichu kick cheyyum.",
@@ -1508,7 +1518,8 @@
       "REMOVED": "🗑️ _+{} maatti, WhatsAppil ninnu unlink cheythu._",
       "MAIN_ONLY": "_Main botinu mathrame bot undakkano maattano pattu._",
       "GROUP_CONFIRM": "⚠️ *Ithu oru group aanu.* Ivide aarkkum QR code scan cheythu avarude number ninte serveril bot aayi link cheyyam.\n\n_Ivide thanne continue cheyyan *athe* reply cheyyu, allenkil {p}hatch private chatil use cheyyu._",
-      "YES_WORD": "athe"
+      "YES_WORD": "athe",
+      "CANCEL_HINT": "_Nirtthan {p}hatch cancel ayakku_"
     }
   }
 }

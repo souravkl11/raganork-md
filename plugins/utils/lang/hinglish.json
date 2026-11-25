@@ -531,7 +531,7 @@
       "REMAINING": "_{} baaki_",
       "PING_DESC": "Ping measure karta hai",
       "PING_TESTING": "*❮ PING TEST HO RAHA HAI ❯*",
-      "PING_LATENCY": "*LATENCY: {} _ms_*"
+      "PING_LATENCY": "*ʟᴀᴛᴇɴᴄʏ: {} _ms_*"
     },
     "owner_tools": {
       "PLATFORM": "_Bot {} par chal raha hai_",
@@ -1338,7 +1338,17 @@
       "NOT_COMMAND": "_{}{} ek valid command nahi hai!_",
       "CANT_DISABLE": "_Aap {}{} command disable nahi kar sakte!_",
       "TURNED_OFF": "_`{p}{}` command successfully band kar diya_\n_Ise wapas enable karne ke liye `{p}toggle {}` use karein_",
-      "TURNED_ON": "_`{}{}` command successfully chalu kar diya_"
+      "TURNED_ON": "_`{}{}` command successfully chalu kar diya_",
+      "ALIAS_DESC": "Command ko dusra naam do",
+      "ALIAS_USAGE": "_Use kaise kare:_\n`{p}alias steal take`: {p}steal se {p}take chalega\n`{p}alias del steal`: hatane ke liye\n`{p}alias`: sab dekhne ke liye",
+      "ALIAS_NONE": "_Abhi koi alias nahi hai._\n_Example: `{p}alias steal take` se {p}steal, {p}take chalayega_",
+      "ALIAS_LIST": "*Command aliases*\n\n{}\n\n_Hatane ke liye `{p}alias del <naam>`_",
+      "ALIAS_LINE": "`{p}{}` → `{p}{}`",
+      "ALIAS_SET": "_Ab `{p}{}` se `{p}{}` chalega_",
+      "ALIAS_REMOVED": "_Alias `{p}{}` hata diya_",
+      "ALIAS_NOT_FOUND": "_`{p}{}` koi alias nahi hai_",
+      "ALIAS_BAD_NAME": "_Alias ek shabd hona chahiye, sirf letters aur numbers, 20 characters tak_",
+      "ALIAS_TAKEN": "_`{p}{}` pehle se ek command hai, dusra naam chuno_"
     },
     "group_protect": {
       "DETECTS_OTHER_BOTS_MESSAGES_AND": "Doosre bots ke messages detect karke unhe kick karta hai.",
@@ -1507,7 +1517,8 @@
       "REMOVED": "🗑️ _+{} hata diya aur WhatsApp se unlink kar diya._",
       "MAIN_ONLY": "_Sirf main bot hi naye bot bana ya hata sakta hai._",
       "GROUP_CONFIRM": "⚠️ *Ye ek group hai.* Yahan koi bhi QR code scan karke apna number tumhare server par bot ki tarah link kar sakta hai.\n\n_Yahin continue karne ke liye *haan* reply karo, ya {p}hatch private chat mein chalao._",
-      "YES_WORD": "haan"
+      "YES_WORD": "haan",
+      "CANCEL_HINT": "_Rokne ke liye {p}hatch cancel bhejo_"
     }
   }
 }
