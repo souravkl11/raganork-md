@@ -11,8 +11,7 @@ let Lang = getString("external_plugin");
 
 // the name becomes a file name, so block anything that could leave plugins/
 const NAME_RE = /^[a-z0-9_-]+$/i;
-const INVALID_NAME =
-  "_Invalid plugin name. Use only letters, numbers, - and _ in the name._";
+const INVALID_NAME = Lang.INVALID_NAME;
 const fileOf = (name) => path.join(__dirname, name + ".js");
 
 const FETCH_TIMEOUT_MS = () => parseInt(process.env.PLUGIN_FETCH_TIMEOUT || "15000", 10);
@@ -62,7 +61,7 @@ async function isShippedFile(name) {
 }
 
 const protectedReply = (name) =>
-  `_'${name}' is a built-in plugin file and cannot be installed over, updated or removed._`;
+  Lang.PROTECTED.format(name);
 
 // loads the plugin now; on failure the previous version is restored
 function loadPlugin(file, previous) {
@@ -165,7 +164,7 @@ Module(
       const plugin_name = found.name;
       if (!plugin_name) {
         return await message.sendReply(
-          '_Invalid plugin. No plugin name found! Add a line like_ `name: "my-plugin",` _to the plugin._'
+          Lang.NO_NAME
         );
       }
       if (!NAME_RE.test(plugin_name)) {
@@ -204,7 +203,7 @@ Module(
       );
       try {
         await message.sendReply(
-          `_${plugin[0].dataValues.name}:_ ${plugin[0].dataValues.url}`
+          Lang.PLUGIN_URL.format(plugin[0].dataValues.name, plugin[0].dataValues.url)
         );
       } catch {
         return await message.sendReply(Lang.PLUGIN_NOT_FOUND);
@@ -246,7 +245,7 @@ Module(
       if (!stale.length) return await message.sendReply(protectedReply(match[1]));
       await stale[0].destroy();
       return await message.sendReply(
-        `_Removed the old install record for '${match[1]}'. The built-in plugin file was kept._`
+        Lang.STALE_REMOVED.format(match[1])
       );
     }
     var plugin = await PluginDB.findAll({
@@ -274,7 +273,7 @@ Module(
     fromMe: true,
     use: "owner",
     usage: ".pupdate plugin_name",
-    desc: "Updates a plugin",
+    desc: Lang.PUPDATE_DESC,
   },
   async (m, match) => {
     const plugin = match[1];

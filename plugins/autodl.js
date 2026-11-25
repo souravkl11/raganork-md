@@ -4,6 +4,8 @@ const { helpPrefix, patternFor, commandName } = require("../core/plugins/registr
 const { parseText } = require("../core/pipeline/normalize");
 const { queue } = require("../core/pipeline/dispatcher");
 const { setVar } = require("./manage");
+const { getString } = require("./utils/lang");
+const Lang = getString("autodl");
 const { downloadGram, pinterestDl, tiktok, fb, spotifyTrack, accountKey } = require("./utils");
 const {
   getVideoInfo,
@@ -167,19 +169,19 @@ async function downloadPinterest(message, urls) {
 async function downloadSpotify(message, url) {
   let downloadMsg;
   try {
-    downloadMsg = await message.sendReply("_Fetching Spotify info..._");
+    downloadMsg = await message.sendReply(Lang.SPOTIFY_FETCHING);
     const spotifyInfo = await spotifyTrack(url);
     const { title, artist } = spotifyInfo;
 
     await message.edit(
-      `_Downloading *${title}* by *${artist}*..._`,
+      Lang.SPOTIFY_DOWNLOADING.format(title, artist),
       message.jid,
       downloadMsg.key,
     );
 
     const results = await searchYoutube(`${title} ${artist}`, 1);
     if (!results || results.length === 0) {
-      await message.edit("_No matching songs found on YouTube!_", message.jid, downloadMsg.key);
+      await message.edit(Lang.NO_MATCH, message.jid, downloadMsg.key);
       return;
     }
 
@@ -190,9 +192,9 @@ async function downloadSpotify(message, url) {
   } catch (err) {
     if (config.DEBUG) console.error("[AutoDL Spotify]", err?.message || err);
     if (downloadMsg) {
-      await message.edit("_Download failed!_", message.jid, downloadMsg.key);
+      await message.edit(Lang.DL_FAILED, message.jid, downloadMsg.key);
     } else {
-      await message.sendReply("_Download failed. Please try again._");
+      await message.sendReply(Lang.DL_FAILED_RETRY);
     }
   }
 }
@@ -277,13 +279,14 @@ Module(
   {
     pattern: "autodl ?(.*)",
     fromMe: true,
-    desc: "Auto-download URL watcher - enable in chats or globally",
-    usage:
-      ".autodl - show menu\n.autodl on/off - enable/disable in current chat\n.autodl on/off groups - enable/disable in all groups\n.autodl on/off dms - enable/disable in all DMs\n.autodl status - show current status\nLinks are downloaded for whoever MODE allows: only the owner's links in private mode, everyone's in public mode",
+    desc: Lang.DESC,
+    usage: Lang.USAGE,
   },
   async (message, match) => {
     const input = match[1]?.trim();
     const chatJid = message.jid;
+    const say = (text, ...args) => message.sendReply(text.format(...args).replaceAll("{p}", helpPrefix()));
+    const onOff = (on) => (on ? Lang.ENABLED : Lang.DISABLED);
 
     const readList = () => {
       try {
@@ -303,21 +306,12 @@ Module(
       const globalGroups = config.AUTODL_ALL_GROUPS === "true";
       const globalDMs = config.AUTODL_ALL_DMS === "true";
 
-      return await message.sendReply(
-        `*_⬇️ AutoDownload Manager_*\n\n` +
-          `- _Current chat:_ ${chatJid.includes("@g.us") ? "Group" : "DM"}\n` +
-          `- _Status:_ ${enabled ? "Enabled ✅" : "Disabled ❌"}\n` +
-          `- _Global Groups:_ ${
-            globalGroups ? "Enabled ✅" : "Disabled ❌"
-          }\n` +
-          `- _Global DMs:_ ${globalDMs ? "Enabled ✅" : "Disabled ❌"}\n\n` +
-          `_Commands:_\n` +
-          `- \`${helpPrefix()}autodl on/off\` - Sets in current chat\n` +
-          `- \`${helpPrefix()}autodl on/off groups\` - Sets in all groups\n` +
-          `- \`${helpPrefix()}autodl on dms\` - Sets in all DMs\n` +
-          `- \`${helpPrefix()}autodl off dms\` - Sets in all DMs\n` +
-          `- \`${helpPrefix()}autodl status\` - Show detailed status\n\n` +
-          `_Links are downloaded for whoever MODE allows: only the owner's in private mode, everyone's in public mode._`
+      return await say(
+        Lang.MENU,
+        chatJid.includes("@g.us") ? Lang.GROUP : Lang.DM,
+        onOff(enabled),
+        onOff(globalGroups),
+        onOff(globalDMs)
       );
     }
 
@@ -328,41 +322,29 @@ Module(
     if (cmd === "on") {
       if (target === "groups") {
         await setVar("AUTODL_ALL_GROUPS", "true");
-        return await message.sendReply(
-          `_AutoDL enabled for all groups ✅_\n_Use ${helpPrefix()}autodl off groups to disable_`
-        );
+        return await say(Lang.ON_GROUPS);
       } else if (target === "dms") {
         await setVar("AUTODL_ALL_DMS", "true");
-        return await message.sendReply(
-          `_AutoDL enabled for all DMs ✅_\n_Use ${helpPrefix()}autodl off dms to disable_`
-        );
+        return await say(Lang.ON_DMS);
       } else {
         const enabledList = readList();
         if (!enabledList.includes(chatJid)) enabledList.push(chatJid);
         await setVar("AUTODL", enabledList.join(","));
-        return await message.sendReply(
-          "_AutoDL enabled in this chat ✅_\n_Send a message with a supported URL to auto-convert to download command_"
-        );
+        return await say(Lang.ON_CHAT);
       }
     }
 
     if (cmd === "off") {
       if (target === "groups") {
         await setVar("AUTODL_ALL_GROUPS", "false");
-        return await message.sendReply(
-          `_AutoDL disabled for all groups ❌_\n_Use ${helpPrefix()}autodl on groups to enable_`
-        );
+        return await say(Lang.OFF_GROUPS);
       } else if (target === "dms") {
         await setVar("AUTODL_ALL_DMS", "false");
-        return await message.sendReply(
-          `_AutoDL disabled for all DMs ❌_\n_Use ${helpPrefix()}autodl on dms to enable_`
-        );
+        return await say(Lang.OFF_DMS);
       } else {
         const enabledList = readList().filter((x) => x !== chatJid);
         await setVar("AUTODL", enabledList.join(","));
-        return await message.sendReply(
-          `_AutoDL disabled in this chat ❌_\n_Use ${helpPrefix()}autodl on to re-enable_`
-        );
+        return await say(Lang.OFF_CHAT);
       }
     }
 
@@ -371,17 +353,14 @@ Module(
       const globalGroups = config.AUTODL_ALL_GROUPS === "true";
       const globalDMs = config.AUTODL_ALL_DMS === "true";
       return await message.sendReply(
-        `*_AutoDL Status_*\n\n` +
-          `• _Enabled chats:_ ${
-            enabledList.length > 0 ? enabledList.join(", ") : "None"
-          }\n` +
-          `• _Global Groups:_ ${
-            globalGroups ? "Enabled ✅" : "Disabled ❌"
-          }\n` +
-          `• _Global DMs:_ ${globalDMs ? "Enabled ✅" : "Disabled ❌"}`
+        Lang.STATUS.format(
+          enabledList.length > 0 ? enabledList.join(", ") : Lang.NONE,
+          onOff(globalGroups),
+          onOff(globalDMs)
+        )
       );
     }
 
-    return await message.sendReply(`_Unknown option: ${cmd}_`);
+    return await message.sendReply(Lang.UNKNOWN.format(cmd));
   }
 );

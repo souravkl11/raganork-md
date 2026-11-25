@@ -6,6 +6,8 @@ const { uniqueTempPath } = require("../core/helpers");
 const { helpPrefix } = require("../core/plugins/registry");
 const { accountKey } = require("./utils");
 const { stagingDir, removeDir } = require("./utils/mediaProcessors");
+const { getString } = require("./utils/lang");
+const Lang = getString("pdf");
 
 const getFileType = async (buffer) => {
   try {
@@ -46,7 +48,7 @@ async function saveImage(directory, buffer) {
 Module(
   {
     pattern: "pdf ?(.*)",
-    desc: "Images to PDF",
+    desc: Lang.DESC,
     use: "converters",
     usage: ".pdf help",
   },
@@ -56,7 +58,7 @@ Module(
 
     if (subCommand === "help") {
       return await message.sendReply(
-        `_1. Input images using ${prefix}pdf_\n_2. Get output pdf using ${prefix}pdf get_\n_3. Added images by mistake? then delete all inputted images using ${prefix}pdf delete_\n_4. All files will be auto deleted after the output is produced_`
+        Lang.HELP.replaceAll("{p}", prefix)
       );
     }
 
@@ -67,14 +69,14 @@ Module(
 
     if (subCommand === "delete") {
       await removeDir(imageInputDirectory);
-      await message.sendReply(`_Successfully cleared all files!_`);
+      await message.sendReply(Lang.CLEARED);
     } else if (subCommand === "get") {
       const imageFilePaths = (await imageFiles(imageInputDirectory)).map(
         (fileName) => path.join(imageInputDirectory, fileName)
       );
 
       if (!imageFilePaths.length) {
-        return await message.sendReply("_No files inputted_");
+        return await message.sendReply(Lang.NO_FILES);
       }
 
       // pdfkit is heavy, only load it when a pdf is actually built
@@ -91,7 +93,7 @@ Module(
         });
       } catch (error) {
         await fileSystem.unlink(finalPdfOutputPath).catch(() => {});
-        return await message.sendReply(`_PDF conversion failed: ${error.message}_`);
+        return await message.sendReply(Lang.FAILED.format(error.message));
       }
       try {
         await message.client.sendMessage(
@@ -113,10 +115,10 @@ Module(
 
       try {
         if (allImages.length === 0)
-          return await message.sendReply("_No images in album (videos can't be converted to PDF)_");
+          return await message.sendReply(Lang.NO_ALBUM_IMAGES);
 
         await message.send(
-          `_Adding ${allImages.length} album images to PDF..._`
+          Lang.ADDING_ALBUM.format(allImages.length)
         );
 
         let added = 0;
@@ -135,7 +137,7 @@ Module(
         }
 
         await message.sendReply(
-          `_*Successfully saved ${added} album images*_\n_*Total images ready. Use '${prefix}pdf get' to generate PDF!*_`
+          Lang.ALBUM_SAVED.format(added).replaceAll("{p}", prefix)
         );
       } finally {
         await Promise.all(
@@ -153,16 +155,16 @@ Module(
       if (detectedFileType && detectedFileType.mime.startsWith("image")) {
         const total = await saveImage(imageInputDirectory, repliedMessageBuffer);
         return await message.sendReply(
-          `*_Successfully saved image_*\n_*Total saved images: ${total}*_\n*_After saving all images, use '${prefix}pdf get' to get the result. Images will be deleted after conversion!_*`
+          Lang.SAVED.format(total).replaceAll("{p}", prefix)
         );
       } else {
         return await message.sendReply(
-          "_Reply to an image to add it for PDF conversion!_"
+          Lang.NEED_IMAGE
         );
       }
     } else {
       return await message.sendReply(
-        `_Reply to an image, or use "${prefix}pdf help" for more information._`
+        Lang.NEED_REPLY.replaceAll("{p}", prefix)
       );
     }
   }

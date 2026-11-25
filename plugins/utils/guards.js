@@ -5,10 +5,12 @@ const config = require("../../config");
 const context = require("../../core/context");
 const { uniqueTempPath } = require("../../core/helpers");
 const { isAdmin } = require("./misc");
+const { getString } = require("./lang");
+const Lang = getString("utils");
 
 async function groupAdminGuard(message, { botAdmin = false, ownerOnly = false } = {}) {
   if (!message.isGroup) {
-    await message.sendReply("_This is a group command!_");
+    await message.sendReply(Lang.GROUP_ONLY);
     return false;
   }
   const allowed =
@@ -16,7 +18,7 @@ async function groupAdminGuard(message, { botAdmin = false, ownerOnly = false } 
     (!ownerOnly && config.ADMIN_ACCESS && (await isAdmin(message, message.sender)));
   if (!allowed) return false;
   if (botAdmin && !(await isAdmin(message))) {
-    await message.sendReply("_I'm not an admin!_");
+    await message.sendReply(Lang.NOT_ADMIN);
     return false;
   }
   return true;
@@ -50,29 +52,29 @@ async function withTempFile(name, fn) {
 }
 
 function timeSince(date) {
-  if (!date) return "Never";
+  if (!date) return Lang.NEVER;
   var seconds = Math.floor((new Date() - new Date(date)) / 1000);
   var interval = seconds / 31536000;
   if (interval > 1) {
-    return Math.floor(interval) + " years ago";
+    return Lang.YEARS_AGO.format(Math.floor(interval));
   }
   interval = seconds / 2592000;
   if (interval > 1) {
-    return Math.floor(interval) + " months ago";
+    return Lang.MONTHS_AGO.format(Math.floor(interval));
   }
   interval = seconds / 86400;
   if (interval > 1) {
-    return Math.floor(interval) + " days ago";
+    return Lang.DAYS_AGO.format(Math.floor(interval));
   }
   interval = seconds / 3600;
   if (interval > 1) {
-    return Math.floor(interval) + " hours ago";
+    return Lang.HOURS_AGO.format(Math.floor(interval));
   }
   interval = seconds / 60;
   if (interval > 1) {
-    return Math.floor(interval) + " minutes ago";
+    return Lang.MINUTES_AGO.format(Math.floor(interval));
   }
-  return Math.floor(seconds) + " seconds ago";
+  return Lang.SECONDS_AGO.format(Math.floor(seconds));
 }
 
 function isPrivateV4(address) {

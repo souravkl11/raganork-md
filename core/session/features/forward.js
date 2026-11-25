@@ -25,11 +25,11 @@ async function forwardMessage(client, jid, message, options = {}, { legacy = fal
     };
   }
 
-  if (options.mentions) {
-    if (!legacy && !message.message[mtype].contextInfo) {
-      message.message[mtype].contextInfo = {};
-    }
-    message.message[mtype].contextInfo.mentionedJid = options.mentions;
+  if (options.mentions && message.message[mtype] && typeof message.message[mtype] === "object") {
+    message.message[mtype].contextInfo = {
+      ...message.message[mtype].contextInfo,
+      mentionedJid: options.mentions,
+    };
   }
 
   let content = generateForwardMessageContent(message, false);
@@ -46,7 +46,10 @@ async function forwardMessage(client, jid, message, options = {}, { legacy = fal
       content[content_type].contextInfo = options.contextInfo;
     }
     if (options.mentions) {
-      content[content_type].contextInfo.mentionedJid = options.mentions;
+      content[content_type].contextInfo = {
+        ...content[content_type].contextInfo,
+        mentionedJid: options.mentions,
+      };
     }
     let context = {};
     if (mtype != "conversation") context = message.message[mtype].contextInfo;

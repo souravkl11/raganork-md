@@ -2,6 +2,8 @@ const { Module, commands } = require("../main");
 const config = require("../config");
 const axios = require("axios");
 const { setVar } = require("./manage");
+const { getString } = require("./utils/lang");
+const Lang = getString("chatbot");
 const { cooldown, accountKey } = require("./utils");
 const { helpPrefix, patternFor, currentHandlerPrefix } = require("../core/plugins/registry");
 const { parseText } = require("../core/pipeline/normalize");
@@ -157,7 +159,7 @@ async function callGemmaAPI(apiKey, contents, systemText = systemPrompt()) {
 async function getAIResponse(message, chatJid, imageBuffer = null) {
   const apiKey = config.GEMINI_API_KEY;
   if (!apiKey) {
-    return `_❌ GEMINI_API_KEY not configured. Please set it using \`${helpPrefix()}setvar GEMINI_API_KEY your_api_key\`_`;
+    return Lang.NO_KEY_INLINE.format(helpPrefix());
   }
 
   try {
@@ -215,22 +217,20 @@ async function getAIResponse(message, chatJid, imageBuffer = null) {
 
       return aiResponse;
     } else {
-      return "_❌ Received unexpected response from AI. Please try again._";
+      return Lang.UNEXPECTED;
     }
   } catch (error) {
     console.error("Error getting AI response:", error.message);
 
     if (error.response && error.response.status === 429) {
-      return "_⚠️ Rate limit reached. Please try again later._";
+      return Lang.RATE_LIMIT;
     }
 
     if (error.response) {
-      return `_❌ API Error: ${
-        error.response.data?.error?.message || "Unknown error"
-      }_`;
+      return Lang.API_ERROR.format(error.response.data?.error?.message || Lang.UNKNOWN_ERROR);
     }
 
-    return "_❌ Network error. Please check your connection and try again._";
+    return Lang.NETWORK_ERROR;
   }
 }
 
@@ -280,13 +280,15 @@ Module(
   {
     pattern: "chatbot ?(.*)",
     fromMe: true,
-    desc: "AI Chatbot management with Gemini API - supports text and image analysis",
-    usage:
-      '.chatbot - _Show help menu_\n.chatbot on/off - _Enable/disable in current chat_\n.chatbot on/off groups - _Enable/disable in all groups_\n.chatbot on/off dms - _Enable/disable in all DMs_\n.chatbot set "prompt" - _Set system prompt_\n.chatbot clear - _Clear conversation context_\n_Reply to images for AI image analysis_',
+    desc: Lang.DESC,
+    usage: Lang.USAGE,
   },
   async (message, match) => {
     const input = match[1]?.trim();
     const chatJid = message.jid;
+    const say = (text, ...args) => message.sendReply(text.format(...args).replaceAll("{p}", helpPrefix()));
+    const onOff = (on) => (on ? Lang.ENABLED : Lang.DISABLED);
+    const keyState = () => (config.GEMINI_API_KEY ? Lang.KEY_SET : Lang.KEY_MISSING);
 
     if (!input) {
       const isEnabled = isChatbotEnabled(chatJid);
@@ -296,47 +298,16 @@ Module(
       const contextSize = chatContexts.get(accountKey(chatJid))?.length || 0;
       const hasApiKey = !!config.GEMINI_API_KEY;
 
-      const helpText =
-        `*_🤖 AI Chatbot Management_*\n\n` +
-        `📊 _Current Status:_ \`${isEnabled ? "Enabled" : "Disabled"}\`\n` +
-        `🔑 _API Key:_ \`${hasApiKey ? "Configured ✅" : "Missing ❌"}\`\n` +
-        `🌐 _Global Groups:_ \`${
-          globalGroups ? "Enabled ✅" : "Disabled ❌"
-        }\`\n` +
-        `💬 _Global DMs:_ \`${globalDMs ? "Enabled ✅" : "Disabled ❌"}\`\n` +
-        `🤖 _Model:_ \`${currentModel}\`\n` +
-        `💭 _Context Messages:_ \`${contextSize}\`\n` +
-        `🎯 _System Prompt:_ \`${systemPrompt().substring(0, 100)}${
-          systemPrompt().length > 100 ? "..." : ""
-        }\`\n\n` +
-        (hasApiKey
-          ? `*_Commands:_*\n` +
-            `- \`${helpPrefix()}chatbot on\` - _Enable chatbot in this chat_\n` +
-            `- \`${helpPrefix()}chatbot off\` - _Disable chatbot in this chat_\n` +
-            `- \`${helpPrefix()}chatbot on groups\` - _Enable in all groups_\n` +
-            `- \`${helpPrefix()}chatbot on dms\` - _Enable in all DMs_\n` +
-            `- \`${helpPrefix()}chatbot off groups\` - _Disable in all groups_\n` +
-            `- \`${helpPrefix()}chatbot off dms\` - _Disable in all DMs_\n` +
-            `- \`${helpPrefix()}chatbot set "prompt"\` - _Set system prompt_\n` +
-            `- \`${helpPrefix()}chatbot clear\` - _Clear conversation context_\n` +
-            `- \`${helpPrefix()}chatbot status\` - _Show detailed status_\n\n` +
-            `*_How it works:_*\n` +
-            `- _Direct messages to bot trigger AI response_\n` +
-            `- _Mentions (@bot) trigger AI response_\n` +
-            `- _Replies to bot messages trigger AI response_\n` +
-            `- _Reply to images for AI image analysis_\n` +
-            `- _Maintains conversation context automatically_`
-          : `*_⚠️ Setup Required:_*\n` +
-            `_API key is required to use chatbot._\n\n` +
-            `*_Get your API key:_*\n` +
-            `- _Visit: https://aistudio.google.com/app/apikey_\n` +
-            `- _Sign in with Google account_\n` +
-            `- _Create API Key_\n\n` +
-            `*_Set your API key:_*\n` +
-            `\`${helpPrefix()}setvar GEMINI_API_KEY=your_api_key_here\`\n\n` +
-            `_After setting the key, use \`${helpPrefix()}chatbot on\` to enable._`);
-
-      return await message.sendReply(helpText);
+      return await say(
+        Lang.MENU + (hasApiKey ? Lang.MENU_COMMANDS : Lang.MENU_SETUP),
+        isEnabled ? Lang.ENABLED_PLAIN : Lang.DISABLED_PLAIN,
+        keyState(),
+        onOff(globalGroups),
+        onOff(globalDMs),
+        currentModel,
+        contextSize,
+        systemPrompt().substring(0, 100) + (systemPrompt().length > 100 ? "..." : "")
+      );
     }
 
     const args = input.split(" ");
@@ -346,114 +317,54 @@ Module(
     switch (command) {
       case "on":
         if (!config.GEMINI_API_KEY) {
-          return await message.sendReply(
-            `*_❌ GEMINI_API_KEY Not Configured_*\n\n` +
-              `_Cannot enable chatbot without Gemini API key._\n\n` +
-              `*_How to get your API key:_*\n` +
-              `- _Visit: https://aistudio.google.com/app/apikey_\n` +
-              `- _Sign in with your Google account_\n` +
-              `- _Click "Create API Key"_\n` +
-              `- _Copy the generated API key_\n\n` +
-              `*_How to set it:_*\n` +
-              `\`${helpPrefix()}setvar GEMINI_API_KEY=your_api_key_here\`\n\n` +
-              `_Replace \`your_api_key_here\` with your actual API key._`,
-          );
+          return await say(Lang.NO_KEY);
         }
 
         if (target === "groups") {
           await setVar("CHATBOT_ALL_GROUPS", "true");
-          return await message.sendReply(
-            `*_🤖 Chatbot Enabled for All Groups_*\n\n` +
-              `✅ _Chatbot will now respond in all groups_\n` +
-              `🤖 _Model:_ \`${model()}\`\n` +
-              `📍 _Trigger:_ _Mentions and replies only_\n\n` +
-              `_Use \`${helpPrefix()}chatbot off groups\` to disable._`,
-          );
+          return await say(Lang.ON_GROUPS, model());
         } else if (target === "dms") {
           await setVar("CHATBOT_ALL_DMS", "true");
-          return await message.sendReply(
-            `*_🤖 Chatbot Enabled for All DMs_*\n\n` +
-              `✅ _Chatbot will now respond in all direct messages_\n` +
-              `🤖 _Model:_ \`${model()}\`\n` +
-              `📍 _Trigger:_ _All messages_\n\n` +
-              `_Use \`${helpPrefix()}chatbot off dms\` to disable._`,
-          );
+          return await say(Lang.ON_DMS, model());
         } else {
           await enableChatbot(chatJid);
-          return await message.sendReply(
-            `*_🤖 Chatbot Enabled_*\n\n` +
-              `📍 _Chat:_ \`${chatJid.includes("@g.us") ? "Group" : "DM"}\`\n` +
-              `🤖 _Model:_ \`${model()}\`\n` +
-              `💭 _Context:_ _Fresh start_\n\n` +
-              `_Now I'll respond to direct messages, mentions, and replies!_`,
-          );
+          return await say(Lang.ON_CHAT, chatJid.includes("@g.us") ? Lang.GROUP : Lang.DM, model());
         }
 
       case "off":
         if (target === "groups") {
           await setVar("CHATBOT_ALL_GROUPS", "false");
-          return await message.sendReply(
-            `*_🤖 Chatbot Disabled for All Groups_*\n\n` +
-              `❌ _Chatbot will no longer respond in groups globally_\n` +
-              `📝 _Individual group settings are preserved_\n\n` +
-              `_Use \`${helpPrefix()}chatbot on groups\` to re-enable._`,
-          );
+          return await say(Lang.OFF_GROUPS);
         } else if (target === "dms") {
           await setVar("CHATBOT_ALL_DMS", "false");
-          return await message.sendReply(
-            `*_🤖 Chatbot Disabled for All DMs_*\n\n` +
-              `❌ _Chatbot will no longer respond in DMs globally_\n` +
-              `📝 _Individual DM settings are preserved_\n\n` +
-              `_Use \`${helpPrefix()}chatbot on dms\` to re-enable._`,
-          );
+          return await say(Lang.OFF_DMS);
         } else {
           await disableChatbot(chatJid);
-          return await message.sendReply(
-            `*_🤖 Chatbot Disabled_*\n\n` +
-              `_Chatbot is now disabled in this chat._\n` +
-              `_Conversation context has been cleared._`,
-          );
+          return await say(Lang.OFF_CHAT);
         }
 
-      case "set":
+      case "set": {
         const promptMatch = input.match(/set\s+"([^"]+)"/);
         if (!promptMatch) {
-          return await message.sendReply(
-            `_Please provide the system prompt in quotes._\n\n` +
-              `*_Example:_*\n` +
-              `\`${helpPrefix()}chatbot set "You are a helpful assistant specialized in programming."\``,
-          );
+          return await say(Lang.NEED_PROMPT);
         }
         const newPrompt = promptMatch[1];
         await setVar("CHATBOT_SYSTEM_PROMPT", newPrompt);
-        return await message.sendReply(
-          `*_🎯 System Prompt Updated_*\n\n` +
-            `📝 _New Prompt:_ \`${newPrompt}\`\n\n` +
-            `_This will apply to all new conversations._`,
-        );
+        return await message.sendReply(Lang.PROMPT_SET.format(newPrompt));
+      }
 
       case "clear":
         if (target === "groups" || target === "dms") {
           await clearAllContexts(target);
           return await message.sendReply(
-            `*_💭 Contexts Cleared for All ${
-              target === "groups" ? "Groups" : "DMs"
-            }_*\n\n` +
-              `_Conversation histories have been reset for all ${
-                target === "groups" ? "groups" : "DMs"
-              }._\n` +
-              `_Next messages will start fresh conversations._`,
+            target === "groups" ? Lang.CLEARED_GROUPS : Lang.CLEARED_DMS
           );
         } else {
           clearContext(chatJid);
-          return await message.sendReply(
-            `*_💭 Context Cleared_*\n\n` +
-              `_Conversation history has been reset._\n` +
-              `_Next message will start a fresh conversation._`,
-          );
+          return await message.sendReply(Lang.CLEARED);
         }
 
-      case "status":
+      case "status": {
         const isEnabled = isChatbotEnabled(chatJid);
         const isEnabledIndividually = enabledChats().has(chatJid);
         const globalGroups = config.CHATBOT_ALL_GROUPS === "true";
@@ -464,36 +375,23 @@ Module(
 
         let enabledReason = "";
         if (isEnabledIndividually) {
-          enabledReason = "Individual setting";
+          enabledReason = Lang.VIA_CHAT;
         } else if (isGroup && globalGroups) {
-          enabledReason = "Global groups setting";
+          enabledReason = Lang.VIA_GROUPS;
         } else if (!isGroup && globalDMs) {
-          enabledReason = "Global DMs setting";
+          enabledReason = Lang.VIA_DMS;
         }
 
         const statusText =
-          `*_🤖 Chatbot Status_*\n\n` +
-          `📊 _Status:_ \`${isEnabled ? "Enabled ✅" : "Disabled ❌"}\`\n` +
-          (isEnabled && enabledReason
-            ? `📋 _Enabled via:_ \`${enabledReason}\`\n`
-            : "") +
-          `🌐 _Global Groups:_ \`${
-            globalGroups ? "Enabled ✅" : "Disabled ❌"
-          }\`\n` +
-          `💬 _Global DMs:_ \`${globalDMs ? "Enabled ✅" : "Disabled ❌"}\`\n` +
-          `🤖 _Model:_ \`${currentModel}\`\n` +
-          `💭 _Context Messages:_ \`${contextSize}\`\n` +
-          `🎯 _System Prompt:_ \`${systemPrompt()}\`\n` +
-          `🔑 _API Key:_ \`${
-            config.GEMINI_API_KEY ? "Configured ✅" : "Missing ❌"
-          }\``;
+          Lang.STATUS_HEAD.format(onOff(isEnabled)) +
+          (isEnabled && enabledReason ? Lang.STATUS_VIA.format(enabledReason) : "") +
+          Lang.STATUS_BODY.format(onOff(globalGroups), onOff(globalDMs), currentModel, contextSize, systemPrompt(), keyState());
 
         return await message.sendReply(statusText);
+      }
 
       default:
-        return await message.sendReply(
-          `_Unknown command: \`${command}\`_\n\n_Use \`${helpPrefix()}chatbot\` to see available commands._`,
-        );
+        return await say(Lang.UNKNOWN, command);
     }
   },
 );
@@ -569,7 +467,7 @@ Module(
         } catch (error) {
           console.error("Error downloading image:", error);
           return await message.sendReply(
-            "_❌ Failed to download image. Please try again._",
+            Lang.IMAGE_FAILED,
           );
         }
       } else if (!messageText || messageText.length < 2) {
@@ -592,7 +490,7 @@ Module(
 Module(
   {
     pattern: "ai ?(.*)",
-    desc: "Ask Gemini AI with text and/or image input",
+    desc: Lang.AI_DESC,
     use: "ai",
   },
   async (message, match) => {
@@ -607,7 +505,7 @@ Module(
           if (imagePart) imageParts.push(imagePart);
         } catch (error) {
           console.error("Error downloading image:", error);
-          return await message.sendReply("❌ Failed to download the image.");
+          return await message.sendReply(Lang.AI_IMAGE_FAILED);
         }
         if (!prompt) prompt = "What do you see in this image?";
       } else if (message.reply_message.album) {
@@ -625,12 +523,12 @@ Module(
           }
 
           if (!imageParts.length) {
-            return await message.sendReply("❌ No images found in album.");
+            return await message.sendReply(Lang.AI_NO_ALBUM_IMAGES);
           }
           if (!prompt) prompt = "Analyze these images for me.";
         } catch (error) {
           console.error("Error downloading album:", error);
-          return await message.sendReply("❌ Failed to download album.");
+          return await message.sendReply(Lang.AI_ALBUM_FAILED);
         }
       } else if (message.reply_message.text && !prompt) {
         prompt = message.reply_message.text;
@@ -639,23 +537,20 @@ Module(
 
     if (!prompt && !imageParts.length) {
       return await message.sendReply(
-        "Please provide a prompt or reply to a message/image.",
+        Lang.AI_NEED_PROMPT,
       );
     }
 
     const apiKey = config.GEMINI_API_KEY;
     if (!apiKey) {
       return await message.sendReply(
-        `*_❌ GEMINI_API_KEY Not Configured_*\n\n` +
-          `_Cannot use AI without Gemini API key._\n\n` +
-          `*_How to set it:_*\n` +
-          `\`${helpPrefix()}setvar GEMINI_API_KEY=your_api_key_here\``,
+        Lang.AI_NO_KEY.format(helpPrefix()),
       );
     }
 
     let sent_msg;
     try {
-      sent_msg = await message.sendReply("_Thinking..._");
+      sent_msg = await message.sendReply(Lang.THINKING);
 
       const contents = [
         {
@@ -674,7 +569,7 @@ Module(
 
       if (!fullText) {
         await message.edit(
-          "❌ Received empty response from AI.",
+          Lang.EMPTY,
           message.jid,
           sent_msg.key,
         );
@@ -687,13 +582,13 @@ Module(
       const errMsg = error.response?.data?.error?.message;
       if (sent_msg) {
         await message.edit(
-          `❌ An error occurred with the AI API${errMsg ? `: ${errMsg}` : "."}`,
+          Lang.AI_ERROR.format(errMsg ? `: ${errMsg}` : "."),
           message.jid,
           sent_msg.key,
         );
       } else {
         await message.sendReply(
-          `❌ An error occurred with the AI API${errMsg ? `: ${errMsg}` : "."}`,
+          Lang.AI_ERROR.format(errMsg ? `: ${errMsg}` : "."),
         );
       }
     }

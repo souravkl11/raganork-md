@@ -16,6 +16,8 @@ const config = require("../../config");
 const { getTempSubdir, uniqueTempPath, runFfmpeg } = require("../../core/helpers");
 const { isPublicHttpUrl } = require("./guards");
 const engine = require("./yt-engine");
+const { getString } = require("./lang");
+const Lang = getString("yt");
 
 const tempDir = () => getTempSubdir("yt");
 // above this a video goes out as a document instead of an inline video
@@ -81,7 +83,7 @@ function idFrom(input) {
   const text = String(input ?? "").trim();
   if (/^[\w-]{11}$/.test(text)) return text;
   const id = videoIdOf(youtubeUrlFrom(text) || text);
-  if (!id) throw new UserError("Not a YouTube video link");
+  if (!id) throw new UserError(Lang.NOT_YT_LINK);
   return id;
 }
 
@@ -106,11 +108,11 @@ function assertWithinLimits(info, formats = []) {
   const maxMb = parseInt(config.MAX_YT_SIZE, 10) > 0 ? parseInt(config.MAX_YT_SIZE, 10) : DEFAULT_MAX_SIZE_MB;
   const seconds = durationSeconds(info);
   if (seconds && seconds > maxMinutes * 60) {
-    throw limitError(`Video is too long (${Math.ceil(seconds / 60)} min). The limit is ${maxMinutes} min.`);
+    throw limitError(Lang.TOO_LONG.format(Math.ceil(seconds / 60), maxMinutes));
   }
   const size = formats.reduce((total, f) => total + parseSize(f?.size), 0);
   if (size > maxMb * 1024 * 1024) {
-    throw limitError(`Video is too big (${formatBytes(size)}). The limit is ${maxMb} MB.`);
+    throw limitError(Lang.TOO_BIG.format(formatBytes(size), maxMb));
   }
 }
 
@@ -328,12 +330,12 @@ function qualityOptions(info) {
 function qualityMenuText(info, videoId) {
   const options = qualityOptions(info);
   if (!options) return null;
-  let text = `_*Select Video Quality*_\n\n_*${info.title}*_\n\n(${videoId})\n\n`;
+  let text = Lang.QUALITY_HEADER.format(info.title, videoId);
   options.forEach((o, index) => {
-    const label = o.audio ? "Audio Only" : o.quality;
+    const label = o.audio ? Lang.AUDIO_ONLY : o.quality;
     text += `*${index + 1}.* _*${label}*_${o.size ? ` ~ _${formatBytes(o.size)}_` : ""}\n`;
   });
-  return `${text}\n_Reply with a number to download_`;
+  return text + Lang.QUALITY_FOOTER;
 }
 
 async function fetchCover(thumbnail, files) {
@@ -420,17 +422,17 @@ function removeFiles(files) {
 function failureText(error) {
   if (error.code === "YT_LIMIT") return `_${error.message}_`;
   if (error.code === "YT_IP_BLOCKED") {
-    return "_YouTube is blocking this server's IP address right now (HTTP 403). This is often temporary, so try again later. If it keeps happening, this host's IP is likely flagged, and a VPS or another host avoids it._";
+    return Lang.IP_BLOCKED;
   }
   if (error.code === "YT_LOGIN_REQUIRED") {
-    return "_YouTube is asking this server to sign in. The owner can fix this with the *ytlogin* command._";
+    return Lang.LOGIN_REQUIRED;
   }
   const message = error.primary || error.message || "";
-  if (/LOGIN_REQUIRED|not a bot/i.test(message)) return "_YouTube refused the download (sign-in check). Try *ytlogin* again later._";
-  if (/AGE_CHECK_REQUIRED|AGE_VERIFICATION_REQUIRED|confirm your age/i.test(message)) return "_This video is age-restricted._";
-  if (/needs to be reloaded/i.test(message)) return "_YouTube rejected the request. Try again later._";
-  if (/private video|video unavailable|has been removed|ERROR \(/i.test(message)) return "_This video is unavailable._";
-  return "_Download failed!_";
+  if (/LOGIN_REQUIRED|not a bot/i.test(message)) return Lang.SIGNIN_CHECK;
+  if (/AGE_CHECK_REQUIRED|AGE_VERIFICATION_REQUIRED|confirm your age/i.test(message)) return Lang.AGE_RESTRICTED;
+  if (/needs to be reloaded/i.test(message)) return Lang.REJECTED;
+  if (/private video|video unavailable|has been removed|ERROR \(/i.test(message)) return Lang.UNAVAILABLE;
+  return Lang.DOWNLOAD_FAILED;
 }
 
 const safeFileName = (title) => String(title || "audio").replace(/[\\/:*?"<>|\r\n]+/g, "_").trim().slice(0, 100) || "audio";
@@ -439,10 +441,10 @@ async function sendYoutubeAudio(message, url, { asDocument = false, best = false
   const say = statusReporter(message, status);
   const files = [];
   try {
-    if (!status) await say("_Fetching info..._");
+    if (!status) await say(Lang.FETCHING);
     const result = await downloadAudio(url, {
       best,
-      onInfo: (info) => say(`_Downloading *${info.title}*..._`),
+      onInfo: (info) => say(Lang.DOWNLOADING.format(info.title)),
     });
     files.push(result.path);
     const tags = {
@@ -452,7 +454,7 @@ async function sendYoutubeAudio(message, url, { asDocument = false, best = false
       thumbnail: meta.thumbnail || result.info?.thumbnail,
     };
     const audio = await tagAudio(result.path, tags, files, { keepOpus: best });
-    await say("_Sending audio..._");
+    await say(Lang.SENDING_AUDIO);
     const stream = fs.createReadStream(audio.path);
     stream.on("error", () => {});
     try {
@@ -468,7 +470,7 @@ async function sendYoutubeAudio(message, url, { asDocument = false, best = false
     } finally {
       stream.destroy();
     }
-    await say("_Download complete!_");
+    await say(Lang.DONE);
     return true;
   } catch (error) {
     console.error("YouTube audio error:", error.message);
@@ -483,11 +485,11 @@ async function sendYoutubeVideo(message, url, quality = "360p", { status = null 
   const say = statusReporter(message, status);
   const files = [];
   try {
-    await say(`_Downloading video at *${quality}*..._`);
+    await say(Lang.DOWNLOADING_VIDEO.format(quality));
     const result = await downloadVideo(url, quality);
     files.push(result.path);
     quality = result.quality || quality;
-    await say("_Uploading video..._");
+    await say(Lang.UPLOADING_VIDEO);
     const { size } = await fs.promises.stat(result.path);
     const stream = fs.createReadStream(result.path);
     stream.on("error", () => {});
@@ -496,17 +498,17 @@ async function sendYoutubeVideo(message, url, quality = "360p", { status = null 
         await message.sendMessage({ stream }, "document", {
           fileName: `${safeFileName(result.title)}.mp4`,
           mimetype: "video/mp4",
-          caption: `_*${result.title}*_\n\n_File size: ${formatBytes(size)}_\n_Quality: ${quality}_`,
+          caption: Lang.VIDEO_DOC_CAPTION.format(result.title, formatBytes(size), quality),
         });
       } else {
         await message.sendReply({ stream }, "video", {
-          caption: `_*${result.title}*_\n\n_Quality: ${quality}_`,
+          caption: Lang.VIDEO_CAPTION.format(result.title, quality),
         });
       }
     } finally {
       stream.destroy();
     }
-    await say("_Download complete!_");
+    await say(Lang.DONE);
     return true;
   } catch (error) {
     console.error("YouTube video error:", error.message);

@@ -3,18 +3,20 @@ const platform = require("../core/platform");
 const lifecycle = require("../core/lifecycle");
 const { updater } = require("../core/services/updater");
 const { helpPrefix } = require("../core/plugins/registry");
+const { getString } = require("./utils/lang");
+const Lang = getString("update");
 
 Module(
   {
     pattern: "update ?(.*)",
     fromMe: true,
-    desc: "Checks for and applies bot updates.",
+    desc: Lang.DESC,
     use: "owner",
   },
   async (message, match) => {
     if (!(await updater.isGitRepo())) {
       return await message.sendReply(
-        "_This bot isn't running from a Git repository. Automatic updates aren't available._"
+        Lang.NO_GIT
       );
     }
 
@@ -22,8 +24,8 @@ Module(
     const words = (match[1] ? match[1].toLowerCase() : "").split(/\s+/).filter(Boolean);
     const command = words[0] || "";
     const force = words.includes("force");
-    const processingMsg = await message.sendReply("_Checking for updates..._");
-    const edit = (text) => message.edit(text, message.jid, processingMsg.key);
+    const processingMsg = await message.sendReply(Lang.CHECKING);
+    const edit = (text) => message.edit(text.replaceAll("{p}", helpPrefix()), message.jid, processingMsg.key);
 
     try {
       let info;
@@ -31,7 +33,7 @@ Module(
         info = await updater.check();
       } catch (error) {
         if (error.message === "Failed to fetch remote version") {
-          return await edit("_Failed to check remote version. Please try again later._");
+          return await edit(Lang.REMOTE_FAILED);
         }
         throw error;
       }
@@ -40,30 +42,24 @@ Module(
 
       if (!hasCommits) {
         if (versionChanged) await updater.resetVersion(remoteVersion);
-        return await edit("_Bot is up to date!_");
+        return await edit(Lang.UP_TO_DATE);
       }
 
       if (!command) {
         let updateInfo = "";
 
         if (isStableUpdate) {
-          updateInfo = `*_UPDATE AVAILABLE_*\n\n`;
-          updateInfo += `📦 Current version: *${localVersion}*\n`;
-          updateInfo += `📦 New version: *${remoteVersion}*\n\n`;
-          updateInfo += `*_CHANGELOG:_*\n\n`;
+          updateInfo = Lang.STABLE_HEADER.format(localVersion, remoteVersion);
           for (let i in commits.all) {
             updateInfo += `${parseInt(i) + 1}• *${commits.all[i].message}*\n`;
           }
-          updateInfo += `\n_Use "${helpPrefix()}update start" to apply the update_`;
+          updateInfo += Lang.STABLE_FOOTER;
         } else if (isBetaUpdate) {
-          updateInfo = `*_BETA UPDATE AVAILABLE_*\n\n`;
-          updateInfo += `📦 Current version: *${localVersion}*\n`;
-          updateInfo += `⚠️ New commits available (version unchanged)\n\n`;
-          updateInfo += `*_CHANGELOG:_*\n\n`;
+          updateInfo = Lang.BETA_HEADER.format(localVersion);
           for (let i in commits.all) {
             updateInfo += `${parseInt(i) + 1}• *${commits.all[i].message}*\n`;
           }
-          updateInfo += `\n_Use "${helpPrefix()}update beta" to apply beta updates_`;
+          updateInfo += Lang.BETA_FOOTER;
         }
 
         return await edit(updateInfo);
@@ -72,24 +68,24 @@ Module(
       if (command === "start" || command === "beta") {
         const beta = command === "beta";
         if (beta && !hasCommits) {
-          return await edit("_No beta updates available!_");
+          return await edit(Lang.NO_BETA);
         }
         if (!beta && !isStableUpdate) {
           if (isBetaUpdate) {
             return await edit(
-              `_Only beta updates available. Use "${helpPrefix()}update beta" to apply them._`
+              Lang.ONLY_BETA
             );
           }
-          return await edit("_No stable updates available!_");
+          return await edit(Lang.NO_STABLE);
         }
 
-        await edit(beta ? "_Starting beta update..._" : "_Starting update..._");
+        await edit(beta ? Lang.STARTING_BETA : Lang.STARTING);
 
         if (process.env.RENDER_SERVICE_ID) {
           const result = await updater.deployOnRender();
-          if (!result.started) return await edit("_Missing RENDER_API_KEY!_");
+          if (!result.started) return await edit(Lang.NO_RENDER_KEY);
           return await edit(
-            beta ? "_Render deploy started for beta update!_" : "_Render deploy started!_"
+            beta ? Lang.RENDER_BETA : Lang.RENDER
           );
         }
 
@@ -97,41 +93,39 @@ Module(
         // cannot keep a git update
         const where = platform.current();
         if (where.isKoyeb || where.inKoyebImage) {
-          return await edit("_Please visit the hosted platform and hit deploy to update._");
+          return await edit(Lang.KOYEB);
         }
 
         const result = await updater.applyLocal({ force });
         if (!result.updated) {
           return await edit(
-            `_Update cancelled. These files were changed here, and the update would overwrite them:_\n\n${updater.describeDirty(result.dirty)}\n\n_Revert them, or use "${helpPrefix()}update ${command} force" to update anyway._`
+            Lang.DIRTY.format(updater.describeDirty(result.dirty), command)
           );
         }
         if (result.installError) {
           return await edit(
-            `_Updated, but installing modules failed: ${result.installError}_\n\n_Run "yarn install" in the bot folder, then restart the bot. It was not restarted._`
+            Lang.INSTALL_FAILED.format(result.installError)
           );
         }
         const movedNote = result.moved?.length
-          ? `\n\n_The bot now ships these files, so your copies were renamed to <name>.bak:_\n${result.moved.map((f) => `• ${f}`).join("\n")}`
+          ? Lang.MOVED.format(result.moved.map((f) => `• ${f}`).join("\n"))
           : "";
         await edit(
           (beta
-            ? `_Successfully applied beta update (${commits.total} commit${
-                commits.total > 1 ? "s" : ""
-              })._`
-            : `_Successfully updated to version ${remoteVersion}._`) +
-            (result.installed ? "\n_Modules were installed._" : "") +
+            ? Lang.BETA_DONE.format(commits.total, commits.total > 1 ? Lang.PLURAL : "")
+            : Lang.DONE.format(remoteVersion)) +
+            (result.installed ? Lang.INSTALLED : "") +
             movedNote
         );
         await lifecycle.restart(beta ? "beta update" : "update");
       } else {
         return await edit(
-          `_Invalid command. Use "${helpPrefix()}update" to check updates, "${helpPrefix()}update start" for stable updates, or "${helpPrefix()}update beta" for beta updates._`
+          Lang.INVALID
         );
       }
     } catch (error) {
       console.error("Update error:", error);
-      return await edit("_An error occurred while checking for updates._");
+      return await edit(Lang.ERROR);
     }
   }
 );

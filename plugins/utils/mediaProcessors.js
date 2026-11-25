@@ -6,6 +6,8 @@ const { spawn } = require("child_process");
 // jimp is heavy: required inside the functions that use it
 const webp = require("node-webpmux");
 const { getBuffer } = require("./misc");
+const { getString } = require("./lang");
+const Lang = getString("utils");
 const axios = require("axios");
 const {
   getTempSubdir,
@@ -77,7 +79,7 @@ const STICKER_FILTER =
 
 async function circle(message) {
   if (!message.reply_message) {
-    return await message.sendReply("Reply to a sticker or photo");
+    return await message.sendReply(Lang.CIRCLE_NEED);
   }
 
   await withDownload(message.reply_message, async (savedFile) => {
@@ -355,9 +357,9 @@ const MAX_INTERP_SECONDS = 30;
 
 async function interpolationLimit(file) {
   const seconds = await probeDuration(file).catch(() => null);
-  if (seconds === null) return "_Could not read this video_";
+  if (seconds === null) return Lang.CANT_READ_VIDEO;
   if (seconds > MAX_INTERP_SECONDS)
-    return `_Video is ${Math.round(seconds)}s long. Motion interpolation is limited to ${MAX_INTERP_SECONDS}s because it needs a lot of CPU. Trim the video first._`;
+    return Lang.INTERP_TOO_LONG.format(Math.round(seconds), MAX_INTERP_SECONDS);
   return null;
 }
 

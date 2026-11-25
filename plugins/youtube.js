@@ -17,6 +17,11 @@ const {
 } = require("./utils/yt");
 const ui = require("../core/ui");
 const ytEngine = require("./utils/yt-engine");
+const { getString } = require("./utils/lang");
+const Lang = getString("youtube");
+const YT = getString("yt");
+// replies are matched against the current language and the old english text
+const hasAny = (text, ...marks) => marks.some((mark) => mark && text.includes(mark));
 const { spotifyTrack } = require("./utils/misc");
 const { accountKey } = require("./utils");
 
@@ -36,13 +41,11 @@ function formatViews(views) {
 }
 
 function searchResultText(query, results, footer) {
-  let text = "YouTube Search Results\n\n";
-  text += `_Found ${results.length} results for:_ *${query}*\n\n`;
+  let text = Lang.SEARCH_HEADER + "\n\n";
+  text += Lang.SEARCH_FOUND.format(results.length, query);
   results.forEach((video, index) => {
     const id = video.id || videoIdOf(video.url);
-    text += `*${index + 1}.* ${video.title}${id ? ` (${id})` : ""}\n`;
-    text += `   _Duration:_ \`${video.duration}\` | _Views:_ \`${formatViews(video.views)}\`\n`;
-    text += `   _Channel:_ ${video.channel.name}\n\n`;
+    text += Lang.SEARCH_ITEM.format(index + 1, video.title, id ? ` (${id})` : "", video.duration, formatViews(video.views), video.channel.name);
   });
   return text + footer;
 }
@@ -54,14 +57,14 @@ async function listedVideo(repliedText, n) {
   const id = lines[at]?.match(/\(([\w-]{11})\)\s*$/)?.[1];
   if (id) {
     const title = lines[at].replace(/^\*\d+\.\*\s*/, "").replace(/\s*\([\w-]{11}\)\s*$/, "");
-    const detail = lines[at + 1]?.match(/_Duration:_ `([^`]*)` \| _Views:_ `([^`]*)`/);
+    const detail = lines[at + 1]?.match(/`([^`]*)`[^`]*`([^`]*)`/);
     return {
       id,
       url: watchUrl(id),
       title,
       duration: detail?.[1],
       views: detail?.[2],
-      channel: lines[at + 2]?.match(/_Channel:_ (.*)/)?.[1],
+      channel: lines[at + 2]?.match(/^\s*_[^_]+:_ (.*)/)?.[1],
     };
   }
   const query = repliedText.match(/Found \d+ results for:_\s*\*(.+?)\*/)?.[1];
@@ -89,11 +92,11 @@ const showResult = (message, status, text) =>
 async function runSearch(message, query, footer, errorLabel, list) {
   try {
     const buttons = ui.enabled();
-    const searchMsg = buttons ? null : await message.sendReply("_Searching YouTube..._");
+    const searchMsg = buttons ? null : await message.sendReply(Lang.SEARCHING_YT);
     const results = await searchYoutube(query, 10);
 
     if (!results || results.length === 0) {
-      return await showResult(message, searchMsg, "_No results found!_");
+      return await showResult(message, searchMsg, Lang.NO_RESULTS);
     }
     const text = searchResultText(query, results, footer);
     if (!buttons) return await showResult(message, searchMsg, text);
@@ -101,17 +104,17 @@ async function runSearch(message, query, footer, errorLabel, list) {
     await message.sendList({
       text,
       header: list.header,
-      body: `_Results for:_ *${query}*\n${list.body}`,
+      body: Lang.RESULTS_FOR.format(query, list.body),
       footer: "YouTube",
       button: list.button,
       sections: [
         {
-          title: "Results",
+          title: Lang.RESULTS,
           rows: results.map((video) => {
             const url = video.url || watchUrl(video.id);
             return {
               title: video.title,
-              description: [video.duration, video.views != null && `${formatViews(video.views)} views`, video.channel?.name]
+              description: [video.duration, video.views != null && Lang.VIEWS.format(formatViews(video.views)), video.channel?.name]
                 .filter(Boolean)
                 .join(" · "),
               id: list.rowCommand(url),
@@ -122,14 +125,14 @@ async function runSearch(message, query, footer, errorLabel, list) {
     });
   } catch (error) {
     console.error(errorLabel, error);
-    await message.sendReply("_Search failed. Please try again later._");
+    await message.sendReply(Lang.SEARCH_FAILED);
   }
 }
 
 Module(
   {
     pattern: "song ?(.*)",
-    desc: "Search YouTube and download audio",
+    desc: Lang.SONG_DESC,
     usage: ".song <query>",
     use: "download",
   },
@@ -137,13 +140,13 @@ Module(
     const query = match[1];
     if (!query) {
       return await message.sendReply(
-        `_Please provide a search query!_\n_Example: ${helpPrefix()}song faded alan walker_`
+        Lang.NEED_QUERY.format(helpPrefix(), "song faded alan walker")
       );
     }
-    await runSearch(message, query, "_Reply with a number (1-10) to download audio_", "Song search error:", {
-      header: "🎵 Pick a song",
-      body: "_Tap the button and pick one to download its audio._",
-      button: "Show results",
+    await runSearch(message, query, Lang.SONG_FOOTER, "Song search error:", {
+      header: Lang.SONG_HEADER,
+      body: Lang.SONG_BODY,
+      button: Lang.SHOW_RESULTS,
       rowCommand: (url) => ui.cmd("play", url),
     });
   }
@@ -152,7 +155,7 @@ Module(
 Module(
   {
     pattern: "yts ?(.*)",
-    desc: "Search YouTube with detailed info",
+    desc: Lang.YTS_DESC,
     usage: ".yts <query>",
     use: "download",
   },
@@ -160,15 +163,15 @@ Module(
     const query = match[1];
     if (!query) {
       return await message.sendReply(
-        `_Please provide a search query!_\n_Example: ${helpPrefix()}yts ncs music_`
+        Lang.NEED_QUERY.format(helpPrefix(), "yts ncs music")
       );
     }
     const url = youtubeUrlFrom(query);
     if (url) return await showVideoDetails(message, url);
-    await runSearch(message, query, "_Reply with a number (1-10) to see video details_", "YTS search error:", {
-      header: "🔎 YouTube search",
-      body: "_Tap the button and pick a video to see its details._",
-      button: "Show results",
+    await runSearch(message, query, Lang.YTS_FOOTER, "YTS search error:", {
+      header: Lang.YTS_HEADER,
+      body: Lang.YTS_BODY,
+      button: Lang.SHOW_RESULTS,
       rowCommand: (url) => ui.cmd("yts", url),
     });
   }
@@ -177,7 +180,7 @@ Module(
 Module(
   {
     pattern: "ytv ?(.*)",
-    desc: "Download YouTube video with quality selection",
+    desc: Lang.YTV_DESC,
     usage: ".ytv <link>",
     use: "download",
   },
@@ -186,32 +189,32 @@ Module(
 
     if (!url) {
       return await message.sendReply(
-        `_Please provide a valid YouTube link!_\n_Example: ${helpPrefix()}ytv https://youtube.com/watch?v=xxxxx or https://youtube.com/shorts/xxxxx_`
+        Lang.NEED_LINK.format(helpPrefix(), "ytv")
       );
     }
 
     try {
       const buttons = ui.enabled();
-      const infoMsg = buttons ? null : await message.sendReply("_📊 Fetching video info..._");
+      const infoMsg = buttons ? null : await message.sendReply(Lang.FETCHING_INFO);
       const info = await getVideoInfo(url);
       assertWithinLimits(info);
 
       const menu = qualityMenuText(info, videoIdOf(url) || info.videoId || "");
       if (!menu || !buttons) {
-        return await showResult(message, infoMsg, menu || "_No video formats available for this video._");
+        return await showResult(message, infoMsg, menu || Lang.NO_FORMATS);
       }
       const options = qualityOptions(info);
       await message.sendList({
         text: menu,
-        header: "🎬 Select quality",
-        body: `_*${info.title}*_\n_Tap the button and pick a quality._`,
+        header: Lang.SELECT_QUALITY,
+        body: Lang.QUALITY_BODY.format(info.title),
         footer: "YouTube",
-        button: "Choose quality",
+        button: Lang.CHOOSE_QUALITY,
         sections: [
           {
-            title: "Qualities",
+            title: Lang.QUALITIES,
             rows: options.map((o) => ({
-              title: o.audio ? "Audio only" : o.quality,
+              title: o.audio ? Lang.AUDIO_ONLY : o.quality,
               description: o.size ? `~ ${formatBytes(o.size)}` : "",
               id: o.audio ? ui.cmd("yta", url) : ui.cmd("video", url, o.quality),
             })),
@@ -222,7 +225,7 @@ Module(
       console.error("YTV info error:", error);
       const text = failureText(error);
       await message.sendReply(
-        text === "_Download failed!_" ? "_Failed to fetch video info. Please check the link._" : text
+        text === YT.DOWNLOAD_FAILED ? Lang.INFO_FAILED : text
       );
     }
   }
@@ -231,7 +234,7 @@ Module(
 Module(
   {
     pattern: "video ?(.*)",
-    desc: "Download YouTube video (360p unless a quality is given)",
+    desc: Lang.VIDEO_DESC,
     usage: ".video <link> [720p]",
     use: "download",
   },
@@ -241,7 +244,7 @@ Module(
 
     if (!url) {
       return await message.sendReply(
-        `_Please provide a valid YouTube link!_\n_Example: ${helpPrefix()}video https://youtube.com/watch?v=xxxxx or https://youtube.com/shorts/xxxxx_`
+        Lang.NEED_LINK.format(helpPrefix(), "video")
       );
     }
     await sendYoutubeVideo(message, url, quality);
@@ -251,7 +254,7 @@ Module(
 Module(
   {
     pattern: "yta ?(.*)",
-    desc: "Download YouTube audio as document (best quality) from a link or search",
+    desc: Lang.YTA_DESC,
     usage: ".yta <song name or link>",
     use: "download",
   },
@@ -259,7 +262,7 @@ Module(
     const input = match[1] || message.reply_message?.text;
     if (!input) {
       return await message.sendReply(
-        `_Please provide a song name or link!_\n_Example: ${helpPrefix()}yta faded alan walker_`
+        Lang.NEED_SONG.format(helpPrefix(), "yta")
       );
     }
 
@@ -268,16 +271,16 @@ Module(
 
     let searchMsg;
     try {
-      searchMsg = await message.sendReply("_Searching..._");
+      searchMsg = await message.sendReply(Lang.SEARCHING);
       const results = await searchYoutube(input, 1);
       if (!results || results.length === 0) {
-        return await message.edit("_No results found!_", message.jid, searchMsg.key);
+        return await message.edit(Lang.NO_RESULTS, message.jid, searchMsg.key);
       }
       await sendYoutubeAudio(message, results[0].url, { asDocument: true, best: true, status: searchMsg });
     } catch (error) {
       console.error("yta error:", error);
-      if (searchMsg) await message.edit("_Download failed!_", message.jid, searchMsg.key);
-      else await message.sendReply("_Download failed. Please try again._");
+      if (searchMsg) await message.edit(Lang.DL_FAILED, message.jid, searchMsg.key);
+      else await message.sendReply(Lang.DL_FAILED_RETRY);
     }
   }
 );
@@ -285,7 +288,7 @@ Module(
 Module(
   {
     pattern: "play ?(.*)",
-    desc: "Play audio from YouTube search or link",
+    desc: Lang.PLAY_DESC,
     usage: ".play <song name or link>",
     use: "download",
   },
@@ -293,7 +296,7 @@ Module(
     const input = match[1] || message.reply_message?.text;
     if (!input) {
       return await message.sendReply(
-        `_Please provide a song name or link!_\n_Example: ${helpPrefix()}play faded alan walker_`
+        Lang.NEED_SONG.format(helpPrefix(), "play")
       );
     }
 
@@ -302,22 +305,22 @@ Module(
 
     let searchMsg;
     try {
-      searchMsg = await message.sendReply("_Searching..._");
+      searchMsg = await message.sendReply(Lang.SEARCHING);
       const results = await searchYoutube(input, 1);
 
       if (!results || results.length === 0) {
-        return await message.edit("_No results found!_", message.jid, searchMsg.key);
+        return await message.edit(Lang.NO_RESULTS, message.jid, searchMsg.key);
       }
 
       const video = results[0];
-      await message.edit(`_Downloading *${video.title}*..._`, message.jid, searchMsg.key);
+      await message.edit(Lang.DOWNLOADING.format(video.title), message.jid, searchMsg.key);
       await sendYoutubeAudio(message, video.url, { status: searchMsg });
     } catch (error) {
       console.error("Play error:", error);
       if (searchMsg) {
-        await message.edit("_Download failed!_", message.jid, searchMsg.key);
+        await message.edit(Lang.DL_FAILED, message.jid, searchMsg.key);
       } else {
-        await message.sendReply("_Download failed. Please try again._");
+        await message.sendReply(Lang.DL_FAILED_RETRY);
       }
     }
   }
@@ -353,15 +356,9 @@ async function showVideoDetails(message, url) {
 }
 
 async function sendVideoDetails(message, video) {
-  let caption = `_*${video.title}*_\n\n`;
-  caption += `*Channel:* ${video.channel || "N/A"}\n`;
-  caption += `*Duration:* \`${video.duration || "N/A"}\`\n`;
-  caption += `*Views:* \`${video.views || "N/A"}\`\n`;
-  if (video.uploadedAt) caption += `*Uploaded:* ${video.uploadedAt}\n`;
-  caption += `\n*URL:* ${video.url}\n\n`;
-  caption += "_Reply with:_\n";
-  caption += "*1.* Audio\n";
-  caption += "*2.* Video";
+  let head = Lang.DETAILS.format(video.title, video.channel || Lang.NA, video.duration || Lang.NA, video.views || Lang.NA);
+  if (video.uploadedAt) head += Lang.UPLOADED.format(video.uploadedAt);
+  const caption = head + Lang.DETAILS_URL.format(video.url) + Lang.DETAILS_REPLY;
 
   let thumbnail;
   try {
@@ -375,20 +372,17 @@ async function sendVideoDetails(message, video) {
   }
   if (ui.enabled()) {
     // the "Open on YouTube" button carries the link, so the body drops the URL line
-    const body = caption
-      .slice(0, caption.indexOf("_Reply with:_"))
-      .replace(/^\*URL:\*.*$/m, "")
-      .trim();
+    const body = head.trim();
     return await message.sendButtons({
       text: caption,
       body,
       footer: "YouTube",
       image: thumbnail,
       buttons: [
-        { text: "🎵 Audio", id: ui.cmd("play", video.url) },
-        { text: "🎬 Video", id: ui.cmd("ytv", video.url) },
-        { text: "📄 Audio file", id: ui.cmd("yta", video.url) },
-        { text: "Open on YouTube", url: video.url },
+        { text: Lang.BTN_AUDIO, id: ui.cmd("play", video.url) },
+        { text: Lang.BTN_VIDEO, id: ui.cmd("ytv", video.url) },
+        { text: Lang.BTN_AUDIO_FILE, id: ui.cmd("yta", video.url) },
+        { text: Lang.BTN_OPEN, url: video.url },
       ],
     });
   }
@@ -413,50 +407,50 @@ Module(
     }
     const repliedText = message.reply_message.message;
     if (
-      repliedText.includes("YouTube Search Results") &&
-      repliedText.includes("to download audio")
+      hasAny(repliedText, Lang.SEARCH_HEADER, "YouTube Search Results") &&
+      hasAny(repliedText, Lang.SONG_FOOTER, "to download audio")
     ) {
       if (selectedNumber < 1 || selectedNumber > 10) {
-        return await message.sendReply("_Please select a number between 1-10_");
+        return await message.sendReply(Lang.PICK_1_10);
       }
 
       try {
         const video = await listedVideo(repliedText, selectedNumber);
-        if (!video) return await message.sendReply("_Invalid selection!_");
+        if (!video) return await message.sendReply(Lang.INVALID_SELECTION);
 
-        const status = await message.sendReply(`_Downloading *${video.title}*..._`);
+        const status = await message.sendReply(Lang.DOWNLOADING.format(video.title));
         await inChatQueue(message, "song", () => sendYoutubeAudio(message, video.url, { status }));
       } catch (error) {
         console.error("Song selection error:", error);
-        await message.sendReply("_Failed to process your selection._");
+        await message.sendReply(Lang.SELECTION_FAILED);
       }
     } else if (
-      repliedText.includes("YouTube Search Results") &&
-      repliedText.includes("see video details")
+      hasAny(repliedText, Lang.SEARCH_HEADER, "YouTube Search Results") &&
+      hasAny(repliedText, Lang.YTS_FOOTER, "see video details")
     ) {
       if (selectedNumber < 1 || selectedNumber > 10) {
-        return await message.sendReply("_Please select a number between 1-10_");
+        return await message.sendReply(Lang.PICK_1_10);
       }
 
       try {
         const video = await listedVideo(repliedText, selectedNumber);
-        if (!video) return await message.sendReply("_Invalid selection!_");
+        if (!video) return await message.sendReply(Lang.INVALID_SELECTION);
         await sendVideoDetails(message, video);
       } catch (error) {
         console.error("YTS video info error:", error);
-        await message.sendReply("_Failed to fetch video info._");
+        await message.sendReply(Lang.VIDEO_INFO_FAILED);
       }
     } else if (
-      repliedText.includes("Reply with:") &&
-      repliedText.includes("* Audio")
+      hasAny(repliedText, Lang.DETAILS_REPLY) ||
+      (repliedText.includes("Reply with:") && repliedText.includes("* Audio"))
     ) {
       if (selectedNumber !== 1 && selectedNumber !== 2) {
         return await message.sendReply(
-          "_Please select 1 for Audio or 2 for Video_"
+          Lang.PICK_1_2
         );
       }
 
-      const url = youtubeUrlFrom(repliedText.match(/\*URL:\*\s*(https?:\/\/\S+)/m)?.[1]);
+      const url = youtubeUrlFrom(repliedText.match(/\*[^*\n]+:\*\s*(https?:\/\/\S+)/m)?.[1]);
       if (!url) return;
 
       if (selectedNumber === 1) {
@@ -465,8 +459,8 @@ Module(
         await inChatQueue(message, "yts-video", () => sendYoutubeVideo(message, url, "360p"));
       }
     } else if (
-      repliedText.includes("Select Video Quality") &&
-      repliedText.includes("Reply with a number")
+      (hasAny(repliedText, YT.QUALITY_HEADER.split("\n")[0]) && hasAny(repliedText, YT.QUALITY_FOOTER.trim())) ||
+      (repliedText.includes("Select Video Quality") && repliedText.includes("Reply with a number"))
     ) {
       const lines = repliedText.split("\n");
       const videoId = lines
@@ -474,7 +468,7 @@ Module(
         .find(Boolean);
 
       if (!videoId) {
-        return await message.sendReply("_Failed to retrieve video ID._");
+        return await message.sendReply(Lang.NO_VIDEO_ID);
       }
 
       const url = watchUrl(videoId);
@@ -483,10 +477,10 @@ Module(
       const qualityLines = lines.filter((line) => line.match(/^\*\d+\./));
       const selectedLine = qualityLines[selectedNumber - 1];
       if (!selectedLine) {
-        return await message.sendReply("_Invalid quality selection!_");
+        return await message.sendReply(Lang.INVALID_QUALITY);
       }
 
-      if (selectedLine.includes("Audio Only")) {
+      if (hasAny(selectedLine, YT.AUDIO_ONLY, "Audio Only")) {
         await inChatQueue(message, "ytv-audio", () =>
           sendYoutubeAudio(message, url, { asDocument: true, best: true })
         );
@@ -503,7 +497,7 @@ Module(
   {
     pattern: "ytlogin ?(.*)",
     fromMe: true,
-    desc: "Sign in to YouTube, for servers YouTube asks to confirm they're not a bot",
+    desc: Lang.YTLOGIN_DESC,
     usage: ".ytlogin | .ytlogin status | .ytlogin force",
     use: "owner",
   },
@@ -511,11 +505,11 @@ Module(
     const arg = match[1]?.trim().toLowerCase();
     const loggedIn = await ytEngine.isLoggedIn();
     if (arg === "status") {
-      return await message.sendReply(loggedIn ? "_Signed in to YouTube._" : "_Not signed in to YouTube._");
+      return await message.sendReply(loggedIn ? Lang.SIGNED_IN : Lang.NOT_SIGNED_IN);
     }
     if (loggedIn && arg !== "force") {
       return await message.sendReply(
-        `_Already signed in._\n_${helpPrefix()}ytlogout to sign out, ${helpPrefix()}ytlogin force to sign in again._`
+        Lang.ALREADY_SIGNED_IN.replaceAll("{p}", helpPrefix())
       );
     }
     // return once the code is out: waiting for approval would hold the chat's queue
@@ -524,13 +518,13 @@ Module(
         .login(async ({ verification_url, user_code, expires_in }) => {
           await message
             .sendReply(
-              `*YouTube login*\n\n1. Open ${verification_url}\n2. Enter *${user_code}*\n3. Choose an account and allow access\n\n_Use a spare account. The code expires in ${Math.round(expires_in / 60)} minutes._`
+              Lang.LOGIN_STEPS.format(verification_url, user_code, Math.round(expires_in / 60))
             )
             .catch(() => {});
           codeSent();
         })
-        .then(() => message.sendReply("_Signed in to YouTube._"))
-        .catch((error) => message.sendReply(`_YouTube login failed: ${error.message}_`))
+        .then(() => message.sendReply(Lang.SIGNED_IN))
+        .catch((error) => message.sendReply(Lang.LOGIN_FAILED.format(error.message)))
         .catch(() => {})
         .finally(codeSent);
     });
@@ -541,12 +535,12 @@ Module(
   {
     pattern: "ytlogout",
     fromMe: true,
-    desc: "Sign out of YouTube",
+    desc: Lang.YTLOGOUT_DESC,
     use: "owner",
   },
   async (message) => {
     await ytEngine.logout();
-    await message.sendReply("_Signed out of YouTube._");
+    await message.sendReply(Lang.SIGNED_OUT);
   }
 );
 
@@ -563,7 +557,7 @@ function spotifyUrlFrom(text) {
 Module(
   {
     pattern: "spotify ?(.*)",
-    desc: "Download audio from Spotify link",
+    desc: Lang.SPOTIFY_DESC,
     usage: ".spotify <spotify link>",
     use: "download",
   },
@@ -572,18 +566,18 @@ Module(
 
     if (!url) {
       return await message.sendReply(
-        `_Please provide a valid Spotify link!_\n_Example: ${helpPrefix()}spotify https://open.spotify.com/track/xxxxx_`
+        Lang.NEED_SPOTIFY.format(helpPrefix())
       );
     }
 
     let downloadMsg;
     try {
-      downloadMsg = await message.sendReply("_Fetching Spotify info..._");
+      downloadMsg = await message.sendReply(Lang.SPOTIFY_FETCHING);
       const spotifyInfo = await spotifyTrack(url);
       const { title, artist } = spotifyInfo;
 
       await message.edit(
-        `_Downloading *${title}* by *${artist}*..._`,
+        Lang.SPOTIFY_DOWNLOADING.format(title, artist),
         message.jid,
         downloadMsg.key
       );
@@ -592,7 +586,7 @@ Module(
 
       if (!results || results.length === 0) {
         return await message.edit(
-          "_No matching songs found on YouTube!_",
+          Lang.NO_MATCH,
           message.jid,
           downloadMsg.key
         );
@@ -605,9 +599,9 @@ Module(
     } catch (error) {
       console.error("Spotify download error:", error);
       if (downloadMsg) {
-        await message.edit("_Download failed!_", message.jid, downloadMsg.key);
+        await message.edit(Lang.DL_FAILED, message.jid, downloadMsg.key);
       } else {
-        await message.sendReply("_Download failed. Please try again._");
+        await message.sendReply(Lang.DL_FAILED_RETRY);
       }
     }
   }

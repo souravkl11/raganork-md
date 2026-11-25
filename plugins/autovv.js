@@ -4,14 +4,15 @@ const { setVar, delVar } = require("./manage");
 const context = require("../core/context");
 const { isAndroidBrowser } = require("../core/session/socket-options");
 const { extractViewOnce } = require("./utils/viewonce");
+const { getString } = require("./utils/lang");
+const Lang = getString("autovv");
 
 // forwards incoming view-once messages to VV_AUTO_JID. needs the android browser:
 // browser companions never receive view-once media.
 
 const isAndroid = isAndroidBrowser;
-const ANDROID_PROMPT_MARK = "reply *yes* to this message";
-const ANDROID_NOTICE =
-  `_Auto view once only works with the android browser, and it is not set now, so nothing will be saved yet._\n\n_To switch, ${ANDROID_PROMPT_MARK}, then restart the bot._`;
+const ANDROID_PROMPT_MARK = Lang.ANDROID_PROMPT_MARK;
+const ANDROID_NOTICE = Lang.ANDROID_NOTICE.format(ANDROID_PROMPT_MARK);
 
 // dedupes retries/reconnect redeliveries
 const recent = new Set();
@@ -38,8 +39,8 @@ Module(
   {
     pattern: "autovv ?(.*)",
     fromMe: true,
-    desc: "Saves every view once message the moment it arrives, to a chosen chat",
-    usage: ".autovv here | <jid/number> | off | status",
+    desc: Lang.DESC,
+    usage: Lang.USAGE,
     use: "utility",
   },
   async (m, match) => {
@@ -48,28 +49,27 @@ Module(
 
     if (!arg || arg.toLowerCase() === "status") {
       return await m.sendReply(
-        `_*Auto view once*_\n\n_Every view once message you receive is sent to a chosen chat the moment it arrives. This needs the android browser._\n\n_Status: ${
-          current ? `on ✅ → ${current}` : "off ❌"
-        }_\n_Browser: ${isAndroid() ? "android ✅" : "not android ⚠️ (nothing is saved)"}_\n\n_Usage:_\n\`.autovv here\` - _use this chat_\n\`.autovv <jid/number>\` - _use a custom chat_\n\`.autovv off\` - _disable_`
+        Lang.STATUS.format(
+          current ? Lang.STATUS_ON.format(current) : Lang.STATUS_OFF,
+          isAndroid() ? Lang.BROWSER_ANDROID : Lang.BROWSER_OTHER
+        )
       );
     }
 
     if (arg.toLowerCase() === "off") {
       await delVar("VV_AUTO_JID");
-      return await m.sendReply("_Auto view once deactivated ❌_");
+      return await m.sendReply(Lang.OFF);
     }
 
     const target = normalizeJid(arg, m.jid);
     if (!target) {
       return await m.sendReply(
-        "_Invalid chat! Use `here`, a number, or a JID like_ `123456789@s.whatsapp.net` _/_ `123456789@g.us`"
+        Lang.INVALID_CHAT
       );
     }
     await setVar("VV_AUTO_JID", target);
     return await m.sendReply(
-      `_Auto view once activated ✅_\n\n_View once messages will be sent to:_ ${target}${
-        isAndroid() ? "" : `\n\n⚠️ ${ANDROID_NOTICE}`
-      }`
+      Lang.ON.format(target) + (isAndroid() ? "" : `\n\n⚠️ ${ANDROID_NOTICE}`)
     );
   }
 );
@@ -78,18 +78,20 @@ Module({ on: "text", fromMe: true }, async (m) => {
   if (!m.fromOwner || !/^(yes|y)$/i.test((m.text || "").trim())) return;
   if (!m.quoted?.key?.fromMe) return;
   if (!String(m.reply_message?.text || "").toLowerCase().includes(ANDROID_PROMPT_MARK)) return;
-  if (isAndroid()) return await m.sendReply("_The browser is already set to android ✅_");
+  if (isAndroid()) return await m.sendReply(Lang.ALREADY_ANDROID);
   await setVar("WA_BROWSER", "android");
   return await m.sendReply(
-    "_Browser set to android ✅_\n_Restart the bot to apply it (_`.restart`_). No need to link the number again._"
+    Lang.SET_ANDROID
   );
 });
 
 async function forward(m, target, vv, msgId, origSender) {
   const sourceChat = m.jid;
-  const info = `_Auto view once_\n_From:_ @${origSender.split("@")[0]}\n_Chat:_ ${
-    sourceChat.endsWith("@g.us") ? "group " : ""
-  }${sourceChat.split("@")[0]}`;
+  const info = Lang.INFO.format(
+    origSender.split("@")[0],
+    sourceChat.endsWith("@g.us") ? Lang.GROUP : "",
+    sourceChat.split("@")[0]
+  );
 
   if (vv.isText) {
     return await m.client.sendMessage(target, { text: `${vv.text}\n\n${info}`, mentions: [origSender] });

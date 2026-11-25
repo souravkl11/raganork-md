@@ -3,6 +3,8 @@ const config = require("../config");
 const { isAdmin, filter } = require("./utils");
 
 const { helpPrefix } = require("../core/plugins/registry");
+const { getString } = require("./utils/lang");
+const Lang = getString("filter");
 
 const SCOPES = ["chat", "global", "group", "dm"];
 const SUBCOMMANDS = ["help", "list", "del", "delete", "toggle", "test"];
@@ -30,69 +32,21 @@ async function mayManage(message) {
 
 async function ownerForScope(message, scope) {
   if (scope === "chat" || message.fromOwner) return true;
-  await message.sendReply(`_Only the owner can manage ${scope} filters._`);
+  await message.sendReply(Lang.OWNER_SCOPE.format(scope));
   return false;
 }
 
 async function showMenu(message) {
   const p = helpPrefix();
   return await message.sendReply(
-    `*📝 Filter Commands:*\n\n` +
-      `• \`${p}filter trigger | response\` - Create chat filter\n` +
-      `• \`${p}filter trigger | response | global\` - Create global filter\n` +
-      `• \`${p}filter trigger | response | group\` - Create group-only filter\n` +
-      `• \`${p}filter trigger | response | dm\` - Create DM-only filter\n` +
-      `• \`${p}filter trigger | response | chat | exact\` - Exact match only\n` +
-      `• \`${p}filter trigger | response | chat | case\` - Case sensitive\n` +
-      `• \`${p}filter list\` - List all filters\n` +
-      `• \`${p}filter del trigger\` - Delete filter\n` +
-      `• \`${p}filter toggle trigger\` - Enable/disable filter\n` +
-      `• \`${p}filter test text\` - Test matching\n` +
-      `• \`${p}filter help\` - Detailed help\n\n` +
-      `*Scopes:*\n` +
-      `• \`chat\` - Current chat only (default)\n` +
-      `• \`global\` - All chats (owner only)\n` +
-      `• \`group\` - All groups (owner only)\n` +
-      `• \`dm\` - All DMs (owner only)\n\n` +
-      `*Options:*\n` +
-      `• \`exact\` - Exact word match only\n` +
-      `• \`case\` - Case sensitive matching`
+    Lang.MENU.replaceAll("{p}", p)
   );
 }
 
 async function showHelp(message) {
   const p = helpPrefix();
   const helpText =
-    `*🔧 Filter System Help*\n\n` +
-    `*What are filters?*\n` +
-    `Filters are auto-reply triggers that respond to specific words or phrases automatically.\n\n` +
-    `*📝 Creating Filters:*\n` +
-    `\`${p}filter hello | Hi there!\`\n` +
-    `• Creates a chat-specific filter\n` +
-    `• When someone says "hello", bot replies "Hi there!"\n\n` +
-    `*🌍 Filter Scopes:*\n` +
-    `• \`chat\` - Only works in current chat\n` +
-    `• \`global\` - Works in all chats (owner only)\n` +
-    `• \`group\` - Works in all groups only (owner only)\n` +
-    `• \`dm\` - Works in all DMs only (owner only)\n\n` +
-    `*⚙️ Filter Options:*\n` +
-    `• \`exact\` - Only exact word matches\n` +
-    `• \`case\` - Case sensitive matching\n\n` +
-    `*📋 Examples:*\n` +
-    `\`${p}filter bot | I'm here! | chat\`\n` +
-    `\`${p}filter help | Contact admin | global\`\n` +
-    `\`${p}filter Hello | Hi! | group | exact\`\n` +
-    `\`${p}filter PASSWORD | Shh! | dm | case\`\n\n` +
-    `*🔧 Management:*\n` +
-    `• \`${p}filter list\` - List all filters\n` +
-    `• \`${p}filter del trigger\` - Delete filter\n` +
-    `• \`${p}filter toggle trigger\` - Enable/disable\n` +
-    `• \`${p}filter test text\` - Test matching\n\n` +
-    `*💡 Tips:*\n` +
-    `• Filters are checked for every message\n` +
-    `• Global filters work everywhere\n` +
-    `• Use exact match for precise triggers\n` +
-    `• Case sensitive is useful for passwords/codes`;
+    Lang.HELP.replaceAll("{p}", p);
 
   await message.sendReply(helpText);
 }
@@ -101,7 +55,7 @@ async function createFilter(message, input) {
   const parts = input.split("|").map((p) => p.trim());
   if (parts.length < 2) {
     return await message.sendReply(
-      "_Format: trigger | response | scope(optional) | options(optional)_"
+      Lang.FORMAT
     );
   }
 
@@ -111,12 +65,12 @@ async function createFilter(message, input) {
   const options = parts[3] || "";
 
   if (!trigger || !response) {
-    return await message.sendReply("_Both trigger and response are required!_");
+    return await message.sendReply(Lang.NEED_BOTH);
   }
 
   if (!SCOPES.includes(scope)) {
     return await message.sendReply(
-      "_Invalid scope! Use: chat, global, group, or dm_"
+      Lang.BAD_SCOPE
     );
   }
   if (!(await ownerForScope(message, scope))) return;
@@ -136,26 +90,23 @@ async function createFilter(message, input) {
       filterOptions
     );
 
-    const scopeText =
-      scope === "chat"
-        ? "this chat"
-        : scope === "global"
-        ? "all chats"
-        : `all ${scope}s`;
+    const scopeText = {
+      chat: Lang.SCOPE_CHAT,
+      global: Lang.SCOPE_GLOBAL,
+      group: Lang.SCOPE_GROUP,
+      dm: Lang.SCOPE_DM,
+    }[scope];
     const optionsText = [];
-    if (filterOptions.exactMatch) optionsText.push("exact match");
-    if (filterOptions.caseSensitive) optionsText.push("case sensitive");
+    if (filterOptions.exactMatch) optionsText.push(Lang.OPT_EXACT);
+    if (filterOptions.caseSensitive) optionsText.push(Lang.OPT_CASE);
     const optionsStr = optionsText.length ? ` (${optionsText.join(", ")})` : "";
 
     await message.sendReply(
-      `✅ *Filter Created!*\n\n` +
-        `*Trigger:* ${trigger}\n` +
-        `*Response:* ${response}\n` +
-        `*Scope:* ${scopeText}${optionsStr}`
+      Lang.CREATED.format(trigger, response, scopeText, optionsStr)
     );
   } catch (error) {
     console.error("Filter creation error:", error);
-    await message.sendReply("_Failed to create filter!_");
+    await message.sendReply(Lang.CREATE_FAILED);
   }
 }
 
@@ -170,10 +121,10 @@ async function listFilters(message, scopeArg) {
       : await filter.get(message.jid);
 
     if (!filters || filters.length === 0) {
-      return await message.sendReply("_No filters found!_");
+      return await message.sendReply(Lang.NONE);
     }
 
-    let msg = `*📝 Active Filters:*\n\n`;
+    let msg = Lang.LIST_HEADER;
 
     filters.forEach((f, index) => {
       const scopeEmoji =
@@ -189,24 +140,28 @@ async function listFilters(message, scopeArg) {
       if (f.caseSensitive) options.push("case");
       const optionsStr = options.length ? ` [${options.join(", ")}]` : "";
 
-      msg += `${index + 1}. ${scopeEmoji} *${f.trigger}*${optionsStr}\n`;
-      msg += `   ↳ _${f.response.substring(0, 50)}${
-        f.response.length > 50 ? "..." : ""
-      }_\n`;
-      msg += `   _Scope: ${f.scope}${f.enabled ? "" : " (disabled)"}_\n\n`;
+      msg += Lang.LIST_ITEM.format(
+        index + 1,
+        scopeEmoji,
+        f.trigger,
+        optionsStr,
+        f.response.substring(0, 50) + (f.response.length > 50 ? "..." : ""),
+        f.scope,
+        f.enabled ? "" : Lang.LIST_DISABLED
+      );
     });
 
     await message.sendReply(msg);
   } catch (error) {
     console.error("Filter listing error:", error);
-    await message.sendReply("_Failed to fetch filters!_");
+    await message.sendReply(Lang.LIST_FAILED);
   }
 }
 
 async function deleteFilter(message, input) {
   if (!input) {
     return await message.sendReply(
-      `_Provide filter trigger to delete!_\n_Usage: ${helpPrefix()}filter del trigger_`
+      Lang.DEL_NEED.format(helpPrefix())
     );
   }
 
@@ -217,20 +172,20 @@ async function deleteFilter(message, input) {
     const deleted = await filter.delete(trigger, message.jid, scope);
 
     if (deleted > 0) {
-      await message.sendReply(`✅ _Filter "${trigger}" deleted successfully!_`);
+      await message.sendReply(Lang.DELETED.format(trigger));
     } else {
-      await message.sendReply(`❌ _Filter "${trigger}" not found!_`);
+      await message.sendReply(Lang.NOT_FOUND.format(trigger));
     }
   } catch (error) {
     console.error("Filter deletion error:", error);
-    await message.sendReply("_Failed to delete filter!_");
+    await message.sendReply(Lang.DEL_FAILED);
   }
 }
 
 async function toggleFilter(message, input) {
   if (!input) {
     return await message.sendReply(
-      `_Provide filter trigger to toggle!_\n_Usage: ${helpPrefix()}filter toggle trigger_`
+      Lang.TOGGLE_NEED.format(helpPrefix())
     );
   }
 
@@ -243,23 +198,21 @@ async function toggleFilter(message, input) {
 
     if (toggled) {
       await message.sendReply(
-        `✅ _Filter "${trigger}" ${
-          toggled.enabled ? "enabled" : "disabled"
-        } successfully!_`
+        (toggled.enabled ? Lang.ENABLED : Lang.DISABLED).format(trigger)
       );
     } else {
-      await message.sendReply(`❌ _Filter "${trigger}" not found!_`);
+      await message.sendReply(Lang.NOT_FOUND.format(trigger));
     }
   } catch (error) {
     console.error("Filter toggle error:", error);
-    await message.sendReply("_Failed to toggle filter!_");
+    await message.sendReply(Lang.TOGGLE_FAILED);
   }
 }
 
 async function testFilter(message, testText) {
   if (!testText) {
     return await message.sendReply(
-      `_Provide text to test against filters!_\n_Usage: ${helpPrefix()}filter test hello world_`
+      Lang.TEST_NEED.format(helpPrefix())
     );
   }
 
@@ -268,22 +221,22 @@ async function testFilter(message, testText) {
 
     if (matchedFilter) {
       await message.sendReply(
-        `✅ *Filter Match Found!*\n\n` +
-          `*Trigger:* ${matchedFilter.trigger}\n` +
-          `*Response:* ${matchedFilter.response}\n` +
-          `*Scope:* ${matchedFilter.scope}\n` +
-          `*Options:* ${matchedFilter.exactMatch ? "exact " : ""}${
-            matchedFilter.caseSensitive ? "case-sensitive" : "case-insensitive"
-          }`
+        Lang.MATCH.format(
+          matchedFilter.trigger,
+          matchedFilter.response,
+          matchedFilter.scope,
+          matchedFilter.exactMatch ? Lang.OPT_EXACT_SHORT : "",
+          matchedFilter.caseSensitive ? Lang.CASE_SENSITIVE : Lang.CASE_INSENSITIVE
+        )
       );
     } else {
       await message.sendReply(
-        `❌ _No filters would be triggered by: "${testText}"_`
+        Lang.NO_MATCH.format(testText)
       );
     }
   } catch (error) {
     console.error("Filter test error:", error);
-    await message.sendReply("_Failed to test filter!_");
+    await message.sendReply(Lang.TEST_FAILED);
   }
 }
 
@@ -291,9 +244,8 @@ Module(
   {
     pattern: "filter(s|help)?(?:\\s+(.*))?$",
     fromMe: false,
-    desc: "Create auto-reply filters. Usage: .filter trigger | response | scope(optional) | options(optional)",
-    usage:
-      ".filter hello | Hi there! | chat\n.filter help | I can help you | global\n.filter bye | Goodbye! | group | exact\n.filter list [scope]\n.filter del trigger [scope]\n.filter toggle trigger [scope]\n.filter test text\n.filter help",
+    desc: Lang.DESC,
+    usage: Lang.USAGE,
     use: "utility",
   },
   async (message, match) => {
@@ -324,7 +276,7 @@ Module(
   {
     pattern: "delfilter ?(.*)",
     fromMe: false,
-    desc: "Delete a filter",
+    desc: Lang.DEL_DESC,
     usage: ".delfilter trigger\n.delfilter trigger global",
     use: "utility",
   },
@@ -338,7 +290,7 @@ Module(
   {
     pattern: "testfilter ?(.*)",
     fromMe: false,
-    desc: "Test if a message would trigger any filters",
+    desc: Lang.TEST_DESC,
     usage: ".testfilter hello world",
     use: "utility",
   },

@@ -1,6 +1,8 @@
 const { Module } = require("../main");
 const { scheduledMessages } = require("./utils/db/schedulers");
 const { helpPrefix } = require("../core/plugins/registry");
+const { getString } = require("./utils/lang");
+const Lang = getString("schedule");
 
 function isValidJID(text) {
   return (
@@ -83,16 +85,16 @@ function fromNow(date, now = new Date()) {
   const minutes = Math.round((date.getTime() - now.getTime()) / 60000);
   const abs = Math.abs(minutes);
   let text;
-  if (abs < 1) text = "a few seconds";
-  else if (abs < 60) text = `${abs} minute${abs === 1 ? "" : "s"}`;
+  if (abs < 1) text = Lang.FEW_SECONDS;
+  else if (abs < 60) text = (abs === 1 ? Lang.MINUTE : Lang.MINUTES).format(abs);
   else if (abs < 1440) {
     const h = Math.round(abs / 60);
-    text = `${h} hour${h === 1 ? "" : "s"}`;
+    text = (h === 1 ? Lang.HOUR : Lang.HOURS).format(h);
   } else {
     const d = Math.round(abs / 1440);
-    text = `${d} day${d === 1 ? "" : "s"}`;
+    text = (d === 1 ? Lang.DAY : Lang.DAYS).format(d);
   }
-  return minutes < 0 ? `${text} ago` : `in ${text}`;
+  return (minutes < 0 ? Lang.AGO : Lang.IN).format(text);
 }
 
 async function createMessageObject(replyMessage) {
@@ -139,26 +141,22 @@ async function listScheduled(m) {
   try {
     const pending = await scheduledMessages.getAllPending();
     if (pending.length === 0) {
-      return await m.sendReply("📭 _No pending scheduled messages_");
+      return await m.sendReply(Lang.NONE_PENDING);
     }
-    let response = "📋 *Scheduled Messages*\n\n";
+    let response = Lang.LIST_HEADER;
     pending.sort((a, b) => a.scheduleTime.getTime() - b.scheduleTime.getTime());
     pending.forEach((msg, index) => {
       const due = new Date(msg.scheduleTime.getTime() + 60000);
       const preview = JSON.parse(msg.message);
-      let content = preview.text || preview.caption || "Media message";
+      let content = preview.text || preview.caption || Lang.MEDIA_MESSAGE;
       if (content.length > 30) content = content.substring(0, 30) + "...";
-      response += `${index + 1}. *ID:* ${msg.id}\n`;
-      response += `   *To:* ${msg.jid}\n`;
-      response += `   *Time:* ${formatTime(due)}\n`;
-      response += `   *In:* ${fromNow(due)}\n`;
-      response += `   *Content:* ${content}\n\n`;
+      response += Lang.LIST_ITEM.format(index + 1, msg.id, msg.jid, formatTime(due), fromNow(due), content);
     });
-    response += `_Use "${helpPrefix()}cancel <id>" to cancel a scheduled message_`;
+    response += Lang.LIST_FOOTER.format(helpPrefix());
     await m.sendReply(response);
   } catch (error) {
     console.error("List scheduled error:", error);
-    await m.sendReply("_Failed to fetch scheduled messages_");
+    await m.sendReply(Lang.LIST_FAILED);
   }
 }
 
@@ -168,7 +166,7 @@ Module(
     pattern: "schedule ?(.*)",
     fromMe: true,
     use: "utility",
-    desc: "Schedule a message to be sent later. Reply to a message with: schedule <jid> <time> or schedule <time> <jid>. `schedule list` shows pending messages",
+    desc: Lang.DESC,
   },
   async (m, match) => {
     const prefix = helpPrefix();
@@ -176,17 +174,17 @@ Module(
     if (/^(?:list|d)(?:\s|$)/i.test(input)) return await listScheduled(m);
     if (!m.reply_message) {
       return await m.sendReply(
-        `_Reply to a message you want to schedule_\n\n*Usage:*\n• ${prefix}schedule <jid> <time>\n• ${prefix}schedule <time> <jid>\n• ${prefix}schedule list\n\n*Time formats:*\n• 2h30m (2 hours 30 minutes)\n• 1d (1 day)\n• 30m (30 minutes)\n• 14:30 (2:30 PM today)\n• 2:45pm (2:45 PM today)`
+        Lang.NEED_REPLY.replaceAll("{p}", prefix)
       );
     }
     if (!input) {
       return await m.sendReply(
-        `_Please provide JID and time_\n\n*Example:*\n• ${prefix}schedule 919876543210@s.whatsapp.net 2h\n• ${prefix}schedule 919876543210@lid 2h\n• ${prefix}schedule 30m 919876543210@s.whatsapp.net`
+        Lang.NEED_INPUT.replaceAll("{p}", prefix)
       );
     }
     const args = input.split(/\s+/);
     if (args.length < 2) {
-      return await m.sendReply("_Please provide both JID and time_");
+      return await m.sendReply(Lang.NEED_BOTH);
     }
     let jid, timeStr;
     if (isValidJID(args[0])) {
@@ -202,39 +200,39 @@ Module(
         timeStr = args.filter((arg) => arg !== jidArg).join(" ");
       } else {
         return await m.sendReply(
-          "_Invalid JID format. JID should end with @g.us, @s.whatsapp.net, or @lid_"
+          Lang.BAD_JID
         );
       }
     }
     const scheduleTime = parseTime(timeStr);
     if (!scheduleTime) {
       return await m.sendReply(
-        "_Invalid time format_\n\n*Supported formats:*\n• 2h30m, 1d, 30m, 5s\n• 14:30, 2:45pm\n• YYYY-MM-DD HH:mm"
+        Lang.BAD_TIME
       );
     }
     const originalTime = new Date(scheduleTime.getTime() + 60000);
     if (originalTime <= new Date()) {
-      return await m.sendReply("_Schedule time must be in the future_");
+      return await m.sendReply(Lang.PAST);
     }
     if (originalTime < new Date(Date.now() + 2 * 60000)) {
       return await m.sendReply(
-        "_Minimum scheduling time is 2 minutes. Please schedule for at least 2 minutes from now._"
+        Lang.TOO_SOON
       );
     }
     try {
       const messageData = await createMessageObject(m.reply_message);
       await scheduledMessages.add(jid, messageData, scheduleTime);
       await m.sendReply(
-        `✅ *Message scheduled successfully!*\n\n📅 *Time:* ${formatTime(originalTime)}\n⏰ *From now:* ${fromNow(originalTime)}\n📱 *Target:* ${jid}`
+        Lang.SCHEDULED.format(formatTime(originalTime), fromNow(originalTime), jid)
       );
     } catch (error) {
       if (error.message === "MEDIA_TOO_LARGE") {
         return await m.sendReply(
-          `_Media is too large to schedule. The limit is ${MAX_MEDIA_BYTES / 1024 / 1024} MB._`
+          Lang.TOO_LARGE.format(MAX_MEDIA_BYTES / 1024 / 1024)
         );
       }
       console.error("Schedule error:", error);
-      await m.sendReply("_Failed to schedule message. Please try again._");
+      await m.sendReply(Lang.FAILED);
     }
   }
 );
@@ -243,30 +241,30 @@ Module(
     pattern: "cancel ?(.*)",
     fromMe: true,
     use: "utility",
-    desc: "Cancel a scheduled message by ID",
+    desc: Lang.CANCEL_DESC,
   },
   async (m, match) => {
     if (!match[1]) {
       return await m.sendReply(
-        `_Please provide message ID to cancel_\n\n*Usage:* ${helpPrefix()}cancel <id>`
+        Lang.CANCEL_NEED_ID.format(helpPrefix())
       );
     }
     const messageId = parseInt(match[1].trim());
     if (isNaN(messageId)) {
-      return await m.sendReply("_Please provide a valid message ID_");
+      return await m.sendReply(Lang.CANCEL_BAD_ID);
     }
     try {
       const success = await scheduledMessages.delete(messageId);
       if (success) {
         await m.sendReply(
-          `✅ *Scheduled message ${messageId} cancelled successfully*`
+          Lang.CANCELLED.format(messageId)
         );
       } else {
-        await m.sendReply("❌ *Message not found or already sent*");
+        await m.sendReply(Lang.NOT_FOUND);
       }
     } catch (error) {
       console.error("Cancel scheduled error:", error);
-      await m.sendReply("_Failed to cancel scheduled message_");
+      await m.sendReply(Lang.CANCEL_FAILED);
     }
   }
 );

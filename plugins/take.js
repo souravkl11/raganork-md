@@ -15,6 +15,8 @@ const { getFullMessage } = require("../core/store");
 const { sentStickerAudioFor, sendStickerAudio } = require("../core/session/features/new-media");
 const { Module } = require("../main");
 const { helpPrefix } = require("../core/plugins/registry");
+const { getString } = require("./utils/lang");
+const Lang = getString("take");
 let config = require("../config");
 let fs = require("fs");
 
@@ -27,7 +29,7 @@ const removeFiles = (...files) =>
 // a URL typed by a user is fetched only if it is a public https address, unless the owner typed it
 async function fetchImage(url, fromUser) {
   if (!fromUser) return await getBuffer(url);
-  if (!/^https:\/\//i.test(url)) throw new Error("Only https image URLs are accepted");
+  if (!/^https:\/\//i.test(url)) throw new Error(Lang.HTTPS_ONLY);
   return await fetchPublicBuffer(url, { maxBytes: MAX_IMAGE_BYTES, timeout: 30000 });
 }
 
@@ -35,12 +37,12 @@ Module(
   {
     pattern: "take ?(.*)",
     use: "edit",
-    desc: "Changes sticker/audio pack & author name. Title, artist, thumbnail etc.",
+    desc: Lang.TAKE_DESC,
   },
   async (m, match) => {
     const reply = m.reply_message;
     if (!reply || (!reply.sticker && !reply.audio))
-      return await m.sendReply("_Reply to an audio or a sticker_");
+      return await m.sendReply(Lang.NEED_REPLY);
     const input = (match[1] || "").trim();
 
     if (reply.sticker) {
@@ -84,11 +86,11 @@ Module(
     const inf = input
       ? input
       : usingDefault
-        ? `Ryzn- Audio title here;Raganork - Artist;${DEFAULT_IMAGE}`
+        ? Lang.DEFAULT_AUDIO_DATA.format(DEFAULT_IMAGE)
         : config.AUDIO_DATA;
     if (usingDefault) {
       await m.sendReply(
-        `_Using default audio metadata, use ${helpPrefix()}setvar AUDIO_DATA=title;artist;imageurl to change_`,
+        Lang.USING_DEFAULT.format(helpPrefix()),
       );
     }
     const spl = inf.split(";");
@@ -99,7 +101,7 @@ Module(
         ? await fetchImage(spl[2].trim(), Boolean(input) && !m.fromOwner)
         : await getBuffer(!botImage || botImage === "default" ? DEFAULT_IMAGE : botImage);
     } catch (e) {
-      return await m.sendReply(`_Could not fetch the thumbnail: ${e.message}_`);
+      return await m.sendReply(Lang.THUMB_FAILED.format(e.message));
     }
     const file = await reply.download();
     let res;
@@ -181,12 +183,12 @@ Module(
   {
     pattern: "mp4 ?(.*)",
     use: "edit",
-    desc: "Converts animated sticker to video (audio stickers keep their sound)",
+    desc: Lang.MP4_DESC,
   },
   async (m, t) => {
     const reply = m.reply_message;
     if (!reply?.sticker)
-      return await m.sendReply("_Reply to an animated sticker!_");
+      return await m.sendReply(Lang.NEED_ANIMATED);
     const q = await reply.download();
     try {
       await withTempFile("mp4.mp4", async (out) => {
@@ -201,7 +203,7 @@ Module(
       });
     } catch (e) {
       console.log(e);
-      return await m.sendReply("*Failed*");
+      return await m.sendReply(Lang.FAILED);
     } finally {
       await removeFiles(q);
     }
@@ -211,7 +213,7 @@ Module(
 Module(
   {
     pattern: "url ?(.*)",
-    desc: "Uploads image to imgbb and sends a url",
+    desc: Lang.URL_DESC,
     use: "edit",
   },
   async (m, match) => {
@@ -219,7 +221,7 @@ Module(
     const isImage = reply?.image || reply?.sticker;
     if (!isImage && !reply?.video && !reply?.document && !reply?.audio)
       return await m.sendReply(
-        "_Reply to an image, sticker, video, audio or document to get a link_",
+        Lang.URL_NEED_REPLY,
       );
     const file = await reply.download();
     try {
@@ -228,7 +230,7 @@ Module(
       return await m.sendReply(result.url);
     } catch (e) {
       console.error("url upload failed:", e.message);
-      return await m.sendReply(`_Upload failed: ${e.message}_`);
+      return await m.sendReply(Lang.UPLOAD_FAILED.format(e.message));
     } finally {
       await removeFiles(file);
     }

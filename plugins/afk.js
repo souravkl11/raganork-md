@@ -2,6 +2,8 @@ const { Module } = require("../main");
 const { cooldown, accountKey, timeSince } = require("./utils");
 const config = require("../config");
 const { setVar } = require("./manage");
+const { getString } = require("./utils/lang");
+const Lang = getString("afk");
 
 const NOTICE_COOLDOWN_MS = 5 * 60 * 1000;
 
@@ -70,7 +72,7 @@ async function saveAFKData() {
   }
 }
 
-async function setAFK(userJid, reason = "I am currently away from keyboard") {
+async function setAFK(userJid, reason = Lang.DEFAULT_REASON) {
   const now = new Date();
   const afkData = {
     reason: reason,
@@ -139,9 +141,8 @@ Module(
   {
     pattern: "afk ?(.*)",
     fromMe: true,
-    desc: "Set yourself as Away From Keyboard",
-    usage:
-      ".afk [reason] - _Set AFK with optional reason_\n.afk - _Check current status_\n.afk list - _Show all AFK users_",
+    desc: Lang.CMD_DESC,
+    usage: Lang.CMD_USAGE,
   },
   async (message, match) => {
     const userJid = message.sender;
@@ -150,10 +151,10 @@ Module(
     if (input?.toLowerCase() === "list") {
       const cache = afkCache();
       if (cache.size === 0) {
-        return await message.sendReply("_No users are currently AFK._");
+        return await message.sendReply(Lang.NO_AFK_USERS);
       }
 
-      let afkList = `*_🌙 AFK Users List (${cache.size})_*\n\n`;
+      let afkList = Lang.LIST_HEADER.format(cache.size);
       let count = 1;
 
       for (const [jid, data] of cache.entries()) {
@@ -161,11 +162,7 @@ Module(
           Date.now() - new Date(data.setAt).getTime()
         );
         const lastSeen = timeSince(data.lastSeen);
-        afkList += `${count}. @${jid.split("@")[0]}\n`;
-        afkList += `   📝 _Reason:_ \`${data.reason}\`\n`;
-        afkList += `   ⏰ _AFK for:_ \`${timeAFK}\`\n`;
-        afkList += `   👁️ _Last seen:_ \`${lastSeen}\`\n`;
-        afkList += `   💬 _Messages received:_ \`${data.messageCount}\`\n\n`;
+        afkList += Lang.LIST_ITEM.format(count, jid.split("@")[0], data.reason, timeAFK, lastSeen, data.messageCount);
         count++;
       }
 
@@ -183,31 +180,18 @@ Module(
         const lastSeen = timeSince(afkData.lastSeen);
 
         return await message.sendReply(
-          `*_🌙 You are currently AFK_*\n\n` +
-            `📝 _Reason:_ \`${afkData.reason}\`\n` +
-            `⏰ _AFK for:_ \`${timeAFK}\`\n` +
-            `👁️ _Last seen:_ \`${lastSeen}\`\n` +
-            `💬 _Messages received:_ \`${afkData.messageCount}\`\n\n` +
-            `_Type any message to go back online._`
+          Lang.STATUS_SELF.format(afkData.reason, timeAFK, lastSeen, afkData.messageCount)
         );
       } else {
         await setAFK(userJid, input);
-        return await message.sendReply(
-          `*_🌙 AFK reason updated_*\n\n` +
-            `📝 _New reason:_ \`${input}\`\n\n` +
-            `_I'll auto-reply when someone messages or mentions you._`
-        );
+        return await message.sendReply(Lang.REASON_UPDATED.format(input));
       }
     } else {
-      const reason = input || "I am currently away from keyboard";
+      const reason = input || Lang.DEFAULT_REASON;
       await setAFK(userJid, reason);
 
       return await message.sendReply(
-        `*_🌙 You're now AFK_*\n\n` +
-          `📝 _Reason:_ \`${reason}\`\n` +
-          `⏰ _Since:_ \`${new Date().toLocaleTimeString()}\`\n\n` +
-          `_I'll auto-reply when someone messages or mentions you._\n` +
-          `_Type any message to go back online._`
+        Lang.NOW_AFK.format(reason, new Date().toLocaleTimeString())
       );
     }
   }
@@ -232,11 +216,7 @@ Module(
           const timeAFK = formatDuration(
             Date.now() - new Date(afkData.setAt).getTime()
           );
-          const welcomeBack =
-            `*_🌅 Welcome back!_*\n\n` +
-            `⏰ _You were AFK for:_ \`${timeAFK}\`\n` +
-            `💬 _Messages received:_ \`${afkData.messageCount}\`\n` +
-            `📝 _Your reason:_ ${afkData.reason}`;
+          const welcomeBack = Lang.WELCOME_BACK.format(timeAFK, afkData.messageCount, afkData.reason);
 
           await message.sendReply(welcomeBack);
         }
@@ -264,12 +244,7 @@ Module(
             );
             const lastSeen = timeSince(afkData.lastSeen);
 
-            const afkReply =
-              `*_🌙 @${mentionedJid.split("@")[0]} is currently AFK_*\n\n` +
-              `📝 _Reason:_ \`${afkData.reason}\`\n` +
-              `⏰ _AFK for:_ \`${timeAFK}\`\n` +
-              `👁️ _Last seen:_ \`${lastSeen}\`\n` +
-              `💬 _Messages received:_ \`${afkData.messageCount}\``;
+            const afkReply = Lang.USER_AFK.format(mentionedJid.split("@")[0], afkData.reason, timeAFK, lastSeen, afkData.messageCount);
 
             await message.sendMessage(afkReply, "text", {
               quoted: message.data,
@@ -290,13 +265,7 @@ Module(
           );
           const lastSeen = timeSince(afkData.lastSeen);
 
-          const afkReply =
-            `*_🌙 Bot owner is currently AFK_*\n\n` +
-            `📝 _Reason:_ \`${afkData.reason}\`\n` +
-            `⏰ _AFK for:_ \`${timeAFK}\`\n` +
-            `👁️ _Last seen:_ \`${lastSeen}\`\n` +
-            `💬 _Messages received:_ \`${afkData.messageCount}\`\n\n` +
-            `_Your message has been noted. They'll get back to you when available._`;
+          const afkReply = Lang.OWNER_AFK.format(afkData.reason, timeAFK, lastSeen, afkData.messageCount);
 
           await message.sendReply(afkReply);
         }
@@ -313,12 +282,7 @@ Module(
           );
           const lastSeen = timeSince(afkData.lastSeen);
 
-          const afkReply =
-            `*_🌙 @${repliedToJid.split("@")[0]} is currently AFK_*\n\n` +
-            `📝 _Reason:_ \`${afkData.reason}\`\n` +
-            `⏰ _AFK for:_ \`${timeAFK}\`\n` +
-            `👁️ _Last seen:_ \`${lastSeen}\`\n` +
-            `💬 _Messages received:_ \`${afkData.messageCount}\``;
+          const afkReply = Lang.USER_AFK.format(repliedToJid.split("@")[0], afkData.reason, timeAFK, lastSeen, afkData.messageCount);
 
           await message.sendMessage(afkReply, "text", {
             quoted: message.data,

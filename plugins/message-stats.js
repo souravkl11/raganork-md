@@ -2,6 +2,8 @@ const { isAdmin, timeSince } = require("./utils");
 const { Module } = require("../main");
 const { isOwner } = require("../core/identity");
 const { helpPrefix } = require("../core/plugins/registry");
+const { getString } = require("./utils/lang");
+const Lang = getString("message_stats");
 const {
   fetchFromStore,
   getTopUsers,
@@ -35,14 +37,13 @@ Module(
   {
     pattern: "msgs ?(.*)",
     fromMe: true,
-    desc: "Shows number of messages sent by each member with at least one message, sorted by count",
-    usage:
-      ".msgs (all members with messages)\n.msgs @mention (specific member)",
+    desc: Lang.MSGS_DESC,
+    usage: Lang.MSGS_USAGE,
     use: "group",
   },
   async (message, match) => {
     if (!message.isGroup)
-      return await message.sendReply("_This is a group command!_");
+      return await message.sendReply(Lang.GROUP_ONLY);
 
     if (message.fromOwner) {
       var users = (
@@ -71,34 +72,32 @@ Module(
 
       if (usersWithMessages.length === 0) {
         return await message.sendReply(
-          "_No members found with messages in the database._"
+          Lang.NO_MEMBERS
         );
       }
 
-      let final_msg = `_Messages sent by ${usersWithMessages.length} members_\n_Sorted by message count (highest to lowest)_\n\n`;
+      let final_msg = Lang.MSGS_HEADER.format(usersWithMessages.length);
 
       for (let userObj of usersWithMessages) {
         let user = userObj.jid;
         let userStat = userObj.stat;
         let count = userStat.totalMessages;
-        let name = userStat.User?.name?.replace(/[\r\n]+/gm, "") || "Unknown";
+        let name = userStat.User?.name?.replace(/[\r\n]+/gm, "") || Lang.UNKNOWN;
         let lastMsg = timeSince(userStat.lastMessageAt);
         let types_msg = "\n";
         if (userStat.textMessages > 0)
-          types_msg += `_Text: *${userStat.textMessages}*_\n`;
+          types_msg += Lang.TEXT.format(userStat.textMessages);
         if (userStat.imageMessages > 0)
-          types_msg += `_Image: *${userStat.imageMessages}*_\n`;
+          types_msg += Lang.IMAGE.format(userStat.imageMessages);
         if (userStat.videoMessages > 0)
-          types_msg += `_Video: *${userStat.videoMessages}*_\n`;
+          types_msg += Lang.VIDEO.format(userStat.videoMessages);
         if (userStat.audioMessages > 0)
-          types_msg += `_Audio: *${userStat.audioMessages}*_\n`;
+          types_msg += Lang.AUDIO.format(userStat.audioMessages);
         if (userStat.stickerMessages > 0)
-          types_msg += `_Sticker: *${userStat.stickerMessages}*_\n`;
+          types_msg += Lang.STICKER.format(userStat.stickerMessages);
         if (userStat.otherMessages > 0)
-          types_msg += `_Others: *${userStat.otherMessages}*_\n`;
-        final_msg += `_Participant: *+${
-          user.split("@")[0]
-        }*_\n_Name: *${name}*_\n_Total msgs: *${count}*_\n_Last msg: *${lastMsg}*_${types_msg}\n\n`;
+          types_msg += Lang.OTHERS.format(userStat.otherMessages);
+        final_msg += Lang.MSGS_ITEM.format(user.split("@")[0], name, count, lastMsg, types_msg);
       }
 
       return await message.sendReply(final_msg);
@@ -110,24 +109,18 @@ Module(
   {
     pattern: "inactive ?(.*)",
     fromMe: true,
-    desc: "Shows inactive members based on last message time. Can also kick them.",
-    usage:
-      ".inactive 30d (members inactive for 30+ days)\n.inactive 10d kick (kick members inactive for 10+ days)\n\nSupported units: d (days), w (weeks), m (months), y (years)",
+    desc: Lang.INACTIVE_DESC,
+    usage: Lang.INACTIVE_USAGE,
     use: "group",
   },
   async (message, match) => {
     if (!message.isGroup)
-      return await message.sendReply("_This is a group command!_");
+      return await message.sendReply(Lang.GROUP_ONLY);
 
     if (message.fromOwner) {
       if (!match[1]) {
         return await message.sendReply(
-          "_Usage:_\n" +
-            `• \`${helpPrefix()}inactive 30d\` - Show members inactive for 30+ days\n` +
-            `• \`${helpPrefix()}inactive 10d kick\` - Kick members inactive for 10+ days\n` +
-            `• \`${helpPrefix()}inactive 2w\` - Show members inactive for 2+ weeks\n` +
-            `• \`${helpPrefix()}inactive 3m kick\` - Kick members inactive for 3+ months\n\n` +
-            "_Supported units:_ d (days), w (weeks), m (months), y (years)"
+          Lang.INACTIVE_HELP.replaceAll("{p}", helpPrefix())
         );
       }
 
@@ -140,7 +133,7 @@ Module(
       const cutoffDate = parseDuration(durationStr);
       if (!cutoffDate) {
         return await message.sendReply(
-          "_Invalid duration format!_\n" + "_Examples:_ 30d, 2w, 3m, 1y"
+          Lang.BAD_DURATION
         );
       }
 
@@ -148,7 +141,7 @@ Module(
         var admin = await isAdmin(message);
         if (!admin)
           return await message.sendReply(
-            "_Bot needs admin privileges to kick members!_"
+            Lang.NEED_ADMIN
           );
       }
 
@@ -165,10 +158,11 @@ Module(
 
       if (shouldKick && dataWarning && !force) {
         return await message.sendReply(
-          `_Not kicking: my message data for this group ${
-            dataStart ? `only goes back ${timeSince(dataStart)}` : "is empty"
-          }, which is shorter than ${durationStr}. Members who were active before that would count as inactive._\n` +
-            `_Use \`${helpPrefix()}inactive ${durationStr} kick force\` to kick anyway._`
+          Lang.NOT_KICKING.format(
+            dataStart ? Lang.DATA_GOES_BACK.format(timeSince(dataStart)) : Lang.DATA_EMPTY,
+            durationStr,
+            durationStr
+          ).replaceAll("{p}", helpPrefix())
         );
       }
 
@@ -179,8 +173,8 @@ Module(
         if (!userStat || !userStat.lastMessageAt) {
           inactiveMembers.push({
             jid: user,
-            name: userStat?.User?.name?.replace(/[\r\n]+/gm, "") || "Unknown",
-            lastMessage: "Never",
+            name: userStat?.User?.name?.replace(/[\r\n]+/gm, "") || Lang.UNKNOWN,
+            lastMessage: Lang.NEVER,
             totalMessages: userStat?.totalMessages || 0,
           });
         } else {
@@ -188,7 +182,7 @@ Module(
           if (lastMessageDate < cutoffDate) {
             inactiveMembers.push({
               jid: user,
-              name: userStat.User?.name?.replace(/[\r\n]+/gm, "") || "Unknown",
+              name: userStat.User?.name?.replace(/[\r\n]+/gm, "") || Lang.UNKNOWN,
               lastMessage: timeSince(userStat.lastMessageAt),
               totalMessages: userStat.totalMessages,
             });
@@ -207,20 +201,20 @@ Module(
 
       if (inactiveMembers.length === 0) {
         return await message.sendReply(
-          `_No inactive members found for the specified duration (${durationStr})._`
+          Lang.NO_INACTIVE.format(durationStr)
         );
       }
 
-      let responseMsg = `_Inactive members (${durationStr}+):_ *${inactiveMembers.length}*\n\n`;
+      let responseMsg = Lang.INACTIVE_HEADER.format(durationStr, inactiveMembers.length);
 
       if (dataWarning) {
-        responseMsg += `⚠️ _Warning: Database ${
-          dataStart ? `only has data from ${timeSince(dataStart)}` : "has no data for this group"
-        }. Members who were active before this time may appear as inactive._\n\n`;
+        responseMsg += Lang.DATA_WARNING.format(
+          dataStart ? Lang.DATA_FROM.format(timeSince(dataStart)) : Lang.DATA_NONE
+        );
       }
 
       if (shouldKick) {
-        responseMsg += `_❗❗ Kicking ${inactiveMembers.length} inactive members. This action cannot be undone! ❗❗_\n\n`;
+        responseMsg += Lang.KICK_WARNING.format(inactiveMembers.length);
 
         for (let i = 0; i < Math.min(inactiveMembers.length, 10); i++) {
           const member = inactiveMembers[i];
@@ -230,10 +224,10 @@ Module(
         }
 
         if (inactiveMembers.length > 10) {
-          responseMsg += `... and ${inactiveMembers.length - 10} more\n`;
+          responseMsg += Lang.AND_MORE.format(inactiveMembers.length - 10);
         }
 
-        responseMsg += `\n_Starting kick process in 5 seconds..._`;
+        responseMsg += Lang.KICK_START;
 
         await message.client.sendMessage(message.jid, {
           text: responseMsg,
@@ -255,7 +249,7 @@ Module(
 
             if (kickCount % 5 === 0) {
               await message.send(
-                `_Kicked ${kickCount}/${inactiveMembers.length} members..._`
+                Lang.KICK_PROGRESS.format(kickCount, inactiveMembers.length)
               );
             }
           } catch (error) {
@@ -264,18 +258,15 @@ Module(
         }
 
         return await message.send(
-          `_✅ Kicked ${kickCount}/${inactiveMembers.length} inactive members._`
+          Lang.KICK_DONE.format(kickCount, inactiveMembers.length)
         );
       } else {
         for (let i = 0; i < inactiveMembers.length; i++) {
           const member = inactiveMembers[i];
-          responseMsg += `${i + 1}. @${member.jid.split("@")[0]}\n`;
-          responseMsg += `   _Name:_ ${member.name}\n`;
-          responseMsg += `   _Last msg:_ ${member.lastMessage}\n`;
-          responseMsg += `   _Total msgs:_ ${member.totalMessages}\n\n`;
+          responseMsg += Lang.INACTIVE_ITEM.format(i + 1, member.jid.split("@")[0], member.name, member.lastMessage, member.totalMessages);
         }
 
-        responseMsg += `_Use \`${helpPrefix()}inactive ${durationStr} kick\` to remove these members._`;
+        responseMsg += Lang.KICK_HINT.format(helpPrefix(), durationStr);
 
         return await message.client.sendMessage(message.jid, {
           text: responseMsg,
@@ -290,9 +281,8 @@ Module(
   {
     pattern: "users ?(.*)",
     fromMe: true,
-    desc: "Shows top users by message count. In DM shows global stats by default, in groups shows chat-specific stats.",
-    usage:
-      ".users (shows top 10 users - global in DM, chat-specific in groups)\n.users global (shows global top users)\n.users 20 (shows top 20 users)\n.users global 15 (shows top 15 global users)",
+    desc: Lang.USERS_DESC,
+    usage: Lang.USERS_USAGE,
     use: "utility",
   },
   async (message, match) => {
@@ -314,7 +304,7 @@ Module(
             if (parsedLimit > 0 && parsedLimit <= 50) {
               limit = parsedLimit;
             } else if (parsedLimit > 50) {
-              return await message.sendReply("_Maximum limit is 50 users._");
+              return await message.sendReply(Lang.MAX_LIMIT);
             }
           }
         } else {
@@ -322,10 +312,10 @@ Module(
           if (parsedLimit && parsedLimit > 0 && parsedLimit <= 50) {
             limit = parsedLimit;
           } else if (parsedLimit > 50) {
-            return await message.sendReply("_Maximum limit is 50 users._");
+            return await message.sendReply(Lang.MAX_LIMIT);
           } else if (parsedLimit <= 0) {
             return await message.sendReply(
-              "_Limit must be a positive number._"
+              Lang.BAD_LIMIT
             );
           }
         }
@@ -341,38 +331,33 @@ Module(
 
         if (isGlobal) {
           topUsers = await getGlobalTopUsers(limit);
-          scopeText = "global";
+          scopeText = Lang.SCOPE_GLOBAL;
         } else {
           topUsers = await getTopUsers(message.jid, limit);
-          scopeText = message.isGroup ? "group" : "chat";
+          scopeText = message.isGroup ? Lang.SCOPE_GROUP : Lang.SCOPE_CHAT;
         }
 
         if (topUsers.length === 0) {
           return await message.sendReply(
-            `_No user data found in the database for ${scopeText} stats._`
+            Lang.NO_USER_DATA.format(scopeText)
           );
         }
 
-        let responseMsg = `_Top ${topUsers.length} ${scopeText} users by message count_\n\n`;
+        let responseMsg = Lang.USERS_HEADER.format(topUsers.length, scopeText);
 
         for (let i = 0; i < topUsers.length; i++) {
           const user = topUsers[i];
           const rank = i + 1;
-          const name = user.name?.replace(/[\r\n]+/gm, "") || "Unknown";
+          const name = user.name?.replace(/[\r\n]+/gm, "") || Lang.UNKNOWN;
           const lastMessage = timeSince(user.lastMessageAt);
 
-          responseMsg += `*${rank}.* @${user.jid.split("@")[0]}\n`;
-          responseMsg += `   _Name:_ ${name}\n`;
-          responseMsg += `   _Messages:_ ${user.totalMessages}${
-            isGlobal ? " (across all chats)" : ""
-          }\n`;
-          responseMsg += `   _Last seen:_ ${lastMessage}\n\n`;
+          responseMsg += Lang.USERS_ITEM.format(rank, user.jid.split("@")[0], name, user.totalMessages, isGlobal ? Lang.ACROSS_ALL : "", lastMessage);
         }
 
         if (isGlobal) {
-          responseMsg += `\n_💡 Tip: Use \`${helpPrefix()}users chat\` for current chat stats only._`;
+          responseMsg += Lang.TIP_CHAT.format(helpPrefix());
         } else if (message.isGroup) {
-          responseMsg += `\n_💡 Tip: Use \`${helpPrefix()}users global\` for global stats across all chats._`;
+          responseMsg += Lang.TIP_GLOBAL.format(helpPrefix());
         }
 
         const mentions = topUsers.map((user) => user.jid);
@@ -384,7 +369,7 @@ Module(
       } catch (error) {
         console.error("Error in users command:", error);
         return await message.sendReply(
-          "_Failed to fetch user data. Please try again._"
+          Lang.USERS_FAILED
         );
       }
     }

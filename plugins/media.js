@@ -55,13 +55,13 @@ Module(
     const end = parts[1]?.trim();
     const isAudio = Boolean(message.reply_message.audio);
     await withDownload(message.reply_message, async (savedFile) => {
-      await message.sendMessage("_Processing trim..._");
+      await message.sendMessage(Lang.TRIM_PROCESSING);
       await withTempFile(isAudio ? "trim.m4a" : "trim.mp4", async (out) => {
         try {
           await trim(savedFile, start, end, out);
         } catch (err) {
           console.error("trim failed:", err.message);
-          return await message.sendReply("_Failed to trim. Check the time range._");
+          return await message.sendReply(Lang.TRIM_FAILED);
         }
         if (isAudio) {
           await message.sendReply(
@@ -78,16 +78,16 @@ Module(
 Module(
   {
     pattern: "black",
-    desc: "Audio to black video",
+    desc: Lang.BLACK_DESC,
     use: "edit",
   },
   async (message, match) => {
     if (!message.reply_message || !message.reply_message.audio)
-      return await message.send("_Need audio!_");
+      return await message.send(Lang.NEED_AUDIO);
 
     try {
       const processingMsg = await message.sendReply(
-        "_Processing audio to black video..._",
+        Lang.BLACK_PROCESSING,
       );
       await withDownload(message.reply_message, (audioFile) =>
         withTempFile("black.mp4", async (outputPath) => {
@@ -116,13 +116,13 @@ Module(
         }),
       );
       await message.edit(
-        "_Black video created successfully!_",
+        Lang.BLACK_DONE,
         message.jid,
         processingMsg.key,
       );
     } catch (error) {
       console.error("Black video creation error:", error);
-      await message.send("_Failed to create black video. Please try again._");
+      await message.send(Lang.BLACK_FAILED);
     }
   },
 );
@@ -154,7 +154,7 @@ Module(
       await message.sendReply(video, "video");
     } catch (err) {
       console.error("avmix failed:", err.message);
-      await message.sendReply("_Failed to mix. Please try again._");
+      await message.sendReply(Lang.AVMIX_FAILED);
     } finally {
       await removeDir(dir);
     }
@@ -163,7 +163,7 @@ Module(
 Module(
   {
     pattern: "vmix ?(.*)",
-    desc: "Merges/Joins two videos",
+    desc: Lang.VMIX_DESC,
     use: "edit",
   },
   async (message, match) => {
@@ -171,19 +171,19 @@ Module(
     const files = await fs.promises.readdir(dir);
     const reply = message.reply_message;
     if ((!reply && files.length < 2) || (reply && !reply.video))
-      return await message.send("Give me videos");
+      return await message.send(Lang.VMIX_NEED);
     if (reply?.video && files.length === 0) {
       await stageReply(reply, path.join(dir, "video1.mp4"));
-      return await message.sendReply("*Added video 1*");
+      return await message.sendReply(Lang.VMIX_ADDED_1);
     }
     if (reply?.video && files.length === 1) {
       await stageReply(reply, path.join(dir, "video2.mp4"));
       return await message.sendReply(
-        `*Added video 2. Type ${helpPrefix()}vmix again to process!*`,
+        Lang.VMIX_ADDED_2.format(helpPrefix()),
       );
     }
     if (files.length !== 2) return;
-    await message.sendReply("*Merging videos..*");
+    await message.sendReply(Lang.VMIX_MERGING);
     const merged = uniqueTempPath("merged.mp4");
     try {
       await mergeVideos(
@@ -193,7 +193,7 @@ Module(
       await message.send(fs.readFileSync(merged), "video");
     } catch (err) {
       console.error("vmix failed:", err.message);
-      await message.sendReply("_Failed to merge the videos. Please try again._");
+      await message.sendReply(Lang.VMIX_FAILED);
     } finally {
       fs.unlink(merged, () => {});
       await removeDir(dir);
@@ -203,7 +203,7 @@ Module(
 Module(
   {
     pattern: "circle",
-    desc: "Sticker/photo to circle crop",
+    desc: Lang.CIRCLE_DESC,
     use: "edit",
   },
   async (message, match) => {
@@ -213,19 +213,19 @@ Module(
 Module(
   {
     pattern: "gif",
-    desc: "Video to gif with audio",
+    desc: Lang.GIF_DESC,
   },
   async (message, match) => {
     if (!message.reply_message || !message.reply_message.video)
-      return await message.sendReply("*Reply to a video*");
+      return await message.sendReply(Lang.NEED_VIDEO);
     await withDownload(message.reply_message, async (savedFile) => {
-      await message.sendReply("*Rendering..*");
+      await message.sendReply(Lang.RENDERING);
       await withTempFile("agif.mp4", async (out) => {
         try {
           await runFfmpeg(ffmpeg(savedFile).fps(13).videoBitrate(500), out);
         } catch (err) {
           console.error("gif failed:", err.message);
-          return await message.sendReply("_Failed to render. Please try again._");
+          return await message.sendReply(Lang.RENDER_FAILED);
         }
         await message.client.sendMessage(message.jid, {
           video: fs.readFileSync(out),
@@ -238,21 +238,21 @@ Module(
 Module(
   {
     pattern: "interp ?(.*)",
-    desc: "Increases video's frame rate (FPS)",
+    desc: Lang.INTERP_DESC,
     use: "edit",
   },
   async (message, match) => {
     if (!message.reply_message || !message.reply_message.video)
-      return await message.sendReply("*Reply to a video*");
+      return await message.sendReply(Lang.NEED_VIDEO);
     const fps = parseInt(match[1], 10);
     if (Number.isNaN(fps) || fps <= 10)
-      return await message.send("*Low FPS Value ⚠️*\n*Minimun = 10*");
+      return await message.send(Lang.FPS_LOW);
     if (fps >= 500)
-      return await message.send("*High FPS Value ⚠️*\n*Maximum = 500*");
+      return await message.send(Lang.FPS_HIGH);
     await withDownload(message.reply_message, async (savedFile) => {
       const limit = await interpolationLimit(savedFile);
       if (limit) return await message.sendReply(limit);
-      await message.sendReply("*Motion interpolating and rendering..*");
+      await message.sendReply(Lang.INTERPOLATING);
       await withTempFile("interp.mp4", async (out) => {
         try {
           await runFfmpeg(
@@ -263,7 +263,7 @@ Module(
           );
         } catch (err) {
           console.error("interp failed:", err.message);
-          return await message.sendReply("_Failed to render. Please try again._");
+          return await message.sendReply(Lang.RENDER_FAILED);
         }
         await message.send(fs.readFileSync(out), "video");
       });
@@ -273,20 +273,20 @@ Module(
 Module(
   {
     pattern: "find ?(.*)",
-    desc: "Finds music name using AI",
-    usage: ".find reply to a music",
+    desc: Lang.FIND_DESC,
+    usage: Lang.FIND_USAGE,
     use: "search",
   },
   async (message, match) => {
     if (!message.reply_message?.audio)
-      return await message.sendReply("_Reply to a music_");
+      return await message.sendReply(Lang.NEED_MUSIC);
     if (message.reply_message.duration > 60)
       return await message.send(
-        `_Audio too large! Use ${helpPrefix()}trim command and cut the audio to < 60 secs_`,
+        Lang.AUDIO_TOO_LONG.format(helpPrefix()),
       );
     var audio = await message.reply_message.download("buffer");
     var data = await findMusic(audio);
-    if (!data) return await message.sendReply("_No matching results found!_");
+    if (!data) return await message.sendReply(Lang.NO_MATCH);
     const external = data.external_metadata || {};
     function getDuration(millis) {
       var minutes = Math.floor(millis / 60000);
@@ -294,26 +294,24 @@ Module(
       return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
     }
     const Message = {
-      text: `*Title:* ${data.title}\n
-Artists: ${data.artists?.map((e) => e.name + " ")}\n
-Released on: ${data.release_date}\n
-Duration: ${getDuration(data.duration_ms)}\n
-Album: ${data.album?.name}\n
-Genres: ${data.genres?.map((e) => e.name + " ")}\n
-Label: ${data.label}\n
-Spotify: ${"spotify" in external ? "Available" : "Unavailable"}\n
-YouTube: ${
-        "youtube" in external
-          ? "https://youtu.be/" + external.youtube.vid
-          : "Unavailable"
-      }\n`,
+      text: Lang.FIND_RESULT.format(
+        data.title,
+        data.artists?.map((e) => e.name + " "),
+        data.release_date,
+        getDuration(data.duration_ms),
+        data.album?.name,
+        data.genres?.map((e) => e.name + " "),
+        data.label,
+        "spotify" in external ? Lang.AVAILABLE : Lang.UNAVAILABLE,
+        "youtube" in external ? "https://youtu.be/" + external.youtube.vid : Lang.UNAVAILABLE
+      ),
     };
     await message.client.sendMessage(message.jid, Message);
   },
 );
 async function rotateAndSend(message, angle) {
   await withDownload(message.reply_message, async (file) => {
-    await message.send("_Processing..._");
+    await message.send(Lang.PROCESSING);
     const rotated = await rotate(file, angle);
     try {
       await message.sendReply(fs.readFileSync(rotated), "video");
@@ -325,12 +323,12 @@ async function rotateAndSend(message, angle) {
 Module(
   {
     pattern: "rotate ?(.*)",
-    desc: "Rotates video (left/right)",
+    desc: Lang.ROTATE_DESC,
   },
   async (message, match) => {
     if (!match[1] || !message.reply_message || !message.reply_message.video)
       return await message.sendReply(
-        `*Reply to a video*\n*${helpPrefix()}rotate left|right|flip*`,
+        Lang.ROTATE_NEED.format(helpPrefix()),
       );
     var angle = "1";
     if (match[1] === "left") angle = "2";
@@ -339,10 +337,10 @@ Module(
   },
 );
 Module(
-  { pattern: "flip ?(.*)", desc: "Flips video" },
+  { pattern: "flip ?(.*)", desc: Lang.FLIP_DESC },
   async (message, match) => {
     if (!message.reply_message || !message.reply_message.video)
-      return await message.sendReply("*Reply to a video*");
+      return await message.sendReply(Lang.NEED_VIDEO);
     await rotateAndSend(message, "3");
   },
 );

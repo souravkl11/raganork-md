@@ -1,12 +1,6 @@
 const config = require("../config");
 const { GroupUpdate } = require("./constructors");
-String.prototype.format = function () {
-  let i = 0,
-    args = arguments;
-  return this.replace(/{}/g, function () {
-    return typeof args[i] != "undefined" ? args[i++] : "";
-  });
-};
+require("./string-format");
 const { commands } = require("./plugins/registry");
 const { loadAll } = require("./plugins/loader");
 const { handle } = require("./pipeline");

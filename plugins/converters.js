@@ -82,17 +82,17 @@ Module(
   {
     pattern: "img ?(.*)",
     use: "search",
-    desc: "Searches for an image on Google Images and sends the requested number of results (max 10).",
+    desc: Lang.SEARCHES_FOR_AN_IMAGE_ON,
   },
   async (message, match) => {
-    if (!match[1]) return await message.send("*_Need a search term!_*");
+    if (!match[1]) return await message.send(Lang.NEED_A_SEARCH_TERM);
     let splitInput = match[1].split(",");
     let count = clampInt(splitInput[1], 1, 10, 5);
-    await message.send(`*_Searching for ${count} images..._*`);
+    await message.send(Lang.SEARCHING_FOR_IMAGES.format(count));
 
     const buffer = Math.ceil(count * 0.5);
     let results = await gis(splitInput[0], count + buffer);
-    if (results.length < 1) return await message.send("*_No results found!_*");
+    if (results.length < 1) return await message.send(Lang.NO_RESULTS_FOUND);
 
     let successCount = 0;
     let i = 0;
@@ -118,7 +118,7 @@ Module(
     }
 
     if (imagesToSend.length === 0) {
-      return await message.send("*_Failed to download any images_*");
+      return await message.send(Lang.FAILED_TO_DOWNLOAD_ANY_IMAGES);
     }
 
     try {
@@ -140,7 +140,7 @@ Module(
 
     if (successCount < count) {
       await message.send(
-        `*_Only able to download ${successCount}/${count} images. Some URLs had access issues._*`
+        Lang.ONLY_ABLE_TO_DOWNLOAD_IMAGES.format(successCount, count)
       );
     }
   }
@@ -170,9 +170,9 @@ Module(
       const albumData = await message.reply_message.download();
       const allFiles = [...(albumData.images || []), ...(albumData.videos || [])];
       try {
-        if (allFiles.length === 0) return await message.send("_No media in album_");
+        if (allFiles.length === 0) return await message.send(Lang.NO_MEDIA_IN_ALBUM);
 
-        await message.send(`_Converting ${allFiles.length} stickers..._`);
+        await message.send(Lang.CONVERTING_STICKERS.format(allFiles.length));
         for (const file of allFiles) {
           try {
             const isVideo = albumData.videos?.includes(file);
@@ -210,7 +210,7 @@ Module(
         buffer = await toStickerBuffer(savedFile, type, exif);
       } catch (err) {
         console.error("sticker conversion failed:", err);
-        throw new UserError("Couldn't convert this to a sticker", { cause: err });
+        throw new UserError(Lang.STICKER_CONVERT_FAILED, { cause: err });
       }
       await message.sendMessage(buffer, "sticker", { quoted: message.quoted });
     });
@@ -237,10 +237,10 @@ Module(
       const videoFiles = albumData.videos || [];
       try {
         if (videoFiles.length === 0) {
-          return await message.send("_No video files in album. MP3 requires video/audio files._");
+          return await message.send(Lang.NO_VIDEO_FILES_IN_ALBUM);
         }
 
-        await message.send(`_Converting ${videoFiles.length} files to mp3..._`);
+        await message.send(Lang.CONVERTING_FILES_TO_MP3.format(videoFiles.length));
         for (const file of videoFiles) {
           try {
             await withTempFile("album.mp3", async (outputPath) => {
@@ -309,11 +309,11 @@ async function changeRate(message, rate, { label, progress }) {
     try {
       if (videoFiles.length === 0) {
         return await message.send(
-          `_No video files in album. ${label} requires video/audio files._`
+          Lang.NO_VIDEO_FILES_IN_ALBUM_2.format(label)
         );
       }
 
-      await message.send(`_${progress} ${videoFiles.length} files..._`);
+      await message.send(Lang.FILES.format(progress, videoFiles.length));
       for (const file of videoFiles) {
         try {
           await message.sendMessage(await convert(file), "audio", {
@@ -333,7 +333,7 @@ async function changeRate(message, rate, { label, progress }) {
     message.quoted?.message?.[Object.keys(message.quoted.message)[0]]?.seconds;
   if (seconds > 120)
     await message.sendReply(
-      `_Alert: Duration more than 2 mins. This process may fail or take much more time!_`
+      Lang.ALERT_DURATION_MORE_THAN_2
     );
   await withDownload(reply, async (savedFile) => {
     let audio;
@@ -341,7 +341,7 @@ async function changeRate(message, rate, { label, progress }) {
       audio = await convert(savedFile);
     } catch (err) {
       console.error(`${label} failed:`, err.message);
-      return await message.sendReply("_Failed to process this file_");
+      return await message.sendReply(Lang.FAILED_TO_PROCESS_THIS_FILE);
     }
     await message.sendMessage(audio, "audio", { quoted: message.quoted });
   });
@@ -349,11 +349,11 @@ async function changeRate(message, rate, { label, progress }) {
 
 async function slowMotion(message) {
   if (!message.reply_message || !message.reply_message.video)
-    return await message.sendReply("*Reply to a video*");
+    return await message.sendReply(Lang.REPLY_TO_A_VIDEO);
   await withDownload(message.reply_message, async (savedFile) => {
     const limit = await interpolationLimit(savedFile);
     if (limit) return await message.sendReply(limit);
-    await message.sendReply("*Motion interpolating and rendering..*");
+    await message.sendReply(Lang.MOTION_INTERPOLATING_AND_RENDERING);
     await withTempFile("slowmo.mp4", async (out) => {
       try {
         await runFfmpeg(
@@ -366,7 +366,7 @@ async function slowMotion(message) {
         );
       } catch (err) {
         console.error("slowmo failed:", err.message);
-        return await message.sendReply("_Failed to render. Please try again._");
+        return await message.sendReply(Lang.FAILED_TO_RENDER_PLEASE_TRY);
       }
       await message.send(fs.readFileSync(out), "video");
     });
@@ -377,24 +377,24 @@ Module(
   {
     pattern: "slow ?(.*)",
     use: "edit",
-    desc: "Slows down music & decreases pitch. For making slowed+reverb audios. Use .slow mo on a video for smooth slow motion",
+    desc: Lang.SLOWS_DOWN_MUSIC_DECREASES_PITCH,
   },
   async (message, match) => {
     if (
       (match[1] || "").trim().toLowerCase() === "mo"
     )
       return await slowMotion(message);
-    await changeRate(message, 0.9, { label: "Slow", progress: "Slowing" });
+    await changeRate(message, 0.9, { label: Lang.SLOW, progress: Lang.SLOWING });
   }
 );
 Module(
   {
     pattern: "sped ?(.*)",
     use: "edit",
-    desc: "Speeds up music & increases pitch. For making sped-up+reverb audios",
+    desc: Lang.SPEEDS_UP_MUSIC_INCREASES_PITCH,
   },
   async (message, match) => {
-    await changeRate(message, 1.2, { label: "Sped", progress: "Speeding" });
+    await changeRate(message, 1.2, { label: Lang.SPED, progress: Lang.SPEEDING });
   }
 );
 Module(
@@ -413,10 +413,10 @@ Module(
       const videoFiles = albumData.videos || [];
       try {
         if (videoFiles.length === 0) {
-          return await message.send("_No video files in album. Bass requires video/audio files._");
+          return await message.send(Lang.NO_VIDEO_FILES_IN_ALBUM_3);
         }
 
-        await message.send(`_Adding bass to ${videoFiles.length} files..._`);
+        await message.send(Lang.ADDING_BASS_TO_FILES.format(videoFiles.length));
         for (const file of videoFiles) {
           try {
             await message.sendMessage(await bass(file, match[1]), "audio", {
@@ -437,7 +437,7 @@ Module(
       try {
         audio = await bass(savedFile, match[1]);
       } catch (err) {
-        return await message.sendReply("_Failed to process this file_");
+        return await message.sendReply(Lang.FAILED_TO_PROCESS_THIS_FILE);
       }
       await message.sendMessage(audio, "audio", { quoted: message.data });
     });
@@ -469,10 +469,10 @@ Module(
   {
     pattern: "attp ?(.*)",
     use: "utility",
-    desc: "Text to animated sticker",
+    desc: Lang.TEXT_TO_ANIMATED_STICKER,
   },
   async (message, match) => {
-    if (match[1] == "") return await message.send("*Need text*");
+    if (match[1] == "") return await message.send(Lang.NEED_TEXT);
     var result = await attp(match[1]);
     await message.sendMessage(
       await withExif(result, stickerExif(message)),
@@ -531,7 +531,7 @@ Module(
           audio = { url: ttsResult.url };
         } else {
           throw new Error(
-            ttsResult && ttsResult.error ? ttsResult.error : "AI TTS failed"
+            ttsResult && ttsResult.error ? ttsResult.error : Lang.AI_TTS_FAILED
           );
         }
       } catch (e) {
@@ -555,12 +555,12 @@ Module(
   {
     pattern: "doc ?(.*)",
     use: "edit",
-    desc: "Converts replied media to document format",
+    desc: Lang.CONVERTS_REPLIED_MEDIA_TO_DOCUMENT,
   },
   async (message, match) => {
     if (message.reply_message === false)
       return await message.send(
-        "_Reply to a media file (image, video, audio, sticker, or document)_"
+        Lang.REPLY_TO_A_MEDIA_FILE
       );
 
     if (
@@ -572,7 +572,7 @@ Module(
       !message.reply_message.album
     ) {
       return await message.send(
-        "_Reply to a media file (image, video, audio, sticker, or document)_"
+        Lang.REPLY_TO_A_MEDIA_FILE
       );
     }
 
@@ -580,9 +580,9 @@ Module(
       const albumData = await message.reply_message.download();
       const allFiles = [...(albumData.images || []), ...(albumData.videos || [])];
       try {
-        if (allFiles.length === 0) return await message.send("_No media in album_");
+        if (allFiles.length === 0) return await message.send(Lang.NO_MEDIA_IN_ALBUM);
 
-        await message.send(`_Converting ${allFiles.length} files to documents..._`);
+        await message.send(Lang.CONVERTING_FILES_TO_DOCUMENTS.format(allFiles.length));
         for (let i = 0; i < allFiles.length; i++) {
           try {
             const filePath = allFiles[i];
@@ -600,7 +600,7 @@ Module(
               quoted: message.quoted,
               fileName: fileName,
               mimetype: mimetype,
-              caption: "_Converted to document_",
+              caption: Lang.CONVERTED_TO_DOCUMENT,
             });
           } catch (err) {
             console.error("Failed to convert album file to document:", err);
@@ -618,9 +618,9 @@ Module(
       const mediaInfo = mediaMessage[mediaType];
 
       if (mediaInfo.fileLength && mediaInfo.fileLength > 50 * 1024 * 1024) {
-        return await message.send("_File too large! Maximum size is 50MB_");
+        return await message.send(Lang.FILE_TOO_LARGE_MAXIMUM_SIZE);
       }
-      const processingMsg = await message.send("_Converting to document..._");
+      const processingMsg = await message.send(Lang.CONVERTING_TO_DOCUMENT);
 
       await withDownload(message.reply_message, async (filePath) => {
         const stream = fs.createReadStream(filePath);
@@ -644,12 +644,12 @@ Module(
           quoted: message.quoted,
           fileName: fileName,
           mimetype: mimetype,
-          caption: match[1] ? "" : "_Converted to document_",
+          caption: match[1] ? "" : Lang.CONVERTED_TO_DOCUMENT,
         });
       });
 
       await message.edit(
-        "_Document conversion complete!_",
+        Lang.DOCUMENT_CONVERSION_COMPLETE,
         message.jid,
         processingMsg.key
       );
@@ -657,15 +657,15 @@ Module(
       console.error("Doc conversion error:", error);
       if (error.message.includes("download")) {
         await message.send(
-          "_Failed to download media. File might be corrupted or expired_"
+          Lang.FAILED_TO_DOWNLOAD_MEDIA_FILE
         );
       } else if (
         error.message.includes("large") ||
         error.message.includes("memory")
       ) {
-        await message.send("_File too large to process_");
+        await message.send(Lang.FILE_TOO_LARGE_TO_PROCESS);
       } else {
-        await message.send("_Failed to convert media to document_");
+        await message.send(Lang.FAILED_TO_CONVERT_MEDIA_TO);
       }
     }
   }
@@ -674,7 +674,7 @@ Module(
   {
     pattern: "upload ?(.*)",
     use: "utility",
-    desc: "Downloads file from URL and sends as document",
+    desc: Lang.DOWNLOADS_FILE_FROM_URL_AND,
   },
   async (message, match) => {
     var url =
@@ -687,12 +687,12 @@ Module(
 
     if (!url || !url.startsWith("http")) {
       return await message.send(
-        "_Please provide a valid URL or reply to a message containing a URL_"
+        Lang.PLEASE_PROVIDE_A_VALID_URL
       );
     }
 
     try {
-      await message.send("_Downloading file..._");
+      await message.send(Lang.DOWNLOADING_FILE);
 
       const { stream, headers, url: finalUrl } = await fetchPublic(url, {
         maxBytes: MAX_UPLOAD_BYTES,
@@ -729,27 +729,27 @@ Module(
         quoted: message.quoted,
         fileName: fileName,
         mimetype: mimetype,
-        caption: `_Downloaded from: ${url}_`,
+        caption: Lang.DOWNLOADED_FROM.format(url),
       });
     } catch (error) {
       console.error("Upload error:", error);
       if (/too large/i.test(error.message)) {
-        await message.send("_File is too large! Maximum size is 100MB_");
+        await message.send(Lang.FILE_IS_TOO_LARGE_MAXIMUM);
       } else if (/public http/i.test(error.message)) {
-        await message.send("_That URL is not allowed_");
+        await message.send(Lang.THAT_URL_IS_NOT_ALLOWED);
       } else if (error.code === "ECONNABORTED") {
         await message.send(
-          "_Download timeout. File might be too large or server is slow_"
+          Lang.DOWNLOAD_TIMEOUT_FILE_MIGHT_BE
         );
       } else if (error.response && error.response.status === 404) {
-        await message.send("_File not found (404). Please check the URL_");
+        await message.send(Lang.FILE_NOT_FOUND_404_PLEASE);
       } else if (error.response && error.response.status >= 400) {
         await message.send(
-          `_Download failed with status ${error.response.status}_`
+          Lang.DOWNLOAD_FAILED_WITH_STATUS.format(error.response.status)
         );
       } else {
         await message.send(
-          "_Failed to download file. Please check the URL and try again_"
+          Lang.FAILED_TO_DOWNLOAD_FILE_PLEASE
         );
       }
     }
@@ -783,7 +783,7 @@ async function convertMedia(message, { name, startText, failText, configure, cap
   } catch (error) {
     console.error(`${name} error:`, error);
     await message.send(
-      processed ? "_Processed successfully but failed to send_" : failText
+      processed ? Lang.PROCESSED_SUCCESSFULLY_BUT_FAILED_TO : failText
     );
   }
 }
@@ -804,7 +804,7 @@ Module(
   {
     pattern: "square ?(.*)",
     use: "edit",
-    desc: "Crops video/image to 1:1 aspect ratio (square format)",
+    desc: Lang.CROPS_VIDEO_IMAGE_TO_1,
   },
   async (message, match) => {
     if (
@@ -812,14 +812,14 @@ Module(
       (!message.reply_message.video && !message.reply_message.image)
     ) {
       return await message.sendReply(
-        "_Reply to a video or image to crop it to square format_"
+        Lang.REPLY_TO_A_VIDEO_OR
       );
     }
 
     await convertMedia(message, {
       name: "square",
-      startText: "_Processing media to square format..._",
-      failText: "_Failed to process media. Please try again_",
+      startText: Lang.PROCESSING_MEDIA_TO_SQUARE_FORMAT,
+      failText: Lang.FAILED_TO_PROCESS_MEDIA_PLEASE,
       configure: (command, isVideo) => {
         command.videoFilters([
           "scale='min(iw,ih)':'min(iw,ih)':force_original_aspect_ratio=increase",
@@ -827,8 +827,8 @@ Module(
         ]);
         encodeFast(command, isVideo);
       },
-      caption: () => "_Cropped to square format_",
-      doneText: () => "_Square cropping completed ✅_",
+      caption: () => Lang.CROPPED_TO_SQUARE_FORMAT,
+      doneText: () => Lang.SQUARE_CROPPING_COMPLETED,
     });
   }
 );
@@ -837,7 +837,7 @@ Module(
   {
     pattern: "resize ?(.*)",
     use: "edit",
-    desc: "Change video/image aspect ratio. Usage: .resize 16:9, .resize 9:16, .resize 4:3, .resize 21:9",
+    desc: Lang.CHANGE_VIDEO_IMAGE_ASPECT_RATIO,
   },
   async (message, match) => {
     if (
@@ -845,13 +845,13 @@ Module(
       (!message.reply_message.video && !message.reply_message.image)
     ) {
       return await message.sendReply(
-        "_Reply to a video or image to resize it_"
+        Lang.REPLY_TO_A_VIDEO_OR_2
       );
     }
 
     if (!match[1]) {
       return await message.send(
-        `_Please specify aspect ratio. Examples:_\n• \`${helpPrefix()}resize 16:9\` - Widescreen\n• \`${helpPrefix()}resize 9:16\` - Vertical/Stories\n• \`${helpPrefix()}resize 4:3\` - Classic\n• \`${helpPrefix()}resize 21:9\` - Ultrawide\n• \`${helpPrefix()}resize 1:1\` - Square`
+        Lang.PLEASE_SPECIFY_ASPECT_RATIO_EXAMPLES.replaceAll("{p}", helpPrefix())
       );
     }
 
@@ -859,7 +859,7 @@ Module(
 
     if (!input.includes(":")) {
       return await message.send(
-        "_Invalid format! Use aspect ratios like 16:9, 9:16, 4:3, etc._"
+        Lang.INVALID_FORMAT_USE_ASPECT_RATIOS
       );
     }
 
@@ -874,7 +874,7 @@ Module(
       heightRatio <= 0
     ) {
       return await message.send(
-        "_Invalid aspect ratio! Use positive numbers like 16:9, 9:16, etc._"
+        Lang.INVALID_ASPECT_RATIO_USE_POSITIVE
       );
     }
 
@@ -893,9 +893,9 @@ Module(
 
     await convertMedia(message, {
       name: "resized",
-      startText: `_Resizing to ${input} aspect ratio..._`,
+      startText: Lang.RESIZING_TO_ASPECT_RATIO.format(input),
       failText:
-        "_Failed to resize media. Please check aspect ratio and try again_",
+        Lang.FAILED_TO_RESIZE_MEDIA_PLEASE,
       configure: (command, isVideo) => {
         command.videoFilters([
           `scale=${targetWidth}:${targetHeight}:force_original_aspect_ratio=increase`,
@@ -904,8 +904,8 @@ Module(
         encodeFast(command, isVideo);
       },
       caption: () =>
-        `_Resized to ${input} aspect ratio (${targetWidth}x${targetHeight})_`,
-      doneText: () => `_Aspect ratio change to ${input} completed ✅_`,
+        Lang.RESIZED_TO_ASPECT_RATIO_X.format(input, targetWidth, targetHeight),
+      doneText: () => Lang.ASPECT_RATIO_CHANGE_TO_COMPLETED.format(input),
     });
   }
 );
@@ -913,7 +913,7 @@ Module(
   {
     pattern: "compress ?(.*)",
     use: "edit",
-    desc: "Compress video/image by percentage. Usage: .compress 50 (50% compression), .compress 80 (80% compression)",
+    desc: Lang.COMPRESS_VIDEO_IMAGE_BY_PERCENTAGE,
   },
   async (message, match) => {
     if (
@@ -921,13 +921,13 @@ Module(
       (!message.reply_message.video && !message.reply_message.image)
     ) {
       return await message.sendReply(
-        "_Reply to a video or image to compress it_"
+        Lang.REPLY_TO_A_VIDEO_OR_3
       );
     }
 
     if (!match[1]) {
       return await message.send(
-        `_Please specify compression percentage. Examples:_\n• \`${helpPrefix()}compress 50\` - 50% compression (moderate)\n• \`${helpPrefix()}compress 70\` - 70% compression (high)\n• \`${helpPrefix()}compress 80\` - 80% compression (very high)\n• \`${helpPrefix()}compress 30\` - 30% compression (light)`
+        Lang.PLEASE_SPECIFY_COMPRESSION_PERCENTAGE_EXAMPLES.replaceAll("{p}", helpPrefix())
       );
     }
 
@@ -939,7 +939,7 @@ Module(
       compressionPercent > 95
     ) {
       return await message.send(
-        "_Invalid compression percentage! Use values between 10-95._"
+        Lang.INVALID_COMPRESSION_PERCENTAGE_USE_VALUES
       );
     }
 
@@ -952,8 +952,8 @@ Module(
 
     await convertMedia(message, {
       name: "compressed",
-      startText: `_Compressing by ${compressionPercent}%..._`,
-      failText: "_Failed to compress media. Please try again_",
+      startText: Lang.COMPRESSING_BY.format(compressionPercent),
+      failText: Lang.FAILED_TO_COMPRESS_MEDIA_PLEASE,
       configure: (command, isVideo) => {
         if (isVideo) {
           const crf = Math.round(
@@ -983,11 +983,11 @@ Module(
         }
       },
       caption: (stats) =>
-        `_Compressed by ${reduction(stats)}%_\n_${formatSize(
+        Lang.COMPRESSED_BY.format(reduction(stats), formatSize(
           stats.originalSize
-        )} → ${formatSize(stats.size)}_`,
+        ), formatSize(stats.size)),
       doneText: (stats) =>
-        `_Compression completed ✅ (${reduction(stats)}% reduction)_`,
+        Lang.COMPRESSION_COMPLETED_REDUCTION.format(reduction(stats)),
     });
   }
 );
@@ -1027,7 +1027,7 @@ async function absorbStickerAudio(msg, state, exif) {
     state.audioBuf = await msg.download("buffer");
   } else if (kind === "video" && state.stickerBuf && !state.audioBuf) {
     state.audioBuf = await withDownload(msg, extractAudioTrack);
-    if (!state.audioBuf) return "_That video has no audio_";
+    if (!state.audioBuf) return Lang.THAT_VIDEO_HAS_NO_AUDIO;
   } else if (kind === "sticker") {
     state.stickerBuf = await msg.download("buffer");
   } else if (kind === "image") {
@@ -1067,14 +1067,13 @@ Module(
   {
     pattern: "stickeraudio ?(.*)",
     use: "edit",
-    desc: "Makes a sticker that plays audio. Reply to a video to use its own sound, to a sticker that replied to an audio (or the other way round), or to a sticker/image and an audio one after another. Optional emoji: .stickeraudio ✨",
+    desc: Lang.MAKES_A_STICKER_THAT_PLAYS,
   },
   async (message, match) => {
     const reply = message.reply_message;
     const key = `${message.jid}:${message.sender}`;
     const label = match[1]?.trim() || undefined;
-    const usage =
-      "_Reply to a video, or reply to a sticker/image and an audio with .stickeraudio_";
+    const usage = Lang.STICKERAUDIO_USAGE;
     if (!mediaKind(reply))
       return await message.send(usage);
 
@@ -1102,8 +1101,8 @@ Module(
       });
       return await message.send(
         stickerBuf
-          ? "_Got the sticker. Now reply to an audio or video with .stickeraudio_"
-          : "_Got the audio. Now reply to a sticker, image or video with .stickeraudio_"
+          ? Lang.GOT_THE_STICKER_NOW_REPLY
+          : Lang.GOT_THE_AUDIO_NOW_REPLY
       );
     }
 
@@ -1120,17 +1119,17 @@ Module(
   {
     pattern: "zap ?(.*)",
     use: "edit",
-    desc: "Resends a replied photo or video as a Zap (WhatsApp's instant photo/video). .zap [jid ...] [caption]: words with @ are target chats, the rest is the caption",
+    desc: Lang.RESENDS_A_REPLIED_PHOTO_OR,
   },
   async (message, match) => {
     const reply = message.reply_message;
     if (!reply || !(reply.image || reply.video))
-      return await message.send("_Reply to a photo or video with .zap [jid] [caption]_");
+      return await message.send(Lang.REPLY_TO_A_PHOTO_OR);
     const words = (match[1] || "").trim().split(/\s+/).filter(Boolean);
     const targets = words.filter((w) => w.includes("@"));
     const caption = words.filter((w) => !w.includes("@")).join(" ") || undefined;
     if (targets.length && !message.fromOwner)
-      return await message.send("_Only the owner can zap other chats_");
+      return await message.send(Lang.ONLY_THE_OWNER_CAN_ZAP);
     const type = reply.image ? "image" : "video";
     const media = await reply.download("buffer");
     if (!targets.length) {
@@ -1139,7 +1138,7 @@ Module(
     for (const jid of targets) {
       await sendZap(message.client, jid, media, type, { caption });
     }
-    await message.send(`_Zap sent to ${targets.length} chat${targets.length > 1 ? "s" : ""}_`);
+    await message.send(Lang.ZAP_SENT_TO_CHAT.format(targets.length, targets.length > 1 ? Lang.PLURAL_S : ""));
   }
 );
 
@@ -1147,7 +1146,7 @@ Module(
   {
     pattern: "spoiler ?(.*)",
     use: "edit",
-    desc: "Sends a photo, video or text hidden behind a spoiler. Reply to media (text becomes the caption), reply to a text, or .spoiler your text",
+    desc: Lang.SENDS_A_PHOTO_VIDEO_OR,
   },
   async (message, match) => {
     const reply = message.reply_message;
@@ -1159,7 +1158,7 @@ Module(
       });
     }
     const body = text || reply?.text;
-    if (!body) return await message.send("_Reply to a photo, video or text, or use .spoiler your text_");
+    if (!body) return await message.send(Lang.REPLY_TO_A_PHOTO_VIDEO);
     await sendSpoiler(message.client, message.jid, body, "text");
   }
 );

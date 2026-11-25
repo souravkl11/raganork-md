@@ -11,6 +11,8 @@ const path = require("path");
 const { helpPrefix } = require("../core/plugins/registry");
 
 const { setVar, delVar } = require("./manage");
+const { getString } = require("./utils/lang");
+const Lang = getString("mention");
 
 let lastMentionRaw;
 let lastMentionParsed = null;
@@ -53,18 +55,18 @@ Module(
   {
     pattern: "mention ?(.*)",
     fromMe: true,
-    desc: "Auto mention reply management",
-    usage:
-      ".mention set (reply to message) | .mention set <text> | .mention get | .mention del | .mention help",
+    desc: Lang.DESC,
+    usage: Lang.USAGE,
   },
   async (message, match) => {
     const args = match[1]?.trim().split(" ");
     const subcommand = args?.[0]?.toLowerCase();
     const input = args?.slice(1).join(" ");
+    const p = helpPrefix();
 
     if (!subcommand) {
       return await message.sendReply(
-        `Please specify a subcommand!\n\n*Available commands:*\n• \`${helpPrefix()}mention set\` - Set mention reply (reply to message or add text)\n• \`${helpPrefix()}mention get\` - View current mention reply\n• \`${helpPrefix()}mention del\` - Delete mention reply\n• \`${helpPrefix()}mention help\` - Show detailed help`
+        Lang.NEED_SUB.replaceAll("{p}", p)
       );
     }
 
@@ -73,9 +75,9 @@ Module(
       case "delete":
         const success = await deleteMentionReply();
         if (success) {
-          return await message.sendReply("Mention reply deleted successfully!");
+          return await message.sendReply(Lang.DELETED);
         } else {
-          return await message.sendReply("Failed to delete mention reply!");
+          return await message.sendReply(Lang.DELETE_FAILED);
         }
 
       case "get":
@@ -83,21 +85,19 @@ Module(
         const mentionData = getMentionReply();
         if (!mentionData) {
           return await message.sendReply(
-            `No mention reply set!\n\n*Usage:*\n• Reply to any message and type \`${helpPrefix()}mention set\`\n• Or use \`${helpPrefix()}mention set <text>\` for text message`
+            Lang.NOT_SET.replaceAll("{p}", p)
           );
         }
 
-        let responseText = "*Current Mention Reply:*\n\n";
-        responseText += `*Type:* \`${mentionData.type.toUpperCase()}\`\n`;
+        let responseText = Lang.CURRENT;
+        responseText += Lang.TYPE.format(mentionData.type.toUpperCase());
         if (mentionData.caption) {
-          responseText += `*Caption:* _${mentionData.caption}_\n`;
+          responseText += Lang.CAPTION.format(mentionData.caption);
         }
         if (mentionData.url) {
-          responseText += `*Media URL:* \`${mentionData.url}\`\n`;
+          responseText += Lang.MEDIA_URL.format(mentionData.url);
         }
-        responseText += `*Set on:* _${new Date(
-          mentionData.timestamp
-        ).toLocaleString()}_`;
+        responseText += Lang.SET_ON.format(new Date(mentionData.timestamp).toLocaleString());
 
         return await message.sendReply(responseText);
 
@@ -143,7 +143,7 @@ Module(
                 mentionData.caption = replyMsg.text || "";
               } else {
                 return await message.sendReply(
-                  "Failed to upload media! Please try again."
+                  Lang.UPLOAD_FAILED
                 );
               }
             } else if (replyMsg.text) {
@@ -151,24 +151,25 @@ Module(
               mentionData.content = replyMsg.text;
             } else {
               return await message.sendReply(
-                "Unsupported message type for mention reply!"
+                Lang.UNSUPPORTED
               );
             }
 
             const success = await setMentionReply(mentionData);
             if (success) {
               return await message.sendReply(
-                `Mention reply set successfully!\n\n*Type:* \`${mentionData.type.toUpperCase()}\`\n*Content:* _${
-                  mentionData.content || mentionData.caption || "Media file"
-                }_`
+                Lang.SET_MEDIA.format(
+                  mentionData.type.toUpperCase(),
+                  mentionData.content || mentionData.caption || Lang.MEDIA_FILE
+                )
               );
             } else {
-              return await message.sendReply("Failed to set mention reply!");
+              return await message.sendReply(Lang.SET_FAILED);
             }
           } catch (error) {
             console.error("Error setting mention reply:", error);
             return await message.sendReply(
-              "Error setting mention reply! Please try again."
+              Lang.SET_ERROR
             );
           }
         }
@@ -185,55 +186,25 @@ Module(
           const success = await setMentionReply(mentionData);
           if (success) {
             return await message.sendReply(
-              `Mention reply set successfully!\n\n*Content:* _${mentionData.content}_`
+              Lang.SET_TEXT.format(mentionData.content)
             );
           } else {
-            return await message.sendReply("Failed to set mention reply!");
+            return await message.sendReply(Lang.SET_FAILED);
           }
         }
 
         return await message.sendReply(
-          `Please provide input for set command!\n\n*Usage:*\n• Reply to any message and type \`${helpPrefix()}mention set\`\n• Or use \`${helpPrefix()}mention set <text>\` for text message`
+          Lang.NEED_INPUT.replaceAll("{p}", p)
         );
 
       case "help":
-        const helpText = `*Auto Mention Reply Help*
-
-*What is it?*
-When someone mentions the bot or sudo users, the bot automatically sends a saved reply message.
-
-*Commands:* _(Owner only)_
-• \`${helpPrefix()}mention set\` - Reply to any message to set it as mention reply
-• \`${helpPrefix()}mention set <text>\` - Set text as mention reply
-• \`${helpPrefix()}mention get\` - View current mention reply
-• \`${helpPrefix()}mention del\` - Delete mention reply
-
-*Supported Types:*
-• Text messages
-• Images _(with captions)_
-• Videos _(with captions)_
-• Audio files
-• Stickers
-• Documents
-
-*How it works:*
-1. Set a mention reply using the commands above
-2. When someone mentions @bot or @sudo in a message
-3. Bot automatically sends the saved reply
-
-*Examples:*
-• Reply to an image and type \`${helpPrefix()}mention set\`
-• \`${helpPrefix()}mention set Hello! I'm a bot\`
-• \`${helpPrefix()}mention get\` - to see current reply
-• \`${helpPrefix()}mention del\` - to remove reply
-
-_Note: Media files are uploaded to cloud storage for reliability._`;
+        const helpText = Lang.HELP.replaceAll("{p}", p);
 
         return await message.sendReply(helpText);
 
       default:
         return await message.sendReply(
-          `Unknown subcommand: \`${subcommand}\`\n\n*Available commands:*\n• \`${helpPrefix()}mention set\` - Set mention reply\n• \`${helpPrefix()}mention get\` - View current mention reply\n• \`${helpPrefix()}mention del\` - Delete mention reply\n• \`${helpPrefix()}mention help\` - Show help`
+          Lang.UNKNOWN.format(subcommand).replaceAll("{p}", p)
         );
     }
   }

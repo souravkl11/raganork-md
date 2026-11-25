@@ -4,6 +4,8 @@ const { getTempPath, getTempSubdir } = require("../../core/helpers");
 const googleTTS = require("google-tts-api");
 const priv = require("../../core/private");
 const apiCall = priv.apiCall;
+const { getString } = require("./lang");
+const Lang = getString("utils");
 
 function parseUptime(seconds) {
   function pad(s) {
@@ -14,7 +16,7 @@ function parseUptime(seconds) {
   const minutes = Math.floor((seconds % (60 * 60)) / 60);
   const secs = Math.floor(seconds % 60);
 
-  return `${pad(hours)} hours ${pad(minutes)} minutes ${pad(secs)} seconds`;
+  return Lang.HMS.format(pad(hours), pad(minutes), pad(secs));
 }
 
 function isNumeric(n) {
@@ -67,7 +69,7 @@ async function processOnwa(message, match) {
       if (xn === 1) lst = 10;
       if (xn === 2) lst = 100;
       if (xn === 3) lst = 1000;
-      if (xn > 3) throw new Error("Too many wildcards");
+      if (xn > 3) throw new Error(Lang.TOO_MANY_WILDCARDS);
 
       const possibleNumbers = [];
       for (let i = 0; i < lst; i++) {
@@ -86,7 +88,7 @@ async function processOnwa(message, match) {
 
     const getOnwaResult = async (message, match) => {
       const possibleNumbers = createPossibleNumbersArray(match);
-      if (!possibleNumbers.length) return "_No possible numbers!_";
+      if (!possibleNumbers.length) return Lang.NO_POSSIBLE_NUMBERS;
 
       const result = { datewise: {}, notonwa: [] };
       const numbersOnWa = (
@@ -107,7 +109,7 @@ async function processOnwa(message, match) {
               day: "numeric",
             });
 
-            const year = date.split(",")[2]?.trim() || "No date";
+            const year = date.split(",")[2]?.trim() || Lang.NO_DATE;
             if (!result.datewise[year]) result.datewise[year] = [];
 
             result.datewise[year].push({
@@ -127,9 +129,7 @@ async function processOnwa(message, match) {
     };
 
     const result = await getOnwaResult(message, match);
-    const notonmsg = `_*❌=== Not registered on WA ===❌:*_\n${readMore}\n${result.notonwa.join(
-      "\n",
-    )}`;
+    const notonmsg = Lang.ONWA_NOT_REGISTERED.format(readMore, result.notonwa.join("\n"));
 
     let msg = "";
     for (const i in result.datewise) {
@@ -138,16 +138,14 @@ async function processOnwa(message, match) {
         result.datewise[i]
           .map(
             (e) =>
-              `_Number: ${e.number}_\n_Bio: ${e.status}_\n_Date: ${e.date}_`,
+              Lang.ONWA_ITEM.format(e.number, e.status, e.date),
           )
           .join("\n\n") +
         "\n\n";
     }
 
-    const datewisemsg = `*_=== Date wise result ===_*\n${readMore}\n${msg}`;
-    const totalnumbersonwa = `_*=== Total registered numbers ===*_\n${readMore}\n${result.onwa.join(
-      "\n",
-    )}`;
+    const datewisemsg = Lang.ONWA_DATEWISE.format(readMore, msg);
+    const totalnumbersonwa = Lang.ONWA_TOTAL.format(readMore, result.onwa.join("\n"));
 
     await message.sendReply(datewisemsg);
     await message.sendReply(notonmsg);
