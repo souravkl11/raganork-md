@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { UserError } = require("../../core/pipeline/errors");
 
 let ffmpeg;
 try {
@@ -80,7 +81,7 @@ function idFrom(input) {
   const text = String(input ?? "").trim();
   if (/^[\w-]{11}$/.test(text)) return text;
   const id = videoIdOf(youtubeUrlFrom(text) || text);
-  if (!id) throw new Error("Not a YouTube video link");
+  if (!id) throw new UserError("Not a YouTube video link");
   return id;
 }
 

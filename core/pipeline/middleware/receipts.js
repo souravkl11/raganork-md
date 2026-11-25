@@ -4,8 +4,17 @@ const { loadBaileys, debugOn } = require("../../helpers");
 
 const READABLE_STATUS = ["audioMessage", "imageMessage", "videoMessage", "extendedTextMessage"];
 
-const LIKE_EMOJI = "💚";
+const LIKE_EMOJI = "❤️";
 
+function likeEmojis(raw = config.STATUS_LIKE_EMOJI) {
+  const list = String(raw || "")
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+  return list.length ? list : [LIKE_EMOJI];
+}
+
+const pickEmoji = (list, random = Math.random) => list[Math.floor(random() * list.length)];
 
 const posterOf = (key) => key.participant || key.participantAlt || key.remoteJidAlt;
 
@@ -55,7 +64,7 @@ module.exports = async function receipts(env, next) {
       await sock.readMessages([{ ...msg.key, participant: posterOf(msg.key) }]);
     }
     if (like) {
-      const emoji = LIKE_EMOJI;
+      const emoji = pickEmoji(likeEmojis());
       const delay = module.exports.likeDelay();
       if (debugOn()) console.log(`[status] liking ${posterOf(msg.key)} ${msg.key.id} with ${emoji} in ${delay}ms`);
       const timer = setTimeout(() => {
@@ -72,5 +81,7 @@ module.exports = async function receipts(env, next) {
 
 module.exports.likeDelay = LIKE_DELAY_MS;
 module.exports.LIKE_EMOJI = LIKE_EMOJI;
+module.exports.likeEmojis = likeEmojis;
+module.exports.pickEmoji = pickEmoji;
 module.exports.likeStatus = likeStatus;
 module.exports.isOwnStatus = isOwnStatus;

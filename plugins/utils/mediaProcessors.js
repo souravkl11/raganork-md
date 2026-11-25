@@ -220,7 +220,35 @@ async function videoSticker(file, { fullLength = false } = {}) {
   return fitSteps(file, VIDEO_STICKER_STEPS);
 }
 
+function isWebpFile(file) {
+  const fd = fs.openSync(file, "r");
+  try {
+    const head = Buffer.alloc(12);
+    const read = fs.readSync(fd, head, 0, 12, 0);
+    return read === 12 && head.toString("ascii", 0, 4) === "RIFF" && head.toString("ascii", 8, 12) === "WEBP";
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 async function sticker(file, type = "image") {
+  // ffmpeg can't decode animated WebP (exit 69, frame=0)
+  if (isWebpFile(file)) {
+    await webp.Image.initLib();
+    const img = new webp.Image();
+    await img.load(file);
+    if (!img.hasAnim) {
+      type = "image";
+    } else {
+      const mp4 = uniqueTempPath("st.mp4");
+      try {
+        await webp2mp4(file, mp4);
+        return (await videoSticker(mp4, { fullLength: true })).path;
+      } finally {
+        fs.unlink(mp4, () => {});
+      }
+    }
+  }
   if (type !== "video") {
     return runFfmpeg(
       ffmpeg(file).outputOptions(["-y", "-vcodec libwebp"]).videoFilters(STICKER_FILTER),

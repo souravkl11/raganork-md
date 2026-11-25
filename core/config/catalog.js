@@ -27,6 +27,7 @@ const CATEGORIES = [
     items: [
       { key: "AUTO_READ_STATUS", title: "Auto view status", kind: "bool" },
       { key: "AUTO_LIKE_STATUS", title: "Auto like status", kind: "bool" },
+      { key: "STATUS_LIKE_EMOJI", title: "Status like emoji", kind: "text", desc: "one emoji, or several like ❤️,🤍 (picked at random)" },
     ],
   },
   {

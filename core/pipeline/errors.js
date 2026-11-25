@@ -2,6 +2,16 @@
 // (owners still see the text), user-facing errors are sent to the chat.
 // infra is checked first so DB errors are never shown, and connection before bug so a
 // "TypeError: fetch failed" from a reset socket isn't treated as a bug.
+
+// only marked errors reach members, so library output like ffmpeg's stderr never does
+class UserError extends Error {
+  constructor(message, options) {
+    super(message, options);
+    this.name = "UserError";
+    this.userFacing = true;
+  }
+}
+
 const CONNECTION_MESSAGE = /connect|Connect|Timed|locked/;
 const CONNECTION_CODES = new Set([
   "ECONNRESET",
@@ -31,8 +41,6 @@ function isInfra(error) {
   return false;
 }
 
-const INTERNAL_ERRORS = new Set(["TypeError", "ReferenceError", "SyntaxError", "RangeError"]);
-
 const POLICY = Object.freeze({
   infra: { reply: false, react: false, log: "infra" },
   connection: { reply: false, react: false, log: "debug" },
@@ -44,13 +52,12 @@ const POLICY = Object.freeze({
 function classify(error) {
   if (isInfra(error)) return "infra";
   const message = typeof error?.message === "string" ? error.message : "";
+  if (error?.userFacing === true && message.trim()) return "user-facing";
   const code = error?.code ?? error?.cause?.code;
   if (CONNECTION_MESSAGE.test(message) || CONNECTION_CODES.has(code)) return "connection";
   const status = error?.output?.statusCode ?? error?.data ?? error?.status;
   if (status === 429 || RATE_LIMIT_MESSAGE.test(message)) return "rate-limit";
-  if (!message.trim()) return "bug";
-  if (INTERNAL_ERRORS.has(error.name) || INTERNAL_ERRORS.has(error.constructor?.name)) return "bug";
-  return "user-facing";
+  return "bug";
 }
 
-module.exports = { classify, POLICY };
+module.exports = { classify, POLICY, UserError };

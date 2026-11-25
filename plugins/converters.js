@@ -1,4 +1,4 @@
-const { Module } = require("../main");
+const { Module, UserError } = require("../main");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
 const {
@@ -191,16 +191,28 @@ Module(
       return;
     }
 
-    await withDownload(message.reply_message, async (savedFile) => {
-      await message.sendMessage(
-        await toStickerBuffer(
-          savedFile,
-          message.reply_message.image === true ? "image" : "video",
-          exif
-        ),
-        "sticker",
-        { quoted: message.quoted }
-      );
+    const reply = message.reply_message;
+    // some clients send a .webp file as application/octet-stream, so the name counts too
+    const docKind = !reply.document
+      ? null
+      : /^image\//.test(reply.mimetype) || /\.(webp|png|jpe?g)$/i.test(reply.fileName || "")
+        ? "image"
+        : /^video\//.test(reply.mimetype) || /\.(mp4|mkv|mov|webm|gif)$/i.test(reply.fileName || "")
+          ? "video"
+          : null;
+    if (!reply.image && !reply.video && !reply.sticker && !docKind)
+      return await message.send(Lang.STICKER_NEED_REPLY);
+    const type = reply.image || docKind === "image" ? "image" : "video";
+
+    await withDownload(reply, async (savedFile) => {
+      let buffer;
+      try {
+        buffer = await toStickerBuffer(savedFile, type, exif);
+      } catch (err) {
+        console.error("sticker conversion failed:", err);
+        throw new UserError("Couldn't convert this to a sticker", { cause: err });
+      }
+      await message.sendMessage(buffer, "sticker", { quoted: message.quoted });
     });
   }
 );
