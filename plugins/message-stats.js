@@ -50,7 +50,7 @@ Module(
         await message.client.groupMetadata(message.jid)
       ).participants.map((e) => e.id);
       if (message.mention?.[0]) users = message.mention;
-      if (message.reply_message && !message.mention?.length)
+      if (message.reply_message?.jid && !message.mention?.length)
         users = [message.reply_message?.jid];
 
       let userStats = await fetchFromStore(message.jid);

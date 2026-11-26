@@ -573,7 +573,7 @@ Module(
     if (m.isGroup) {
       if (m.mention && m.mention.length > 0) {
         targetLid = m.mention[0];
-      } else if (m.reply_message) {
+      } else if (m.reply_message?.jid) {
         targetLid = m.reply_message.jid;
       } else {
         return await m.sendReply(Lang.NEED_TARGET);
@@ -660,7 +660,7 @@ Module(
     if (m.isGroup) {
       if (m.mention && m.mention.length > 0) {
         targetLid = m.mention[0];
-      } else if (m.reply_message) {
+      } else if (m.reply_message?.jid) {
         targetLid = m.reply_message.jid;
       } else {
         return await m.sendReply(Lang.NEED_TARGET);

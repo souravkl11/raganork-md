@@ -45,6 +45,36 @@ async function saveImage(directory, buffer) {
   throw new Error("could not save the image");
 }
 
+// true once sent; a pdfkit failure is answered here
+async function sendPdf(message, imagePaths) {
+  // pdfkit is heavy, only load it when a pdf is actually built
+  const { convert: imageToPdf, sizes } = require("image-to-pdf");
+  const output = uniqueTempPath("converted.pdf");
+  try {
+    try {
+      await new Promise((resolve, reject) => {
+        const pdfStream = imageToPdf(imagePaths, sizes.A4);
+        const writeStream = fs.createWriteStream(output);
+        pdfStream.on("error", reject);
+        writeStream.on("error", reject);
+        writeStream.on("finish", resolve);
+        pdfStream.pipe(writeStream);
+      });
+    } catch (error) {
+      await message.sendReply(Lang.FAILED.format(error.message));
+      return false;
+    }
+    await message.client.sendMessage(
+      message.jid,
+      { document: { url: output }, mimetype: "application/pdf", fileName: "converted.pdf" },
+      { quoted: message.data }
+    );
+    return true;
+  } finally {
+    await fileSystem.unlink(output).catch(() => {});
+  }
+}
+
 Module(
   {
     pattern: "pdf ?(.*)",
@@ -79,66 +109,19 @@ Module(
         return await message.sendReply(Lang.NO_FILES);
       }
 
-      // pdfkit is heavy, only load it when a pdf is actually built
-      const { convert: imageToPdf, sizes } = require("image-to-pdf");
-      const finalPdfOutputPath = uniqueTempPath("converted.pdf");
-      try {
-        await new Promise((resolve, reject) => {
-          const pdfGenerationStream = imageToPdf(imageFilePaths, sizes.A4);
-          const pdfWriteStream = fs.createWriteStream(finalPdfOutputPath);
-          pdfGenerationStream.on("error", reject);
-          pdfWriteStream.on("error", reject);
-          pdfWriteStream.on("finish", resolve);
-          pdfGenerationStream.pipe(pdfWriteStream);
-        });
-      } catch (error) {
-        await fileSystem.unlink(finalPdfOutputPath).catch(() => {});
-        return await message.sendReply(Lang.FAILED.format(error.message));
-      }
-      try {
-        await message.client.sendMessage(
-          message.jid,
-          {
-            document: { url: finalPdfOutputPath },
-            mimetype: "application/pdf",
-            fileName: "converted.pdf",
-          },
-          { quoted: message.data }
-        );
-      } finally {
-        await fileSystem.unlink(finalPdfOutputPath).catch(() => {});
-        await removeDir(imageInputDirectory);
-      }
+      if (await sendPdf(message, imageFilePaths)) await removeDir(imageInputDirectory);
     } else if (message.reply_message && message.reply_message.album) {
       const albumData = await message.reply_message.download();
       const allImages = albumData.images || [];
-
       try {
-        if (allImages.length === 0)
-          return await message.sendReply(Lang.NO_ALBUM_IMAGES);
-
-        await message.send(
-          Lang.ADDING_ALBUM.format(allImages.length)
-        );
-
-        let added = 0;
+        const images = [];
         for (const file of allImages) {
-          try {
-            const imageBuffer = await fileSystem.readFile(file);
-            const detectedFileType = await getFileType(imageBuffer);
-
-            if (detectedFileType && detectedFileType.mime.startsWith("image")) {
-              await saveImage(imageInputDirectory, imageBuffer);
-              added++;
-            }
-          } catch (err) {
-            console.error("Failed to add album image to PDF:", err);
-          }
+          const type = await getFileType(await fileSystem.readFile(file)).catch(() => null);
+          if (type?.mime.startsWith("image")) images.push(file);
         }
-
-        await message.sendReply(
-          Lang.ALBUM_SAVED.format(added).replaceAll("{p}", prefix)
-        );
+        if (!images.length) return await message.sendReply(Lang.NO_ALBUM_IMAGES);
+        await message.send(Lang.MAKING_ALBUM_PDF.format(images.length));
+        await sendPdf(message, images);
       } finally {
         await Promise.all(
           [...allImages, ...(albumData.videos || [])].map((file) =>

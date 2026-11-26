@@ -615,8 +615,7 @@
       "NO_FILES": "_No se enviaron archivos_",
       "FAILED": "_Falló la conversión a PDF: {}_",
       "NO_ALBUM_IMAGES": "_No hay imágenes en el álbum (los videos no se pueden convertir a PDF)_",
-      "ADDING_ALBUM": "_Agregando {} imágenes del álbum al PDF..._",
-      "ALBUM_SAVED": "_*Se guardaron {} imágenes del álbum correctamente*_\n_*Total de imágenes listas. ¡Usa '{p}pdf get' para generar el PDF!*_",
+      "MAKING_ALBUM_PDF": "_Creando un PDF con {} imágenes del álbum..._",
       "SAVED": "*_Imagen guardada correctamente_*\n_*Total de imágenes guardadas: {}*_\n*_Después de guardar todas las imágenes, usa '{p}pdf get' para obtener el resultado. ¡Las imágenes se borrarán después de la conversión!_*",
       "NEED_IMAGE": "_¡Responde a una imagen para agregarla a la conversión a PDF!_",
       "NEED_REPLY": "_Responde a una imagen, o usa \"{p}pdf help\" para más información._"

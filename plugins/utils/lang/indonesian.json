@@ -615,8 +615,7 @@
       "NO_FILES": "_Tidak ada file yang dimasukkan_",
       "FAILED": "_Konversi PDF gagal: {}_",
       "NO_ALBUM_IMAGES": "_Tidak ada gambar di album (video tidak bisa dikonversi ke PDF)_",
-      "ADDING_ALBUM": "_Menambahkan {} gambar album ke PDF..._",
-      "ALBUM_SAVED": "_*Berhasil menyimpan {} gambar album*_\n_*Semua gambar siap. Gunakan '{p}pdf get' untuk membuat PDF!*_",
+      "MAKING_ALBUM_PDF": "_Membuat PDF dari {} gambar album..._",
       "SAVED": "*_Berhasil menyimpan gambar_*\n_*Total gambar tersimpan: {}*_\n*_Setelah menyimpan semua gambar, gunakan '{p}pdf get' untuk mendapatkan hasilnya. Gambar akan dihapus setelah konversi!_*",
       "NEED_IMAGE": "_Balas sebuah gambar untuk menambahkannya ke konversi PDF!_",
       "NEED_REPLY": "_Balas sebuah gambar, atau gunakan \"{p}pdf help\" untuk informasi lebih lanjut._"

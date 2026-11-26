@@ -615,8 +615,7 @@
       "NO_FILES": "_Koi file nahi daali gayi_",
       "FAILED": "_PDF conversion fail ho gaya: {}_",
       "NO_ALBUM_IMAGES": "_Album mein koi image nahi hai (videos PDF mein convert nahi ho sakti)_",
-      "ADDING_ALBUM": "_{} album images PDF mein add ho rahi hain..._",
-      "ALBUM_SAVED": "_*{} album images successfully save ho gayi*_\n_*Total images ready. PDF banane ke liye '{p}pdf get' use karo!*_",
+      "MAKING_ALBUM_PDF": "_{} album images se PDF ban rahi hai..._",
       "SAVED": "*_Image successfully save ho gayi_*\n_*Total saved images: {}*_\n*_Saari images save karne ke baad result ke liye '{p}pdf get' use karo. Conversion ke baad images delete ho jayengi!_*",
       "NEED_IMAGE": "_PDF conversion ke liye image pe reply karo!_",
       "NEED_REPLY": "_Image pe reply karo, ya more information ke liye \"{p}pdf help\" use karo._"

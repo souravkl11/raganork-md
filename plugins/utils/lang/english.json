@@ -615,8 +615,7 @@
       "NO_FILES": "_No files inputted_",
       "FAILED": "_PDF conversion failed: {}_",
       "NO_ALBUM_IMAGES": "_No images in album (videos can't be converted to PDF)_",
-      "ADDING_ALBUM": "_Adding {} album images to PDF..._",
-      "ALBUM_SAVED": "_*Successfully saved {} album images*_\n_*Total images ready. Use '{p}pdf get' to generate PDF!*_",
+      "MAKING_ALBUM_PDF": "_Making a PDF from {} album images..._",
       "SAVED": "*_Successfully saved image_*\n_*Total saved images: {}*_\n*_After saving all images, use '{p}pdf get' to get the result. Images will be deleted after conversion!_*",
       "NEED_IMAGE": "_Reply to an image to add it for PDF conversion!_",
       "NEED_REPLY": "_Reply to an image, or use \"{p}pdf help\" for more information._"

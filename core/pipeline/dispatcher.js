@@ -5,6 +5,7 @@ const context = require("../context");
 const { Message, Image, Video } = require("../constructors");
 const { commands, patternFor, commandName, currentHandlerPrefix } = require("../plugins/registry");
 const { derived } = require("../config/derived");
+const { parseBool } = require("../config/store");
 const { isOwner } = require("../identity");
 const { parseText } = require("./normalize");
 const { classify, POLICY } = require("./errors");
@@ -81,6 +82,9 @@ function permitted(cmd, env) {
 const nameOf = commandName;
 
 const isUserCommand = (cmd) => Boolean(cmd.pattern && !cmd.on);
+// the key stays a string, so ".setvar CMD_REACTION=false" would otherwise be truthy
+const showReactions = (cmd) =>
+  isUserCommand(cmd) && (parseBool(config.CMD_REACTION) ?? Boolean(config.CMD_REACTION));
 
 async function react(env, cmd, emoji) {
   try {
@@ -107,7 +111,12 @@ function logInfra(cmd, error) {
 }
 
 async function handleError(cmd, env, error) {
-  if (config.NOLOG === "true") return;
+  const crossed = await reportError(cmd, env, error);
+  if (!crossed && showReactions(cmd)) await react(env, cmd, "");
+}
+
+async function reportError(cmd, env, error) {
+  if (config.NOLOG === "true") return false;
   const kind = classify(error);
   const policy = POLICY[kind];
   if (policy.log === "infra") {
@@ -131,10 +140,12 @@ async function handleError(cmd, env, error) {
         { quoted: env.msg },
       );
     } catch {
-      return;
+      return false;
     }
   }
-  if (policy.react && isUserCommand(cmd)) await react(env, cmd, "❌");
+  if (!policy.react || !isUserCommand(cmd)) return false;
+  await react(env, cmd, "❌");
+  return true;
 }
 
 const brokenConstructors = new WeakSet();
@@ -158,14 +169,14 @@ async function prepare(cmd, env, disabled, pattern) {
     );
     return null;
   }
-  if (config.CMD_REACTION && isUserCommand(cmd)) await react(env, cmd, "🔃");
+  if (showReactions(cmd)) await react(env, cmd, "🔃");
   const match = env.text ? env.parsedText.match(pattern) : null;
 
   let whats;
   try {
     whats = build(cmd, env);
+    if (isUserCommand(cmd)) whats.useCaptionMedia?.();
   } catch (error) {
-    // e.g. an on:image listener without a pattern matches every message; log once
     if (!brokenConstructors.has(cmd.function)) {
       brokenConstructors.add(cmd.function);
       console.error(`[dispatcher] cannot build the message object for ${cmd.on}:`, error?.stack || error);
@@ -176,7 +187,7 @@ async function prepare(cmd, env, disabled, pattern) {
   return async () => {
     try {
       await cmd.function(whats, match);
-      if (config.CMD_REACTION && isUserCommand(cmd)) await react(env, cmd, "✅");
+      if (showReactions(cmd)) await react(env, cmd, "✅");
     } catch (error) {
       await handleError(cmd, env, error);
     }

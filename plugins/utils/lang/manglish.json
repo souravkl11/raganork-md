@@ -616,8 +616,7 @@
       "NO_FILES": "_Files onnum tharittilla_",
       "FAILED": "_PDF aakkal parajayappettu: {}_",
       "NO_ALBUM_IMAGES": "_Album-il images illa (videos PDF aakkan pattilla)_",
-      "ADDING_ALBUM": "_{} album images PDF-il cherkkunnu..._",
-      "ALBUM_SAVED": "_*{} album images vijayakaramaayi save aayi*_\n_*Ella images-um ready. PDF undakkan '{p}pdf get' upayogikku!*_",
+      "MAKING_ALBUM_PDF": "_{} album images-il ninnu PDF undakkunnu..._",
       "SAVED": "*_Image vijayakaramaayi save aayi_*\n_*Aake save aaya images: {}*_\n*_Ella images-um save cheythaal '{p}pdf get' upayogichu result edukkuka. Conversion kazhinjaal images delete aakum!_*",
       "NEED_IMAGE": "_PDF aakkan image cherkkan oru imageinu reply cheyyuka!_",
       "NEED_REPLY": "_Oru imageinu reply cheyyuka, allenkil koodutal vivarangalkku \"{p}pdf help\" upayogikku._"

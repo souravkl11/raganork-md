@@ -51,6 +51,8 @@ function extractText(env) {
     if (id) return { text: id };
   }
   if (m?.videoMessage?.caption) return { text: m.videoMessage.caption };
+  const doc = m?.documentWithCaptionMessage?.message?.documentMessage || m?.documentMessage;
+  if (doc?.caption) return { text: doc.caption };
   if (m?.stickerMessage) return { text: false, sticker: true };
   return { text: false };
 }

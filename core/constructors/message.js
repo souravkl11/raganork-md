@@ -133,6 +133,22 @@ class Message extends Base {
     return super._patch(data);
   }
 
+  useCaptionMedia() {
+    const content = this.data.message;
+    const own = ["imageMessage", "videoMessage", "documentMessage", "documentWithCaptionMessage"];
+    if (this.reply_message || !own.some((k) => content?.[k])) return;
+    const media = new ReplyMessage(this.client, {
+      stanzaId: this.data.key.id,
+      remoteJid: this.jid,
+      quotedMessage: content,
+    });
+    media.fromMe = media.data.key.fromMe = Boolean(this.data.key.fromMe);
+    media.data.key.participant = this.data.key.participant;
+    media.message = media.caption = "";
+    this.reply_message = media;
+    this.quoted = { key: this.data.key, message: content };
+  }
+
   _extractEphemeralSettings(data) {
     const contextInfo =
       data.message?.extendedTextMessage?.contextInfo ||

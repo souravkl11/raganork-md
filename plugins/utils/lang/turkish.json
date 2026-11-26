@@ -620,8 +620,7 @@
       "NO_FILES": "_Hiç dosya eklenmedi_",
       "FAILED": "_PDF dönüştürme başarısız: {}_",
       "NO_ALBUM_IMAGES": "_Albümde resim yok (videolar PDF'e dönüştürülemez)_",
-      "ADDING_ALBUM": "_{} albüm resmi PDF'e ekleniyor..._",
-      "ALBUM_SAVED": "_*{} albüm resmi başarıyla kaydedildi*_\n_*Tüm resimler hazır. PDF oluşturmak için '{p}pdf get' kullanın!*_",
+      "MAKING_ALBUM_PDF": "_{} albüm resminden PDF oluşturuluyor..._",
       "SAVED": "*_Resim başarıyla kaydedildi_*\n_*Kaydedilen toplam resim: {}*_\n*_Tüm resimleri kaydettikten sonra sonucu almak için '{p}pdf get' kullanın. Resimler dönüştürmeden sonra silinecek!_*",
       "NEED_IMAGE": "_PDF dönüştürmesi için eklemek üzere bir resmi yanıtlayın!_",
       "NEED_REPLY": "_Bir resmi yanıtlayın veya daha fazla bilgi için \"{p}pdf help\" yazın._"
