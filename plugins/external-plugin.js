@@ -85,15 +85,78 @@ function loadPlugin(file, previous) {
   }
 }
 
-const EXPLICIT_NAME_RE = /^[ \t]*name:[ \t]*(["'])([^"'\r\n]*)\1[ \t]*,/m;
-const explicitName = (source) => EXPLICIT_NAME_RE.exec(source)?.[2].trim() || null;
+function moduleOptions(source) {
+  const out = [];
+  const call = /[Mm]odule\s*\(\s*\{/y;
+  let depth = 0;
+  let capture = null;
+  let prev = ";";
+  let i = 0;
+  while (i < source.length) {
+    const c = source[i];
+    const next = source[i + 1];
+    let end = i + 1;
+    const before = depth;
+    if (c === "/" && next === "/") {
+      end = source.indexOf("\n", i);
+      if (end === -1) end = source.length;
+    } else if (c === "/" && next === "*") {
+      end = source.indexOf("*/", i + 2);
+      end = end === -1 ? source.length : end + 2;
+    } else if (c === '"' || c === "'" || c === "`" || (c === "/" && /[(,=:[!&|?{};]/.test(prev))) {
+      let j = i + 1;
+      let inClass = false;
+      while (j < source.length) {
+        const d = source[j];
+        if (d === "\\") j++;
+        else if (c === "/" && d === "[") inClass = true;
+        else if (c === "/" && d === "]") inClass = false;
+        else if (d === c && !inClass) break;
+        else if (c !== "`" && d === "\n") break;
+        j++;
+      }
+      end = j + 1;
+    } else if (!capture && /[Mm]/.test(c) && !/[\w$.]/.test(source[i - 1] || "")) {
+      call.lastIndex = i;
+      if (call.test(source)) {
+        end = call.lastIndex;
+        depth += 2;
+        capture = { depth, text: "" };
+      }
+    } else if (c === "{" || c === "(" || c === "[") {
+      depth++;
+    } else if (c === "}" || c === ")" || c === "]") {
+      depth--;
+    }
+    if (capture && depth < capture.depth) {
+      out.push(capture.text);
+      capture = null;
+    } else if (capture && before === capture.depth && depth === capture.depth) {
+      capture.text += source.slice(i, end);
+    }
+    if (!/\s/.test(c)) prev = source[end - 1];
+    i = end;
+  }
+  if (capture) out.push(capture.text);
+  return out;
+}
 
-function scrapedName(source) {
-  const first = /pattern: ["'](.*)["'],/.exec(source)?.[1].split(" ")[0];
+const EXPLICIT_NAME_RE = /^[ \t]*name:[ \t]*(["'])([^"'\r\n]*)\1[ \t]*,/m;
+const PATTERN_RE = /pattern: ["'](.*)["'],/;
+
+function explicitName(blocks) {
+  for (const block of blocks) {
+    const name = EXPLICIT_NAME_RE.exec(block)?.[2].trim();
+    if (name) return name;
+  }
+  return null;
+}
+
+function scrapedName(blocks) {
+  const first = blocks.map((b) => PATTERN_RE.exec(b)?.[1]).find(Boolean)?.split(" ")[0];
   return first && NAME_RE.test(first) ? first : null;
 }
 
-// for regex/runtime patterns: load under a throwaway name and read what it registers
 function nameFromLoad(source) {
   const probe = path.join(__dirname, `zz-probe-${process.pid}-${Date.now()}.js`);
   fs.writeFileSync(probe, source);
@@ -110,9 +173,10 @@ function nameFromLoad(source) {
 }
 
 function pluginNameOf(source) {
-  const own = explicitName(source);
+  const blocks = moduleOptions(source);
+  const own = explicitName(blocks);
   if (own !== null) return { name: own };
-  const scraped = scrapedName(source);
+  const scraped = scrapedName(blocks);
   if (scraped) return { name: scraped };
   return nameFromLoad(source);
 }
@@ -154,9 +218,9 @@ Module(
       } catch {
         return await message.send(Lang.INVALID_URL);
       }
-      var plugin_name_temp = (response.data.match(/pattern: ["'](.*)["'],/g) || []).map(
-        (e) => e.replace("pattern", "").replace(/[^a-zA-Z]/g, "")
-      );
+      var plugin_name_temp = moduleOptions(response.data)
+        .flatMap((block) => block.match(/pattern: ["'](.*)["'],/g) || [])
+        .map((e) => e.replace("pattern", "").replace(/[^a-zA-Z]/g, ""));
       const found = pluginNameOf(response.data);
       if (found.error) {
         return await message.sendReply(Lang.INVALID_PLUGIN + found.error);

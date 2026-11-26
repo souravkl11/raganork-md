@@ -70,14 +70,24 @@ const isZap = (message) => !!(message?.imageMessage?.instant || message?.videoMe
 const isSpoiler = (message) => !!message?.spoiler;
 const sentStickerAudioFor = (id) => sentStickerAudio.get(id);
 
-// a quoted audio sticker arrives without its audioMessage; recover it from what we sent or the store
+const unwrap = (m) =>
+  m?.ephemeralMessage?.message || m?.viewOnceMessage?.message || m?.viewOnceMessageV2?.message || m;
+
 async function findStickerAudio(reply) {
   const quoted = reply.data.message?.stickerMessage?.audioMessage;
   if (quoted?.directPath) return { audioMessage: quoted, key: reply.data.key };
   const sent = reply.id && sentStickerAudioFor(reply.id);
   if (sent) return { audioMessage: sent, key: reply.data.key };
-  const stored = reply.id ? await require("../../store").getFullMessage(reply.id) : null;
-  const audioMessage = stored?.found && stored.messageData.message?.stickerMessage?.audioMessage;
+  const store = require("../../store");
+  if (reply.id && store.hasPendingWrites()) await store.flushPendingWrites();
+  const stored = reply.id ? await store.getFullMessage(reply.id) : null;
+  const audioMessage = stored?.found && unwrap(stored.messageData.message)?.stickerMessage?.audioMessage;
+  if (!audioMessage) {
+    require("../../../config").logger.debug(
+      { id: reply.id, stored: !!stored?.found, keys: stored?.found && Object.keys(stored.messageData.message || {}) },
+      "sticker audio not found",
+    );
+  }
   return audioMessage ? { audioMessage, key: stored.messageData.key } : null;
 }
 

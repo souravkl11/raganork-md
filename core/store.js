@@ -435,7 +435,6 @@ async function storeMessage(msgData) {
   if (mappedType === "unknown") return;
 
   msgData._mappedType = mappedType;
-  // the flush runs outside any session, so record the account now
   msgData._accountId = context.accountId();
 
   if (messageQueue.length > 5000) {
