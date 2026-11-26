@@ -640,6 +640,7 @@
       "RENDER_BETA": "_Deploy Render dimulai untuk pembaruan beta!_",
       "RENDER": "_Deploy Render dimulai!_",
       "KOYEB": "_Silakan kunjungi platform hosting dan tekan deploy untuk memperbarui._",
+      "NEEDS_REDEPLOY": "_Pembaruan ini membutuhkan modul baru yang tidak bisa dipasang di host ini. Deploy ulang bot dari dasbor hosting untuk mendapatkannya._",
       "DIRTY": "_Pembaruan dibatalkan. File-file ini diubah di sini, dan pembaruan akan menimpanya:_\n\n{}\n\n_Kembalikan file tersebut, atau gunakan \"{p}update {} force\" untuk tetap memperbarui._",
       "INSTALL_FAILED": "_Diperbarui, tetapi instalasi modul gagal: {}_\n\n_Jalankan \"yarn install\" di folder bot, lalu mulai ulang bot. Bot belum dimulai ulang._",
       "MOVED": "\n\n_Bot ini sekarang menyertakan file-file ini, jadi salinan kamu diganti namanya menjadi <name>.bak:_\n{}",
@@ -1478,6 +1479,7 @@
       "ONWA_TOTAL": "_*=== Total nomor terdaftar ===*_\n{}\n{}"
     },
     "start_message": {
+      "UPDATED": "*_Raganork diperbarui ke v{}!_*",
       "BUTTONS_TIP": "\n\n💡 *Baru: tombol interaktif!*\n_Cukup ketuk menu dan pengaturan, tanpa mengetik. Coba dengan_ `{p}settings BUTTONS on`\n_Masih eksperimental. Tidak suka? Kirim_ `{p}settings BUTTONS off` _dan tips ini tidak muncul lagi._"
     },
     "hatch": {

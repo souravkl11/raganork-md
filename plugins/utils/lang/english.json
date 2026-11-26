@@ -640,6 +640,7 @@
       "RENDER_BETA": "_Render deploy started for beta update!_",
       "RENDER": "_Render deploy started!_",
       "KOYEB": "_Please visit the hosted platform and hit deploy to update._",
+      "NEEDS_REDEPLOY": "_This update needs new modules, and they can't be installed on this host. Redeploy the bot from your hosting dashboard to get it._",
       "DIRTY": "_Update cancelled. These files were changed here, and the update would overwrite them:_\n\n{}\n\n_Revert them, or use \"{p}update {} force\" to update anyway._",
       "INSTALL_FAILED": "_Updated, but installing modules failed: {}_\n\n_Run \"yarn install\" in the bot folder, then restart the bot. It was not restarted._",
       "MOVED": "\n\n_The bot now ships these files, so your copies were renamed to <name>.bak:_\n{}",
@@ -1478,6 +1479,7 @@
       "ONWA_TOTAL": "_*=== Total registered numbers ===*_\n{}\n{}"
     },
     "start_message": {
+      "UPDATED": "*_Raganork updated to v{}!_*",
       "BUTTONS_TIP": "\n\n💡 *New: interactive buttons!*\n_Tap through menus and settings instead of typing. Try them with_ `{p}settings BUTTONS on`\n_Experimental. Not for you? Send_ `{p}settings BUTTONS off` _and this tip goes away._"
     },
     "hatch": {

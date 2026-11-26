@@ -641,6 +641,7 @@
       "RENDER_BETA": "_Beta update-nu Render deploy thudangi!_",
       "RENDER": "_Render deploy thudangi!_",
       "KOYEB": "_Update cheyyan hosted platform-il poyi deploy adikkuka._",
+      "NEEDS_REDEPLOY": "_Ee update-inu puthiya modules venam, avide install cheyyan pattilla. Update kittan hosting dashboard-il ninnu bot redeploy cheyyuka._",
       "DIRTY": "_Update cancel aayi. Ee files ivide maattiyittund, update avaye overwrite cheyyum:_\n\n{}\n\n_Avaye revert cheyyuka, allenkil \"{p}update {} force\" upayogichu update cheyyuka._",
       "INSTALL_FAILED": "_Update aayi, pakshe modules install aayittilla: {}_\n\n_Bot folderil \"yarn install\" run cheythu bot restart cheyyuka. Ith restart aayittilla._",
       "MOVED": "\n\n_Bot ippo ee files kooduthal tharunnu, athukond ningalude copies <name>.bak aayi peru maattiyirikkunnu:_\n{}",
@@ -1479,6 +1480,7 @@
       "ONWA_TOTAL": "_*=== Ella register cheytha numbers ===*_\n{}\n{}"
     },
     "start_message": {
+      "UPDATED": "*_Raganork v{} -lekku update aayi!_*",
       "BUTTONS_TIP": "\n\n💡 *Puthiya feature: interactive buttons!*\n_Type cheyyathe menus um settings um tap cheythu use cheyyam. Try cheyyan_ `{p}settings BUTTONS on`\n_Experimental aanu. Venda enkil_ `{p}settings BUTTONS off` _ayakku, pinne ee tip varilla._"
     },
     "hatch": {

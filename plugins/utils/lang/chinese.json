@@ -640,6 +640,7 @@
       "RENDER_BETA": "_已为测试版更新启动 Render 部署！_",
       "RENDER": "_已启动 Render 部署！_",
       "KOYEB": "_请访问托管平台并点击部署以更新。_",
+      "NEEDS_REDEPLOY": "_此更新需要新的模块，但无法在此主机上安装。请在托管平台的控制台重新部署机器人以获取更新。_",
       "DIRTY": "_更新已取消。以下文件在本地已被修改，更新会覆盖它们：_\n\n{}\n\n_请还原这些文件，或使用 \"{p}update {} force\" 强制更新。_",
       "INSTALL_FAILED": "_已更新，但安装模块失败：{}_\n\n_请在机器人文件夹中运行 \"yarn install\"，然后重启机器人。机器人尚未重启。_",
       "MOVED": "\n\n_机器人现在自带这些文件，因此你的副本已重命名为 <name>.bak：_\n{}",
@@ -1478,6 +1479,7 @@
       "ONWA_TOTAL": "_*=== 已注册号码总数 ===*_\n{}\n{}"
     },
     "start_message": {
+      "UPDATED": "*_Raganork 已更新到 v{}！_*",
       "BUTTONS_TIP": "\n\n💡 *新功能：交互按钮！*\n_无需输入，点一点就能浏览菜单和设置。发送_ `{p}settings BUTTONS on` _试试_\n_实验性功能。不需要？发送_ `{p}settings BUTTONS off` _此提示将不再显示。_"
     },
     "hatch": {

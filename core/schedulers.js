@@ -30,6 +30,7 @@ function mayHandle(sessionId, row) {
 let updateTimer = null;
 let updaterNotified = false;
 let isAutoUpdating = false;
+let redeployNotified = false;
 
 function isNewerVersion(remote, local) {
   const a = String(remote || "").split(".").map((n) => parseInt(n, 10) || 0);
@@ -224,17 +225,21 @@ events.on("schedule:changed", ({ accountId } = {}) => {
 const detectPlatform = () => platform.detect();
 
 function supportsAutoUpdate() {
-  return (
-    config.AUTO_UPDATE &&
-    (detectPlatform() === "render" || detectPlatform() === "local")
-  );
+  return !!config.AUTO_UPDATE;
 }
+
+// container files reset on restart, and yarn can't run there
+const inContainer = () => {
+  const where = platform.current();
+  return where.name !== "local" || where.inKoyebImage;
+};
+const deploysOnRender = () => detectPlatform() === "render" && !!config.RENDER_API_KEY;
 
 async function performAutoUpdate() {
   if (!config.AUTO_UPDATE || isAutoUpdating) return;
 
   try {
-    if (!(await updater.isGitRepo())) return;
+    if (!(await updater.adoptZip())) return;
 
     const info = await updater.check();
     if (!info.isStable) return;
@@ -247,7 +252,7 @@ async function performAutoUpdate() {
       `🔄 Auto-update started: ${localVersion} → ${remoteVersion} (platform: ${platform})`
     );
 
-    if (platform === "render") {
+    if (deploysOnRender()) {
       try {
         const result = await updater.deployOnRender();
         if (!result.started) {
@@ -263,38 +268,50 @@ async function performAutoUpdate() {
       return;
     }
 
-    if (platform === "local") {
-      try {
-        const result = await updater.applyLocal();
-        if (!result.updated) {
-          isAutoUpdating = false;
-          console.error("❌ Auto-update skipped: local changes outside plugins/", result.dirty);
-          await notifyOwners(
-            `*_AUTO-UPDATE SKIPPED_*\n\nThese files were changed here and an update would overwrite them:\n${updater.describeDirty(result.dirty)}\n\n_Revert them, or send "${(config.HANDLERS || ".").split("")[0]}update start force" to update anyway._`
-          );
-          return;
-        }
-
-        console.log(
-          `✅ Auto-update completed: ${localVersion} → ${remoteVersion}`
-        );
-        if (result.installError) {
-          isAutoUpdating = false;
-          await notifyOwners(
-            `*_AUTO-UPDATE_*\n\nUpdated to ${remoteVersion}, but installing modules failed: ${result.installError}\n\n_Run "yarn install" in the bot folder, then restart the bot. It was not restarted._`
-          );
-          return;
-        }
-        if (result.moved?.length) {
-          await notifyOwners(
-            `*_AUTO-UPDATE_*\n\nThe bot now ships these files, so your copies were renamed to <name>.bak:\n${result.moved.map((f) => `• ${f}`).join("\n")}`
-          );
-        }
-        await lifecycle.restart("auto-update");
-      } catch (updateErr) {
-        console.error("❌ Auto-update failed:", updateErr.message);
+    try {
+      const result = await updater.applyLocal({ install: !inContainer() });
+      if (result.needsInstall) {
         isAutoUpdating = false;
+        console.error("❌ Auto-update skipped: new modules can't be installed in this container");
+        if (!redeployNotified) {
+          redeployNotified = true;
+          await notifyOwners(require("../plugins/utils/lang").getString("update").NEEDS_REDEPLOY);
+        }
+        return;
       }
+      if (!result.updated) {
+        isAutoUpdating = false;
+        console.error("❌ Auto-update skipped: local changes outside plugins/", result.dirty);
+        await notifyOwners(
+          `*_AUTO-UPDATE SKIPPED_*\n\nThese files were changed here and an update would overwrite them:\n${updater.describeDirty(result.dirty)}\n\n_Revert them, or send "${(config.HANDLERS || ".").split("")[0]}update start force" to update anyway._`
+        );
+        return;
+      }
+
+      console.log(
+        `✅ Auto-update completed: ${localVersion} → ${remoteVersion}`
+      );
+      if (result.installError) {
+        isAutoUpdating = false;
+        await notifyOwners(
+          `*_AUTO-UPDATE_*\n\nUpdated to ${remoteVersion}, but installing modules failed: ${result.installError}\n\n_Run "yarn install" in the bot folder, then restart the bot. It was not restarted._`
+        );
+        return;
+      }
+      if (result.moved?.length) {
+        await notifyOwners(
+          `*_AUTO-UPDATE_*\n\nThe bot now ships these files, so your copies were renamed to <name>.bak:\n${result.moved.map((f) => `• ${f}`).join("\n")}`
+        );
+      }
+      if (!inContainer()) {
+        try {
+          require("./services/updater").writeUpdateNote(remoteVersion, info.commits?.all);
+        } catch (_) {}
+      }
+      await lifecycle.restart("auto-update");
+    } catch (updateErr) {
+      console.error("❌ Auto-update failed:", updateErr.message);
+      isAutoUpdating = false;
     }
   } catch (error) {
     console.error("Auto-update check error:", error.message);
@@ -355,6 +372,8 @@ async function checkUpdates() {
 
       // mark first so a failing socket cannot loop git fetch forever
       updaterNotified = true;
+      // the start message after the restart announces it
+      if (autoUpdateSupported && !deploysOnRender()) return await performAutoUpdate();
       await notifyOwners(changelog.trim());
 
       if (autoUpdateSupported) {

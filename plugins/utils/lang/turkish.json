@@ -645,6 +645,7 @@
       "RENDER_BETA": "_Beta güncellemesi için Render dağıtımı başlatıldı!_",
       "RENDER": "_Render dağıtımı başlatıldı!_",
       "KOYEB": "_Lütfen barındırılan platforma gidin ve güncellemek için deploy'a basın._",
+      "NEEDS_REDEPLOY": "_Bu güncelleme yeni modüller gerektiriyor ve bunlar bu sunucuya kurulamıyor. Güncellemeyi almak için botu barındırma panelinden yeniden deploy edin._",
       "DIRTY": "_Güncelleme iptal edildi. Bu dosyalar burada değiştirildi ve güncelleme bunların üzerine yazacaktı:_\n\n{}\n\n_Bunları geri alın veya yine de güncellemek için \"{p}update {} force\" kullanın._",
       "INSTALL_FAILED": "_Güncellendi, ancak modüllerin kurulumu başarısız oldu: {}_\n\n_Bot klasöründe \"yarn install\" çalıştırıp botu yeniden başlatın. Bot yeniden başlatılmadı._",
       "MOVED": "\n\n_Bot artık bu dosyaları içeriyor, bu yüzden sizin kopyalarınız <name>.bak olarak yeniden adlandırıldı:_\n{}",
@@ -1483,6 +1484,7 @@
       "ONWA_TOTAL": "_*=== Toplam kayıtlı numara ===*_\n{}\n{}"
     },
     "start_message": {
+      "UPDATED": "*_Raganork v{} sürümüne güncellendi!_*",
       "BUTTONS_TIP": "\n\n💡 *Yeni: etkileşimli butonlar!*\n_Yazmak yerine menülerde ve ayarlarda dokunarak gezin. Denemek için:_ `{p}settings BUTTONS on`\n_Deneysel bir özellik. Sana göre değil mi? Gönder:_ `{p}settings BUTTONS off` _ve bu ipucu kaybolur._"
     },
     "hatch": {

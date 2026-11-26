@@ -640,6 +640,7 @@
       "RENDER_BETA": "_¡Se inició el despliegue en Render para la actualización beta!_",
       "RENDER": "_¡Se inició el despliegue en Render!_",
       "KOYEB": "_Visita la plataforma de alojamiento y pulsa desplegar para actualizar._",
+      "NEEDS_REDEPLOY": "_Esta actualización necesita módulos nuevos que no se pueden instalar en este host. Vuelve a desplegar el bot desde el panel de tu alojamiento para obtenerla._",
       "DIRTY": "_Actualización cancelada. Estos archivos se cambiaron aquí, y la actualización los sobrescribiría:_\n\n{}\n\n_Revierte los cambios, o usa \"{p}update {} force\" para actualizar de todos modos._",
       "INSTALL_FAILED": "_Se actualizó, pero falló la instalación de los módulos: {}_\n\n_Ejecuta \"yarn install\" en la carpeta del bot y luego reinicia el bot. No se reinició._",
       "MOVED": "\n\n_El bot ahora incluye estos archivos, así que tus copias se renombraron a <name>.bak:_\n{}",
@@ -1478,6 +1479,7 @@
       "ONWA_TOTAL": "_*=== Total de números registrados ===*_\n{}\n{}"
     },
     "start_message": {
+      "UPDATED": "*_¡Raganork actualizado a v{}!_*",
       "BUTTONS_TIP": "\n\n💡 *Nuevo: ¡botones interactivos!*\n_Navega por menús y ajustes con toques, sin escribir. Pruébalos con_ `{p}settings BUTTONS on`\n_Es experimental. ¿No te convence? Envía_ `{p}settings BUTTONS off` _y este aviso desaparece._"
     },
     "hatch": {

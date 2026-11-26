@@ -14,7 +14,7 @@ Module(
     use: "owner",
   },
   async (message, match) => {
-    if (!(await updater.isGitRepo())) {
+    if (!(await updater.adoptZip())) {
       return await message.sendReply(
         Lang.NO_GIT
       );
@@ -81,22 +81,18 @@ Module(
 
         await edit(beta ? Lang.STARTING_BETA : Lang.STARTING);
 
-        if (process.env.RENDER_SERVICE_ID) {
-          const result = await updater.deployOnRender();
-          if (!result.started) return await edit(Lang.NO_RENDER_KEY);
+        if (process.env.RENDER_SERVICE_ID && updater.deps.config.RENDER_API_KEY) {
+          await updater.deployOnRender();
           return await edit(
             beta ? Lang.RENDER_BETA : Lang.RENDER
           );
         }
 
-        // the image folder counts too: Railway or Heroku running the /rgnk image still
-        // cannot keep a git update
+        // yarn can't run in containers; auto-update redoes the pull after each restart
         const where = platform.current();
-        if (where.isKoyeb || where.inKoyebImage) {
-          return await edit(Lang.KOYEB);
-        }
-
-        const result = await updater.applyLocal({ force });
+        const container = where.name !== "local" || where.inKoyebImage;
+        const result = await updater.applyLocal({ force, install: !container });
+        if (result.needsInstall) return await edit(Lang.NEEDS_REDEPLOY);
         if (!result.updated) {
           return await edit(
             Lang.DIRTY.format(updater.describeDirty(result.dirty), command)

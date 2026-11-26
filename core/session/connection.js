@@ -135,17 +135,14 @@ async function handleConnectionUpdate(bot, update) {
           bot.sock.user?.id.split(":")[0]
         }`,
       );
-      if (!config.DISABLE_START_MESSAGE) {
-        try {
-          await sendStartMessage(bot.sock);
-          bot.initialConnectMessageSent = true;
-          sessionLogger.info(`Initial start message sent`);
-        } catch (error) {
-          logger.error(
-            { session: bot.sessionId, err: error },
-            `Failed to send start message`,
-          );
-        }
+      try {
+        await sendStartMessage(bot.sock);
+        sessionLogger.info(`Initial start message sent`);
+      } catch (error) {
+        logger.error(
+          { session: bot.sessionId, err: error },
+          `Failed to send start message`,
+        );
       }
       bot.initialConnectMessageSent = true;
     } else {
