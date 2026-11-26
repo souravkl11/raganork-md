@@ -713,6 +713,7 @@
       "UNKNOWN": "_Ariyatha option: {}_"
     },
     "chatbot": {
+      "OWNER_NOTICE": "_⚠️ Chatbot-inu oru chat-il reply cheyyan pattiyilla:_\n{}\n\n_Error ayakkunnathinu pakaram chat-il mindathe irikkum. Ee notice 6 manikkoorinu orikkal mathrame varoo._",
       "NO_KEY_INLINE": "_❌ GEMINI_API_KEY set aayittilla. `{}setvar GEMINI_API_KEY your_api_key` upayogichu set cheyyuka_",
       "DESC": "Gemini API upayogichu AI Chatbot niyanthrikkal - text, image analysis support cheyyunnu",
       "USAGE": ".chatbot - _Help menu kaanikkuka_\n.chatbot on/off - _Ee chatil on/off aakkuka_\n.chatbot on/off groups - _Ella groupukalilum on/off aakkuka_\n.chatbot on/off dms - _Ella DM-kalilum on/off aakkuka_\n.chatbot set \"prompt\" - _System prompt set cheyyuka_\n.chatbot clear - _Conversation context clear cheyyuka_\n_AI image analysis-nu imagekku reply cheyyuka_",

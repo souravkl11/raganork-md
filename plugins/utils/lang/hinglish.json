@@ -712,6 +712,7 @@
       "UNKNOWN": "_Unknown option: {}_"
     },
     "chatbot": {
+      "OWNER_NOTICE": "_⚠️ Chatbot ek chat mein reply nahi kar paya:_\n{}\n\n_Wo chats mein error bhejne ki jagah chup rehta hai. Ye notice zyada se zyada har 6 ghante mein aayega._",
       "NO_KEY_INLINE": "_❌ GEMINI_API_KEY set nahi hai. Ise `{}setvar GEMINI_API_KEY your_api_key` se set karo_",
       "DESC": "Gemini API ke saath AI Chatbot management - text aur image analysis support karta hai",
       "USAGE": ".chatbot - _Help menu dikhao_\n.chatbot on/off - _Current chat mein enable/disable_\n.chatbot on/off groups - _Sabhi groups mein enable/disable_\n.chatbot on/off dms - _Sabhi DMs mein enable/disable_\n.chatbot set \"prompt\" - _System prompt set karo_\n.chatbot clear - _Conversation context clear karo_\n_AI image analysis ke liye images pe reply karo_",

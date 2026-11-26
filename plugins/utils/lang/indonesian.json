@@ -712,6 +712,7 @@
       "UNKNOWN": "_Opsi tidak dikenal: {}_"
     },
     "chatbot": {
+      "OWNER_NOTICE": "_⚠️ Chatbot tidak bisa membalas di sebuah chat:_\n{}\n\n_Chatbot akan diam di chat alih-alih mengirim error. Pemberitahuan ini muncul paling sering setiap 6 jam._",
       "NO_KEY_INLINE": "_❌ GEMINI_API_KEY belum diatur. Silakan atur menggunakan `{}setvar GEMINI_API_KEY your_api_key`_",
       "DESC": "Manajemen Chatbot AI dengan API Gemini - mendukung analisis teks dan gambar",
       "USAGE": ".chatbot - _Tampilkan menu bantuan_\n.chatbot on/off - _Aktifkan/nonaktifkan di chat ini_\n.chatbot on/off groups - _Aktifkan/nonaktifkan di semua grup_\n.chatbot on/off dms - _Aktifkan/nonaktifkan di semua DM_\n.chatbot set \"prompt\" - _Atur system prompt_\n.chatbot clear - _Hapus konteks percakapan_\n_Balas gambar untuk analisis gambar AI_",

@@ -85,6 +85,9 @@ async function boot() {
     throw dbError;
   }
 
+  await require("./schedulers").updateBeforeConnect();
+  await require("./session/start-message").recordStartedVersion();
+
   await loadBaileys();
   await require("./handler").ready;
 

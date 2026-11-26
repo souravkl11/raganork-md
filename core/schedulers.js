@@ -32,16 +32,7 @@ let updaterNotified = false;
 let isAutoUpdating = false;
 let redeployNotified = false;
 
-function isNewerVersion(remote, local) {
-  const a = String(remote || "").split(".").map((n) => parseInt(n, 10) || 0);
-  const b = String(local || "").split(".").map((n) => parseInt(n, 10) || 0);
-  for (let i = 0; i < Math.max(a.length, b.length); i++) {
-    const x = a[i] || 0;
-    const y = b[i] || 0;
-    if (x !== y) return x > y;
-  }
-  return false;
-}
+const { isNewerVersion } = require("./services/updater");
 
 function destroyTasks(sessionId) {
   const mine = activeTasks.get(sessionId);
@@ -72,8 +63,11 @@ async function notifyOwners(text) {
     sent.add(owner);
     try {
       await client.sendMessage(owner, { text });
-    } catch (_) {}
+    } catch (_) {
+      sent.delete(owner);
+    }
   }
+  return sent.size;
 }
 
 function startTask(sessionId, expression, run) {
@@ -235,15 +229,16 @@ const inContainer = () => {
 };
 const deploysOnRender = () => detectPlatform() === "render" && !!config.RENDER_API_KEY;
 
+// true when it updated or told the owner why not; false when there was nothing it could do
 async function performAutoUpdate() {
-  if (!config.AUTO_UPDATE || isAutoUpdating) return;
+  if (!config.AUTO_UPDATE || isAutoUpdating) return false;
 
   try {
-    if (!(await updater.adoptZip())) return;
+    if (!(await updater.adoptZip())) return false;
 
     const info = await updater.check();
-    if (!info.isStable) return;
     const { localVersion, remoteVersion } = info;
+    if (!info.isStable || !isNewerVersion(remoteVersion, localVersion)) return false;
 
     isAutoUpdating = true;
     const platform = detectPlatform();
@@ -258,14 +253,15 @@ async function performAutoUpdate() {
         if (!result.started) {
           console.error("❌ Auto-update failed: RENDER_API_KEY not set");
           isAutoUpdating = false;
-          return;
+          return false;
         }
         console.log("✅ Auto-update: Render deploy initiated");
+        return true;
       } catch (err) {
         console.error("❌ Auto-update failed on Render:", err.message);
         isAutoUpdating = false;
+        return false;
       }
-      return;
     }
 
     try {
@@ -274,10 +270,9 @@ async function performAutoUpdate() {
         isAutoUpdating = false;
         console.error("❌ Auto-update skipped: new modules can't be installed in this container");
         if (!redeployNotified) {
-          redeployNotified = true;
-          await notifyOwners(require("../plugins/utils/lang").getString("update").NEEDS_REDEPLOY);
+          redeployNotified = (await notifyOwners(require("../plugins/utils/lang").getString("update").NEEDS_REDEPLOY)) > 0;
         }
-        return;
+        return true;
       }
       if (!result.updated) {
         isAutoUpdating = false;
@@ -285,7 +280,7 @@ async function performAutoUpdate() {
         await notifyOwners(
           `*_AUTO-UPDATE SKIPPED_*\n\nThese files were changed here and an update would overwrite them:\n${updater.describeDirty(result.dirty)}\n\n_Revert them, or send "${(config.HANDLERS || ".").split("")[0]}update start force" to update anyway._`
         );
-        return;
+        return true;
       }
 
       console.log(
@@ -296,27 +291,40 @@ async function performAutoUpdate() {
         await notifyOwners(
           `*_AUTO-UPDATE_*\n\nUpdated to ${remoteVersion}, but installing modules failed: ${result.installError}\n\n_Run "yarn install" in the bot folder, then restart the bot. It was not restarted._`
         );
-        return;
+        return true;
       }
       if (result.moved?.length) {
         await notifyOwners(
           `*_AUTO-UPDATE_*\n\nThe bot now ships these files, so your copies were renamed to <name>.bak:\n${result.moved.map((f) => `• ${f}`).join("\n")}`
         );
       }
-      if (!inContainer()) {
-        try {
-          require("./services/updater").writeUpdateNote(remoteVersion, info.commits?.all);
-        } catch (_) {}
-      }
+      try {
+        require("./services/updater").writeUpdateNote(remoteVersion, info.commits?.all);
+      } catch (_) {}
       await lifecycle.restart("auto-update");
+      isAutoUpdating = false;
+      return true;
     } catch (updateErr) {
       console.error("❌ Auto-update failed:", updateErr.message);
       isAutoUpdating = false;
+      return false;
     }
   } catch (error) {
     console.error("Auto-update check error:", error.message);
     isAutoUpdating = false;
+    return false;
   }
+}
+
+const BOOT_UPDATE_TIMEOUT = 30000;
+
+// before any socket opens, so a behind build never connects or sends a start message
+async function updateBeforeConnect() {
+  if (!supportsAutoUpdate()) return;
+  const running = performAutoUpdate();
+  await Promise.race([running, new Promise((resolve) => setTimeout(resolve, BOOT_UPDATE_TIMEOUT).unref())]);
+  // the timeout is for a slow check; never connect while files or modules are being replaced
+  if (isAutoUpdating) await running;
 }
 
 async function checkUpdates() {
@@ -328,7 +336,11 @@ async function checkUpdates() {
 
     if (isNewerVersion(remoteVersion, localVersion)) {
       const platform = detectPlatform();
-      const autoUpdateSupported = supportsAutoUpdate();
+      // mark first so a failing socket cannot loop git fetch forever
+      updaterNotified = true;
+      // the start message after the restart announces it
+      if (supportsAutoUpdate() && !deploysOnRender() && (await performAutoUpdate())) return;
+      const autoUpdateSupported = supportsAutoUpdate() && deploysOnRender();
 
       let changelog = `*_UPDATE AVAILABLE_*\n\nYour current version: *${localVersion}*\nNew version: *${remoteVersion}*\n\n`;
 
@@ -370,10 +382,6 @@ async function checkUpdates() {
         changelog += `\n\n_⚠️ Auto-update not supported on ${platformName}. Please update manually._\n_For help, join: ${config.SUPPORT_GROUP}_`;
       }
 
-      // mark first so a failing socket cannot loop git fetch forever
-      updaterNotified = true;
-      // the start message after the restart announces it
-      if (autoUpdateSupported && !deploysOnRender()) return await performAutoUpdate();
       await notifyOwners(changelog.trim());
 
       if (autoUpdateSupported) {
@@ -437,5 +445,7 @@ Schedule.cleanup = async (sessionId) => {
 Schedule.settled = () => Promise.all([...builds.values()].map((p) => p.catch(() => {})));
 Schedule.isNewerVersion = isNewerVersion;
 Schedule.performAutoUpdate = performAutoUpdate;
+Schedule.updateBeforeConnect = updateBeforeConnect;
+Schedule.checkUpdates = checkUpdates;
 
 module.exports = Schedule;

@@ -12,10 +12,19 @@ function capitalizeFirstLetter(s) {
 const prefixOf = (cfg) =>
   cfg.HANDLERS && cfg.HANDLERS !== "false" ? String(cfg.HANDLERS).charAt(0) : "";
 
-let note;
-function updateNote() {
-  if (note === undefined) note = require("../services/updater").takeUpdateNote();
-  return note;
+const VERSION_KEY = "LAST_STARTED_VERSION";
+let announce = null;
+
+async function recordStartedVersion() {
+  const { isNewerVersion, takeUpdateNote } = require("../services/updater");
+  const { BotVariable } = require("../database");
+  const note = takeUpdateNote();
+  try {
+    const last = (await BotVariable.findByPk(VERSION_KEY, { raw: true }))?.value;
+    if (last && !isNewerVersion(version, last)) return;
+    if (last) announce = { version, commits: note?.commits || [] };
+    await BotVariable.upsert({ key: VERSION_KEY, value: version });
+  } catch (_) {}
 }
 
 function updateText(n) {
@@ -44,7 +53,7 @@ function buttonsTip(cfg) {
 
 async function sendStartMessage(sock, cfg = config) {
   const target = ownerTarget(sock);
-  const n = updateNote();
+  const n = announce;
   if (cfg.DISABLE_START_MESSAGE) {
     if (n) await sock.sendMessage(target, { text: updateText(n) });
     return;
@@ -69,6 +78,6 @@ async function sendStartMessage(sock, cfg = config) {
   await sock.sendMessage(target, { text });
 }
 
-const forgetUpdateNote = () => (note = undefined);
+const forgetStartedVersion = () => (announce = null);
 
-module.exports = { buildStartMessage, buttonsTip, sendStartMessage, updateNote, forgetUpdateNote };
+module.exports = { buildStartMessage, buttonsTip, sendStartMessage, recordStartedVersion, forgetStartedVersion };

@@ -770,6 +770,8 @@ async function checkAntiword(message) {
   );
   if (!word) return false;
   if (message.fromOwner || (await isAdmin(message, message.sender))) return false;
+  // without admin nothing is enforced, so notices would only spam
+  if (!(await isAdmin(message))) return false;
 
   const notice = Lang.WORD_NOT_ALLOWED.format(word);
   if (warnMode) {
@@ -805,6 +807,7 @@ async function checkAntilink(message) {
     (link) => !antilinkConfig.checkAllowed(link, antilinkConf)
   );
   if (!linkBlocked || (await isAdmin(message, message.sender))) return;
+  if (!(await isAdmin(message))) return;
 
   const usr = message.sender;
   await message.client.sendMessage(message.jid, {

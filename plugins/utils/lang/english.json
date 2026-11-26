@@ -712,6 +712,7 @@
       "UNKNOWN": "_Unknown option: {}_"
     },
     "chatbot": {
+      "OWNER_NOTICE": "_⚠️ The chatbot couldn't reply in a chat:_\n{}\n\n_It stays silent in chats instead of posting errors. This notice repeats at most every 6 hours._",
       "NO_KEY_INLINE": "_❌ GEMINI_API_KEY not configured. Please set it using `{}setvar GEMINI_API_KEY your_api_key`_",
       "DESC": "AI Chatbot management with Gemini API - supports text and image analysis",
       "USAGE": ".chatbot - _Show help menu_\n.chatbot on/off - _Enable/disable in current chat_\n.chatbot on/off groups - _Enable/disable in all groups_\n.chatbot on/off dms - _Enable/disable in all DMs_\n.chatbot set \"prompt\" - _Set system prompt_\n.chatbot clear - _Clear conversation context_\n_Reply to images for AI image analysis_",

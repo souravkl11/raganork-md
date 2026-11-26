@@ -712,6 +712,7 @@
       "UNKNOWN": "_Opção desconhecida: {}_"
     },
     "chatbot": {
+      "OWNER_NOTICE": "_⚠️ O chatbot não conseguiu responder em um chat:_\n{}\n\n_Ele fica em silêncio nos chats em vez de enviar erros. Este aviso se repete no máximo a cada 6 horas._",
       "NO_KEY_INLINE": "_❌ GEMINI_API_KEY não configurada. Defina usando `{}setvar GEMINI_API_KEY sua_chave_api`_",
       "DESC": "Gerenciamento do chatbot de IA com a API Gemini - suporta análise de texto e imagem",
       "USAGE": ".chatbot - _Mostrar menu de ajuda_\n.chatbot on/off - _Ativar/desativar no chat atual_\n.chatbot on/off groups - _Ativar/desativar em todos os grupos_\n.chatbot on/off dms - _Ativar/desativar em todas as DMs_\n.chatbot set \"prompt\" - _Definir prompt do sistema_\n.chatbot clear - _Limpar contexto da conversa_\n_Responda a imagens para análise de imagem por IA_",

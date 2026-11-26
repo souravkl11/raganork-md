@@ -8,6 +8,7 @@ const { cooldown, accountKey } = require("./utils");
 const { helpPrefix, patternFor, currentHandlerPrefix } = require("../core/plugins/registry");
 const { parseText } = require("../core/pipeline/normalize");
 const { derived } = require("../core/config/derived");
+const { ownerTarget } = require("../core/identity");
 const fs = require("fs");
 
 const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
@@ -221,17 +222,24 @@ async function getAIResponse(message, chatJid, imageBuffer = null) {
     }
   } catch (error) {
     console.error("Error getting AI response:", error.message);
-
-    if (error.response && error.response.status === 429) {
-      return Lang.RATE_LIMIT;
-    }
-
-    if (error.response) {
-      return Lang.API_ERROR.format(error.response.data?.error?.message || Lang.UNKNOWN_ERROR);
-    }
-
-    return Lang.NETWORK_ERROR;
+    let text = Lang.NETWORK_ERROR;
+    if (error.response?.status === 429) text = Lang.RATE_LIMIT;
+    else if (error.response) text = Lang.API_ERROR.format(error.response.data?.error?.message || Lang.UNKNOWN_ERROR);
+    throw Object.assign(new Error(text), { userFacing: true });
   }
+}
+
+const OWNER_NOTICE_MS = 6 * 60 * 60 * 1000;
+const ownerNoticeAt = new Map();
+
+// auto replies: failures go to the owner (rate limited), never the chat
+async function tellOwner(client, text) {
+  const key = accountKey("chatbot-owner");
+  if (Date.now() - (ownerNoticeAt.get(key) || 0) < OWNER_NOTICE_MS) return;
+  ownerNoticeAt.set(key, Date.now());
+  try {
+    await client.sendMessage(ownerTarget(client), { text: Lang.OWNER_NOTICE.format(text) });
+  } catch (_) {}
 }
 
 function isChatbotEnabled(jid) {
@@ -466,19 +474,20 @@ Module(
           }
         } catch (error) {
           console.error("Error downloading image:", error);
-          return await message.sendReply(
-            Lang.IMAGE_FAILED,
-          );
+          return;
         }
       } else if (!messageText || messageText.length < 2) {
         return;
       }
 
-      const aiResponse = await inOrder(key, () =>
-        getAIResponse(responseText, chatJid, imageBuffer),
-      );
+      let aiResponse;
+      try {
+        aiResponse = await inOrder(key, () => getAIResponse(responseText, chatJid, imageBuffer));
+      } catch (error) {
+        return await tellOwner(message.client, error.message);
+      }
 
-      if (aiResponse) {
+      if (aiResponse && aiResponse !== Lang.UNEXPECTED) {
         await message.sendReply(aiResponse);
       }
     } catch (error) {

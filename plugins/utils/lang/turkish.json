@@ -717,6 +717,7 @@
       "UNKNOWN": "_Bilinmeyen seçenek: {}_"
     },
     "chatbot": {
+      "OWNER_NOTICE": "_⚠️ Sohbet botu bir sohbette yanıt veremedi:_\n{}\n\n_Hata göndermek yerine sohbetlerde sessiz kalır. Bu bildirim en fazla 6 saatte bir tekrarlanır._",
       "NO_KEY_INLINE": "_❌ GEMINI_API_KEY yapılandırılmamış. Lütfen şununla ayarlayın: `{}setvar GEMINI_API_KEY your_api_key`_",
       "DESC": "Gemini API ile yapay zeka sohbet botu yönetimi - metin ve resim analizini destekler",
       "USAGE": ".chatbot - _Yardım menüsünü göster_\n.chatbot on/off - _Geçerli sohbette etkinleştir/devre dışı bırak_\n.chatbot on/off groups - _Tüm gruplarda etkinleştir/devre dışı bırak_\n.chatbot on/off dms - _Tüm özel mesajlarda etkinleştir/devre dışı bırak_\n.chatbot set \"prompt\" - _Sistem istemini ayarla_\n.chatbot clear - _Konuşma bağlamını temizle_\n_Yapay zeka resim analizi için resimleri yanıtlayın_",

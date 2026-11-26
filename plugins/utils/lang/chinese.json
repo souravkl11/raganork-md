@@ -712,6 +712,7 @@
       "UNKNOWN": "_未知选项：{}_"
     },
     "chatbot": {
+      "OWNER_NOTICE": "_⚠️ 聊天机器人无法在某个聊天中回复：_\n{}\n\n_它会在聊天中保持沉默，而不是发送错误。此通知最多每 6 小时重复一次。_",
       "NO_KEY_INLINE": "_❌ 未配置 GEMINI_API_KEY。请使用 `{}setvar GEMINI_API_KEY your_api_key` 进行设置_",
       "DESC": "使用 Gemini API 的 AI 聊天机器人管理 - 支持文本和图片分析",
       "USAGE": ".chatbot - _显示帮助菜单_\n.chatbot on/off - _在当前聊天中启用/禁用_\n.chatbot on/off groups - _在所有群组中启用/禁用_\n.chatbot on/off dms - _在所有私聊中启用/禁用_\n.chatbot set \"prompt\" - _设置系统提示词_\n.chatbot clear - _清除对话上下文_\n_回复图片以进行 AI 图片分析_",

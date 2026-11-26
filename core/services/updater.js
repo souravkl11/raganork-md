@@ -26,7 +26,17 @@ function parsePackage(raw) {
 }
 const depsOf = (pkg) => pkg && JSON.stringify(DEP_FIELDS.map((f) => pkg[f] || null));
 
-// lets the start message after the restart announce the update
+function isNewerVersion(remote, local) {
+  const a = String(remote || "").split(".").map((n) => parseInt(n, 10) || 0);
+  const b = String(local || "").split(".").map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i] || 0;
+    const y = b[i] || 0;
+    if (x !== y) return x > y;
+  }
+  return false;
+}
+
 const NOTE_FILE = path.join(process.cwd(), ".update-note.json");
 
 function writeUpdateNote(version, commits = []) {
@@ -276,4 +286,4 @@ function createUpdater(overrides = {}) {
   };
 }
 
-module.exports = { createUpdater, changedPaths, updater: createUpdater(), REMOTE_PACKAGE_URL, writeUpdateNote, takeUpdateNote };
+module.exports = { createUpdater, changedPaths, updater: createUpdater(), REMOTE_PACKAGE_URL, writeUpdateNote, takeUpdateNote, isNewerVersion };

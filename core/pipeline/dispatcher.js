@@ -134,7 +134,7 @@ async function handleError(cmd, env, error) {
       return;
     }
   }
-  if (policy.react) await react(env, cmd, "❌");
+  if (policy.react && isUserCommand(cmd)) await react(env, cmd, "❌");
 }
 
 const brokenConstructors = new WeakSet();
