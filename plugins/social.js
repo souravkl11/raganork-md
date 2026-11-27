@@ -363,3 +363,5 @@ Module(
     }
   }
 );
+
+module.exports = { checkRedirect };

@@ -20,7 +20,7 @@ const {
 
 const URL_PATTERNS = {
   instagram:
-    /^https?:\/\/(?:www\.)?instagram\.com\/(?:p\/[A-Za-z0-9_-]+\/?|reel\/[A-Za-z0-9_-]+\/?|tv\/[A-Za-z0-9_-]+\/?|stories\/[A-Za-z0-9_.-]+\/\d+\/?)(?:\?.*)?$/i,
+    /^https?:\/\/(?:www\.)?instagram\.com\/(?:p\/[A-Za-z0-9_-]+\/?|share\/(?:(?:p|reel|tv)\/)?[A-Za-z0-9_-]+\/?|reel\/[A-Za-z0-9_-]+\/?|tv\/[A-Za-z0-9_-]+\/?|stories\/[A-Za-z0-9_.-]+\/\d+\/?)(?:\?.*)?$/i,
   youtube:
     /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/[A-Za-z0-9_-]+\/?)|youtu\.be\/)([A-Za-z0-9_-]{11})?(?:[\?&].*)?$/i,
   spotify:
@@ -106,8 +106,11 @@ async function downloadInstagram(message, urls) {
   const allMediaUrls = [];
   const quotedMessage = message.reply_message ? message.quoted : message.data;
 
-  for (const url of urls) {
+  const { checkRedirect } = require("./social");
+
+  for (const link of urls) {
     try {
+      const url = await checkRedirect(link);
       const downloadResult = await downloadGram(url);
       if (downloadResult && downloadResult.length) {
         allMediaUrls.push(...downloadResult);

@@ -140,7 +140,7 @@ const sequelize = (() => {
   const useSsl = !["false", "0", "off", "no"].includes(
     String(process.env.DATABASE_SSL ?? "true").trim().toLowerCase(),
   );
-  return new Sequelize(DATABASE_URL, {
+  const pg = new Sequelize(DATABASE_URL, {
     dialectOptions: useSsl ? { ssl: { require: true, rejectUnauthorized: false } } : {},
     // only DEBUG=true: a string like "frame" is not a valid sequelize logger
     logging: DEBUG === true,
@@ -151,6 +151,11 @@ const sequelize = (() => {
       idle: 10000,
     },
   });
+  const opts = pg.options.dialectOptions;
+  if (useSsl && opts.ssl !== false && !["verify-ca", "verify-full"].includes(opts.sslmode)) {
+    opts.ssl = { ...(typeof opts.ssl === "object" ? opts.ssl : {}), require: true, rejectUnauthorized: false };
+  }
+  return pg;
 })();
 
 module.exports = { sequelize, DATABASE_URL, SQLITE_PATH, applySQLiteResilience };
