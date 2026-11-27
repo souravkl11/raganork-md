@@ -121,27 +121,14 @@ class WhatsAppBot {
       }
       this.authState = new CustomAuthState(this.sessionId);
       const local = isLocalSession(this.sessionId);
-      let sessionLoaded = false;
-      try {
-        await this.authState.loadSession({ skipBackend: local });
-        sessionLoaded = Object.keys(this.authState.creds).length > 0;
-      } catch (error) {
-        logger.warn(
-          { session: this.sessionId, err: error },
-          `Failed to load session from database`,
-        );
-        console.warn(
-          `⚠️ Failed to load session from database: ${this.sessionId}`,
-        );
-      }
+      await this.authState.loadSession({ skipBackend: local });
+      let sessionLoaded = Object.keys(this.authState.creds).length > 0;
       if (local && !this.authState.isLinked()) {
-        // a saved hatched bot can only be linked again from chat, never the terminal
         if (isHatchedId(this.sessionId) && !this.hatch) {
           throw new Error(
             `Hatched bot ${this.sessionId} has no stored login. Link it again with the hatch command.`,
           );
         }
-        // keep the identity of a link attempt that's still running
         if (!this.loginMethod || !sessionLoaded) {
           this.loginMethod = this.hatch?.method || (await chooseLoginMethod(this.sessionId));
           this.authState.startFresh();

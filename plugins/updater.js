@@ -82,7 +82,11 @@ Module(
         await edit(beta ? Lang.STARTING_BETA : Lang.STARTING);
 
         if (process.env.RENDER_SERVICE_ID && updater.deps.config.RENDER_API_KEY) {
-          await updater.deployOnRender();
+          try {
+            await updater.deployOnRender();
+          } catch (error) {
+            return await edit(Lang.RENDER_FAILED.format(error.message));
+          }
           return await edit(
             beta ? Lang.RENDER_BETA : Lang.RENDER
           );

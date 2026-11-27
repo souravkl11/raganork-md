@@ -1,6 +1,6 @@
 const { Module } = require("../main");
 const { isAdmin } = require("./utils");
-const { ownerTarget } = require("../core/identity");
+const { ownerTarget, isGroup } = require("../core/identity");
 const { getFullMessage, hasPendingWrites, flushPendingWrites } = require("../core/store");
 const { extractViewOnce, hasViewOnceContent } = require("./utils/viewonce");
 const { findStickerAudio, sendStickerAudio } = require("../core/session/features/new-media");
@@ -211,13 +211,15 @@ Module(
 );
 Module(
   {
-    pattern: "delete",
+    pattern: "(?:delete|del)(?!\\S)",
     fromMe: true,
     desc: Lang.DELETE_DESC,
   },
   async (m, t) => {
     if (!m.reply_message) return;
-    m.jid = m.quoted.key.remoteJid;
+    const chat = m.quoted.key.remoteJid;
+    if (!m.quoted.key.fromMe && !isGroup(chat)) return await m.sendReply(Lang.ONLY_OWN);
+    m.jid = chat;
     if (!m.quoted.key.fromMe && !(await isAdmin(m))) {
       return await m.sendReply(Lang.NOT_ADMIN);
     }

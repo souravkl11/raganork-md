@@ -638,6 +638,7 @@
       "NO_RENDER_KEY": "_RENDER_API_KEY tidak ada!_",
       "RENDER_BETA": "_Deploy Render dimulai untuk pembaruan beta!_",
       "RENDER": "_Deploy Render dimulai!_",
+      "RENDER_FAILED": "_Deploy Render gagal: {}_",
       "KOYEB": "_Silakan kunjungi platform hosting dan tekan deploy untuk memperbarui._",
       "NEEDS_REDEPLOY": "_Pembaruan ini membutuhkan modul baru yang tidak bisa dipasang di host ini. Deploy ulang bot dari dasbor hosting untuk mendapatkannya._",
       "DIRTY": "_Pembaruan dibatalkan. File-file ini diubah di sini, dan pembaruan akan menimpanya:_\n\n{}\n\n_Kembalikan file tersebut, atau gunakan \"{p}update {} force\" untuk tetap memperbarui._",
@@ -906,7 +907,8 @@
       "VV_DESC": "Anti sekali lihat",
       "NOT_VV": "_Bukan pesan sekali lihat!_",
       "DELETE_DESC": "Menghapus pesan untuk semua orang",
-      "NOT_ADMIN": "_Saya bukan admin!_"
+      "NOT_ADMIN": "_Saya bukan admin!_",
+      "ONLY_OWN": "_Di luar grup, hanya pesan Anda sendiri yang bisa dihapus_"
     },
     "filter": {
       "OWNER_SCOPE": "_Hanya owner yang bisa mengelola filter {}._",

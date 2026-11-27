@@ -638,6 +638,7 @@
       "NO_RENDER_KEY": "_RENDER_API_KEY missing hai!_",
       "RENDER_BETA": "_Beta update ke liye Render deploy shuru ho gaya!_",
       "RENDER": "_Render deploy shuru ho gaya!_",
+      "RENDER_FAILED": "_Render deploy fail ho gaya: {}_",
       "KOYEB": "_Update ke liye hosted platform par jaake deploy dabao._",
       "NEEDS_REDEPLOY": "_Is update ko naye modules chahiye, jo is host par install nahi ho sakte. Update paane ke liye hosting dashboard se bot ko redeploy karo._",
       "DIRTY": "_Update cancel. Ye files yahan change ki gayi hain, aur update inhe overwrite kar dega:_\n\n{}\n\n_Inhe revert karo, ya update karne ke liye \"{p}update {} force\" use karo._",
@@ -906,7 +907,8 @@
       "VV_DESC": "Anti view once",
       "NOT_VV": "_View once message nahi hai!_",
       "DELETE_DESC": "Message sabke liye delete karta hai",
-      "NOT_ADMIN": "_Main admin nahi hoon!_"
+      "NOT_ADMIN": "_Main admin nahi hoon!_",
+      "ONLY_OWN": "_Groups ke bahar sirf apne messages delete kar sakte hain_"
     },
     "filter": {
       "OWNER_SCOPE": "_Sirf owner {} filters manage kar sakta hai._",

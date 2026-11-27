@@ -638,6 +638,7 @@
       "NO_RENDER_KEY": "_Missing RENDER_API_KEY!_",
       "RENDER_BETA": "_Render deploy started for beta update!_",
       "RENDER": "_Render deploy started!_",
+      "RENDER_FAILED": "_Render deploy failed: {}_",
       "KOYEB": "_Please visit the hosted platform and hit deploy to update._",
       "NEEDS_REDEPLOY": "_This update needs new modules, and they can't be installed on this host. Redeploy the bot from your hosting dashboard to get it._",
       "DIRTY": "_Update cancelled. These files were changed here, and the update would overwrite them:_\n\n{}\n\n_Revert them, or use \"{p}update {} force\" to update anyway._",
@@ -906,7 +907,8 @@
       "VV_DESC": "Anti view once",
       "NOT_VV": "_Not a view once msg!_",
       "DELETE_DESC": "Deletes message for everyone",
-      "NOT_ADMIN": "_I'm not an admin!_"
+      "NOT_ADMIN": "_I'm not an admin!_",
+      "ONLY_OWN": "_Outside groups, only your own messages can be deleted_"
     },
     "filter": {
       "OWNER_SCOPE": "_Only the owner can manage {} filters._",
@@ -1523,4 +1525,4 @@
       "CANCEL_HINT": "_To stop, send {p}hatch cancel_"
     }
   }
-}
+}

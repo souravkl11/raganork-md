@@ -10,6 +10,9 @@ const { sendStartMessage } = require("./start-message");
 const { handlePairing, isLocalSession } = require("./terminal-login");
 const { isHatchedId, forgetHatched, removeHatched } = require("./hatchery");
 
+const isBanned = (statusCode, error) =>
+  statusCode === bindings.DisconnectReason.forbidden && error?.data?.reason === "403";
+
 async function handleConnectionUpdate(bot, update) {
   const { connection, lastDisconnect, qr } = update;
   const pairing = Boolean(qr) && (await handlePairing(bot, bot.sock));
@@ -40,7 +43,9 @@ async function handleConnectionUpdate(bot, update) {
 
   if (connection === "close") {
     const statusCode = lastDisconnect?.error?.output?.statusCode;
-    const shouldReconnect = statusCode !== bindings.DisconnectReason.loggedOut;
+    const banned = isBanned(statusCode, lastDisconnect?.error);
+    const sessionGone = banned || statusCode === bindings.DisconnectReason.loggedOut;
+    const shouldReconnect = !sessionGone;
     sessionLogger.info(
       { status: statusCode, reconnect: shouldReconnect },
       `Connection closed.`,
@@ -53,12 +58,15 @@ async function handleConnectionUpdate(bot, update) {
 
     if (bot.hatch?.onClose && (await bot.hatch.onClose(statusCode))) return;
 
-    if (statusCode === bindings.DisconnectReason.loggedOut) {
+    if (sessionGone) {
       bot.loggedOut = true;
-      bot.stopReason = "logged_out";
+      bot.stopReason = banned ? "banned" : "logged_out";
       sessionLogger.error(
         `Logged out. Please delete session data and rescan QR.`,
       );
+      if (banned) {
+        console.log(`⛔ [${bot.sessionId}] WhatsApp refused this account (403), most likely a ban.`);
+      }
       console.log(
         isHatchedId(bot.sessionId)
           ? `❌ [${bot.sessionId}] HATCHED BOT LOGGED OUT. Link it again with the hatch command.`

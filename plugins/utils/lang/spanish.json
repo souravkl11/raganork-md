@@ -638,6 +638,7 @@
       "NO_RENDER_KEY": "_¡Falta RENDER_API_KEY!_",
       "RENDER_BETA": "_¡Se inició el despliegue en Render para la actualización beta!_",
       "RENDER": "_¡Se inició el despliegue en Render!_",
+      "RENDER_FAILED": "_Falló el despliegue en Render: {}_",
       "KOYEB": "_Visita la plataforma de alojamiento y pulsa desplegar para actualizar._",
       "NEEDS_REDEPLOY": "_Esta actualización necesita módulos nuevos que no se pueden instalar en este host. Vuelve a desplegar el bot desde el panel de tu alojamiento para obtenerla._",
       "DIRTY": "_Actualización cancelada. Estos archivos se cambiaron aquí, y la actualización los sobrescribiría:_\n\n{}\n\n_Revierte los cambios, o usa \"{p}update {} force\" para actualizar de todos modos._",
@@ -906,7 +907,8 @@
       "VV_DESC": "Anti ver una vez",
       "NOT_VV": "_¡No es un mensaje de ver una vez!_",
       "DELETE_DESC": "Elimina el mensaje para todos",
-      "NOT_ADMIN": "_¡No soy admin!_"
+      "NOT_ADMIN": "_¡No soy admin!_",
+      "ONLY_OWN": "_Fuera de los grupos, solo puedes eliminar tus propios mensajes_"
     },
     "filter": {
       "OWNER_SCOPE": "_Solo el dueño puede gestionar los filtros {}._",

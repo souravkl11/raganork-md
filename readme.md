@@ -92,6 +92,7 @@ SESSION=qr      # prints a QR code to scan (also used when SESSION is empty)
 ```
 SESSION=pair
 PAIRING_NUMBER=919876543210   # your number with country code; optional if the console takes input
+# PAIRING_CODE=MYCODE12       # your own 8 character code; the default is RAGANORK with one digit, e.g. R4GANORK
 ```
 
 Start the bot with `npm start` and watch the console or logs. For `qr`, scan the code from WhatsApp → Settings → Linked Devices → Link a Device. For `pair`, enter the code there under "Link with phone number instead". Without `PAIRING_NUMBER`, a console you can type into (e.g. `node index.js` over SSH) asks for the number. On panels whose console takes no input (and under pm2), set `PAIRING_NUMBER`, or a QR code is shown instead.

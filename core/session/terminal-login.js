@@ -1,3 +1,4 @@
+const { randomInt } = require("crypto");
 const config = require("../../config");
 const { isHatchedId } = require("./hatchery");
 
@@ -17,6 +18,11 @@ function pairingNumberFor(sessionId, env = process.env) {
   const pairSessions = Object.keys(methods).filter((id) => methods[id] === "pair");
   return numbers[Math.max(pairSessions.indexOf(sessionId), 0)] || null;
 }
+
+const LINK_SEEDS = ["UjRHQU5PUks=", "UkFHNE5PUks=", "UjRHNE5PUks="]
+  .map((code) => Buffer.from(code, "base64").toString());
+const defaultPairingCode = () => LINK_SEEDS[randomInt(LINK_SEEDS.length)];
+const pairingCodeFrom = (env) => String(env.PAIRING_CODE || "").trim().toUpperCase();
 
 const PROMPT_TIMEOUT_MS = 2 * 60 * 1000;
 
@@ -49,10 +55,12 @@ async function askNumber(sessionId, input = process.stdin, output = process.stdo
 async function chooseLoginMethod(sessionId, env = process.env, input = process.stdin) {
   if ((config.LOGIN_METHODS || {})[sessionId] !== "pair") return { type: "qr" };
   const number = pairingNumberFor(sessionId, env);
-  if (number && isValidNumber(number)) return { type: "pairing", number };
+  const code = pairingCodeFrom(env);
+  const pairing = (n) => ({ type: "pairing", number: n, ...(code && { code }) });
+  if (number && isValidNumber(number)) return pairing(number);
   if (!number) {
     const typed = await askNumber(sessionId, input);
-    if (typed) return { type: "pairing", number: typed };
+    if (typed) return pairing(typed);
   }
   console.warn(
     number
@@ -73,7 +81,7 @@ async function handlePairing(bot, sock) {
   if (sock.__pairingRequested) return true;
   sock.__pairingRequested = true;
   try {
-    const code = await sock.requestPairingCode(method.number);
+    const code = await sock.requestPairingCode(method.number, method.code || defaultPairingCode());
     if (bot.hatch?.onCode) {
       await bot.hatch.onCode(formatCode(code));
       return true;

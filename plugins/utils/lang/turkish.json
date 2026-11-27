@@ -643,6 +643,7 @@
       "NO_RENDER_KEY": "_RENDER_API_KEY eksik!_",
       "RENDER_BETA": "_Beta güncellemesi için Render dağıtımı başlatıldı!_",
       "RENDER": "_Render dağıtımı başlatıldı!_",
+      "RENDER_FAILED": "_Render dağıtımı başarısız oldu: {}_",
       "KOYEB": "_Lütfen barındırılan platforma gidin ve güncellemek için deploy'a basın._",
       "NEEDS_REDEPLOY": "_Bu güncelleme yeni modüller gerektiriyor ve bunlar bu sunucuya kurulamıyor. Güncellemeyi almak için botu barındırma panelinden yeniden deploy edin._",
       "DIRTY": "_Güncelleme iptal edildi. Bu dosyalar burada değiştirildi ve güncelleme bunların üzerine yazacaktı:_\n\n{}\n\n_Bunları geri alın veya yine de güncellemek için \"{p}update {} force\" kullanın._",
@@ -911,7 +912,8 @@
       "VV_DESC": "Tek seferlik görüntülemeye karşı koruma",
       "NOT_VV": "_Tek seferlik görüntülenen bir mesaj değil!_",
       "DELETE_DESC": "Mesajı herkes için siler",
-      "NOT_ADMIN": "_Yönetici değilim!_"
+      "NOT_ADMIN": "_Yönetici değilim!_",
+      "ONLY_OWN": "_Gruplar dışında yalnızca kendi mesajlarınız silinebilir_"
     },
     "filter": {
       "OWNER_SCOPE": "_Yalnızca sahip {} filtrelerini yönetebilir._",
@@ -1528,4 +1530,4 @@
       "CANCEL_HINT": "_Durdurmak için {p}hatch cancel gönderin_"
     }
   }
-}
+}

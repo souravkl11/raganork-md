@@ -18,6 +18,7 @@ loadBaileys()
 const STORAGE_VERSION = 3;
 const FLUSH_INTERVAL = 3000;
 const WRITE_CHUNK = 300;
+const LOAD_RETRY_DELAYS = [1000, 3000, 8000];
 
 const sessionStore = new Map();
 let flushTimer = null;
@@ -48,6 +49,22 @@ function bufferReviver(_, value) {
 const serialize = (value) => JSON.stringify(value, bufferReplacer);
 const deserialize = (text) =>
   JSON.parse(typeof text === "string" ? text : JSON.stringify(text), bufferReviver);
+
+function copyValue(value) {
+  if (Array.isArray(value)) return value.map(copyValue);
+  if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return value;
+  const out = {};
+  for (const key of Object.keys(value)) out[key] = copyValue(value[key]);
+  return out;
+}
+
+function rawKeyName(name) {
+  if (name.startsWith("app-state-sync-key-")) return name.replace(/__/g, "/");
+  if (name.startsWith("sender-key-") && !name.startsWith("sender-key-memory-")) {
+    return name.replace(/--/g, "::");
+  }
+  return name;
+}
 
 function newSessionEntry() {
   return {
@@ -262,7 +279,7 @@ class CustomAuthState {
   }
 
   _getKey(type, id) {
-    let keyData = this.sessionData.keys[`${type}-${id}`];
+    let keyData = copyValue(this.sessionData.keys[`${type}-${id}`]);
     if (type === "app-state-sync-key" && keyData) {
       try {
         keyData = WAProto.Message.AppStateSyncKeyData.fromObject(keyData);
@@ -342,7 +359,7 @@ class CustomAuthState {
       return { found: true, legacy: true };
     }
 
-    this.sessionData.creds = deserialize(record.creds);
+    const creds = deserialize(record.creds);
     const rows = await WhatsappSessionKey.findAll({
       where: { sessionId: this.sessionId },
       attributes: ["keyName", "value"],
@@ -359,8 +376,33 @@ class CustomAuthState {
         );
       }
     }
+    this.sessionData.creds = creds;
     this.sessionData.keys = keys;
     return { found: true, legacy: false };
+  }
+
+  async _readStored() {
+    const v3 = await this._loadV3();
+    if (!v3.found || (!v3.legacy && Object.keys(this.sessionData.creds).length)) return v3;
+    const record = await WhatsappSession.findByPk(this.sessionId, {
+      attributes: ["sessionId", "sessionData"],
+    });
+    return { ...v3, legacy: true, blob: record?.sessionData };
+  }
+
+  async _readWithRetry(delays) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this._readStored();
+      } catch (error) {
+        if (attempt >= delays.length) throw error;
+        logger.warn(
+          { session: this.sessionId, err: error, attempt: attempt + 1 },
+          "Could not read the stored session, retrying",
+        );
+        await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+      }
+    }
   }
 
   async _writeFullV3() {
@@ -411,38 +453,30 @@ class CustomAuthState {
     }
   }
 
-  async loadSession({ skipBackend = false } = {}) {
+  async loadSession({ skipBackend = false, retryDelays = LOAD_RETRY_DELAYS } = {}) {
     if (Object.keys(this.sessionData.creds).length > 0) {
       logger.info({ session: this.sessionId }, "Session already loaded in memory");
       return;
     }
 
-    try {
-      const v3 = await this._loadV3();
-      if (v3.found && !v3.legacy && Object.keys(this.sessionData.creds).length) {
-        logger.info({ session: this.sessionId }, "Session loaded from database");
+    const stored = await this._readWithRetry(retryDelays);
+    if (stored.found && !stored.legacy) {
+      logger.info({ session: this.sessionId }, "Session loaded from database");
+      this._restoreKeyNames();
+      this._validateAndCleanKeys();
+      return;
+    }
+    if (stored.found) {
+      if (stored.blob && this._parseLegacyFileMap(stored.blob, "database")) {
+        console.log(`- Migrating session ${this.sessionId} to the new storage format...`);
+        this._restoreKeyNames();
         this._validateAndCleanKeys();
+        await this._migrateToV3("legacy-blob");
         return;
       }
-      if (v3.found) {
-        const record = await WhatsappSession.findByPk(this.sessionId, {
-          attributes: ["sessionId", "sessionData"],
-        });
-        if (record?.sessionData && this._parseLegacyFileMap(record.sessionData, "database")) {
-          console.log(`- Migrating session ${this.sessionId} to the new storage format...`);
-          this._validateAndCleanKeys();
-          await this._migrateToV3("legacy-blob");
-          return;
-        }
-        logger.warn(
-          { session: this.sessionId },
-          "Session row found in DB but no usable credentials",
-        );
-      }
-    } catch (dbError) {
-      logger.error(
-        { session: this.sessionId, err: dbError },
-        "Error loading from database, will try session backend",
+      logger.warn(
+        { session: this.sessionId },
+        "Session row found in DB but no usable credentials",
       );
     }
 
@@ -457,6 +491,7 @@ class CustomAuthState {
       console.log(`- Fetching initial data for session ${this.sessionId}...`);
       const fileMap = await fetchInitialSession(this.sessionId);
       if (fileMap && this._parseLegacyFileMap(fileMap, "session-backend")) {
+        this._restoreKeyNames();
         this._validateAndCleanKeys();
         await this._migrateToV3("session-backend");
         return;
@@ -476,6 +511,19 @@ class CustomAuthState {
     logger.info({ session: this.sessionId }, "No existing session found");
     this.sessionData.creds = {};
     this.sessionData.keys = {};
+  }
+
+  _restoreKeyNames() {
+    for (const name of Object.keys(this.sessionData.keys)) {
+      const raw = rawKeyName(name);
+      if (raw === name) continue;
+      if (this.sessionData.keys[raw] === undefined) {
+        this.sessionData.keys[raw] = this.sessionData.keys[name];
+        this.sessionData.deletedKeys.delete(raw);
+        this.sessionData.dirtyKeys.add(raw);
+      }
+      this._deleteKeyByName(name);
+    }
   }
 
   _validateAndCleanKeys() {

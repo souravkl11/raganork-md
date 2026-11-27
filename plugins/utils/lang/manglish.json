@@ -639,6 +639,7 @@
       "NO_RENDER_KEY": "_RENDER_API_KEY illa!_",
       "RENDER_BETA": "_Beta update-nu Render deploy thudangi!_",
       "RENDER": "_Render deploy thudangi!_",
+      "RENDER_FAILED": "_Render deploy parajayappettu: {}_",
       "KOYEB": "_Update cheyyan hosted platform-il poyi deploy adikkuka._",
       "NEEDS_REDEPLOY": "_Ee update-inu puthiya modules venam, avide install cheyyan pattilla. Update kittan hosting dashboard-il ninnu bot redeploy cheyyuka._",
       "DIRTY": "_Update cancel aayi. Ee files ivide maattiyittund, update avaye overwrite cheyyum:_\n\n{}\n\n_Avaye revert cheyyuka, allenkil \"{p}update {} force\" upayogichu update cheyyuka._",
@@ -907,7 +908,8 @@
       "VV_DESC": "Anti view once",
       "NOT_VV": "_View once message alla!_",
       "DELETE_DESC": "Message ellavarkkum delete cheyyunnu",
-      "NOT_ADMIN": "_Njan admin alla!_"
+      "NOT_ADMIN": "_Njan admin alla!_",
+      "ONLY_OWN": "_Groupinu purathu swantham messages mathrame delete cheyyan pattu_"
     },
     "filter": {
       "OWNER_SCOPE": "_{} filters manage cheyyan owner-ku matrame pattoo._",
@@ -1524,4 +1526,4 @@
       "CANCEL_HINT": "_Nirtthan {p}hatch cancel ayakku_"
     }
   }
-}
+}

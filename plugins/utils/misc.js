@@ -23,17 +23,16 @@ function isNumeric(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-async function isAdmin(message, user = null) {
-  if (!user) {
-    user = message.client.user?.lid?.split(":")[0] + "@lid";
-  }
+const userOf = (jid) => jid?.split("@")[0].split(":")[0];
 
+async function isAdmin(message, user = null) {
+  // group member ids can be lids or phone numbers
+  const own = message.client.user;
+  const wanted = (user ? [user] : [own?.lid, own?.id]).map(userOf).filter(Boolean);
   const metadata = await message.client.groupMetadata(message.jid);
-  const admins = metadata.participants
-    .filter((v) => v.admin !== null)
-    .map((x) => x.id);
-  const me = user.split("@")[0];
-  return admins.filter((s) => s.includes(me)).length > 0;
+  return metadata.participants.some(
+    (p) => p.admin !== null && [p.id, p.lid, p.phoneNumber].some((jid) => wanted.includes(userOf(jid)))
+  );
 }
 
 function mentionjid(jid) {

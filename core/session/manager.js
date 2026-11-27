@@ -10,6 +10,7 @@ const hatchery = require("./hatchery");
 const { version } = require("../../package.json");
 
 const RECENT_ANNOUNCEMENTS = 50;
+const SHUTDOWN_SETTLE_MS = 500;
 
 class BotManager {
     constructor() {
@@ -143,21 +144,6 @@ class BotManager {
             this.feed = null;
         }
 
-    try {
-      stopFlushTimer();
-      await flushQueueOnShutdown();
-    } catch (err) {
-      logger.error({ err }, "Failed to flush message queue during shutdown");
-    }
-
-    try {
-      logger.info("Saving all session data before shutdown...");
-      await CustomAuthState.saveAllSessions();
-      logger.info("All session data saved successfully");
-    } catch (error) {
-      logger.error({ err: error }, "Error saving sessions during shutdown");
-    }
-
         for (const [sessionId, bot] of this.bots.entries()) {
             try {
                 await bot.disconnect(false); 
@@ -167,6 +153,22 @@ class BotManager {
             }
         }
         this.bots.clear(); 
+        await new Promise((resolve) => setTimeout(resolve, SHUTDOWN_SETTLE_MS));
+
+        try {
+            stopFlushTimer();
+            await flushQueueOnShutdown();
+        } catch (err) {
+            logger.error({ err }, "Failed to flush message queue during shutdown");
+        }
+
+        try {
+            logger.info("Saving all session data before shutdown...");
+            await CustomAuthState.saveAllSessions();
+            logger.info("All session data saved successfully");
+        } catch (error) {
+            logger.error({ err: error }, "Error saving sessions during shutdown");
+        }
 
         try {
             CustomAuthState.stopPeriodicSave();

@@ -638,6 +638,7 @@
       "NO_RENDER_KEY": "_缺少 RENDER_API_KEY！_",
       "RENDER_BETA": "_已为测试版更新启动 Render 部署！_",
       "RENDER": "_已启动 Render 部署！_",
+      "RENDER_FAILED": "_Render 部署失败：{}_",
       "KOYEB": "_请访问托管平台并点击部署以更新。_",
       "NEEDS_REDEPLOY": "_此更新需要新的模块，但无法在此主机上安装。请在托管平台的控制台重新部署机器人以获取更新。_",
       "DIRTY": "_更新已取消。以下文件在本地已被修改，更新会覆盖它们：_\n\n{}\n\n_请还原这些文件，或使用 \"{p}update {} force\" 强制更新。_",
@@ -906,7 +907,8 @@
       "VV_DESC": "防单次查看",
       "NOT_VV": "_这不是单次查看消息！_",
       "DELETE_DESC": "为所有人删除消息",
-      "NOT_ADMIN": "_我不是管理员！_"
+      "NOT_ADMIN": "_我不是管理员！_",
+      "ONLY_OWN": "_在群组之外，只能删除自己的消息_"
     },
     "filter": {
       "OWNER_SCOPE": "_只有机主可以管理{}过滤器。_",
