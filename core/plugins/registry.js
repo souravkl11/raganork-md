@@ -112,11 +112,11 @@ function Module(info, func) {
     commandInfo.pattern = compilePattern(info);
   }
 
-  // non-enumerable to keep the Object.keys shape plugins expect
   const hidden = (name, value) =>
     Object.defineProperty(commandInfo, name, { value, enumerable: false, writable: true });
   hidden("source", currentSource);
   if (typeof info.name === "string" && info.name.trim()) hidden("name", info.name.trim());
+  if (info.bypassQueue) hidden("bypassQueue", true);
   if (commandInfo.pattern !== undefined) {
     hidden("rawPattern", info.pattern);
     hidden("useHandler", info.handler ?? true);

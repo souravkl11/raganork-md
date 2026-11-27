@@ -7,6 +7,7 @@ Module(
   {
     pattern: "reload",
     fromMe: true,
+    bypassQueue: true,
     excludeFromCommands: true,
   },
   async (m) => {
@@ -19,6 +20,7 @@ Module(
   {
     pattern: "reboot",
     fromMe: true,
+    bypassQueue: true,
     excludeFromCommands: true,
   },
   async (m) => {
@@ -31,6 +33,7 @@ Module(
   {
     pattern: "restart",
     fromMe: true,
+    bypassQueue: true,
     desc: Lang.RESTART_DESC,
     use: "system",
   },
@@ -44,6 +47,7 @@ Module(
   {
     pattern: "log(?: |$)(.*)",
     fromMe: true,
+    bypassQueue: true,
     desc: Lang.LOG_DESC,
     use: "system",
   },

@@ -194,10 +194,9 @@ async function prepare(cmd, env, disabled, pattern) {
   };
 }
 
-// enqueue before any await so queue order is arrival order, not receipt-ack order
 function runCommand(cmd, env, disabled, pattern) {
   const prepared = prepare(cmd, env, disabled, pattern);
-  if (!isUserCommand(cmd)) return prepared.then((run) => run?.());
+  if (!isUserCommand(cmd) || cmd.bypassQueue) return prepared.then((run) => run?.());
   prepared.catch(() => {});
   return queue(
     `${context.accountId() || "_"}:${env.jid}`,
