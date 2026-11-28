@@ -6,6 +6,7 @@ const path = require("path");
 const { execFileSync } = require("child_process");
 const { commands, commandName, withSource, unload } = require("../core/plugins/registry");
 const { PluginDB, installPlugin } = require("./sql/plugin");
+const { hostOnly } = require("./utils/guards");
 let { getString } = require("./utils/lang");
 let Lang = getString("external_plugin");
 
@@ -193,6 +194,7 @@ Module(
     desc: Lang.INSTALL_DESC,
   },
   async (message, match) => {
+    if (!(await hostOnly(message))) return;
     match = match[1] !== "" ? match[1] : message.reply_message.text;
     if (!match || !/\bhttps?:\/\/\S+/gi.test(match))
       return await message.send(Lang.NEED_URL);
@@ -260,6 +262,7 @@ Module(
     desc: Lang.PLUGIN_DESC,
   },
   async (message, match) => {
+    if (!(await hostOnly(message))) return;
     var plugins = await PluginDB.findAll();
     if (match[1] !== "") {
       var plugin = plugins.filter(
@@ -302,6 +305,7 @@ Module(
     desc: Lang.REMOVE_DESC,
   },
   async (message, match) => {
+    if (!(await hostOnly(message))) return;
     if (match[1] === "") return await message.send(Lang.NEED_PLUGIN);
     if (await isShippedFile(match[1])) {
       await PluginDB.sync();
@@ -340,6 +344,7 @@ Module(
     desc: Lang.PUPDATE_DESC,
   },
   async (m, match) => {
+    if (!(await hostOnly(m))) return;
     const plugin = match[1];
     if (!plugin) return await m.send(Lang.NEED_PLUGIN);
     if (!NAME_RE.test(plugin)) return await m.send(INVALID_NAME);

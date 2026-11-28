@@ -22,8 +22,8 @@ const { normalize } = require("./normalize");
 const { dispatch } = require("./dispatcher");
 
 const middleware = [
-  require("./middleware/receipts"),
   require("./middleware/blocklist"),
+  require("./middleware/receipts"),
   require("./middleware/store"),
   require("./middleware/antibot"),
   require("./middleware/antispam"),

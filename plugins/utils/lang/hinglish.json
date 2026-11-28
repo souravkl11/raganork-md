@@ -990,7 +990,6 @@
       "STILL_WARNED": "Abhi bhi warnings hain",
       "REMOVE_FAILED": "_Warning hata nahi paayi!_",
       "RESETWARN_DESC": "User ki sab warnings reset karo",
-      "RESET_NEED_ADMIN": "_Warnings reset karne ke liye admin rights chahiye!_",
       "NOTHING_TO_RESET": "ℹ *Koi Warning Nahi*\n\n- User: `@{}`\n- Status: `Reset karne ke liye koi warning nahi`",
       "RESET": "✓ *Warnings reset ho gayi!*\n\n- User: `@{}`\n- Hataya: `{} warning(s)`\n- Status: `Saaf record`",
       "RESET_FAILED": "_Warnings reset nahi ho paayi!_",
@@ -1460,6 +1459,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_Ye sirf group command hai!_",
+      "HOST_ONLY": "_Sirf main bot hi ye command chala sakta hai._",
       "NOT_ADMIN": "_Main admin nahi hoon!_",
       "NEVER": "Kabhi nahi",
       "YEARS_AGO": "{} saal pehle",

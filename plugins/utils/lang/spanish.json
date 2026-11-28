@@ -990,7 +990,6 @@
       "STILL_WARNED": "Aún tiene advertencias",
       "REMOVE_FAILED": "_¡No se pudo quitar la advertencia!_",
       "RESETWARN_DESC": "Reinicia todas las advertencias de un usuario",
-      "RESET_NEED_ADMIN": "_¡Necesitas permisos de admin para reiniciar advertencias!_",
       "NOTHING_TO_RESET": "ℹ *Sin advertencias*\n\n- Usuario: `@{}`\n- Estado: `No hay advertencias que reiniciar`",
       "RESET": "✓ *¡Advertencias reiniciadas!*\n\n- Usuario: `@{}`\n- Quitadas: `{} advertencia(s)`\n- Estado: `Historial limpio`",
       "RESET_FAILED": "_¡No se pudieron reiniciar las advertencias!_",
@@ -1460,6 +1459,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_¡Este es un comando de grupo!_",
+      "HOST_ONLY": "_Solo el bot principal puede ejecutar esto._",
       "NOT_ADMIN": "_¡No soy administrador!_",
       "NEVER": "Nunca",
       "YEARS_AGO": "hace {} años",

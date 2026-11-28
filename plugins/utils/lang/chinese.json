@@ -990,7 +990,6 @@
       "STILL_WARNED": "仍有警告",
       "REMOVE_FAILED": "_移除警告失败！_",
       "RESETWARN_DESC": "重置用户的所有警告",
-      "RESET_NEED_ADMIN": "_你需要管理员权限才能重置警告！_",
       "NOTHING_TO_RESET": "ℹ *没有警告*\n\n- 用户：`@{}`\n- 状态：`没有可重置的警告`",
       "RESET": "✓ *警告已重置！*\n\n- 用户：`@{}`\n- 已移除：`{} 次警告`\n- 状态：`记录良好`",
       "RESET_FAILED": "_重置警告失败！_",
@@ -1460,6 +1459,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_这是群组命令！_",
+      "HOST_ONLY": "_只有主机器人可以运行此命令。_",
       "NOT_ADMIN": "_我不是管理员！_",
       "NEVER": "从不",
       "YEARS_AGO": "{} 年前",

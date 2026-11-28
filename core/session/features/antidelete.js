@@ -52,6 +52,11 @@ async function handleAntiDelete(bot, update) {
 
     // a status posted from the bot's phone carries our lid without fromMe
     const own = recovered.key?.fromMe || (isStatus && isOwnStatus(recovered.key, bot.sock));
+    // we deleted someone else's message (antispam, antilink, .del): don't put it back
+    if (update.update?.key?.fromMe && !own) {
+      recentlyRecovered.delete(dedupeKey);
+      return;
+    }
     if (own && String(config.ANTI_DELETE_OWN) !== "true") {
       recentlyRecovered.delete(dedupeKey);
       return;

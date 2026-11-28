@@ -599,9 +599,9 @@ async function getFiltersByScope(scope, jid = null) {
 }
 
 async function checkFilterMatch(text, jid) {
-  if (!text) return null;
+  if (!text || !jid || jid === "status@broadcast" || jid.endsWith("@newsletter")) return null;
 
-  const dmOrGroup = jid.includes("@g.us") ? "group" : "dm";
+  const dmOrGroup = jid.endsWith("@g.us") ? "group" : "dm";
   const filters = (await enabledFilters()).filter(
     (f) =>
       (f.scope === "chat" && f.jid === jid) ||

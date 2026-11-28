@@ -991,7 +991,6 @@
       "STILL_WARNED": "Innum warnings undu",
       "REMOVE_FAILED": "_Warning maattan pattiyilla!_",
       "RESETWARN_DESC": "Oru userinte ella warningsum reset cheyyu",
-      "RESET_NEED_ADMIN": "_Warnings reset cheyyan admin aayirikkanam!_",
       "NOTHING_TO_RESET": "ℹ *No Warnings*\n\n- User: `@{}`\n- Status: `Reset cheyyan warnings illa`",
       "RESET": "✓ *Warnings Reset aayi!*\n\n- User: `@{}`\n- Maattiyath: `{} warning(s)`\n- Status: `Clean record`",
       "RESET_FAILED": "_Warnings reset cheyyan pattiyilla!_",
@@ -1461,6 +1460,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_Ithu oru group command aanu!_",
+      "HOST_ONLY": "_Main botinu mathrame ithu cheyyan pattu._",
       "NOT_ADMIN": "_Njan admin alla!_",
       "NEVER": "Ippozhum illa",
       "YEARS_AGO": "{} varsham mumpu",

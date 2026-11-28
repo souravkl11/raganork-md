@@ -3,6 +3,7 @@ const platform = require("../core/platform");
 const lifecycle = require("../core/lifecycle");
 const { updater } = require("../core/services/updater");
 const { helpPrefix } = require("../core/plugins/registry");
+const { hostOnly } = require("./utils/guards");
 const { getString } = require("./utils/lang");
 const Lang = getString("update");
 
@@ -14,6 +15,7 @@ Module(
     use: "owner",
   },
   async (message, match) => {
+    if (!(await hostOnly(message))) return;
     if (!(await updater.adoptZip())) {
       return await message.sendReply(
         Lang.NO_GIT

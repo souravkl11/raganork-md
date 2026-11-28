@@ -990,7 +990,6 @@
       "STILL_WARNED": "Still has warnings",
       "REMOVE_FAILED": "_Failed to remove warning!_",
       "RESETWARN_DESC": "Reset all warnings for a user",
-      "RESET_NEED_ADMIN": "_You need admin privileges to reset warnings!_",
       "NOTHING_TO_RESET": "ℹ *No Warnings*\n\n- User: `@{}`\n- Status: `No warnings to reset`",
       "RESET": "✓ *Warnings Reset!*\n\n- User: `@{}`\n- Removed: `{} warning(s)`\n- Status: `Clean record`",
       "RESET_FAILED": "_Failed to reset warnings!_",
@@ -1460,6 +1459,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_This is a group command!_",
+      "HOST_ONLY": "_Only the main bot can run this._",
       "NOT_ADMIN": "_I'm not an admin!_",
       "NEVER": "Never",
       "YEARS_AGO": "{} years ago",

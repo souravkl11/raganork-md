@@ -217,7 +217,7 @@ Module(
   },
   async (message) => {
     try {
-      if (message.fromBot) return;
+      if (message.fromMe || message.fromBot) return;
       if (
         !message.mention ||
         !Array.isArray(message.mention) ||

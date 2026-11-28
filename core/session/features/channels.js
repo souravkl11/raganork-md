@@ -2,20 +2,32 @@ const fs = require("fs");
 const { loadBaileys, convertToOgg, toBuffer } = require("../../helpers");
 
 // baileys keeps fromMe false for channel posts; the stanza's is_sender says who posted
-const ownPosts = new Set();
+const ownPosts = new WeakMap();
+
+function postSet(sock) {
+  let set = ownPosts.get(sock);
+  if (!set) {
+    set = new Set();
+    ownPosts.set(sock, set);
+  }
+  return set;
+}
 
 function trackOwnChannelPosts(sock) {
   sock?.ws?.on?.("CB:message", (node) => {
     const a = node?.attrs;
     if (!a?.id || a.is_sender !== "true" || !a.from?.endsWith("@newsletter")) return;
-    ownPosts.add(a.id);
-    if (ownPosts.size > 500) ownPosts.delete(ownPosts.values().next().value);
+    const set = postSet(sock);
+    set.add(a.id);
+    if (set.size > 500) set.delete(set.values().next().value);
   });
 }
 
-function markOwnChannelPost(msg) {
+function markOwnChannelPost(msg, sock) {
   const key = msg?.key;
-  if (key?.remoteJid?.endsWith("@newsletter") && ownPosts.delete(key.id)) key.fromMe = true;
+  if (key?.remoteJid?.endsWith("@newsletter") && ownPosts.get(sock)?.delete(key.id)) {
+    key.fromMe = true;
+  }
   return msg;
 }
 

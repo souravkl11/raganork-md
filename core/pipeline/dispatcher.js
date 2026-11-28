@@ -6,8 +6,8 @@ const { Message, Image, Video } = require("../constructors");
 const { commands, patternFor, commandName, currentHandlerPrefix } = require("../plugins/registry");
 const { derived } = require("../config/derived");
 const { parseBool } = require("../config/store");
-const { isOwner } = require("../identity");
-const { parseText } = require("./normalize");
+const { isOwner, isStatus } = require("../identity");
+const { parseText, isControlMessage } = require("./normalize");
 const { classify, POLICY } = require("./errors");
 const { createQueue } = require("./queue");
 
@@ -54,7 +54,9 @@ const queue = createQueue({
 });
 
 function matches(cmd, env, pattern = cmd.pattern) {
-  const { msg, text, parsedText } = env;
+  const { msg, text, parsedText, jid } = env;
+  if (cmd.on && (isStatus(jid) || jid.endsWith("@newsletter"))) return false;
+  if (cmd.on && cmd.on !== "group-update" && isControlMessage(msg.message)) return false;
   const patternOk = pattern === undefined || pattern.test(parsedText);
   return Boolean(
     ((cmd.on === "image" || cmd.on === "photo") && msg.message && msg.message.imageMessage !== null && patternOk) ||
@@ -72,6 +74,7 @@ function matches(cmd, env, pattern = cmd.pattern) {
 }
 
 const isOwnerMessage = (env) => Boolean(env.fromMe) || isOwner(env.sender, env.sock);
+const answersTo = (env) => !config.isPrivate || isOwnerMessage(env);
 
 function permitted(cmd, env) {
   if (cmd.on === "group-update") return true;
@@ -82,9 +85,10 @@ function permitted(cmd, env) {
 const nameOf = commandName;
 
 const isUserCommand = (cmd) => Boolean(cmd.pattern && !cmd.on);
-// the key stays a string, so ".setvar CMD_REACTION=false" would otherwise be truthy
-const showReactions = (cmd) =>
-  isUserCommand(cmd) && (parseBool(config.CMD_REACTION) ?? Boolean(config.CMD_REACTION));
+const showReactions = (cmd, env) =>
+  isUserCommand(cmd) &&
+  (parseBool(config.CMD_REACTION) ?? Boolean(config.CMD_REACTION)) &&
+  answersTo(env);
 
 async function react(env, cmd, emoji) {
   try {
@@ -94,7 +98,6 @@ async function react(env, cmd, emoji) {
   }
 }
 
-// DB errors repeat on every message while it's down: log at most once a minute
 const INFRA_LOG_INTERVAL = 60_000;
 let infraLoggedAt = 0;
 let infraSkipped = 0;
@@ -112,7 +115,7 @@ function logInfra(cmd, error) {
 
 async function handleError(cmd, env, error) {
   const crossed = await reportError(cmd, env, error);
-  if (!crossed && showReactions(cmd)) await react(env, cmd, "");
+  if (!crossed && showReactions(cmd, env)) await react(env, cmd, "");
 }
 
 async function reportError(cmd, env, error) {
@@ -129,10 +132,11 @@ async function reportError(cmd, env, error) {
     config.logger?.debug?.({ err: error?.message }, "command failed on a connection error");
   }
   if (config.DEBUG) console.log(error);
+  const quiet = !answersTo(env);
   // owners see bug/rate-limit text so they can debug plugins
   const ownerSees = (kind === "bug" || kind === "rate-limit") && isOwnerMessage(env);
   // listeners run on messages not addressed to the bot, so never post their errors
-  if (isUserCommand(cmd) && (policy.reply || ownerSees) && error?.message?.trim()) {
+  if (!quiet && isUserCommand(cmd) && (policy.reply || ownerSees) && error?.message?.trim()) {
     try {
       await env.sock.sendMessage(
         env.jid,
@@ -143,7 +147,7 @@ async function reportError(cmd, env, error) {
       return false;
     }
   }
-  if (!policy.react || !isUserCommand(cmd)) return false;
+  if (quiet || !policy.react || !isUserCommand(cmd)) return false;
   await react(env, cmd, "❌");
   return true;
 }
@@ -158,18 +162,20 @@ function build(cmd, env) {
 
 async function prepare(cmd, env, disabled, pattern) {
   const { msg, sock, jid } = env;
-  if (!config.READ_MESSAGES && config.READ_COMMAND && cmd.on === undefined) {
+  if (!config.READ_MESSAGES && config.READ_COMMAND && cmd.on === undefined && answersTo(env)) {
     await sock.readMessages([msg.key]);
   }
   if (cmd.pattern && disabled.includes(nameOf(cmd))) {
-    await sock.sendMessage(
-      jid,
-      { text: "_The command you are trying to execute is currently disabled by owner!_" },
-      { quoted: msg },
-    );
+    if (answersTo(env)) {
+      await sock.sendMessage(
+        jid,
+        { text: "_The command you are trying to execute is currently disabled by owner!_" },
+        { quoted: msg },
+      );
+    }
     return null;
   }
-  if (showReactions(cmd)) await react(env, cmd, "🔃");
+  if (showReactions(cmd, env)) await react(env, cmd, "🔃");
   const match = env.text ? env.parsedText.match(pattern) : null;
 
   let whats;
@@ -187,7 +193,7 @@ async function prepare(cmd, env, disabled, pattern) {
   return async () => {
     try {
       await cmd.function(whats, match);
-      if (showReactions(cmd)) await react(env, cmd, "✅");
+      if (showReactions(cmd, env)) await react(env, cmd, "✅");
     } catch (error) {
       await handleError(cmd, env, error);
     }
@@ -224,4 +230,4 @@ function dispatch(env) {
   }
 }
 
-module.exports = { dispatch, matches, permitted, runCommand, handleError, queue, parseAliases, applyAlias };
+module.exports = { dispatch, matches, permitted, answersTo, runCommand, handleError, queue, parseAliases, applyAlias };

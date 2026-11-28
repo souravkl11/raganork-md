@@ -247,6 +247,19 @@ class Message extends Base {
       delete payload.text;
     }
 
+    // statuses only play voice notes (mono opus ogg, ptt); plain audio files don't render
+    if (payload.audio) {
+      const baileys = await loadBaileys();
+      const { toBuffer, convertToOgg } = require("../helpers");
+      const ogg = await convertToOgg(await toBuffer(payload.audio), { voice: true });
+      payload.audio = ogg;
+      payload.ptt = true;
+      payload.mimetype = "audio/ogg; codecs=opus";
+      payload.seconds ??= Math.round((await baileys.getAudioDuration(ogg).catch(() => 0)) || 0);
+      payload.waveform ??= await baileys.getAudioWaveform(ogg).catch(() => undefined);
+      delete payload.text;
+    }
+
     const userJid = this.client.user?.id || this.client.user?.jid;
     const waMsgContent =
       payload.message && typeof payload.message === "object"

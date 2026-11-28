@@ -2,6 +2,7 @@ const { Module } = require("../main");
 const config = require("../config");
 const { handleSettingsReply } = require("./manage");
 const { helpPrefix } = require("../core/plugins/registry");
+const { hostOnly } = require("./utils/guards");
 const { getString } = require("./utils/lang");
 const Lang = getString("owner_tools");
 
@@ -54,6 +55,7 @@ Module(
     if (await handleSettingsReply(message)) return;
     // the registration also lets sudo users in; eval is the bot account's alone
     if (message.fromMe && !config.DISABLE_EVAL && message.message?.startsWith(">")) {
+      if (!(await hostOnly(message, { silent: true }))) return;
       var m = message;
       const util = require("util");
       const js = (x) => JSON.stringify(x, null, 2);

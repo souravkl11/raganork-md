@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const net = require("node:net");
 const config = require("../../config");
 const context = require("../../core/context");
+const { isHatchedId } = require("../../core/session/hatchery");
 const { uniqueTempPath } = require("../../core/helpers");
 const { isAdmin } = require("./misc");
 const { getString } = require("./lang");
@@ -10,7 +11,7 @@ const Lang = getString("utils");
 
 async function groupAdminGuard(message, { botAdmin = false, ownerOnly = false } = {}) {
   if (!message.isGroup) {
-    await message.sendReply(Lang.GROUP_ONLY);
+    if (message.fromOwner) await message.sendReply(Lang.GROUP_ONLY);
     return false;
   }
   const allowed =
@@ -22,6 +23,14 @@ async function groupAdminGuard(message, { botAdmin = false, ownerOnly = false } 
     return false;
   }
   return true;
+}
+
+// hatched bots may belong to another user, so block host-wide operations
+async function hostOnly(message, { silent = false } = {}) {
+  const sessionId = context.current()?.sessionId ?? context.current()?.bot?.sessionId;
+  if (!isHatchedId(sessionId)) return true;
+  if (!silent && message?.sendReply) await message.sendReply(Lang.HOST_ONLY);
+  return false;
 }
 
 const cooling = new Map();
@@ -132,6 +141,7 @@ async function isPublicHttpUrl(urlString) {
 
 module.exports = {
   groupAdminGuard,
+  hostOnly,
   cooldown,
   accountKey,
   withTempFile,

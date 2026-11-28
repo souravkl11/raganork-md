@@ -1,9 +1,15 @@
 const { Module } = require("../main");
 const { cooldown, accountKey, timeSince } = require("./utils");
 const config = require("../config");
+const { botIds } = require("../core/identity");
 const { setVar } = require("./manage");
 const { getString } = require("./utils/lang");
 const Lang = getString("afk");
+
+const ownerLid = (message) => {
+  const { lid, lidNumber } = botIds(message.client);
+  return lidNumber ? lid : null;
+};
 
 const NOTICE_COOLDOWN_MS = 5 * 60 * 1000;
 
@@ -145,7 +151,8 @@ Module(
     usage: Lang.CMD_USAGE,
   },
   async (message, match) => {
-    const userJid = message.sender;
+    // in a DM we sent, message.sender is the peer, not the owner
+    const userJid = message.fromMe ? (ownerLid(message) || message.sender) : message.sender;
     const input = match[1]?.trim();
 
     if (input?.toLowerCase() === "list") {
@@ -205,7 +212,8 @@ Module(
   async (message) => {
     try {
       if (message.fromBot) return;
-      const senderJid = message.sender;
+      const botOwnerJid = ownerLid(message);
+      const senderJid = message.fromMe && botOwnerJid ? botOwnerJid : message.sender;
       const chatJid = message.jid;
       const isGroup = message.isGroup;
       const isDM = !isGroup;
@@ -254,8 +262,7 @@ Module(
         }
       }
 
-      if (isDM) {
-        const botOwnerJid = message.client.user?.lid?.split(":")[0] + "@lid";
+      if (isDM && !message.fromMe) {
         if (botOwnerJid && isAFK(botOwnerJid)) {
           const afkData = getAFKData(botOwnerJid);
           await incrementMessageCount(botOwnerJid);

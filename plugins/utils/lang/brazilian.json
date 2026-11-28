@@ -990,7 +990,6 @@
       "STILL_WARNED": "Ainda tem advertências",
       "REMOVE_FAILED": "_Falha ao remover a advertência!_",
       "RESETWARN_DESC": "Zera todas as advertências de um usuário",
-      "RESET_NEED_ADMIN": "_Você precisa ser admin para zerar advertências!_",
       "NOTHING_TO_RESET": "ℹ *Nenhuma advertência*\n\n- Usuário: `@{}`\n- Status: `Nenhuma advertência para zerar`",
       "RESET": "✓ *Advertências zeradas!*\n\n- Usuário: `@{}`\n- Removidas: `{} advertência(s)`\n- Status: `Ficha limpa`",
       "RESET_FAILED": "_Falha ao zerar as advertências!_",
@@ -1460,6 +1459,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_Este é um comando de grupo!_",
+      "HOST_ONLY": "_Só o bot principal pode executar isto._",
       "NOT_ADMIN": "_Não sou admin!_",
       "NEVER": "Nunca",
       "YEARS_AGO": "há {} anos",

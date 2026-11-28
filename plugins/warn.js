@@ -248,8 +248,10 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    if (!message.isGroup)
-      return await message.sendReply(Lang.GROUP_ONLY);
+    if (!message.isGroup) {
+      if (message.fromOwner) await message.sendReply(Lang.GROUP_ONLY);
+      return;
+    }
 
     let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
@@ -304,15 +306,15 @@ Module(
     use: "group",
   },
   async (message, match) => {
-    if (!message.isGroup)
-      return await message.sendReply(Lang.GROUP_ONLY);
+    if (!message.isGroup) {
+      if (message.fromOwner) await message.sendReply(Lang.GROUP_ONLY);
+      return;
+    }
 
     let adminAccess = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
       : false;
-    if (!message.fromOwner && !adminAccess) {
-      return await message.sendReply(Lang.RESET_NEED_ADMIN);
-    }
+    if (!message.fromOwner && !adminAccess) return;
 
     const targetUser = message.mention?.[0] || message.reply_message?.jid;
     if (!targetUser) {

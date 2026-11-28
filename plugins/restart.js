@@ -1,5 +1,6 @@
 const { Module } = require("../main");
 const lifecycle = require("../core/lifecycle");
+const { hostOnly } = require("./utils/guards");
 const { getString } = require("./utils/lang");
 const Lang = getString("restart");
 
@@ -11,6 +12,7 @@ Module(
     excludeFromCommands: true,
   },
   async (m) => {
+    if (!(await hostOnly(m))) return;
     await m.sendReply(Lang.RELOADING);
     await lifecycle.restart("reload command");
   }
@@ -24,6 +26,7 @@ Module(
     excludeFromCommands: true,
   },
   async (m) => {
+    if (!(await hostOnly(m))) return;
     await m.sendReply(Lang.RELOADING);
     await lifecycle.restart("reboot command");
   }
@@ -38,6 +41,7 @@ Module(
     use: "system",
   },
   async (m) => {
+    if (!(await hostOnly(m))) return;
     await m.sendReply(Lang.RESTARTING);
     await lifecycle.restart("restart command");
   }
@@ -52,6 +56,7 @@ Module(
     use: "system",
   },
   async (m, match) => {
+    if (!(await hostOnly(m))) return;
     const { getLogs } = require("../core/logbuffer");
     const lines = Math.min(Math.max(parseInt(match[1]) || 300, 10), 5000);
     const sent = [];

@@ -990,7 +990,6 @@
       "STILL_WARNED": "Masih ada peringatan",
       "REMOVE_FAILED": "_Gagal menghapus peringatan!_",
       "RESETWARN_DESC": "Reset semua peringatan untuk pengguna",
-      "RESET_NEED_ADMIN": "_Kamu perlu hak admin untuk mereset peringatan!_",
       "NOTHING_TO_RESET": "ℹ *Tidak Ada Peringatan*\n\n- Pengguna: `@{}`\n- Status: `Tidak ada peringatan untuk direset`",
       "RESET": "✓ *Peringatan Direset!*\n\n- Pengguna: `@{}`\n- Dihapus: `{} peringatan`\n- Status: `Catatan bersih`",
       "RESET_FAILED": "_Gagal mereset peringatan!_",
@@ -1460,6 +1459,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_Ini adalah perintah grup!_",
+      "HOST_ONLY": "_Hanya bot utama yang bisa menjalankan ini._",
       "NOT_ADMIN": "_Saya bukan admin!_",
       "NEVER": "Tidak pernah",
       "YEARS_AGO": "{} tahun lalu",

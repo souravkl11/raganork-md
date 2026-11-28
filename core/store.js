@@ -446,12 +446,13 @@ async function storeMessage(msgData) {
 
 const spamKey = (userJid, chatJid) => `${context.accountId() || "_"}:${userJid}_${chatJid}`;
 
-async function trackSpamMessage(userJid, chatJid, messageId) {
+async function trackSpamMessage(userJid, chatJid, messageId, timestampMs = Date.now()) {
   if (!userJid || !chatJid || !messageId) return;
+  const ts = Number.isFinite(timestampMs) ? timestampMs : Date.now();
   const key = spamKey(userJid, chatJid);
   if (!spamTracker.has(key)) spamTracker.set(key, []);
   const entries = spamTracker.get(key);
-  entries.push({ ts: Date.now(), id: messageId });
+  entries.push({ ts, id: messageId });
   if (entries.length > 100) entries.shift();
 }
 

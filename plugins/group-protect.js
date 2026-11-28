@@ -806,7 +806,7 @@ async function checkAntilink(message) {
   const linkBlocked = foundLinks.some(
     (link) => !antilinkConfig.checkAllowed(link, antilinkConf)
   );
-  if (!linkBlocked || (await isAdmin(message, message.sender))) return;
+  if (!linkBlocked || message.fromOwner || (await isAdmin(message, message.sender))) return;
   if (!(await isAdmin(message))) return;
 
   const usr = message.sender;

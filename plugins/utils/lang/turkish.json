@@ -995,7 +995,6 @@
       "STILL_WARNED": "Hâlâ uyarısı var",
       "REMOVE_FAILED": "_Uyarı kaldırılamadı!_",
       "RESETWARN_DESC": "Bir kullanıcının tüm uyarılarını sıfırlar",
-      "RESET_NEED_ADMIN": "_Uyarıları sıfırlamak için yönetici yetkisine ihtiyacınız var!_",
       "NOTHING_TO_RESET": "ℹ *Uyarı Yok*\n\n- Kullanıcı: `@{}`\n- Durum: `Sıfırlanacak uyarı yok`",
       "RESET": "✓ *Uyarılar Sıfırlandı!*\n\n- Kullanıcı: `@{}`\n- Kaldırılan: `{} uyarı`\n- Durum: `Temiz kayıt`",
       "RESET_FAILED": "_Uyarılar sıfırlanamadı!_",
@@ -1465,6 +1464,7 @@
     },
     "utils": {
       "GROUP_ONLY": "_Bu bir grup komutudur!_",
+      "HOST_ONLY": "_Yalnızca ana bot bunu çalıştırabilir._",
       "NOT_ADMIN": "_Yönetici değilim!_",
       "NEVER": "Asla",
       "YEARS_AGO": "{} yıl önce",

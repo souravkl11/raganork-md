@@ -66,4 +66,12 @@ function parseText(text) {
   return splitText.charAt(0) + sCorrect.charAt(1).toLowerCase() + sCorrect.slice(2);
 }
 
-module.exports = { normalize, extractText, parseText };
+const CONTROL_TYPES = new Set(["protocolMessage", "reactionMessage", "encReactionMessage"]);
+
+function isControlMessage(message) {
+  const inner = message?.ephemeralMessage?.message || message;
+  // messageContextInfo can come first, so check every key
+  return Boolean(inner) && Object.keys(inner).some((type) => CONTROL_TYPES.has(type));
+}
+
+module.exports = { normalize, extractText, parseText, isControlMessage };

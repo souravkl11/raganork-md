@@ -7,14 +7,17 @@ async function handleCall(bot, callUpdate) {
     logger.info({ session: bot.sessionId }, `Incoming call.`);
     if (config.REJECT_CALLS === true) {
       const _call = callUpdate[0];
-      if (_call && _call.status === "offer") {
+      if (_call && _call.status === "offer" && !_call.offline) {
         const allowedCallers = config.ALLOWED_CALLS
-          ? config.ALLOWED_CALLS.split(",").map((num) => num.trim())
+          ? config.ALLOWED_CALLS.split(",").map((num) => num.trim()).filter(Boolean)
           : [];
-        const callerNumber = _call.from.split("@")[0];
+        const callerNumbers = [_call.from, _call.callerPn]
+          .filter(Boolean)
+          .map((jid) => jid.split("@")[0].split(":")[0]);
+        const callerNumber = callerNumbers[0] || "";
 
         const isAllowed = allowedCallers.some((allowed) =>
-          callerNumber.includes(allowed),
+          callerNumbers.some((num) => num.includes(allowed)),
         );
 
         if (!isAllowed) {

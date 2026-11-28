@@ -717,7 +717,8 @@ Module(
     if (groupJidMatch) {
       message.jid = groupJidMatch[1];
     } else if (!message.isGroup) {
-      return await message.sendReply(Lang.GROUP_COMMAND);
+      if (message.fromOwner) await message.sendReply(Lang.GROUP_COMMAND);
+      return;
     }
     const adminAccessValidated = config.ADMIN_ACCESS
       ? await isAdmin(message, message.sender)
@@ -1018,10 +1019,15 @@ Module(
     const hasTargetJid = !!jidMatch;
 
     if (!message.isGroup && !hasTargetJid) {
-      return await message.sendReply(
-        Lang.IN_DM_USE_GSTATUS_GROUP.replaceAll("{p}", helpPrefix())
-      );
+      if (message.fromOwner) {
+        await message.sendReply(
+          Lang.IN_DM_USE_GSTATUS_GROUP.replaceAll("{p}", helpPrefix())
+        );
+      }
+      return;
     }
+
+    if (hasTargetJid && !message.fromOwner) return;
 
     let adminAccesValidated = false;
     if (message.isGroup && config.ADMIN_ACCESS) {
@@ -1091,10 +1097,7 @@ Module(
 
       if (quoted?.audio) {
         const buffer = await quoted.download("buffer");
-        await sendGroupStatusToTarget({
-          audio: buffer,
-          mimetype: quoted.mimetype || "audio/mp4",
-        });
+        await sendGroupStatusToTarget({ audio: buffer });
         return await message.react("✅");
       }
 

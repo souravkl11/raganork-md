@@ -11,9 +11,16 @@ const {
   clearSpamTracker,
 } = require("../../store");
 const { derived } = require("../../config/derived");
-const { ownerTarget } = require("../../identity");
+const { ownerTarget, isOwner, isSudo } = require("../../identity");
 const config = require("../../../config");
 const { inSpamScope } = require("./scope");
+
+function messageTimestampMs(raw) {
+  if (raw === undefined || raw === null) return null;
+  const n = typeof raw?.toNumber === "function" ? raw.toNumber() : Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n > 1e12 ? n : n * 1000;
+}
 
 const antispamLimits = derived("ANTISPAM_COUNT", (raw) => {
   const [count, seconds] = String(raw || "5/60").split("/");
@@ -50,7 +57,17 @@ async function deleteMessages(sock, jid, participant, ids) {
 
 async function check(env) {
   const { msg, sock, jid, isPM, isGroup, type } = env;
+  if (
+    env.fromMe ||
+    isOwner(env.sender, sock) ||
+    [jid, msg.key.remoteJidAlt, msg.key.participant, msg.key.participantAlt].some((j) => isSudo(j))
+  ) {
+    return false;
+  }
   const { msgCount, msgTime } = antispamLimits();
+  // offline backlog replays old messages at once; skip anything older than the window
+  const msgTsMs = messageTimestampMs(msg.messageTimestamp);
+  if (msgTsMs !== null && Date.now() - msgTsMs > msgTime) return false;
   try {
     const antispamDb = await antispam.get();
     const antispamJids = antispamDb.map((data) => data.jid);
@@ -68,7 +85,7 @@ async function check(env) {
       punished.delete(punishKey);
     }
 
-    await trackSpamMessage(userJid, jid, msg.key.id);
+    await trackSpamMessage(userJid, jid, msg.key.id, msgTsMs ?? Date.now());
     const recentCount = await getRecentMessageCount(userJid, jid, msgTime);
     if (recentCount < msgCount) return false;
 

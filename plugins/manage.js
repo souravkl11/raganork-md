@@ -19,7 +19,7 @@ function containsDisallowedWords(str, disallowedWords, { wholeWord = false } = {
 }
 
 const { Module } = require("../main");
-const { filter, groupAdminGuard } = require("./utils");
+const { filter, groupAdminGuard, hostOnly } = require("./utils");
 const config = require("../config");
 const catalog = require("../core/config/catalog");
 const ui = require("../core/ui");
@@ -145,6 +145,10 @@ Module(
       );
     }
 
+    // SESSION and DATABASE_URL live in the base config, not only process.env
+    const hostValue = config.getSource(key) === "environment" || isSecretKey(key);
+    if (hostValue && !(await hostOnly(message))) return;
+
     const variable = config[key];
     if (variable !== undefined && variable !== null && variable !== "") {
       await message.sendReply(
@@ -191,6 +195,7 @@ Module(
     usage: ".setenv MY_VAR=some_value",
   },
   async (message, args) => {
+    if (!(await hostOnly(message))) return;
     const input = args[1];
     if (!input || !input.includes("=")) {
       return await message.sendReply(
@@ -246,6 +251,7 @@ Module(
     use: "owner",
   },
   async (message, match) => {
+    if (!(await hostOnly(message))) return;
     try {
       const keys = config.getDynamicKeys().sort();
       if (keys.length === 0) {

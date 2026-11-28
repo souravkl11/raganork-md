@@ -3,7 +3,7 @@ const { logger } = config;
 const { groupUpdate, handler } = require("../handler");
 const { handleCall } = require("./features/calls");
 const { ANTI_DELETE_MODES } = require("./features/antidelete");
-const { readEncryptedEdit } = require("./features/message-edit");
+const { readEncryptedEdit, trackOwnEdits, isOwnEdit } = require("./features/message-edit");
 const { bridgeStatusStanzas, logGroupFrames } = require("./features/status-stanza");
 const { debugOn } = require("../helpers");
 const { trackOwnChannelPosts, markOwnChannelPost, patchChannelSend } = require("./features/channels");
@@ -14,6 +14,7 @@ function wireEvents(bot) {
   logGroupFrames(bot.sock);
   trackOwnChannelPosts(bot.sock);
   patchChannelSend(bot.sock);
+  trackOwnEdits(bot);
   bot._on("creds.update", async (newCreds) => {
     try {
       logger.info(
@@ -55,7 +56,7 @@ function wireEvents(bot) {
 
   bot._on("messages.upsert", async (upsert) => {
     for (const message of upsert.messages) {
-      markOwnChannelPost(message);
+      markOwnChannelPost(message, bot.sock);
       forgetRevoked(bot, message);
       if (message.key && message.key.id && message.key.remoteJid) {
         const cacheKey = `${message.key.remoteJid}_${message.key.id}`;
@@ -109,6 +110,7 @@ function wireEvents(bot) {
 
       try {
         if (update.update?.message?.editedMessage) {
+          if (isOwnEdit(bot, update.key.id)) continue;
           const newMessageObject = {
             key: update.key,
             message: update.update.message.editedMessage.message,

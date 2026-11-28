@@ -82,4 +82,46 @@ async function readEncryptedEdit(bot, msg) {
   return { edited: null, reason: "could not decrypt" };
 }
 
-module.exports = { readEncryptedEdit, decryptEdit };
+const MAX_OWN_EDITS = 500;
+const ownEditsByBot = new WeakMap();
+const trackedSocks = new WeakSet();
+
+function ownEditSet(bot) {
+  let set = ownEditsByBot.get(bot);
+  if (!set) {
+    set = new Set();
+    ownEditsByBot.set(bot, set);
+  }
+  return set;
+}
+
+function recordOwnEdit(bot, id) {
+  if (!bot || !id) return;
+  const set = ownEditSet(bot);
+  if (set.has(id)) return;
+  set.add(id);
+  if (set.size > MAX_OWN_EDITS) set.delete(set.values().next().value);
+}
+
+const isOwnEdit = (bot, id) => Boolean(bot && id && ownEditsByBot.get(bot)?.has(id));
+
+// record target ids of edits this socket sends so emitOwnEvents doesn't re-dispatch them as owner commands
+function trackOwnEdits(bot) {
+  const sock = bot?.sock;
+  const send = sock?.sendMessage;
+  if (!send || trackedSocks.has(sock)) return;
+  trackedSocks.add(sock);
+  sock.sendMessage = async (jid, content, options) => {
+    const editId = content?.edit?.id;
+    const wasTracked = editId && ownEditSet(bot).has(editId);
+    if (editId) recordOwnEdit(bot, editId);
+    try {
+      return await send.call(sock, jid, content, options);
+    } catch (err) {
+      if (editId && !wasTracked) ownEditsByBot.get(bot)?.delete(editId);
+      throw err;
+    }
+  };
+}
+
+module.exports = { readEncryptedEdit, decryptEdit, trackOwnEdits, isOwnEdit };
