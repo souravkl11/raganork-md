@@ -7,12 +7,10 @@ const { extractViewOnce } = require("./utils/viewonce");
 const { getString } = require("./utils/lang");
 const Lang = getString("autovv");
 
-// forwards incoming view-once messages to VV_AUTO_JID. needs the android browser:
-// browser companions never receive view-once media.
-
 const isAndroid = isAndroidBrowser;
 const ANDROID_PROMPT_MARK = Lang.ANDROID_PROMPT_MARK;
 const ANDROID_NOTICE = Lang.ANDROID_NOTICE.format(ANDROID_PROMPT_MARK);
+const SAME_CHAT = "chat";
 
 // dedupes retries/reconnect redeliveries
 const recent = new Set();
@@ -50,7 +48,11 @@ Module(
     if (!arg || arg.toLowerCase() === "status") {
       return await m.sendReply(
         Lang.STATUS.format(
-          current ? Lang.STATUS_ON.format(current) : Lang.STATUS_OFF,
+          current === SAME_CHAT
+            ? Lang.STATUS_CHAT
+            : current
+              ? Lang.STATUS_ON.format(current)
+              : Lang.STATUS_OFF,
           isAndroid() ? Lang.BROWSER_ANDROID : Lang.BROWSER_OTHER
         )
       );
@@ -61,7 +63,8 @@ Module(
       return await m.sendReply(Lang.OFF);
     }
 
-    const target = normalizeJid(arg, m.jid);
+    const sameChat = arg.toLowerCase() === SAME_CHAT;
+    const target = sameChat ? SAME_CHAT : normalizeJid(arg, m.jid);
     if (!target) {
       return await m.sendReply(
         Lang.INVALID_CHAT
@@ -69,7 +72,7 @@ Module(
     }
     await setVar("VV_AUTO_JID", target);
     return await m.sendReply(
-      Lang.ON.format(target) + (isAndroid() ? "" : `\n\n⚠️ ${ANDROID_NOTICE}`)
+      (sameChat ? Lang.CHAT_ON : Lang.ON.format(target)) + (isAndroid() ? "" : `\n\n⚠️ ${ANDROID_NOTICE}`)
     );
   }
 );
@@ -111,9 +114,25 @@ async function forward(m, target, vv, msgId, origSender) {
   await m.forwardMessage(target, fake, options);
 }
 
+// same-chat mode: re-send it quoting the original, no info header
+async function resend(m, vv, msgId, origSender) {
+  const quote = { stanzaId: msgId, participant: origSender, quotedMessage: m.data.message };
+  if (vv.isText) {
+    return await m.client.sendMessage(m.jid, { text: vv.text, contextInfo: quote });
+  }
+  const fake = { key: { remoteJid: m.jid, id: msgId }, message: vv.message };
+  const options = { contextInfo: quote };
+  const caption = vv.message[vv.type].caption;
+  if (caption) options.caption = caption;
+  await m.forwardMessage(m.jid, fake, options);
+}
+
 Module({ on: "message", fromMe: false }, async (m) => {
   const target = config.VV_AUTO_JID;
   if (!target || typeof target !== "string") return;
+  const sameChat = target === SAME_CHAT;
+  // statuses and channels have no chat to send it back to
+  if (sameChat && !/@(g\.us|s\.whatsapp\.net|lid)$/.test(m.jid || "")) return;
 
   const key = m.data?.key;
   if (!key?.id || key.fromMe) return;
@@ -123,7 +142,9 @@ Module({ on: "message", fromMe: false }, async (m) => {
   const sentKey = `${context.accountId() || "_"}:${key.id}`;
   if (!firstTime(sentKey)) return;
   try {
-    await forward(m, target, vv, key.id, key.participant || m.sender || m.jid);
+    const origSender = key.participant || m.sender || m.jid;
+    if (sameChat) await resend(m, vv, key.id, origSender);
+    else await forward(m, target, vv, key.id, origSender);
   } catch (e) {
     recent.delete(sentKey);
     console.warn(`autovv: could not forward ${key.id} to ${target}: ${e?.message || e}`);
